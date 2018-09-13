@@ -1,0 +1,316 @@
+/*.QWidget {
+   background-color: #574C62;
+}*/
+
+QWidget:window {
+    border: 0px solid #574C62;
+    background-color: #574C62;
+}
+
+.QDialog {
+   background-color: #574C62;
+}
+
+/* We provide a min-width and min-height for push buttons
+   so that they look elegant regardless of the width of the text. */
+QPushButton {
+    background-color: #F47E77;
+    border-style: none;
+    border-radius: 5;
+    padding: 3px;
+    padding-left: 7px;
+    padding-right: 7px;
+    min-width: 9ex;
+    min-height: 2.5ex;
+}
+
+QPushButton:hover {
+   background-color: #E57078;
+}
+
+QPushButton:default {
+    background-color: #EE6C88;
+}
+
+QPushButton:default:hover {
+    background-color: #D06371;
+}
+
+/* Increase the padding, so the text is shifted when the button is
+   pressed. */
+QPushButton:pressed {
+    padding-left: 5px;
+    padding-top: 5px;
+    background-color: #a2a2b5;
+}
+
+QLabel, QAbstractButton {
+    color: #ffffff;
+}
+
+/*.mandatory {
+    color: #ffffff;
+}*/
+
+/* Bold text on status bar looks awful. */
+QStatusBar QLabel {
+    font: normal;
+}
+
+QScrollBar:horizontal {
+    background: #263238;				/* Background where slider is not */
+    height: 10px;
+    margin: 0;
+}
+
+QScrollBar:vertical {
+    background: #263238;				/* Background where slider is not */
+    width: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background: #37474F;					/* Slider color */
+    min-width: 16px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: #37474F;					/* Slider color */
+    min-height: 16px;
+    border-radius: 5px;
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal,
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;												/* Removes the dotted background */
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal,
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {	/* Hides the slider arrows */
+      border: none;
+      background: none;
+}
+
+
+QGroupBox {
+background-color: #31363b;
+    border: 1px solid transparent;
+    margin-top: 1em;
+}
+
+QGroupBox::title {
+background-color: #31363b;
+
+    color: #80CBC4;
+    subcontrol-origin: margin;
+    left: 6px;
+    padding: 0 3px 0 3px;
+}
+
+
+QComboBox, QLineEdit, QSpinBox, QTextEdit, QListView {
+    color: #e8eaf6;
+    background-color: #73607A;
+    border-color: #a2a2b5;
+    border-style: none;
+    selection-color: #e8eaf6;
+    selection-background-color: #424255;
+}
+
+QListView {
+    background-color: #574C62;
+    show-decoration-selected: 1;
+}
+
+QListView::item:hover {
+    background-color: #525265;
+    border-style: none;
+
+}
+
+QTableView {
+border-style: none;
+border-bottom : #31303b;
+
+    gridline-color: #31363b;
+    background-color: #31363b;
+}
+
+QTableView,
+QHeaderView {
+    border-style: none;
+    border-radius: 0px;
+}
+
+QTableView::item:pressed,
+QListView::item:pressed,
+QTreeView::item:pressed {
+    background: #18465d;
+    color: #eff0f1;
+}
+
+QTableView::item:selected:active,
+QTreeView::item:selected:active,
+QListView::item:selected:active {
+    background: #287399;
+    color: #eff0f1;
+}
+
+QHeaderView {
+
+    border-style: none;
+
+
+}
+
+QHeaderView::section {
+    background-color: #31363b;
+    color: #eff0f1;
+    padding: 5px;
+
+    border-radius: 0px;
+    text-align: center;
+}
+
+QHeaderView::section::vertical::first,
+QHeaderView::section::vertical::only-one {
+/*    border-top: 1px solid #76797C;*/
+}
+
+QHeaderView::section::vertical {
+    border-top: transparent;
+}
+
+QHeaderView::section::horizontal::first,
+QHeaderView::section::horizontal::only-one {
+    /*border-left: 1px solid #76797C;*/
+}
+
+QHeaderView::section::horizontal {
+    border-left: transparent;
+}
+
+QHeaderView::section:checked {
+    color: white;
+    background-color: #334e5e;
+}
+
+QLineEdit, QFrame {
+    padding-left: 5px;
+    padding-right: 5px;
+    border-style: none;
+    border-radius: 5px;
+    color: #e8eaf6;
+}
+
+/* As mentioned above, eliminate the padding and increase the border. */
+QLineEdit:focus, QFrame:focus {
+    padding-left: 3px;
+}
+
+/* A QLabel is a QFrame ... */
+QLabel {
+    border: none;
+    padding: 0;
+    background: none;
+}
+
+/* A QToolTip is a QLabel ... */
+QToolTip {
+    border: 2px solid #a2a2b5;
+    padding: 5px;
+    border-radius: 3px;
+    opacity: 200;
+}
+
+QCheckBox {
+    color: #e8eaf6;
+    background-color: #574C62;
+    border-style: none;
+    padding-left: 5px;
+}
+
+::indicator {
+    color: #e8eaf6;
+    background-color: #73607A;
+    border-style: none;
+}
+
+::indicator:checked {
+    color: #e8eaf6;
+    background-color: #a8aab6;
+    border-style: solid;
+    border-width: 3px;
+    border-color: #73607A;
+}
+
+QCheckBox::indicator {
+    border-radius: 3;
+}
+
+QRadioButton::indicator {
+    border-radius: 7;
+}
+
+/* Force the dialog's buttons to follow the Windows guidelines. */
+QDialogButtonBox {
+    button-layout: 0;
+}
+
+
+QMenuBar {
+    background-color: #31363b;
+    color: #eff0f1;
+}
+
+QMenuBar::item {
+    background: transparent;
+}
+
+QMenuBar::item:selected {
+    background: transparent;
+    border: 1px solid #76797C;
+}
+
+QMenuBar::item:pressed {
+    background-color: #3daee9;
+    color: #eff0f1;
+    margin-bottom: -1px;
+    padding-bottom: 1px;
+}
+
+QMenu {
+    background-color: #372f3a;
+    border: 1px solid #76797C;
+    color: #eff0f1;
+    margin: 2px;
+}
+
+QMenu::icon {
+    margin: 5px;
+}
+
+QMenu::item {
+    padding: 5px 30px 5px 30px;
+    border: 1px solid transparent;
+    /* reserve space for selection border */
+    background-color: #372f3a;
+}
+
+QMenu::item:selected {
+    color: #eff0f1;
+}
+
+QMenu::separator {
+    height: 2px;
+    background: lightblue;
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+QMenu::indicator {
+    width: 18px;
+    height: 18px;
+}
+

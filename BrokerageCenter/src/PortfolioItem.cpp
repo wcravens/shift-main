@@ -1,0 +1,156 @@
+#include "PortfolioItem.h"
+
+PortfolioItem::PortfolioItem()
+    : m_symbol{ "" }
+    , m_borrowedBalance{ 0.0 }
+    , m_pl{ 0.0 }
+    , m_longPrice{ 0.0 }
+    , m_shortPrice{ 0.0 }
+    , m_longShares{ 0 }
+    , m_shortShares{ 0 }
+{
+}
+
+PortfolioItem::PortfolioItem(std::string symbol)
+    : m_symbol{ std::move(symbol) }
+    , m_borrowedBalance{ 0.0 }
+    , m_pl{ 0.0 }
+    , m_longPrice{ 0.0 }
+    , m_shortPrice{ 0.0 }
+    , m_longShares{ 0 }
+    , m_shortShares{ 0 }
+{
+}
+
+PortfolioItem::PortfolioItem(std::string symbol, double price, int shares)
+    : m_symbol{ std::move(symbol) }
+    , m_borrowedBalance{ 0.0 }
+    , m_pl{ 0.0 }
+{
+    if (shares >= 0) {
+        m_longPrice = price;
+        m_shortPrice = 0.0;
+        m_longShares = shares;
+        m_shortShares = 0;
+    } else {
+        m_longPrice = 0.0;
+        m_shortPrice = price;
+        m_longShares = 0;
+        m_shortShares = -shares;
+    }
+}
+
+void PortfolioItem::addBorrowedBalance(double value)
+{
+    m_borrowedBalance += value;
+}
+
+void PortfolioItem::addPL(double value)
+{
+    m_pl += value;
+}
+
+void PortfolioItem::addLongPrice(double value, int quantity)
+{
+    if (quantity > 0) {
+        m_longPrice = (m_longPrice * m_longShares + value * quantity) / (m_longShares + quantity);
+    }
+}
+
+void PortfolioItem::addShortPrice(double value, int quantity)
+{
+    if (quantity > 0) {
+        m_shortPrice = (m_shortPrice * m_shortShares + value * quantity) / (m_shortShares + quantity);
+    }
+}
+
+void PortfolioItem::addLongShares(int value)
+{
+    m_longShares += value;
+}
+
+void PortfolioItem::addShortShares(int value)
+{
+    m_shortShares += value;
+}
+
+void PortfolioItem::resetBorrowedBalance()
+{
+    m_borrowedBalance = 0.0;
+}
+
+void PortfolioItem::resetPL()
+{
+    m_pl = 0.0;
+}
+
+void PortfolioItem::resetLongPrice()
+{
+    m_longPrice = 0.0;
+}
+
+void PortfolioItem::resetShortPrice()
+{
+    m_shortPrice = 0.0;
+}
+
+void PortfolioItem::resetLongShares()
+{
+    m_longShares = 0;
+}
+
+void PortfolioItem::resetShortShares()
+{
+    m_shortShares = 0;
+}
+
+const std::string& PortfolioItem::getSymbol() const
+{
+    return m_symbol;
+}
+
+double PortfolioItem::getBorrowedBalance() const
+{
+    return m_borrowedBalance;
+}
+
+double PortfolioItem::getPL() const
+{
+    return m_pl;
+}
+
+double PortfolioItem::getSummaryPrice() const
+{
+    if (getSummaryShares() == 0) {
+        return 0.0;
+    } else if (getSummaryShares() > 0.0) {
+        return m_longPrice;
+    } else {
+        return m_shortPrice;
+    }
+}
+
+double PortfolioItem::getLongPrice() const
+{
+    return m_longPrice;
+}
+
+double PortfolioItem::getShortPrice() const
+{
+    return m_shortPrice;
+}
+
+int PortfolioItem::getSummaryShares() const
+{
+    return m_longShares - m_shortShares;
+}
+
+int PortfolioItem::getLongShares() const
+{
+    return m_longShares;
+}
+
+int PortfolioItem::getShortShares() const
+{
+    return m_shortShares;
+}

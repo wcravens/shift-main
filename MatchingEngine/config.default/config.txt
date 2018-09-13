@@ -1,0 +1,45 @@
+# For each stock, create a new "stock" entry below, e.g. "stock=JPM".
+# "date": the date to be simulated, e.g. "date=2017-03-15".
+# "starttime": opening time of the market, e.g. "starttime=09:30:00".
+# "endtime": closing time of the market, e.g. "endtime=16:00:00".
+# (Deprecated) "speed": speed of the simulation, slower or faster than reality:
+#     any positive double value is accepted, but no more than 5 is recommended.
+# Any line beginning with # will be ignored.
+
+# Dow Jones Industrial Average (last update: 2018-06-26)
+
+stock=MMM
+stock=AXP
+stock=AAPL.O
+stock=BA
+stock=CAT
+stock=CVX
+stock=CSCO.O
+stock=KO
+stock=DWDP.K
+stock=XOM
+stock=GS
+stock=HD
+stock=IBM
+stock=INTC.O
+stock=JNJ
+stock=JPM
+stock=MCD
+stock=MRK
+stock=MSFT.O
+stock=NKE
+stock=PFE
+stock=PG
+stock=TRV
+stock=UNH
+stock=UTX
+stock=VZ
+stock=V
+stock=WMT
+stock=WBA.O
+stock=DIS
+
+date=2018-03-15
+starttime=09:30:00
+endtime=16:00:00
+speed=1

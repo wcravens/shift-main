@@ -1,0 +1,110 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch FileCryptor",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/FileCryptor",
+            "args": [
+                "--encrypt",
+                "${workspaceFolder}/filecryptor/sample.txt"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/Debug/",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(lldb) Launch FileCryptor",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/FileCryptor",
+            "args": [
+                "--encrypt",
+                "${workspaceFolder}/filecryptor/sample.txt"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/Debug/",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "(gdb) Launch GUIDTester",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/GUIDTester",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/Debug/",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(lldb) Launch GUIDTester",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/GUIDTester",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/Debug/",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "(gdb) Launch TRTHRESTDownloader",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/TRTHRESTDownloader",
+            "args": [
+                "--jsondir",
+                "${workspaceFolder}/trthrestdownloader/"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/Debug/",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(lldb) Launch TRTHRESTDownloader",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/TRTHRESTDownloader",
+            "args": [
+                "--jsondir",
+                "${workspaceFolder}/trthrestdownloader/"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/Debug/",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb"
+        }
+    ]
+}

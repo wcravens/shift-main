@@ -1,0 +1,338 @@
+/* make space for nav*/
+
+body {
+    padding-top: 61px;
+}
+
+.container {
+    min-width: 80%;
+}
+
+
+/* ############################################Text##############################################  */
+
+
+/* text align */
+
+.alignleft {
+    float: left;
+}
+
+.alignright {
+    float: right;
+}
+
+.alignup {
+    vertical-align: top;
+}
+
+.aligndown {
+    vertical-align: bottom;
+}
+
+
+/* price change color */
+
+.rise {
+    color: #06a206;
+}
+
+.drop {
+    color: #a20606;
+}
+
+.normal {
+    color: #000000;
+}
+
+.grey {
+    color: #a8acae;
+}
+
+
+/* glyphicon size */
+
+.glyphicon.glyphicon-bigger {
+    font-size: 18px;
+}
+
+.glyphicon.glyphicon-smaller {
+    font-size: 9px;
+    top: -2px;
+}
+
+
+/* front bold */
+
+.bold {
+    font-weight: bold;
+}
+
+.notselectable {
+    user-select: none;
+}
+
+.notwrap {
+    white-space: nowrap;
+}
+
+
+/* ############################################Table############################################## */
+
+.nomargin {
+    margin-bottom: 0px !important;
+}
+
+/* .row_rise {
+    background-color: #c5ffb3;
+}
+
+.row_drop {
+    background-color: #f8b6b7;
+} */
+
+
+/* ############################################Media############################################## */
+
+@media (max-width: 1200px) {
+    .notimp {
+        display: none;
+        visibility: hidden;
+    }
+}
+
+@media (max-width: 991px) {
+    .btn-group {
+        width: 223px !important;
+    }
+}
+
+@media (max-width: 770px) {
+    .collapseitem {
+        width: auto !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #symbol {
+        width: 472px !important;
+    }
+    #price_input {
+        width: 439px !important;
+    }
+    #quantity_input {
+        width: 368px !important;
+    }
+    .form-group {
+        padding-bottom: 0px !important;
+    }
+}
+
+@media (max-width: 550px) {
+    .notimpcol {
+        display: none;
+        visibility: hidden;
+    }
+}
+
+@media (max-width: 1200px) {
+    .notimpcol2 {
+        display: none;
+        visibility: hidden;
+    }
+}
+
+@media (max-width: 518px) {
+    #symbol {
+        width: 222px !important;
+    }
+    #price_input {
+        width: 189px !important;
+    }
+    #quantity_input {
+        width: 118px !important;
+    }
+    .form-group {
+        padding-bottom: 0px !important;
+    }
+}
+
+.notimp {
+    color: #C2C2C2 !important;
+}
+
+
+/* ############################################Form############################################## */
+
+#price_input,
+#quantity_input {
+    width: auto;
+}
+
+
+/* ############################################Bootstrap############################################## */
+
+/* my own bootstrap modify */
+.header3 {
+    user-select: none;
+    white-space: nowrap;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+
+/* ############################################highchart############################################## */
+
+.chart {
+    min-width: 300px;
+    max-width: 800px;
+    height: 300px;
+    margin: 1em auto;
+}
+
+.modal {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.modal .chart {
+    height: 90%;
+}
+
+
+/* ############################################icon############################################## */
+
+.icon-flipped {
+    transform: scaleX(-1) !important;
+    -moz-transform: scaleX(-1) !important;
+    -webkit-transform: scaleX(-1) !important;
+    -ms-transform: scaleX(-1) !important;
+}
+
+
+/* ############################################override nav inverse############################################## */
+
+
+/*make SHIFTProject always white*/
+
+.navbar-brand {
+    color: #f8f8f8 !important;
+}
+
+
+/* make it take the whole height */
+
+.navbar .navbar-nav>li>a {
+    color: #C2C2C2 !important;
+    line-height: 22px;
+}
+
+.navbar-inverse .navbar-brand {
+    height: 52;
+    border-bottom-width: 0px !important;
+}
+
+
+/* make it borderless navbar */
+
+.navbar-fixed-top {
+    border-bottom-width: 0px !important;
+}
+
+.navbar-inverse {
+    background-color: rgba(60, 62, 64, 0.80) !important;
+    border-color: rgba(60, 62, 64, 0.80) !important;
+}
+
+.navbar-inverse .navbar-nav>.active>a,
+.navbar-inverse .navbar-nav>.active>a:hover,
+.navbar-inverse .navbar-nav>.active>a:focus {
+    color: #FFFFFF !important;
+    background-color: rgba(0, 0, 0, 0.50) !important;
+}
+
+
+/* ############################################BUG of highshart the way to fix############################################## */
+
+
+/* ############################################Switch CSS############################################## */
+
+
+/* The switch - the box around the slider */
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 16px;
+    margin-bottom: 0px;
+    font-weight: normal;
+}
+
+
+/* Hide default HTML checkbox */
+
+.switch input {
+    display: none;
+}
+
+
+/* The slider */
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: -1;
+    left: 80;
+    right: -80;
+    bottom: -1;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 4px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #2196F3;
+}
+
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked+.slider:before {
+    -webkit-transform: translateX(20px);
+    -ms-transform: translateX(20px);
+    transform: translateX(20px);
+}
+
+/* Rounded sliders */
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* make dropdown header in colipse easier to see */
+.dropdown-header {
+    color: #979797 !important;
+}

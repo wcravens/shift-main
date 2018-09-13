@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SHIFT Developer Guide</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style type="text/css">
+body {
+-ms-text-size-adjust: 100%;
+-webkit-text-size-adjust: 100%;
+line-height: 1.5;
+color: #24292e;
+font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+font-size: 16px;
+line-height: 1.5;
+word-wrap: break-word;
+}
+body .pl-c {
+color: #969896;
+}
+body .pl-c1,
+body .pl-s .pl-v {
+color: #0086b3;
+}
+body .pl-e,
+body .pl-en {
+color: #795da3;
+}
+body .pl-smi,
+body .pl-s .pl-s1 {
+color: #333;
+}
+body .pl-ent {
+color: #63a35c;
+}
+body .pl-k {
+color: #a71d5d;
+}
+body .pl-s,
+body .pl-pds,
+body .pl-s .pl-pse .pl-s1,
+body .pl-sr,
+body .pl-sr .pl-cce,
+body .pl-sr .pl-sre,
+body .pl-sr .pl-sra {
+color: #183691;
+}
+body .pl-v,
+body .pl-smw {
+color: #ed6a43;
+}
+body .pl-bu {
+color: #b52a1d;
+}
+body .pl-ii {
+color: #f8f8f8;
+background-color: #b52a1d;
+}
+body .pl-c2 {
+color: #f8f8f8;
+background-color: #b52a1d;
+}
+body .pl-c2::before {
+content: "^M";
+}
+body .pl-sr .pl-cce {
+font-weight: bold;
+color: #63a35c;
+}
+body .pl-ml {
+color: #693a17;
+}
+body .pl-mh,
+body .pl-mh .pl-en,
+body .pl-ms {
+font-weight: bold;
+color: #1d3e81;
+}
+body .pl-mq {
+color: #008080;
+}
+body .pl-mi {
+font-style: italic;
+color: #333;
+}
+body .pl-mb {
+font-weight: bold;
+color: #333;
+}
+body .pl-md {
+color: #bd2c00;
+background-color: #ffecec;
+}
+body .pl-mi1 {
+color: #55a532;
+background-color: #eaffea;
+}
+body .pl-mc {
+color: #ef9700;
+background-color: #ffe3b4;
+}
+body .pl-mi2 {
+color: #d8d8d8;
+background-color: #808080;
+}
+body .pl-mdr {
+font-weight: bold;
+color: #795da3;
+}
+body .pl-mo {
+color: #1d3e81;
+}
+body .pl-ba {
+color: #595e62;
+}
+body .pl-sg {
+color: #c0c0c0;
+}
+body .pl-corl {
+text-decoration: underline;
+color: #183691;
+}
+body .octicon {
+display: inline-block;
+vertical-align: text-top;
+fill: currentColor;
+}
+body a {
+background-color: transparent;
+-webkit-text-decoration-skip: objects;
+}
+body a:active,
+body a:hover {
+outline-width: 0;
+}
+body strong {
+font-weight: inherit;
+}
+body strong {
+font-weight: bolder;
+}
+body h1 {
+font-size: 2em;
+margin: 0.67em 0;
+}
+body img {
+border-style: none;
+}
+body svg:not(:root) {
+overflow: hidden;
+}
+body code,
+body kbd,
+body pre {
+font-family: monospace, monospace;
+font-size: 1em;
+}
+body hr {
+box-sizing: content-box;
+height: 0;
+overflow: visible;
+}
+body input {
+font: inherit;
+margin: 0;
+}
+body input {
+overflow: visible;
+}
+body [type="checkbox"] {
+box-sizing: border-box;
+padding: 0;
+}
+body * {
+box-sizing: border-box;
+}
+body input {
+font-family: inherit;
+font-size: inherit;
+line-height: inherit;
+}
+body a {
+color: #0366d6;
+text-decoration: none;
+}
+body a:hover {
+text-decoration: underline;
+}
+body strong {
+font-weight: 600;
+}
+body hr {
+height: 0;
+margin: 15px 0;
+overflow: hidden;
+background: transparent;
+border: 0;
+border-bottom: 1px solid #dfe2e5;
+}
+body hr::before {
+display: table;
+content: "";
+}
+body hr::after {
+display: table;
+clear: both;
+content: "";
+}
+body table {
+border-spacing: 0;
+border-collapse: collapse;
+}
+body td,
+body th {
+padding: 0;
+}
+body h1,
+body h2,
+body h3,
+body h4,
+body h5,
+body h6 {
+margin-top: 0;
+margin-bottom: 0;
+}
+body h1 {
+font-size: 32px;
+font-weight: 600;
+}
+body h2 {
+font-size: 24px;
+font-weight: 600;
+}
+body h3 {
+font-size: 20px;
+font-weight: 600;
+}
+body h4 {
+font-size: 16px;
+font-weight: 600;
+}
+body h5 {
+font-size: 14px;
+font-weight: 600;
+}
+body h6 {
+font-size: 12px;
+font-weight: 600;
+}
+body p {
+margin-top: 0;
+margin-bottom: 10px;
+}
+body blockquote {
+margin: 0;
+}
+body ul,
+body ol {
+padding-left: 0;
+margin-top: 0;
+margin-bottom: 0;
+}
+body ol ol,
+body ul ol {
+list-style-type: lower-roman;
+}
+body ul ul ol,
+body ul ol ol,
+body ol ul ol,
+body ol ol ol {
+list-style-type: lower-alpha;
+}
+body dd {
+margin-left: 0;
+}
+body code {
+font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+font-size: 12px;
+}
+body pre {
+margin-top: 0;
+margin-bottom: 0;
+font: 12px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+body .octicon {
+vertical-align: text-bottom;
+}
+body .pl-0 {
+padding-left: 0 !important;
+}
+body .pl-1 {
+padding-left: 4px !important;
+}
+body .pl-2 {
+padding-left: 8px !important;
+}
+body .pl-3 {
+padding-left: 16px !important;
+}
+body .pl-4 {
+padding-left: 24px !important;
+}
+body .pl-5 {
+padding-left: 32px !important;
+}
+body .pl-6 {
+padding-left: 40px !important;
+}
+body::before {
+display: table;
+content: "";
+}
+body::after {
+display: table;
+clear: both;
+content: "";
+}
+body>*:first-child {
+margin-top: 0 !important;
+}
+body>*:last-child {
+margin-bottom: 0 !important;
+}
+body a:not([href]) {
+color: inherit;
+text-decoration: none;
+}
+body .anchor {
+float: left;
+padding-right: 4px;
+margin-left: -20px;
+line-height: 1;
+}
+body .anchor:focus {
+outline: none;
+}
+body p,
+body blockquote,
+body ul,
+body ol,
+body dl,
+body table,
+body pre {
+margin-top: 0;
+margin-bottom: 16px;
+}
+body hr {
+height: 0.25em;
+padding: 0;
+margin: 24px 0;
+background-color: #e1e4e8;
+border: 0;
+}
+body blockquote {
+padding: 0 1em;
+color: #6a737d;
+border-left: 0.25em solid #dfe2e5;
+}
+body blockquote>:first-child {
+margin-top: 0;
+}
+body blockquote>:last-child {
+margin-bottom: 0;
+}
+body kbd {
+display: inline-block;
+padding: 3px 5px;
+font-size: 11px;
+line-height: 10px;
+color: #444d56;
+vertical-align: middle;
+background-color: #fafbfc;
+border: solid 1px #c6cbd1;
+border-bottom-color: #959da5;
+border-radius: 3px;
+box-shadow: inset 0 -1px 0 #959da5;
+}
+body h1,
+body h2,
+body h3,
+body h4,
+body h5,
+body h6 {
+margin-top: 24px;
+margin-bottom: 16px;
+font-weight: 600;
+line-height: 1.25;
+}
+body h1 .octicon-link,
+body h2 .octicon-link,
+body h3 .octicon-link,
+body h4 .octicon-link,
+body h5 .octicon-link,
+body h6 .octicon-link {
+color: #1b1f23;
+vertical-align: middle;
+visibility: hidden;
+}
+body h1:hover .anchor,
+body h2:hover .anchor,
+body h3:hover .anchor,
+body h4:hover .anchor,
+body h5:hover .anchor,
+body h6:hover .anchor {
+text-decoration: none;
+}
+body h1:hover .anchor .octicon-link,
+body h2:hover .anchor .octicon-link,
+body h3:hover .anchor .octicon-link,
+body h4:hover .anchor .octicon-link,
+body h5:hover .anchor .octicon-link,
+body h6:hover .anchor .octicon-link {
+visibility: visible;
+}
+body h1 {
+padding-bottom: 0.3em;
+font-size: 2em;
+border-bottom: 1px solid #eaecef;
+}
+body h2 {
+padding-bottom: 0.3em;
+font-size: 1.5em;
+border-bottom: 1px solid #eaecef;
+}
+body h3 {
+font-size: 1.25em;
+}
+body h4 {
+font-size: 1em;
+}
+body h5 {
+font-size: 0.875em;
+}
+body h6 {
+font-size: 0.85em;
+color: #6a737d;
+}
+body ul,
+body ol {
+padding-left: 2em;
+}
+body ul ul,
+body ul ol,
+body ol ol,
+body ol ul {
+margin-top: 0;
+margin-bottom: 0;
+}
+body li>p {
+margin-top: 16px;
+}
+body li+li {
+margin-top: 0.25em;
+}
+body dl {
+padding: 0;
+}
+body dl dt {
+padding: 0;
+margin-top: 16px;
+font-size: 1em;
+font-style: italic;
+font-weight: 600;
+}
+body dl dd {
+padding: 0 16px;
+margin-bottom: 16px;
+}
+body table {
+display: block;
+width: 100%;
+overflow: auto;
+}
+body table th {
+font-weight: 600;
+}
+body table th,
+body table td {
+padding: 6px 13px;
+border: 1px solid #dfe2e5;
+}
+body table tr {
+background-color: #fff;
+border-top: 1px solid #c6cbd1;
+}
+body table tr:nth-child(2n) {
+background-color: #f6f8fa;
+}
+body img {
+max-width: 100%;
+box-sizing: content-box;
+background-color: #fff;
+}
+body code {
+padding: 0;
+padding-top: 0.2em;
+padding-bottom: 0.2em;
+margin: 0;
+font-size: 85%;
+background-color: rgba(27,31,35,0.05);
+border-radius: 3px;
+}
+body code::before,
+body code::after {
+letter-spacing: -0.2em;
+content: "\00a0";
+}
+body pre {
+word-wrap: normal;
+}
+body pre>code {
+padding: 0;
+margin: 0;
+font-size: 100%;
+word-break: normal;
+white-space: pre;
+background: transparent;
+border: 0;
+}
+body .highlight {
+margin-bottom: 16px;
+}
+body .highlight pre {
+margin-bottom: 0;
+word-break: normal;
+}
+body .highlight pre,
+body pre {
+padding: 16px;
+overflow: auto;
+font-size: 85%;
+line-height: 1.45;
+background-color: #f6f8fa;
+border-radius: 3px;
+}
+body pre code {
+display: inline;
+max-width: auto;
+padding: 0;
+margin: 0;
+overflow: visible;
+line-height: inherit;
+word-wrap: normal;
+background-color: transparent;
+border: 0;
+}
+body pre code::before,
+body pre code::after {
+content: normal;
+}
+body .full-commit .btn-outline:not(:disabled):hover {
+color: #005cc5;
+border-color: #005cc5;
+}
+body kbd {
+display: inline-block;
+padding: 3px 5px;
+font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+line-height: 10px;
+color: #444d56;
+vertical-align: middle;
+background-color: #fcfcfc;
+border: solid 1px #c6cbd1;
+border-bottom-color: #959da5;
+border-radius: 3px;
+box-shadow: inset 0 -1px 0 #959da5;
+}
+body :checked+.radio-label {
+position: relative;
+z-index: 1;
+border-color: #0366d6;
+}
+body .task-list-item {
+list-style-type: none;
+}
+body .task-list-item+.task-list-item {
+margin-top: 3px;
+}
+body .task-list-item input {
+margin: 0 0.2em 0.25em -1.6em;
+vertical-align: middle;
+}
+body hr {
+border-bottom-color: #eee;
+}
+</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header>
+<h1 class="title">SHIFT Developer Guide</h1>
+</header>
+<h2 id="build-tools">Build Tools</h2>
+<p>These are required in order to install all tools and libraries contained in this guide.</p>
+<h3 id="ubuntu">Ubuntu:</h3>
+<ul>
+<li>In the Terminal: <code>sudo apt-get install autoconf build-essential</code></li>
+</ul>
+<h3 id="macos">macOS:</h3>
+<ul>
+<li><p>In the Terminal: <code>xcode-select --install</code></p></li>
+<li>Install <a href="http://brew.sh/">Homebrew</a> (APT-like environment for macOS):
+<ul>
+<li>In the Terminal: <code>/usr/bin/ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</code></li>
+</ul></li>
+</ul>
+<hr />
+<h2 id="installation-instructions">Installation Instructions</h2>
+<p>When installing in each of the platforms, use the following commands:</p>
+<h3 id="ubuntu-1">Ubuntu:</h3>
+<ul>
+<li>In the Terminal: <code>sudo apt-get install [pkg]</code></li>
+</ul>
+<h3 id="macos-1">macOS:</h3>
+<ul>
+<li>In the Terminal: <code>brew install [formula]</code></li>
+</ul>
+<p>Additional instructions for each platform may be included at the end of each section.</p>
+<hr />
+<h2 id="required-libraries">Required Libraries</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Library</th>
+<th>Ubuntu [pkg]</th>
+<th>macOS [formula]</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Boost (C++ libraries)</td>
+<td><code>libboost-all-dev</code></td>
+<td><code>boost</code></td>
+</tr>
+<tr class="even">
+<td>C++ REST SDK</td>
+<td><code>libcpprest-dev</code></td>
+<td><code>cpprestsdk</code></td>
+</tr>
+<tr class="odd">
+<td>cURL</td>
+<td><code>libcurl4-openssl-dev</code></td>
+<td><em>pre-installed</em></td>
+</tr>
+<tr class="even">
+<td>OpenSSL</td>
+<td><code>libssl-dev</code></td>
+<td><code>openssl</code></td>
+</tr>
+<tr class="odd">
+<td>libxml2</td>
+<td><code>libxml2-dev</code></td>
+<td><em>pre-installed</em></td>
+</tr>
+<tr class="even">
+<td>PostgreSQL</td>
+<td><code>postgresql-server-dev-all</code></td>
+<td><code>postgresql</code> <strong>*</strong></td>
+</tr>
+<tr class="odd">
+<td>UUID</td>
+<td><code>uuid-dev</code></td>
+<td><em>pre-installed</em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>*</strong> This macOS formula installs both PostgreSQL and its libraries.</p>
+<h3 id="macos-2">macOS:</h3>
+<ul>
+<li>In the Terminal:</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">ln</span> -s /usr/local/opt/postgresql/include /usr/local/include/postgresql</a></code></pre></div>
+<hr />
+<h2 id="required-tools">Required Tools</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Tool</th>
+<th>Ubuntu [pkg]</th>
+<th>macOS [formula]</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CMake</td>
+<td><code>cmake</code></td>
+<td><code>cmake</code></td>
+</tr>
+<tr class="even">
+<td>Doxygen</td>
+<td><code>doxygen</code></td>
+<td><code>doxygen --with-llvm</code></td>
+</tr>
+<tr class="odd">
+<td>Git</td>
+<td><code>git</code></td>
+<td><code>git</code></td>
+</tr>
+<tr class="even">
+<td>Pandoc</td>
+<td><code>pandoc</code></td>
+<td><code>pandoc</code></td>
+</tr>
+<tr class="odd">
+<td>pkg-config</td>
+<td><code>pkg-config</code></td>
+<td><code>pkg-config</code></td>
+</tr>
+<tr class="even">
+<td>PostgreSQL <strong>*</strong></td>
+<td><code>postgresql postgresql-contrib</code></td>
+<td><code>postgresql</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>*</strong> Required only in the machines where a PostgreSQL instance is needed.</p>
+<hr />
+<h2 id="recommended-tools">Recommended Tools</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Tool</th>
+<th>Ubuntu [pkg]</th>
+<th>macOS [formula]</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Nmap</td>
+<td><code>nmap</code></td>
+<td><code>nmap</code></td>
+</tr>
+<tr class="even">
+<td>cURL</td>
+<td><code>curl</code></td>
+<td><em>pre-installed</em></td>
+</tr>
+<tr class="odd">
+<td>pgAdmin</td>
+<td><code>pgadmin3</code></td>
+<td><em>use a .dmg</em></td>
+</tr>
+<tr class="even">
+<td>unzip</td>
+<td><code>unzip</code></td>
+<td><em>pre-installed</em></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="visual-studio-code">Visual Studio Code</h2>
+<p><a href="https://code.visualstudio.com/">VSCode</a> is the recommended development environment, since it works the same in every operating system, and integrates well with CMake.</p>
+<p>Once downloaded, open Visual Studio Code, and install the following extensions:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Extension</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>C/C++</code></td>
+</tr>
+<tr class="even">
+<td><code>CMake</code></td>
+</tr>
+<tr class="odd">
+<td><code>CMake Tools</code></td>
+</tr>
+<tr class="even">
+<td><code>Git History</code> <strong>*</strong></td>
+</tr>
+<tr class="odd">
+<td><code>vscode-todo-highlight</code> <strong>*</strong></td>
+</tr>
+<tr class="even">
+<td><code>vscode-icons</code> <strong>*</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>*</strong> Recommended, not required.</p>
+<p>When done, run the <code>vscode_init.sh</code> shell script located in the <code>Scripts</code> folder. This will initialize VSCode configuration files in all projects (so that one does not have to create them by themselves).</p>
+<hr />
+<h2 id="postgresql-configuration">PostgreSQL Configuration</h2>
+<p>In order to access the database from an external computer (e.g. connecting to the server via pgAdmin), refer to this <a href="https://dba.stackexchange.com/questions/83984/connect-to-postgresql-server-fatal-no-pg-hba-conf-entry-for-host/">question</a> in Stack Overflow.</p>
+<p>SHIFT connects to PostgreSQL with a user called “hanlonpgsql4”. Follow the steps below, and create this user in the last step.</p>
+<h3 id="ubuntu-2">Ubuntu:</h3>
+<ul>
+<li>In the Terminal:</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">sudo</span> service postgresql start</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="fu">sudo</span> -u postgres psql -d postgres</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="ex">CREATE</span> EXTENSION adminpack<span class="kw">;</span> <span class="ex">/*</span> complete postgresql-contrib installation */</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="ex">CREATE</span> ROLE <span class="st">&quot;&lt;user&gt;&quot;</span> WITH NOSUPERUSER CREATEDB INHERIT LOGIN ENCRYPTED PASSWORD <span class="st">'&lt;password&gt;'</span><span class="kw">;</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">\<span class="ex">q</span></a></code></pre></div>
+<h3 id="macos-3">macOS:</h3>
+<ul>
+<li>In the Terminal:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="ex">brew</span> services start postgresql</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="ex">psql</span> -d postgres</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="ex">CREATE</span> ROLE <span class="st">&quot;&lt;user&gt;&quot;</span> WITH NOSUPERUSER CREATEDB INHERIT LOGIN ENCRYPTED PASSWORD <span class="st">'&lt;password&gt;'</span><span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">\<span class="ex">q</span></a></code></pre></div>
+<hr />
+<h2 id="postgresql-database-instances-creation">PostgreSQL Database Instances Creation</h2>
+<p>These are the database instances that are required per project:</p>
+<table>
+<colgroup>
+<col style="width: 17%"></col>
+<col style="width: 24%"></col>
+<col style="width: 17%"></col>
+<col style="width: 20%"></col>
+<col style="width: 20%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Project</th>
+<th>Database Name</th>
+<th>Database Owner</th>
+<th>Creation Script</th>
+<th>Extra Script</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DatafeedEngine</td>
+<td>HFSL_dbhft</td>
+<td>hanlonpgsql4</td>
+<td><code>de_instances.sql</code></td>
+<td><em>none</em></td>
+</tr>
+<tr class="even">
+<td>BrokerageCenter</td>
+<td>shift_brokeragecenter</td>
+<td>hanlonpgsql4</td>
+<td><code>bc_instances.sql</code></td>
+<td><code>user_entries.sql</code></td>
+</tr>
+</tbody>
+</table>
+<p>If you correctly created the “hanlonpgsql4” user in the previous step, use the scripts contained in the table above (located in the <code>Scripts</code> folder) with the following commands:</p>
+<h3 id="ubuntu-3">Ubuntu:</h3>
+<ul>
+<li>In the Terminal: <code>sudo -u postgres psql -d postgres -f &lt;script_name&gt;.sql</code></li>
+</ul>
+<h3 id="macos-4">macOS:</h3>
+<ul>
+<li>In the Terminal: <code>psql -d postgres -f &lt;script_name&gt;.sql</code></li>
+</ul>
+<hr />
+<h2 id="quickfix-installation">QuickFIX Installation</h2>
+<h3 id="ubuntu-macos">Ubuntu &amp; macOS:</h3>
+<ul>
+<li>Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="ex">curl</span> -LO http://prdownloads.sourceforge.net/quickfix/quickfix-1.15.1.tar.gz</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">tar</span> -zxf quickfix-1.15.1.tar.gz</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="bu">cd</span> quickfix</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="ex">./bootstrap</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="ex">./configure</span> --prefix=/usr/local/</a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="fu">make</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="fu">sudo</span> make install</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="bu">cd</span> ..</a>
+<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="fu">rm</span> quickfix-1.15.1.tar.gz</a></code></pre></div>
+<ul>
+<li>Further Documentation: <a href="http://www.quickfixengine.org/quickfix/doc/html/" class="uri">http://www.quickfixengine.org/quickfix/doc/html/</a></li>
+</ul>
+<hr />
+<h2 id="shift-installation">SHIFT Installation</h2>
+<p><strong>Before installing any of the SHIFT servers, you should create proper configuration files.</strong></p>
+<p>The default configuration files (pointing to localhost) can be copied by using the <code>copy_config.sh</code> script contained in the <code>Scripts</code> folder or by using the <code>-f</code> parameter in the installer.</p>
+<p>To install all servers and libraries:</p>
+<ul>
+<li>In the Terminal: <code>sudo ./install.sh</code></li>
+</ul>
+<p>To uninstall all servers and libraries:</p>
+<ul>
+<li>In the Terminal: <code>sudo ./install.sh -u</code></li>
+</ul>
+<p>For additional options:</p>
+<ul>
+<li>In the Terminal: <code>./install.sh -h</code></li>
+</ul>
+<p>When installing separate modules, required SHIFT libraries will be automatically installed.</p>
+<p>A list of the aliases used by the installer is provided below.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Alias</th>
+<th>Project Name</th>
+<th>Project Type</th>
+<th>Binary/Library Name</th>
+<th>Prereqs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LM</td>
+<td>LibMiscUtils</td>
+<td>Shared Library</td>
+<td><code>libshift_miscutils</code> <strong>*</strong></td>
+<td><em>none</em></td>
+</tr>
+<tr class="even">
+<td>DE</td>
+<td>DatafeedEngine</td>
+<td>Server (Binary)</td>
+<td><code>DatafeedEngine</code></td>
+<td>LM</td>
+</tr>
+<tr class="odd">
+<td>ME</td>
+<td>MatchingEngine</td>
+<td>Server (Binary)</td>
+<td><code>MatchingEngine</code></td>
+<td><em>none</em></td>
+</tr>
+<tr class="even">
+<td>BC</td>
+<td>BrokerageCenter</td>
+<td>Server (Binary)</td>
+<td><code>BrokerageCenter</code></td>
+<td>LM</td>
+</tr>
+<tr class="odd">
+<td>LC</td>
+<td>LibCoreClient</td>
+<td>Shared Library</td>
+<td><code>libshift_coreclient</code> <strong>*</strong></td>
+<td>LM</td>
+</tr>
+</tbody>
+</table>
+<p>By default, everything is installed under /usr/local/ (in the /usr/local/SHIFT/ folder), but the <code>-p</code> parameter can be used to change the default installation path prefix.</p>
+<p>Regardless of the location chosen by the user to install SHIFT, symlinks will always be created in the following paths (and properly removed by the uninstaller if necessary).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Binaries</td>
+<td>/usr/local/bin/</td>
+</tr>
+<tr class="even">
+<td>Configuration Files</td>
+<td>/usr/local/share/SHIFT/</td>
+</tr>
+<tr class="odd">
+<td>Libraries</td>
+<td>/usr/local/lib/</td>
+</tr>
+<tr class="even">
+<td>Library Header Files</td>
+<td>/usr/local/include/shift/<em>libraryname</em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>*</strong> Library files with enabled debug symbols are also provided with the <code>-d</code> postfix.</p>
+<hr />
+<h2 id="starting-and-stopping-all-services">Starting and Stopping all Services</h2>
+<p>To start up all services:</p>
+<ul>
+<li>In the Terminal: <code>./startup.sh</code></li>
+</ul>
+<p>To terminate all services:</p>
+<ul>
+<li>In the Terminal: <code>./startup.sh -k</code></li>
+</ul>
+<p>For additional options:</p>
+<ul>
+<li>In the Terminal: <code>./startup.sh -h</code></li>
+</ul>
+<hr />
+<h2 id="fixing-the-shared-library-cache-ubuntu-18.04-lts-bionic-beaver">Fixing the Shared Library Cache (Ubuntu 18.04 LTS Bionic Beaver)</h2>
+<p>When running our servers for the first time in Ubuntu, it is possible the system will not find our shared libraries. To fix such problem:</p>
+<ul>
+<li>In the Terminal: <code>sudo ldconfig</code></li>
+</ul>
+<hr />
+</body>
+</html>

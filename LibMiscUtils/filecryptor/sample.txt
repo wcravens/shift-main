@@ -1,0 +1,5 @@
+DBHostaddr=127.0.0.1
+DBPort=5555
+DBname=shift_datafeedengine
+DBUser=hanlonpgsql4
+DBPassword=D90skos39FJxh3

@@ -1,0 +1,525 @@
+/* 
+https://developers.thomsonreuters.com/sites/default/files/Thomson%20Reuters%20Tick%20History%2011.0%20REST%20API%20Use%20Cases%20Reference%20v1.0.pdf
+*/
+{
+  "ExtractionRequest": {
+    "@odata.type": "#ThomsonReuters.Dss.Api.Extractions.ExtractionRequests.TickHistoryTimeAndSalesExtractionRequest",
+    "ContentFieldNames": [
+      /*-----------------------------------------------
+          Fields that used in our database:
+          (ric,reuters_date,reuters_time,reuters_time_order,toq,exchange_id,price,volume,buyer_id,bid_price,bid_size,seller_id,ask_price,ask_size,exchange_time,quote_time)
+      -----------------------------------------------*/
+      "Quote - Exchange/Contributor ID", // exchange_id
+      "Quote - Price", // price
+      "Quote - Volume", // volume
+      "Quote - Buyer ID", // buyer_id
+      "Quote - Bid Price", // bid_price
+      "Quote - Bid Size", // bid_size
+      "Quote - Seller ID", // seller_id
+      "Quote - Ask Price", // ask_price
+      "Quote - Ask Size", // ask_size
+      "Quote - Exchange Time", // exchange_time, quote_time
+      
+      "Trade - Exchange/Contributor ID",
+      "Trade - Price",
+      "Trade - Volume",
+      "Trade - Buyer ID",
+      "Trade - Bid Price",
+      "Trade - Bid Size",
+      "Trade - Seller ID",
+      "Trade - Ask Price",
+      "Trade - Ask Size",
+      "Trade - Exchange Time"//,
+      
+      /*-----------------------------------------------
+          Candidates:
+      -----------------------------------------------*/
+      // "Quote - 1M Basis Asset Swap Spread",
+      // "Quote - 30 Day ATM IV Call",
+      // "Quote - 30 Day ATM IV Put",
+      // "Quote - 3M Basis Asset Swap Spread",
+      // "Quote - 60 Day ATM IV Call",
+      // "Quote - 60 Day ATM IV Put",
+      // "Quote - 6M Basis Asset Swap Spread",
+      // "Quote - 90 Day ATM IV Call",
+      // "Quote - 90 Day ATM IV Put",
+      // "Quote - Accumulated Ask Order",
+      // "Quote - Accumulated Ask Order Size",
+      // "Quote - Accumulated Bid Order",
+      // "Quote - Accumulated Bid Order Size",
+      // "Quote - Ask Compound Yield",
+      // "Quote - Ask Dealer Count",
+      // "Quote - Ask Implied Volatility",
+      // "Quote - Ask Market Maker ID",
+      // "Quote - Ask Spread",
+      // "Quote - Ask Yield",
+      // "Quote - Asset Swap Spread",
+      // "Quote - Asset Swap Spread Ask",
+      // "Quote - Asset Swap Spread Bid",
+      // "Quote - Background Reference",
+      // "Quote - Base Correlation",
+      // "Quote - Basis Point Volatilty",
+      // "Quote - Bench Price",
+      // "Quote - Benchmark Spread",
+      // "Quote - Benchmark Spread Ask",
+      // "Quote - Benchmark Spread Bid",
+      // "Quote - Benchmark Yield",
+      // "Quote - Bid Compound Yield",
+      // "Quote - Bid Dealer Count",
+      // "Quote - Bid Implied Volatility",
+      // "Quote - Bid Market Maker ID",
+      // "Quote - Bid Spread",
+      // "Quote - Bid Tick",
+      // "Quote - Bid Yield",
+      // "Quote - Bond Floor",
+      // "Quote - BPV",
+      // "Quote - Breakeven Inflation",
+      // "Quote - Cap Premium",
+      // "Quote - Carry Roll-down Total",
+      // "Quote - CDS Dollar Value Of 1 Basis Point",
+      // "Quote - Closest-to-Maturity CDS Basis",
+      // "Quote - Constant Maturity Yield",
+      // "Quote - Contributor Location Code",
+      // "Quote - Conversion Factor",
+      // "Quote - Convexity",
+      // "Quote - Convexity Bias",
+      // "Quote - Cost of Carry",
+      // "Quote - Crack",
+      // "Quote - Dealing Code",
+      // "Quote - Default Probability",
+      // "Quote - Delta",
+      // "Quote - Discount Ask",
+      // "Quote - Discount Bid",
+      // "Quote - Discount Factor",
+      // "Quote - Discount Margin",
+      // "Quote - Discount Margin Ask",
+      // "Quote - Discount Margin Bid",
+      // "Quote - Discount Rate",
+      // "Quote - Display Name",
+      // "Quote - Duration",
+      // "Quote - Edge",
+      // "Quote - Effective Convexity",
+      // "Quote - Effective Duration",
+      // "Quote - Fair Price",
+      // "Quote - Fair Value Accuracy Measure",
+      // "Quote - Fair Value Consistency Score",
+      // "Quote - Fair Value DV01",
+      // "Quote - Fair Value Spread",
+      // "Quote - Fair Value Yield",
+      // "Quote - Far Clearing Price",
+      // "Quote - Fixed Coupon",
+      // "Quote - Fixing Date",
+      // "Quote - Fixing Value",
+      // "Quote - Floor Premium",
+      // "Quote - Forecast Average Swap Points",
+      // "Quote - Forecast High",
+      // "Quote - Forecast Low",
+      // "Quote - Forecast Mean",
+      // "Quote - Forecast Median",
+      // "Quote - Forecast Standard Deviation",
+      // "Quote - Forward Future Risk",
+      // "Quote - Forward Outright Ask",
+      // "Quote - Forward Outright Bid",
+      // "Quote - Forward Rate",
+      // "Quote - Freight Price",
+      // "Quote - Futures Basis",
+      // "Quote - Futures Risk",
+      // "Quote - Gamma",
+      // "Quote - Gross Basis",
+      // "Quote - Halt Reason",
+      // "Quote - Hedge Ratio",
+      // "Quote - High",
+      // "Quote - High Yield",
+      // "Quote - Imbalance Activity Type",
+      // "Quote - Imbalance Quantity",
+      // "Quote - Imbalance Side",
+      // "Quote - Imbalance Variation Indicator",
+      // "Quote - Implied Correlation",
+      // "Quote - Implied Repo Rate",
+      // "Quote - Implied Volatility",
+      // "Quote - Implied Yield",
+      // "Quote - Index Skew",
+      // "Quote - Interpolated CDS Basis",
+      // "Quote - Interpolated CDS Spread",
+      // "Quote - Invoice Price",
+      // "Quote - Invoice Spread",
+      // "Quote - ISMA Ask Yield",
+      // "Quote - ISMA Bid Yield",
+      // "Quote - Level-Up Level-Down Indicator",
+      // "Quote - Low",
+      // "Quote - Low Yield",
+      // "Quote - Lower Limit Price",
+      // "Quote - Mean Reversion",
+      // "Quote - Mid Price",
+      // "Quote - Mid Spread",
+      // "Quote - Mid Yield",
+      // "Quote - Modified Duration",
+      // "Quote - Near Clearing Price",
+      // "Quote - Net Basis",
+      // "Quote - Net Change",
+      // "Quote - Number of Buyers",
+      // "Quote - Number of Sellers",
+      // "Quote - Open",
+      // "Quote - Open Yield",
+      // "Quote - Option Adjusted Spread",
+      // "Quote - Option Adjusted Spread Ask",
+      // "Quote - Option Adjusted Spread Bid",
+      // "Quote - Paired Quantity",
+      // "Quote - Par Yield",
+      // "Quote - Parity",
+      // "Quote - Premium",
+      // "Quote - Present Value of Basis Point",
+      // "Quote - Qualifiers",
+      // "Quote - Real Yield Ask",
+      // "Quote - Real Yield Bid",
+      // "Quote - Recovery Rate",
+      // "Quote - Reference Bond Yield",
+      // "Quote - Reference Price",
+      // "Quote - Reserve Vol",
+      // "Quote - Roll-down",
+      // "Quote - Running Spread",
+      // "Quote - Sequence Number",
+      // "Quote - Short Rate Volatility",
+      // "Quote - Short Sale Restriction Indicator",
+      // "Quote - Simple Margin",
+      // "Quote - Source Reference",
+      // "Quote - Sovereign Spread",
+      // "Quote - Spread to Treasury",
+      // "Quote - Strike",
+      // "Quote - Swap Point",
+      // "Quote - Swap Premium",
+      // "Quote - Swap Rate",
+      // "Quote - Swap Spread",
+      // "Quote - Swap Spread Ask",
+      // "Quote - Swap Spread Bid",
+      // "Quote - Swap Yield",
+      // "Quote - Theoretical Price",
+      // "Quote - Theoretical Price Ask",
+      // "Quote - Theoretical Price Bid",
+      // "Quote - Theoretical Price Mid",
+      // "Quote - Theoretical Spread Ask",
+      // "Quote - Theoretical Spread Bid",
+      // "Quote - Theoretical Spread Mid",
+      // "Quote - Theta",
+      // "Quote - Top",
+      // "Quote - Trading Status",
+      // "Quote - Upper Limit Price",
+      // "Quote - Volatility",
+      // "Quote - Yield",
+      // "Quote - Yield To Call",
+      // "Quote - Yield to Maturity",
+      // "Quote - Yield to Maturity Ask",
+      // "Quote - Yield to Maturity Bid",
+      // "Quote - Yield To Put",
+      // "Quote - YTB",
+      // "Quote - YTW",
+      // "Quote - Z Spread",
+      // "Quote - Zero Yield",
+      // "Trade - 30 Day ATM IV Call",
+      // "Trade - 30 Day ATM IV Put",
+      // "Trade - 60 Day ATM IV Call",
+      // "Trade - 60 Day ATM IV Put",
+      // "Trade - 90 Day ATM IV Call",
+      // "Trade - 90 Day ATM IV Put",
+      // "Trade - Accumulated Ask Order",
+      // "Trade - Accumulated Ask Order Size",
+      // "Trade - Accumulated Bid Order",
+      // "Trade - Accumulated Bid Order Size",
+      // "Trade - Accumulated Volume",
+      // "Trade - Actual",
+      // "Trade - Advancing Issues",
+      // "Trade - Advancing Moves",
+      // "Trade - Advancing Volume",
+      // "Trade - Aggressive Order Condition",
+      // "Trade - Ask Yield",
+      // "Trade - Average Price",
+      // "Trade - Background Reference",
+      // "Trade - Bench Price",
+      // "Trade - Bid Yield",
+      // "Trade - Block Trade",
+      // "Trade - Categorization of Trades",
+      // "Trade - Changed Market",
+      // "Trade - Commodity Basis",
+      // "Trade - Compound Yield",
+      // "Trade - Contributor Location Code",
+      // "Trade - Crack",
+      // "Trade - Daily Quota Remaining Balance",
+      // "Trade - Dealing Code",
+      // "Trade - Declining Issues",
+      // "Trade - Declining Moves",
+      // "Trade - Declining Volume",
+      // "Trade - Display Name",
+      // "Trade - Energy Netback",
+      // "Trade - Energy Swing",
+      // "Trade - Energy Variance",
+      // "Trade - Exchange For Physical Volume",
+      // "Trade - Exchange For Swaps Volume",
+      // "Trade - Fair Value",
+      // "Trade - Fair Value Volume",
+      // "Trade - Final NAV",
+      // "Trade - Final Physical Notification",
+      // "Trade - Flows",
+      // "Trade - Forecast",
+      // "Trade - Forecast High",
+      // "Trade - Forecast Low",
+      // "Trade - Freight Price",
+      // "Trade - Halt Reason",
+      // "Trade - High",
+      // "Trade - Implied Volatility",
+      // "Trade - Indicative Auction Price",
+      // "Trade - Indicative Auction Volume",
+      // "Trade - Instrument Description",
+      // "Trade - Level-Up Level-Down Indicator",
+      // "Trade - Low",
+      // "Trade - Lower Limit Price",
+      // "Trade - Market Volatility",
+      // "Trade - Market VWAP",
+      // "Trade - Maximum Export Limit",
+      // "Trade - Maximum Import Limit",
+      // "Trade - Mid Price",
+      // "Trade - MMT Classification",
+      // "Trade - Net Change",
+      // "Trade - New Highs",
+      // "Trade - New Lows",
+      // "Trade - Number of Forecasts",
+      // "Trade - Number of Trades",
+      // "Trade - Odd-Lot Trade Price",
+      // "Trade - Odd-Lot Trade Turnover",
+      // "Trade - Odd-Lot Trade Volume",
+      // "Trade - Offer",
+      // "Trade - Open",
+      // "Trade - Open Interest",
+      // "Trade - Orderbook VWAP",
+      // "Trade - Original Price",
+      // "Trade - Original Volume",
+      // "Trade - PE Ratio",
+      // "Trade - Percent Change",
+      // "Trade - Premium",
+      // "Trade - Primary Activity",
+      // "Trade - Prior",
+      // "Trade - Qualifiers",
+      // "Trade - Quscnt Physical Notification",
+      // "Trade - Refinery Margin Crack",
+      // "Trade - Refinery Margin Top",
+      // "Trade - Revised",
+      // "Trade - RIC of Last Eligible Trade",
+      // "Trade - Seasonal Normal Demand",
+      // "Trade - Sequence Number",
+      // "Trade - Short Sale Restriction Indicator",
+      // "Trade - Source Reference",
+      // "Trade - Strike",
+      // "Trade - Strong Market",
+      // "Trade - Tick Direction",
+      // "Trade - Top",
+      // "Trade - Total Buy Value",
+      // "Trade - Total Buy Volume",
+      // "Trade - Total Demand",
+      // "Trade - Total Issues",
+      // "Trade - Total Moves",
+      // "Trade - Total Sell Value",
+      // "Trade - Total Sell Volume",
+      // "Trade - Total Volume",
+      // "Trade - Trade Price Currency",
+      // "Trade - Trade Sequence Number",
+      // "Trade - Trade Yield",
+      // "Trade - Trading Status",
+      // "Trade - Turnover",
+      // "Trade - Unchanged Issues",
+      // "Trade - Unchanged Mo        // },
+
+        // {ves",
+      // "Trade - Unchanged Volume",
+      // "Trade - Unique Trade Identification",
+      // "Trade - Upper Limit Price",
+      // "Trade - Volatility",
+      // "Trade - Weak Market",
+      // "Trade - Yield"//,
+
+      /*-----------------------------------------------
+          Not working fields (http status:400) :
+      -----------------------------------------------*/
+      // "Trade - 1 Day Gross Total Return",
+      // "Trade - 1 Month Gross Total Return",
+      // "Trade - 1 Quarter Gross Total Return",
+      // "Trade - 1 Week Gross Total Return",
+      // "Trade - 1 Year Gross Total Return",
+      // "Trade - 2 Years Gross Total Return",
+      // "Trade - 3 Years Gross Total Return",
+      // "Trade - 4 Years Gross Total Return",
+      // "Trade - 5 Years Gross Total Return",
+      // "Trade - Month To Date Gross Total Return",
+      // "Trade - Quarter To Date Gross Total Return",
+      // "Trade - Year To Date Gross Total Return"//,
+    ],
+    "IdentifierList": {
+      "@odata.type": "#ThomsonReuters.Dss.Api.Extractions.ExtractionRequests.InstrumentIdentifierList",
+      "InstrumentIdentifiers": [
+        // {
+        //   "Identifier": "MMM",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "AXP",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "AAPL.O",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "BA",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "CAT",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "CVX",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "CSCO.O",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "KO",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "DWDP.N",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "XOM",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "GE",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "GS",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "HD",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "IBM",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "INTC.O",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //  "Identifier": "JNJ",
+        //  "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "JPM",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // { 
+        //   "Identifier": "MCD",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "MRK",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "MSFT.O",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "NKE",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "PFE",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "PG",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "TRV",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "UNH",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "UTX",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "VZ",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "V.N",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "WMT",
+        //   "IdentifierType": "Ric"
+        // },
+
+        // {
+        //   "Identifier": "DIS",
+        //   "IdentifierType": "Ric"
+        // },
+
+        {
+          "Identifier": "SPY",
+          "IdentifierType": "Ric"
+        }
+      ],
+      "ValidationOptions": null,
+      "UseUserPreferencesForValidationOptions": false
+    },
+    "Condition": {
+      "QueryStartDate": "2018-03-15T00:00:00.000Z",
+      "QueryEndDate": "2018-03-15T23:59:59.999999999Z",
+
+      "MessageTimeStampIn": "LocalExchangeTime",
+      "ApplyCorrectionsAndCancellations": false,
+      "ReportDateRangeType": "Range",
+      "DisplaySourceRIC": false
+    }
+  }
+}

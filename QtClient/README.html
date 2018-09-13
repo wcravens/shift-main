@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SHIFT QtClient Guide</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; position: absolute; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; }
+pre.numberSource a.sourceLine:empty
+  { position: absolute; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style type="text/css">
+body {
+-ms-text-size-adjust: 100%;
+-webkit-text-size-adjust: 100%;
+line-height: 1.5;
+color: #24292e;
+font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+font-size: 16px;
+line-height: 1.5;
+word-wrap: break-word;
+}
+body .pl-c {
+color: #969896;
+}
+body .pl-c1,
+body .pl-s .pl-v {
+color: #0086b3;
+}
+body .pl-e,
+body .pl-en {
+color: #795da3;
+}
+body .pl-smi,
+body .pl-s .pl-s1 {
+color: #333;
+}
+body .pl-ent {
+color: #63a35c;
+}
+body .pl-k {
+color: #a71d5d;
+}
+body .pl-s,
+body .pl-pds,
+body .pl-s .pl-pse .pl-s1,
+body .pl-sr,
+body .pl-sr .pl-cce,
+body .pl-sr .pl-sre,
+body .pl-sr .pl-sra {
+color: #183691;
+}
+body .pl-v,
+body .pl-smw {
+color: #ed6a43;
+}
+body .pl-bu {
+color: #b52a1d;
+}
+body .pl-ii {
+color: #f8f8f8;
+background-color: #b52a1d;
+}
+body .pl-c2 {
+color: #f8f8f8;
+background-color: #b52a1d;
+}
+body .pl-c2::before {
+content: "^M";
+}
+body .pl-sr .pl-cce {
+font-weight: bold;
+color: #63a35c;
+}
+body .pl-ml {
+color: #693a17;
+}
+body .pl-mh,
+body .pl-mh .pl-en,
+body .pl-ms {
+font-weight: bold;
+color: #1d3e81;
+}
+body .pl-mq {
+color: #008080;
+}
+body .pl-mi {
+font-style: italic;
+color: #333;
+}
+body .pl-mb {
+font-weight: bold;
+color: #333;
+}
+body .pl-md {
+color: #bd2c00;
+background-color: #ffecec;
+}
+body .pl-mi1 {
+color: #55a532;
+background-color: #eaffea;
+}
+body .pl-mc {
+color: #ef9700;
+background-color: #ffe3b4;
+}
+body .pl-mi2 {
+color: #d8d8d8;
+background-color: #808080;
+}
+body .pl-mdr {
+font-weight: bold;
+color: #795da3;
+}
+body .pl-mo {
+color: #1d3e81;
+}
+body .pl-ba {
+color: #595e62;
+}
+body .pl-sg {
+color: #c0c0c0;
+}
+body .pl-corl {
+text-decoration: underline;
+color: #183691;
+}
+body .octicon {
+display: inline-block;
+vertical-align: text-top;
+fill: currentColor;
+}
+body a {
+background-color: transparent;
+-webkit-text-decoration-skip: objects;
+}
+body a:active,
+body a:hover {
+outline-width: 0;
+}
+body strong {
+font-weight: inherit;
+}
+body strong {
+font-weight: bolder;
+}
+body h1 {
+font-size: 2em;
+margin: 0.67em 0;
+}
+body img {
+border-style: none;
+}
+body svg:not(:root) {
+overflow: hidden;
+}
+body code,
+body kbd,
+body pre {
+font-family: monospace, monospace;
+font-size: 1em;
+}
+body hr {
+box-sizing: content-box;
+height: 0;
+overflow: visible;
+}
+body input {
+font: inherit;
+margin: 0;
+}
+body input {
+overflow: visible;
+}
+body [type="checkbox"] {
+box-sizing: border-box;
+padding: 0;
+}
+body * {
+box-sizing: border-box;
+}
+body input {
+font-family: inherit;
+font-size: inherit;
+line-height: inherit;
+}
+body a {
+color: #0366d6;
+text-decoration: none;
+}
+body a:hover {
+text-decoration: underline;
+}
+body strong {
+font-weight: 600;
+}
+body hr {
+height: 0;
+margin: 15px 0;
+overflow: hidden;
+background: transparent;
+border: 0;
+border-bottom: 1px solid #dfe2e5;
+}
+body hr::before {
+display: table;
+content: "";
+}
+body hr::after {
+display: table;
+clear: both;
+content: "";
+}
+body table {
+border-spacing: 0;
+border-collapse: collapse;
+}
+body td,
+body th {
+padding: 0;
+}
+body h1,
+body h2,
+body h3,
+body h4,
+body h5,
+body h6 {
+margin-top: 0;
+margin-bottom: 0;
+}
+body h1 {
+font-size: 32px;
+font-weight: 600;
+}
+body h2 {
+font-size: 24px;
+font-weight: 600;
+}
+body h3 {
+font-size: 20px;
+font-weight: 600;
+}
+body h4 {
+font-size: 16px;
+font-weight: 600;
+}
+body h5 {
+font-size: 14px;
+font-weight: 600;
+}
+body h6 {
+font-size: 12px;
+font-weight: 600;
+}
+body p {
+margin-top: 0;
+margin-bottom: 10px;
+}
+body blockquote {
+margin: 0;
+}
+body ul,
+body ol {
+padding-left: 0;
+margin-top: 0;
+margin-bottom: 0;
+}
+body ol ol,
+body ul ol {
+list-style-type: lower-roman;
+}
+body ul ul ol,
+body ul ol ol,
+body ol ul ol,
+body ol ol ol {
+list-style-type: lower-alpha;
+}
+body dd {
+margin-left: 0;
+}
+body code {
+font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+font-size: 12px;
+}
+body pre {
+margin-top: 0;
+margin-bottom: 0;
+font: 12px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+body .octicon {
+vertical-align: text-bottom;
+}
+body .pl-0 {
+padding-left: 0 !important;
+}
+body .pl-1 {
+padding-left: 4px !important;
+}
+body .pl-2 {
+padding-left: 8px !important;
+}
+body .pl-3 {
+padding-left: 16px !important;
+}
+body .pl-4 {
+padding-left: 24px !important;
+}
+body .pl-5 {
+padding-left: 32px !important;
+}
+body .pl-6 {
+padding-left: 40px !important;
+}
+body::before {
+display: table;
+content: "";
+}
+body::after {
+display: table;
+clear: both;
+content: "";
+}
+body>*:first-child {
+margin-top: 0 !important;
+}
+body>*:last-child {
+margin-bottom: 0 !important;
+}
+body a:not([href]) {
+color: inherit;
+text-decoration: none;
+}
+body .anchor {
+float: left;
+padding-right: 4px;
+margin-left: -20px;
+line-height: 1;
+}
+body .anchor:focus {
+outline: none;
+}
+body p,
+body blockquote,
+body ul,
+body ol,
+body dl,
+body table,
+body pre {
+margin-top: 0;
+margin-bottom: 16px;
+}
+body hr {
+height: 0.25em;
+padding: 0;
+margin: 24px 0;
+background-color: #e1e4e8;
+border: 0;
+}
+body blockquote {
+padding: 0 1em;
+color: #6a737d;
+border-left: 0.25em solid #dfe2e5;
+}
+body blockquote>:first-child {
+margin-top: 0;
+}
+body blockquote>:last-child {
+margin-bottom: 0;
+}
+body kbd {
+display: inline-block;
+padding: 3px 5px;
+font-size: 11px;
+line-height: 10px;
+color: #444d56;
+vertical-align: middle;
+background-color: #fafbfc;
+border: solid 1px #c6cbd1;
+border-bottom-color: #959da5;
+border-radius: 3px;
+box-shadow: inset 0 -1px 0 #959da5;
+}
+body h1,
+body h2,
+body h3,
+body h4,
+body h5,
+body h6 {
+margin-top: 24px;
+margin-bottom: 16px;
+font-weight: 600;
+line-height: 1.25;
+}
+body h1 .octicon-link,
+body h2 .octicon-link,
+body h3 .octicon-link,
+body h4 .octicon-link,
+body h5 .octicon-link,
+body h6 .octicon-link {
+color: #1b1f23;
+vertical-align: middle;
+visibility: hidden;
+}
+body h1:hover .anchor,
+body h2:hover .anchor,
+body h3:hover .anchor,
+body h4:hover .anchor,
+body h5:hover .anchor,
+body h6:hover .anchor {
+text-decoration: none;
+}
+body h1:hover .anchor .octicon-link,
+body h2:hover .anchor .octicon-link,
+body h3:hover .anchor .octicon-link,
+body h4:hover .anchor .octicon-link,
+body h5:hover .anchor .octicon-link,
+body h6:hover .anchor .octicon-link {
+visibility: visible;
+}
+body h1 {
+padding-bottom: 0.3em;
+font-size: 2em;
+border-bottom: 1px solid #eaecef;
+}
+body h2 {
+padding-bottom: 0.3em;
+font-size: 1.5em;
+border-bottom: 1px solid #eaecef;
+}
+body h3 {
+font-size: 1.25em;
+}
+body h4 {
+font-size: 1em;
+}
+body h5 {
+font-size: 0.875em;
+}
+body h6 {
+font-size: 0.85em;
+color: #6a737d;
+}
+body ul,
+body ol {
+padding-left: 2em;
+}
+body ul ul,
+body ul ol,
+body ol ol,
+body ol ul {
+margin-top: 0;
+margin-bottom: 0;
+}
+body li>p {
+margin-top: 16px;
+}
+body li+li {
+margin-top: 0.25em;
+}
+body dl {
+padding: 0;
+}
+body dl dt {
+padding: 0;
+margin-top: 16px;
+font-size: 1em;
+font-style: italic;
+font-weight: 600;
+}
+body dl dd {
+padding: 0 16px;
+margin-bottom: 16px;
+}
+body table {
+display: block;
+width: 100%;
+overflow: auto;
+}
+body table th {
+font-weight: 600;
+}
+body table th,
+body table td {
+padding: 6px 13px;
+border: 1px solid #dfe2e5;
+}
+body table tr {
+background-color: #fff;
+border-top: 1px solid #c6cbd1;
+}
+body table tr:nth-child(2n) {
+background-color: #f6f8fa;
+}
+body img {
+max-width: 100%;
+box-sizing: content-box;
+background-color: #fff;
+}
+body code {
+padding: 0;
+padding-top: 0.2em;
+padding-bottom: 0.2em;
+margin: 0;
+font-size: 85%;
+background-color: rgba(27,31,35,0.05);
+border-radius: 3px;
+}
+body code::before,
+body code::after {
+letter-spacing: -0.2em;
+content: "\00a0";
+}
+body pre {
+word-wrap: normal;
+}
+body pre>code {
+padding: 0;
+margin: 0;
+font-size: 100%;
+word-break: normal;
+white-space: pre;
+background: transparent;
+border: 0;
+}
+body .highlight {
+margin-bottom: 16px;
+}
+body .highlight pre {
+margin-bottom: 0;
+word-break: normal;
+}
+body .highlight pre,
+body pre {
+padding: 16px;
+overflow: auto;
+font-size: 85%;
+line-height: 1.45;
+background-color: #f6f8fa;
+border-radius: 3px;
+}
+body pre code {
+display: inline;
+max-width: auto;
+padding: 0;
+margin: 0;
+overflow: visible;
+line-height: inherit;
+word-wrap: normal;
+background-color: transparent;
+border: 0;
+}
+body pre code::before,
+body pre code::after {
+content: normal;
+}
+body .full-commit .btn-outline:not(:disabled):hover {
+color: #005cc5;
+border-color: #005cc5;
+}
+body kbd {
+display: inline-block;
+padding: 3px 5px;
+font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+line-height: 10px;
+color: #444d56;
+vertical-align: middle;
+background-color: #fcfcfc;
+border: solid 1px #c6cbd1;
+border-bottom-color: #959da5;
+border-radius: 3px;
+box-shadow: inset 0 -1px 0 #959da5;
+}
+body :checked+.radio-label {
+position: relative;
+z-index: 1;
+border-color: #0366d6;
+}
+body .task-list-item {
+list-style-type: none;
+}
+body .task-list-item+.task-list-item {
+margin-top: 3px;
+}
+body .task-list-item input {
+margin: 0 0.2em 0.25em -1.6em;
+vertical-align: middle;
+}
+body hr {
+border-bottom-color: #eee;
+}
+</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header>
+<h1 class="title">SHIFT QtClient Guide</h1>
+</header>
+<h2 id="ubuntu-deployment">Ubuntu Deployment</h2>
+<ul>
+<li>Before installation, make sure the package manager is updated, and basic build tools are installed:</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">sudo</span> apt-get update</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="fu">sudo</span> apt-get install autoconf build-essential</a></code></pre></div>
+<h3 id="step-1---build-tools">STEP 1 - Build Tools</h3>
+<h4 id="install-the-following-manually">Install the following manually:</h4>
+<h5 id="libqt-qt-creator">LibQt + Qt Creator:</h5>
+<ul>
+<li>Download the <a href="https://www.qt.io/download">Qt Open Source</a> online installer.</li>
+<li>Run the downloaded installer, and skip login when prompted:
+<ul>
+<li>Installing using the command line is not recommended since it’s hard to control the version of Qt to be installed.</li>
+</ul></li>
+<li>In <code>Select Components</code>, check <code>Qt5.9.6</code> &gt; <code>Desktop gcc 64-bit</code> under the <code>Qt</code> section.</li>
+<li>Follow the remaining instructions until Qt is fully installed.</li>
+</ul>
+<h4 id="install-the-following-using-apt-get">Install the following using apt-get:</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Tool</th>
+<th>Package</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CMake</td>
+<td>cmake</td>
+</tr>
+<tr class="even">
+<td>Git</td>
+<td>git</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Lazy installation command using <code>apt-get</code> in one line:</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">sudo</span> apt-get install cmake git</a></code></pre></div>
+<h3 id="step-2---required-libraries">STEP 2 - Required Libraries</h3>
+<h4 id="install-the-following-using-apt-get-1">Install the following using apt-get:</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Library</th>
+<th>Package</th>
+<th>Required By</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Boost (C++ libraries)</td>
+<td><code>libboost-all-dev</code></td>
+<td>LibMiscUtils</td>
+</tr>
+<tr class="even">
+<td>C++ REST SDK</td>
+<td><code>libcpprest-dev</code></td>
+<td>LibMiscUtils</td>
+</tr>
+<tr class="odd">
+<td>cURL</td>
+<td><code>libcurl4-openssl-dev</code></td>
+<td>LibCoreClient</td>
+</tr>
+<tr class="even">
+<td>Mesa</td>
+<td><code>libgl1-mesa-dev</code></td>
+<td>QtClient</td>
+</tr>
+<tr class="odd">
+<td>OpenSSL</td>
+<td><code>libssl-dev</code></td>
+<td>LibMiscUtils</td>
+</tr>
+<tr class="even">
+<td>UUID</td>
+<td><code>uuid-dev</code></td>
+<td>LibMiscUtils</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Lazy installation command using <code>apt-get</code> in one line:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="fu">sudo</span> apt-get install libboost-all-dev libcpprest-dev libcurl4-openssl-dev libgl1-mesa-dev libssl-dev uuid-dev</a></code></pre></div>
+<h4 id="install-the-following-manually-1">Install the following manually:</h4>
+<h5 id="quickfix">QuickFIX</h5>
+<ul>
+<li>Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="ex">curl</span> -LO http://prdownloads.sourceforge.net/quickfix/quickfix-1.15.1.tar.gz</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">tar</span> -zxf quickfix-1.15.1.tar.gz</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="bu">cd</span> quickfix</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="ex">./bootstrap</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="ex">./configure</span> --prefix=/usr/local/</a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="fu">sudo</span> make install</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="bu">cd</span> ..</a>
+<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="fu">rm</span> quickfix-1.15.1.tar.gz</a></code></pre></div>
+<h5 id="qwt">QWT</h5>
+<ul>
+<li>Choose a location to keep the QWT source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="ex">curl</span> -LO http://prdownloads.sourceforge.net/qwt/qwt-6.1.3.zip</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="fu">unzip</span> -a qwt-6.1.3.zip</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="bu">cd</span> qwt-6.1.3</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="ex">~/Qt/5.9.6/gcc_64/bin/qmake</span> qwt.pro</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></a>
+<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="fu">sudo</span> make install</a>
+<a class="sourceLine" id="cb5-7" data-line-number="7"><span class="bu">cd</span> ..</a>
+<a class="sourceLine" id="cb5-8" data-line-number="8"><span class="fu">rm</span> qwt-6.1.3.zip</a></code></pre></div>
+<h5 id="shift-miscellaneous-utils-core-client">SHIFT Miscellaneous Utils &amp; Core Client</h5>
+<p>Use the installer in the root folder of the SHIFT project:</p>
+<ul>
+<li>In the Terminal: <code>sudo ./install -m LM LC</code></li>
+</ul>
+<h3 id="step-3---compilation">STEP 3 - Compilation</h3>
+<ul>
+<li>Open the <code>QtClient.pro</code> file in Qt Creator, and follow the instructions to configure the environment.</li>
+<li><strong>IMPORTANT</strong>: Add <code>make install</code> to the build steps in Qt Creator:
+<ul>
+<li>In the side navigation bar click <code>Projects</code> &gt; <code>Build &amp; Run</code> &gt; <code>Build Settings</code> &gt; <code>Build Steps</code> &gt; <code>Make</code>:
+<ul>
+<li>In <code>Make arguments</code>, enter <code>install</code>.</li>
+</ul></li>
+</ul></li>
+<li>Click the green play button to run.</li>
+</ul>
+<hr />
+<h2 id="macos-deployment">macOS Deployment</h2>
+<h3 id="step-1---build-tools-1">STEP 1 - Build Tools</h3>
+<h4 id="install-the-following-manually-2">Install the following manually:</h4>
+<h5 id="homebrew">Homebrew:</h5>
+<ul>
+<li><p>In the Terminal: <code>xcode-select --install</code></p></li>
+<li>Install <a href="http://brew.sh/">Homebrew</a> (APT-like environment for macOS):
+<ul>
+<li>In the Terminal: <code>/usr/bin/ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</code></li>
+</ul></li>
+</ul>
+<h5 id="libqt-qt-creator-1">LibQt + Qt Creator:</h5>
+<ul>
+<li>Download the <a href="https://www.qt.io/download">Qt Open Source</a> online installer.</li>
+<li>Run the downloaded installer, and skip login when prompted.</li>
+<li>The installer will complain that Xcode is not installed:
+<ul>
+<li>Keep clicking “OK” until the message goes away permanently.</li>
+</ul></li>
+<li>In <code>Select Components</code>, check <code>Qt5.9.6</code> &gt; <code>macOS</code> under the <code>Qt</code> section.</li>
+<li>Follow the remaining instructions until Qt is fully installed, but <strong>do not</strong> launch Qt Creator when prompted.</li>
+<li>Launch Qt Creator for the first time from the Terminal with the following command:</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="va">PATH=</span><span class="st">&quot;</span><span class="va">$(</span><span class="ex">xcode-select</span> -p<span class="va">)</span><span class="st">/usr/bin:</span><span class="va">${PATH}</span><span class="st">&quot;</span> <span class="ex">~/Qt/Qt\ Creator.app/Contents/MacOS/Qt\ Creator</span></a></code></pre></div>
+<ul>
+<li>Close Qt Creator:
+<ul>
+<li>You can launch Qt Creator the normal way in future (e.g. via Spotlight).</li>
+</ul></li>
+<li>Optionally, create a symbolic link to Qt Creator so that it can be launched from the Applications folder:</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">ln</span> -s ~/Qt/Qt\ Creator.app /Applications/Qt\ Creator.app</a></code></pre></div>
+<h4 id="install-the-following-using-brew">Install the following using brew:</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Tool</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CMake</td>
+<td>cmake</td>
+</tr>
+<tr class="even">
+<td>Git</td>
+<td>git</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Lazy installation command using <code>brew</code> in one line:</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="ex">brew</span> install cmake git</a></code></pre></div>
+<h3 id="step-2---required-libraries-1">STEP 2 - Required Libraries</h3>
+<h4 id="install-the-following-using-brew-1">Install the following using brew:</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Library</th>
+<th>Formula</th>
+<th>Required By</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Boost (C++ libraries)</td>
+<td><code>boost</code></td>
+<td>LibMiscUtils</td>
+</tr>
+<tr class="even">
+<td>C++ REST SDK</td>
+<td><code>cpprestsdk</code></td>
+<td>LibMiscUtils</td>
+</tr>
+<tr class="odd">
+<td>OpenSSL</td>
+<td><code>openssl</code></td>
+<td>LibMiscUtils</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Lazy installation command using <code>brew</code> in one line:</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="ex">brew</span> install boost cpprestsdk openssl</a></code></pre></div>
+<h4 id="install-the-following-manually-3">Install the following manually:</h4>
+<h5 id="quickfix-1">QuickFIX</h5>
+<ul>
+<li>Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="ex">curl</span> -LO http://prdownloads.sourceforge.net/quickfix/quickfix-1.15.1.tar.gz</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="fu">tar</span> -zxf quickfix-1.15.1.tar.gz</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="bu">cd</span> quickfix</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="ex">./bootstrap</span></a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="ex">./configure</span> --prefix=/usr/local/</a>
+<a class="sourceLine" id="cb10-6" data-line-number="6"><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">sysctl</span> -n hw.physicalcpu<span class="va">)</span></a>
+<a class="sourceLine" id="cb10-7" data-line-number="7"><span class="fu">sudo</span> make install</a>
+<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="bu">cd</span> ..</a>
+<a class="sourceLine" id="cb10-9" data-line-number="9"><span class="fu">rm</span> quickfix-1.15.1.tar.gz</a></code></pre></div>
+<h5 id="qwt-1">QWT</h5>
+<ul>
+<li>Choose a location to keep the QWT source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</li>
+</ul>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="ex">curl</span> -LO http://prdownloads.sourceforge.net/qwt/qwt-6.1.3.zip</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="fu">unzip</span> -a qwt-6.1.3.zip</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3"><span class="bu">cd</span> qwt-6.1.3</a>
+<a class="sourceLine" id="cb11-4" data-line-number="4"><span class="ex">~/Qt/5.9.6/clang_64/bin/qmake</span> qwt.pro</a>
+<a class="sourceLine" id="cb11-5" data-line-number="5"><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">sysctl</span> -n hw.physicalcpu<span class="va">)</span></a>
+<a class="sourceLine" id="cb11-6" data-line-number="6"><span class="fu">sudo</span> make install</a>
+<a class="sourceLine" id="cb11-7" data-line-number="7"><span class="fu">sudo</span> ln -s /usr/local/qwt-6.1.3/lib/qwt.framework /Library/Frameworks/qwt.framework</a>
+<a class="sourceLine" id="cb11-8" data-line-number="8"><span class="bu">cd</span> ..</a>
+<a class="sourceLine" id="cb11-9" data-line-number="9"><span class="fu">rm</span> qwt-6.1.3.zip</a></code></pre></div>
+<h5 id="shift-miscellaneous-utils-core-client-1">SHIFT Miscellaneous Utils &amp; Core Client</h5>
+<p>Use the installer in the root folder of the SHIFT project:</p>
+<ul>
+<li>In the Terminal: <code>sudo ./install -m LM LC</code></li>
+</ul>
+<h3 id="step-3---compilation-1">STEP 3 - Compilation</h3>
+<ul>
+<li>Open the <code>QtClient.pro</code> file in Qt Creator, and follow the instructions to configure the environment.</li>
+<li><strong>IMPORTANT</strong>: Add <code>make install</code> to the build steps in Qt Creator:
+<ul>
+<li>In the side navigation bar click <code>Projects</code> &gt; <code>Build &amp; Run</code> &gt; <code>Build Settings</code> &gt; <code>Build Steps</code> &gt; <code>Make</code>:
+<ul>
+<li>In <code>Make arguments</code>, enter <code>install</code>.</li>
+</ul></li>
+</ul></li>
+<li>Click the green play button to run.</li>
+</ul>
+<hr />
+<h2 id="windows-deployment">Windows Deployment</h2>
+<h3 id="step-1---build-tools-2">STEP 1 - Build Tools</h3>
+<p>These are required in order to install all libraries contained in this guide.</p>
+<h4 id="cmake">CMake:</h4>
+<ul>
+<li>Download the last available version of <a href="https://cmake.org/">CMake</a> (3.11.2 at the time of this writting), and install it.</li>
+<li>Remember to check “Add cmake to system path” during the installation.</li>
+</ul>
+<h4 id="git">Git:</h4>
+<ul>
+<li>Download the last available version of Open the QtClient.pro file in Qt Creator and start building.</li>
+<li><a href="https://git-scm.com/">Git</a> (2.17.1 at the time of this writting), and install it.</li>
+</ul>
+<h4 id="microsoft-visual-studio-2017">Microsoft Visual Studio 2017:</h4>
+<ul>
+<li>Download the lastest available version of <a href="%3Chttps://www.visualstudio.com/">Visual Studio 2017 Community Edition</a>, and install it.</li>
+<li>During the installation process, do not forget to select the <code>Desktop development with C++</code> workload, with the <code>Windows Driver Kit 10.0</code> component. <strong>*</strong></li>
+</ul>
+<p><strong>*</strong> The <code>Windows Driver Kit 10.0</code> may also be downloaded separately from <a href="https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/" class="uri">https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/</a>.</p>
+<h4 id="libqt-qt-creator-2">LibQt + Qt Creator:</h4>
+<ul>
+<li>Go to <a href="https://www.qt.io/download/" class="uri">https://www.qt.io/download/</a>, select <code>Go Open Source</code> then click <code>Accept</code>. In the following page, select <code>Download</code>.</li>
+<li>Run the downloaded installer, and skip login when prompted.</li>
+<li>In <code>Select Components</code>, check <code>MSVC 2017 64-bit</code> and <code>Qt Creator 4.5.0 CDB Debugger Support</code> under the <code>Tools</code> section.</li>
+<li>Follow the remaining instructions until Qt is fully installed.</li>
+</ul>
+<h3 id="step-2---required-libraries-2">STEP 2 - Required Libraries</h3>
+<h4 id="curl">cURL:</h4>
+<ul>
+<li>Download version 7.58.0 of the cURL library from <a href="https://curl.haxx.se/download/" class="uri">https://curl.haxx.se/download/</a> and unzip it in <code>C:\</code>.</li>
+<li>Open a new Visual Studio 2017 shell (<code>x64 Native Tools Command Prompt for VS 2017</code>).</li>
+<li>If it does not display the message “[vcvarsall.bat] Environment initialized for: ‘x64’”, run the following before continuing:</li>
+</ul>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="bu">cd</span> <span class="st">&quot;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build&quot;</span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="ex">vcvars64.bat</span></a></code></pre></div>
+<ul>
+<li>The following commands will build the cURL project and create both debug and release versions of the cURL library.</li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="bu">cd</span> <span class="st">&quot;C:\curl-7.58.0\winbuild&quot;</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="ex">nmake</span> /f Makefile.vc mode=static VC=14</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3"><span class="ex">nmake</span> /f Makefile.vc mode=static VC=14 debug=yes</a></code></pre></div>
+<h4 id="qwt-2">QWT:</h4>
+<ul>
+<li>Download the last available version of <a href="https://sourceforge.net/projects/qwt/files/">QWT</a> (6.1.3 at the time of this writting), and unzip it.</li>
+<li>Open a new Qt shell (<code>Qt 5.10.0 64-bit for Desktop (MSVC 2017)</code>), and do the following:</li>
+</ul>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="bu">cd</span> <span class="st">&quot;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build&quot;</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="ex">vcvars64.bat</span></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="bu">cd</span> <span class="op">&lt;</span>folder containing QWT unzipped files<span class="op">&gt;</span></a>
+<a class="sourceLine" id="cb14-4" data-line-number="4"><span class="fu">qmake</span> qwt.pro</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5"><span class="ex">nmake</span></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6"><span class="ex">nmake</span> install</a></code></pre></div>
+<h4 id="quickfix-2">QuickFIX:</h4>
+<ul>
+<li>Download the last available version of <a href="http://www.quickfixengine.org/">QuickFIX</a> (1.15.1 at the time of this writting), and unzip it in <code>C:\</code>.</li>
+<li>Open the Visual C++ solution <code>C:\quickfix\quickfix_vs15.sln</code> in Visual Studio 2017.</li>
+<li>In <code>Configuration Manager</code>, select <code>&lt;New...&gt;</code>, and add a <code>x64</code> configuration which copies the settings from <code>Win32</code>.</li>
+<li>Right click on the <code>quickfix</code> project from the list on the Solution Explorer.</li>
+<li>Build both Debug and Release as many times as needed, until you see the following output in both Debug and Release configurations:</li>
+</ul>
+<pre><code>========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========</code></pre>
+<h4 id="libmiscutil">LibMiscUtil:</h4>
+<ul>
+<li>Open <code>Git Bash</code>, and do the following:</li>
+</ul>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="bu">cd</span> <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="bu">cd</span> LibMiscUtils</a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="ex">./win-build.sh</span></a></code></pre></div>
+<h4 id="libcoreclient">LibCoreClient:</h4>
+<ul>
+<li>Open <code>Git Bash</code>, and do the following: ****</li>
+<li>Depending on which version of and the location where the cURL library was installed, the LibCoreClient CMakeLists.txt file may need to be updated before a successful installation.</li>
+</ul>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="bu">cd</span> <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span></a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="bu">cd</span> LibCoreClient</a>
+<a class="sourceLine" id="cb17-3" data-line-number="3"><span class="ex">./win-build.sh</span></a></code></pre></div>
+<h3 id="step-3---system-environment-variables">STEP 3 - System Environment Variables</h3>
+<ul>
+<li>In Windows 7: Control Panel &gt; System and Security &gt; System &gt; Advanced system settings &gt; Environment Variables</li>
+<li>Create the following user environment variables in your system:</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CURL_LIB</td>
+<td><code>C:\&lt;folder containing curl&gt;\builds</code></td>
+</tr>
+<tr class="even">
+<td>QWT_ROOT</td>
+<td><code>C:\&lt;folder containing qwt&gt;</code></td>
+</tr>
+<tr class="odd">
+<td>QuickFIX_VS2017</td>
+<td><code>C:\&lt;folder of quickfix&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="step-4---compilation">STEP 4 - Compilation</h3>
+<ul>
+<li>Open the <code>QtClient.pro</code> file in Qt Creator and start building.</li>
+<li>When debugging, if Qt Creator complains about the selected debugger, try other installed debuggers or use a long-term-support version of Qt.</li>
+</ul>
+<h3 id="step-5---deployment">STEP 5 - Deployment</h3>
+<ul>
+<li>Build the project in QtCreator in Release mode.</li>
+<li>Open a new Qt shell (<code>Qt 5.10.0 64-bit for Desktop (MSVC 2017)</code>), and do the following:</li>
+</ul>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="bu">cd</span> <span class="st">&quot;C:\Qt\Qt5.10.0\5.10\msvc2017\bin&quot;</span></a>
+<a class="sourceLine" id="cb18-2" data-line-number="2"><span class="ex">windeployqt.exe</span> <span class="op">&lt;</span>folder containing the release version of the executable file<span class="op">&gt;</span></a></code></pre></div>
+<ul>
+<li>Create a new folder.</li>
+<li>Go to the release folder, and copy the <code>platforms</code> folder and the executable file to the new folder.</li>
+<li>Copy the following .dll files into the new folder as well:</li>
+</ul>
+<pre><code>C:\Qt\Qt5.10.0\5.10\msvc2017\bin\D3Dcompiler_47.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\libEGL.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\libGLESV2.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\opengl32sw.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\Qt5Core.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\Qt5Gui.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\Qt5OpenGL.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\Qt5PrintSupport.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\Qt5Svg.dll
+C:\Qt\Qt5.10.0\5.10\msvc2017\bin\Qt5Widgets.dll
+C:\qwt-6.1.3\lib\qwt.dll</code></pre>
+<hr />
+</body>
+</html>

@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libshift_miscutils
+Version: 1.0.0.0
+Description: SHIFT LibMiscUtils
+Libs: -L${libdir} -lshift_miscutils
+Cflags: -I/usr/local/SHIFT/LibMiscUtils/include

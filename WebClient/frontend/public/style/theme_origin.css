@@ -1,0 +1,50 @@
+/* ############################################Text##############################################  */
+.boldlablelastprice {
+    font-weight: bold;
+}
+
+/* ############################################Table############################################## */
+/* ordertable css*/
+.notfirst:hover {
+    background-color: #f5f5f5;
+}
+
+.row-active {
+    background: #ADD8E6;
+}
+
+/* table: */
+.rborder {
+    border-right: solid 1px #eee;
+}
+
+.bborder {
+    border-bottom: solid 1px #eee;
+}
+
+.row_disabled {
+    background-color: #f5f5f5;
+}
+
+.popovertable {
+    background: #FFFFFF;
+}
+
+/* ############################################override btn & btn-default & input############################################## */
+.input-group-addon {
+    height: 34;
+    padding: 6px 12px;
+}
+
+.form-control {
+    height: 34;
+}
+
+.input-xs {
+    height: 23px !important;
+    padding: 3px 5px !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    /* If Placeholder of the input is moved up, rem/modify this. */
+    border-radius: 3px !important;
+}

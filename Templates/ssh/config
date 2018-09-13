@@ -1,0 +1,41 @@
+# copy this file to ~/.ssh/config
+
+# 81-DE-ME-BC-WC (Web Demo)
+Host 81
+  User shiftpub
+  HostName 155.246.104.81
+
+# 102-DE-ME-BC-WC (Qt Demo)
+Host 102
+  User shiftpub
+  HostName 155.246.104.102
+
+# 28-BC-WC (Release)
+Host 28
+  User shiftpub
+  HostName 155.246.104.28
+
+# 97-DE-ME (Release)
+Host 97
+  User shiftpub
+  HostName 155.246.104.97
+
+# 25-BC-WC (Development)
+Host 25
+  User shiftpub
+  HostName 155.246.104.25
+
+# 26-DE-ME (Development)
+Host 26
+  User shiftpub
+  HostName 155.246.104.26
+
+# 90-DE-ME-BC-WC (Research)
+Host 90
+  User shiftpub
+  HostName 155.246.104.90
+
+# 101-DE-ME-BC-WC (Research)
+Host 101
+  User shiftpub
+  HostName 155.246.104.101

@@ -1,0 +1,9 @@
+# Composer files
+installer
+
+# Third party dependencies
+vendor/
+
+# Web Client frontend data
+stockList.data
+symbol_companyName_map.data

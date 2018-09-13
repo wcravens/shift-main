@@ -1,0 +1,120 @@
+/* ############################################Text##############################################  */
+.boldlablelastprice {
+    font-weight: bold;
+    color: #FFFFFF
+}
+
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #888888;
+    background-color: #000000
+}
+
+/* override front size */
+h1,
+.h1 {
+    font-size: 36px
+}
+
+h2,
+.h2 {
+    font-size: 30px
+}
+
+h3,
+.h3 {
+    font-size: 24px
+}
+
+h4,
+.h4 {
+    font-size: 18px
+}
+
+h5,
+.h5 {
+    font-size: 14px
+}
+
+h6,
+.h6 {
+    font-size: 12px
+}
+
+/* ############################################Table############################################## */
+table {
+    background-color: #000000 !important;
+}
+
+/* ordertable css*/
+.notfirst:hover {
+    background-color: #404040;
+}
+
+.row-active {
+    background: #E59E2B;
+}
+
+
+/* table: */
+.rborder {
+    border-right: solid 1px #404040;
+}
+
+.bborder {
+    border-bottom: solid 1px #404040;
+}
+
+.row_disabled {
+    background-color: #2F2F33;
+}
+
+.popovertable {
+    background: #2c2c2c !important;
+}
+
+/* ############################################override btn & btn-default & input############################################## */
+.btn-default {
+    border-color: #A19F9F;
+}
+
+.btn-default:hover {
+    border-color: #FFFFFF;
+ }
+
+.btn {
+    padding: 6px 12px;
+}
+
+.btn-xs,
+.btn-group-xs>.btn {
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+
+.input-group-addon {
+    height: 34;
+    padding: 6px 12px;
+    border-color: #A19F9F;
+    border-color: #A19F9F;
+}
+
+.form-control {
+    height: 34;
+    padding: 6px 12px;
+    border-color: #A19F9F;
+}
+
+.input-xs {
+    height: 23px !important;
+    padding: 3px 5px !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    /* If Placeholder of the input is moved up, rem/modify this. */
+    border-radius: 3px !important;
+    background-color: #424242 !important;
+}

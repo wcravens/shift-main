@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libshift_coreclient-d
+Version: 1.0.0.0
+Description: SHIFT LibCoreClient debug
+Requires: libshift_miscutils-d
+Libs: -L${libdir} -lshift_coreclient-d 
+Cflags: -I/usr/local/SHIFT/LibCoreClient/include

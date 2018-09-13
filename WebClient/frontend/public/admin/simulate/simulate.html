@@ -1,0 +1,264 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>simulate stock data</title>
+    <style type="text/css">
+.delete{
+    margin-left: 20px;
+            color: red;
+}
+    </style>
+</head>
+<body>
+    <link href="jquery-ui/jquery-ui.min.css" rel="stylesheet">
+    <script
+    src="https://code.jquery.com/jquery-2.2.4.min.js"
+    integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+    crossorigin="anonymous"></script>
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <div class="row">
+        <div class="col-sm-8" id="container" style="height: 400px; min-width: 310px"></div>
+
+        <div id="mydiv" class="col-sm-4"  style="height: 400px; overflow:scroll">
+            <table id="simulated_data" class="table table-striped">
+                <tr>
+                	<th>time</th>
+                	<th>price</th>
+                	<th>operation</th>
+                </tr>
+            </table>
+<div class="row">
+<label for="date">Date:</label>
+    <input class="form-control" type="text" id="date" placeholder="date" />
+
+	<label for="date">Hour:</label>
+    <select class="form-control" id="hour">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+    </select>
+
+	<label for="minute">Minute:</label>
+    <select class="form-control" id="minute">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+        <option value="24">24</option>
+        <option value="25">25</option>
+        <option value="26">26</option>
+        <option value="27">27</option>
+        <option value="28">28</option>
+        <option value="29">29</option>
+        <option value="30">30</option>
+        <option value="31">31</option>
+        <option value="32">32</option>
+        <option value="33">33</option>
+        <option value="34">34</option>
+        <option value="35">35</option>
+        <option value="36">36</option>
+        <option value="37">37</option>
+        <option value="38">38</option>
+        <option value="39">39</option>
+        <option value="40">40</option>
+        <option value="41">41</option>
+        <option value="42">42</option>
+        <option value="43">43</option>
+        <option value="44">44</option>
+        <option value="45">45</option>
+        <option value="46">46</option>
+        <option value="47">47</option>
+        <option value="48">48</option>
+        <option value="49">49</option>
+        <option value="50">50</option>
+        <option value="51">51</option>
+        <option value="52">52</option>
+        <option value="53">53</option>
+        <option value="54">54</option>
+        <option value="55">55</option>
+        <option value="56">56</option>
+        <option value="57">57</option>
+        <option value="58">58</option>
+        <option value="59">59</option>
+    </select>
+
+	<label for="price">Price:</label>
+    <input  class="form-control" type="text" id="price" placeholder="price"/>
+    <button class="btn btn-default" id="button">add</button>
+</div>
+        </div>
+    </div>
+
+    <script src="jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript">
+$(function () {
+  $('#container').highcharts({
+
+	  title: {
+		  text: 'Simulated JPM Stock Price'
+	  },
+    chart: {
+      type:"scatter",
+      zoomType: 'xy',
+    },
+    xAxis: {
+      type: 'datetime'
+    },
+    yAxis: [{ 
+      labels: {
+          format: '$ {value}',
+          style: {
+              color: '#89A54E'
+          }
+      },
+      min: 0,
+      title: {
+          text: 'Price',
+          style: {
+              color: '#89A54E'
+          }
+      }
+    }],
+
+    series: [{
+      name: 'Stock Price',
+      data: [],
+      animation: false
+    }
+    ]
+  });
+ 
+
+    $('#button').click(function () {
+        var chart = $('#container').highcharts();
+		//chart.series[0].addPoint(getPoint(),true);
+
+        var mydate = $('#date').val();
+        var hour = $('#hour').val();
+        var minute = $('#minute').val();
+        //var second = $('#second').val();
+        var price = $('#price').val();
+        var dateStr = mydate+' '+pad(hour)+':'+pad(minute); 
+        var DATE = new Date(dateStr + ' UTC');
+        var x = DATE.getTime();
+        var y = parseInt(price);
+
+		chart.series[0].addPoint([x, y],true);
+        //$("#simulated_data").append( "<li date='"+dateStr+"' price='"+price+"'> "+ dateStr + " $"+price+ " <span class="delete" onclick='removePoint(chart.series[0], x, y)' >delete</span></li>" );
+
+		var table = document.getElementById('simulated_data');
+		var row = table.insertRow(-1);
+        row.setAttribute('date', dateStr)
+        row.setAttribute('price', price)
+
+		var cell0 = row.insertCell(0);
+		var cell1 = row.insertCell(1);
+		var cell2 = row.insertCell(2);
+
+
+
+        var button = document.createElement('button');
+        button.innerHTML = "delete";
+        button.className = "btn btn-danger";
+        button.onclick = function(){ 
+            console.log("click");
+            removePoint(chart.series[0], x, y);
+            this.parentNode.parentNode.remove();
+
+        }
+
+		cell0.innerHTML = dateStr;
+		cell1.innerHTML = "$"+price;
+		cell2.appendChild(button);
+
+		var objDiv = document.getElementById("mydiv");
+		objDiv.scrollTop = objDiv.scrollHeight;
+        //console.log(DATE);
+        //console.log(x, y);
+
+    });
+
+    function removePoint(series, x, y){
+        console.log(series, x, y);
+        if (series.data.length) {
+            series.data.forEach( function(point){
+                if(point.x == x && point.y == y){
+                    point.remove();
+                    return true;
+                }
+            });
+        }
+        return false;
+    }
+
+    function pad(num){
+        num = num + "";
+        if(num.length == 1){
+            return "0" + num;
+        }
+        return num;
+    }
+function getPoint(){
+    return [(new Date()).getTime(), Math.random() * 100];
+}
+
+});
+
+$( "#date" ).datepicker({dateFormat: "yy-mm-dd"});
+    </script>
+	
+
+</body>
+</html>
