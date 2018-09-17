@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/theme">
-        <file>dark.theme</file>
+        <file>shift.theme</file>
         <file>material.theme</file>
+        <file>dark.theme</file>
     </qresource>
 </RCC>
