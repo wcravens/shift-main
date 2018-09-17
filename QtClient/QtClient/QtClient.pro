@@ -30,7 +30,8 @@ SOURCES += \
     src/navigationplot.cpp \
     src/waitinglistmodel.cpp \
     src/qtcoreclient.cpp \
-    src/app.cpp
+    src/app.cpp \
+    global.cpp
 
 HEADERS += \
     include/CandlestickChart/candledataset.h \
@@ -48,7 +49,8 @@ HEADERS += \
     include/navigationplot.h \
     include/waitinglistmodel.h \
     include/qtcoreclient.h \
-    include/app.h
+    include/app.h \
+    global.h
 
 FORMS += \
     ui/chartdialog.ui \

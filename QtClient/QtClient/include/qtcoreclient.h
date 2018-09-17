@@ -11,10 +11,6 @@
 #include <Order.h>
 #include <FIXInitiator.h>
 
-/**
- * @brief A class extends from CoreClient, act as the bridge between QtCoreClient project
- *        and CoreClient.
- */
 class QtCoreClient
         : public QObject
         , public shift::CoreClient
@@ -22,18 +18,16 @@ class QtCoreClient
     Q_OBJECT
 
 public:
-    static QtCoreClient& getInstance();
+    QtCoreClient(QWidget* parent = nullptr)
+    {}
+    QtCoreClient(std::string username, QObject* parent = nullptr)
+        : QObject(parent)
+        , CoreClient(username)
+    {}
+
     QStringList getStocklist();
     void adaptStocklist();
     void subscribeCandleData(const std::vector<std::string>& stocklist);
-
-private:
-    QtCoreClient(){}
-    QtCoreClient(std::string username) : CoreClient(username){}
-
-    QStringList m_stocklist; //!< All received stocks for this session.
-    std::thread m_candledata_loading_thread;
-    bool is_first_time = true;
 
 protected:
     void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) override;
@@ -41,12 +35,15 @@ protected:
     void receivePortfolio(const std::string& symbol) override;
     void receiveWaitingList() override;
 
-    void debugDump(const std::string& message);
+private:
+
+    QStringList m_stocklist; //!< All received stocks for this session.
+    std::thread m_candledata_loading_thread;
+    bool is_first_time = true;
 
 signals:
     void stocklistReady();
     void updateCandleChart(QString symbol, long long timestamp, double open, double high, double low, double close);
-    //void updateOrderBook(QVector<Order> orderbook);
     void updatePortfolio(std::string symbol);
     void updateWaitingList(QVector<shift::Order> waitingList);
     void acceptLogin();

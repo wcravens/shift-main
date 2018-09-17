@@ -7,6 +7,7 @@
 #include <QVector>
 
 #include <PortfolioSummary.h>
+#include "global.h"
 
 ///**
 // * @brief struct of object use as items for the PortfolioModel.

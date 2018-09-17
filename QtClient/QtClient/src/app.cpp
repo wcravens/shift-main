@@ -33,7 +33,7 @@ App::~App()
 
 void App::login()
 {
-    if (!m_login_dialog->exec() == QDialog::Accepted) {
+    if (m_login_dialog->exec() != QDialog::Accepted) {
         this->quit();
     }
 }
@@ -51,11 +51,11 @@ void App::startConnection()
     m_login_dialog->close();
     m_main_window->setHidden(false);
     QThread::sleep(3);
-    QtCoreClient::getInstance().adaptStocklist();
+    Global::qt_core_client.adaptStocklist();
 }
 
 void App::stopConnection()
 {
     shift::FIXInitiator::getInstance().disconnectBrokerageCenter();
-    QtCoreClient::getInstance().deleteLater();
+    Global::qt_core_client.deleteLater();
 }

@@ -5,7 +5,6 @@
 
 #include <QMessageBox>
 
-
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -35,16 +34,16 @@ MainWindow::MainWindow(QWidget* parent)
     }
 
     // connect signal and slot
-    connect(&QtCoreClient::getInstance(), &QtCoreClient::stocklistReady, &m_overview_model, &OverviewModel::receiveStocklistReady);
-    connect(&QtCoreClient::getInstance(), &QtCoreClient::updatePortfolio, &m_portfolio_model, &PortfolioModel::receivePortfolio);
+    connect(&Global::qt_core_client, &QtCoreClient::stocklistReady, &m_overview_model, &OverviewModel::receiveStocklistReady);
+    connect(&Global::qt_core_client, &QtCoreClient::updatePortfolio, &m_portfolio_model, &PortfolioModel::receivePortfolio);
+    connect(&Global::qt_core_client, &QtCoreClient::updateWaitingList, &m_waiting_list_model, &WaitingListModel::receiveWaitingList);
     connect(&m_portfolio_model, &PortfolioModel::updateTotalPortfolio, this, &MainWindow::updatePortfolio);
     connect(&m_portfolio_model, &PortfolioModel::updateTotalPL, this, &MainWindow::updatePL);
     connect(ui->OverviewTable, &QTableView::clicked, &m_overview_model, &OverviewModel::onClicked);
-    connect(&m_overview_model, &OverviewModel::setSendOrder, this, &MainWindow::updateOrderEditor);
     connect(ui->WaitingListTable, &QTableView::clicked, &m_waiting_list_model, &WaitingListModel::onClicked);
     connect(&m_waiting_list_model, &WaitingListModel::setCancelOrder, this, &MainWindow::updateCancelOrderEditor);
-    connect(&QtCoreClient::getInstance(), &QtCoreClient::updateWaitingList, &m_waiting_list_model, &WaitingListModel::receiveWaitingList);
     connect(m_chart_dialog, &ChartDialog::dataLoaded, this, &MainWindow::hideLoadingLabel);
+    connect(&m_overview_model, &OverviewModel::setSendOrder, this, &MainWindow::updateOrderEditor);
     connect(&m_overview_model, &OverviewModel::sentOpenPrice, m_order_book_dialog, &OrderBookDialog::receiveOpenPrice);
 }
 
@@ -62,7 +61,7 @@ void MainWindow::submitOrder(shift::Order::ORDER_TYPE type)
     QString qsymbol = ui->Symbol->toPlainText().toUpper();
 
     // check symbol
-    if (!QtCoreClient::getInstance().getStocklist().contains(qsymbol, Qt::CaseInsensitive)) {
+    if (!Global::qt_core_client.getStocklist().contains(qsymbol, Qt::CaseInsensitive)) {
         QMessageBox msg;
         msg.setText("Symbol " + qsymbol + " doesn't exist.");
         msg.exec();
@@ -96,7 +95,7 @@ void MainWindow::submitOrder(shift::Order::ORDER_TYPE type)
     }
 
     shift::Order order(qsymbol.toStdString(), price, size, type);
-    QtCoreClient::getInstance().submitOrder(order);
+    Global::qt_core_client.submitOrder(order);
 }
 
 void MainWindow::updatePortfolio(double totalBP, int totalShare)
@@ -174,36 +173,35 @@ void MainWindow::on_MarketSellButton_clicked()
     submitOrder(shift::Order::MARKET_SELL);
 }
 
-/**
- * @brief Send a cancelBid/cancelAsk order (type = 5/6) when cancel order is clicked.
- */
 void MainWindow::on_CancelOrderButton_clicked()
 {
+    //! Send a cancelBid/cancelAsk order (type = 5/6)
     shift::Order q;
-    if (m_waiting_list_model.getCancelOrderByID(ui->CancelOrderID->toPlainText(), q)) {
-        int size = ui->CancelOrderSize->toPlainText().toInt();
-        if (size <= 0 || size > q.getSize()) {
-            QMessageBox msg;
-            msg.setText("Size " + ui->CancelOrderSize->toPlainText() + " is invalid");
-            msg.exec();
-        } else {
-            q.setSize(size);
-            QtCoreClient::getInstance().submitOrder(q);
-        }
-        ui->CancelOrderID->setText("");
-        ui->CancelOrderSize->setText("");
-    } else {
+    if (!m_waiting_list_model.getCancelOrderByID(ui->CancelOrderID->toPlainText(), q)) {
         QMessageBox msg;
         msg.setText("Order ID " + ui->CancelOrderID->toPlainText() + " does not exist");
         msg.exec();
+        return;
     }
+
+    int size = ui->CancelOrderSize->toPlainText().toInt();
+    if (size <= 0 || size > q.getSize()) {
+        QMessageBox msg;
+        msg.setText("Size " + ui->CancelOrderSize->toPlainText() + " is invalid");
+        msg.exec();
+    } else {
+        q.setSize(size);
+        Global::qt_core_client.submitOrder(q);
+    }
+    ui->CancelOrderID->setText("");
+    ui->CancelOrderSize->setText("");
 }
 
 void MainWindow::on_CancelAllButton_clicked()
 {
     std::vector<shift::Order> order_list = m_waiting_list_model.getAllOrders();
     for (shift::Order order : order_list)
-        QtCoreClient::getInstance().submitOrder(order);
+        Global::qt_core_client.submitOrder(order);
 }
 
 /**

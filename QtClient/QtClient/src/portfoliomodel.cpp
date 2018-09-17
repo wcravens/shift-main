@@ -38,14 +38,14 @@ int PortfolioModel::columnCount(const QModelIndex& parent) const
  */
 QVariant PortfolioModel::data(const QModelIndex& index, int role) const
 {
-    double price = QtCoreClient::getInstance().getPortfolioItems()[m_portfolio_item[index.row()]].getPrice();
-    double shares = QtCoreClient::getInstance().getPortfolioItems()[m_portfolio_item[index.row()]].getShares();
+    double price = Global::qt_core_client.getPortfolioItems()[m_portfolio_item[index.row()]].getPrice();
+    double shares = Global::qt_core_client.getPortfolioItems()[m_portfolio_item[index.row()]].getShares();
 
     // calculation
-    double currentPrice = QtCoreClient::getInstance().getLastPriceBySymbol(m_portfolio_item[index.row()]);
+    double currentPrice = Global::qt_core_client.getLastPriceBySymbol(m_portfolio_item[index.row()]);
     double unrealizedPL = (currentPrice - price) * shares;
 
-    double pl = QtCoreClient::getInstance().getPortfolioItems()[m_portfolio_item[index.row()]].getPL() + unrealizedPL;
+    double pl = Global::qt_core_client.getPortfolioItems()[m_portfolio_item[index.row()]].getPL() + unrealizedPL;
     double closePrice = (shares == 0.0 ? 0.0 : (pl / shares)) + price;
 
     if (role == Qt::DisplayRole) {
@@ -128,7 +128,7 @@ void PortfolioModel::receivePortfolio(std::string symbol)
 {
     {
         // update price and size
-        m_portfolio_summary = QtCoreClient::getInstance().getPortfolioSummary();
+        m_portfolio_summary = Global::qt_core_client.getPortfolioSummary();
 
         // find symbol
         int index = -1;

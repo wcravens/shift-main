@@ -1,5 +1,6 @@
 #pragma once
 
+#include "global.h"
 #include "qtcoreclient.h"
 
 #include <QAbstractTableModel>
@@ -55,8 +56,6 @@ private:
     QVector<OverviewModelItem> m_prev_overview;
     QVector<OverviewModelItem> m_new_overview;
     QTimer m_timer;
-
-    QtCoreClient *m_core_client;
 
 signals:
     void setSendOrder(QString symbol, double price);

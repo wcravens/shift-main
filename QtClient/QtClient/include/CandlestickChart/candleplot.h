@@ -1,7 +1,7 @@
 #pragma once
 
+#include "global.h"
 #include "include/CandlestickChart/candledataset.h"
-
 #include "include/CandlestickChart/candleplotpicker.h"
 
 // QWT

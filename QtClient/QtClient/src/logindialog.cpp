@@ -29,21 +29,18 @@ void LoginDialog::on_exit_button_clicked()
 
 void LoginDialog::on_login_button_clicked()
 {
-    QtCoreClient::getInstance().setUsername(ui->UsernameText->text().toStdString());
+    Global::qt_core_client.setUsername(ui->UsernameText->text().toStdString());
     try {
-        bool connected = shift::FIXInitiator::getInstance().connectBrokerageCenter("./config/initiator.cfg"
-                                                                                        , &QtCoreClient::getInstance()
-                                                                                        , ui->PasswordText->text().toStdString());
-        if (connected) {
-            emit brokerageCenterConnected();
-            this->accept();
-        } else {
-            ui->PasswordText->clear();
-            QMessageBox msg;
-            msg.setText("The username or password you specified are not correct.");
-            msg.exec();
-        }
+        shift::FIXInitiator::getInstance().connectBrokerageCenter("./config/initiator.cfg"
+                                                                  , &Global::qt_core_client
+                                                                  , ui->PasswordText->text().toStdString());
+        emit brokerageCenterConnected();
+        this->accept();
     } catch (shift::ConnectionTimeout e) {
+        QMessageBox msg;
+        msg.setText(e.what());
+        msg.exec();
+    } catch (shift::IncorrectPassword e) {
         QMessageBox msg;
         msg.setText(e.what());
         msg.exec();

@@ -76,7 +76,7 @@ void CandlePlot::refresh(QString symbol)
     if (symbol != m_current_symbol)
         m_current_symbol = symbol;
 
-    QString companyName = QString::fromStdString(QtCoreClient::getInstance().getCompanyNameBySymbol(m_current_symbol.toStdString()));
+    QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyNameBySymbol(m_current_symbol.toStdString()));
     setTitle(m_current_symbol + (companyName == "" ? "" : " (" + companyName + ")"));
 
     long long firstTimestamp = m_candle_data[m_current_symbol]->d_samples[0].time;

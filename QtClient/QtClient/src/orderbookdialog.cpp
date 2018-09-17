@@ -10,7 +10,6 @@ OrderBookDialog::OrderBookDialog(QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::OrderBookDialog())
     , m_timer(new QTimer(this))
-    , m_qt_core_client(&QtCoreClient::getInstance())
     , m_stock_list_model(new QStringListModel(this))
     , m_filter_model(new StocklistFilterModel())
 {
@@ -47,16 +46,16 @@ OrderBookDialog::OrderBookDialog(QWidget* parent)
 
 void OrderBookDialog::refreshData()
 {
-    QString companyName = QString::fromStdString(m_qt_core_client->getCompanyNameBySymbol(m_current_symbol.toStdString()));
+    QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyNameBySymbol(m_current_symbol.toStdString()));
     ui->TickerNameLabel->setText(m_current_symbol + (companyName == "" ? "" : " (" + companyName + ")"));
 
     if (m_current_symbol != "") {
-        m_global_bid_data.updateData(m_qt_core_client->getOrderBookBySymbolAndType(m_current_symbol.toStdString(), 'B'));
-        m_global_ask_data.updateData(m_qt_core_client->getOrderBookBySymbolAndType(m_current_symbol.toStdString(), 'A'));
-        m_local_bid_data.updateData(m_qt_core_client->getOrderBookBySymbolAndType(m_current_symbol.toStdString(), 'b'));
-        m_local_ask_data.updateData(m_qt_core_client->getOrderBookBySymbolAndType(m_current_symbol.toStdString(), 'a'));
+        m_global_bid_data.updateData(Global::qt_core_client.getOrderBookBySymbolAndType(m_current_symbol.toStdString(), 'B'));
+        m_global_ask_data.updateData(Global::qt_core_client.getOrderBookBySymbolAndType(m_current_symbol.toStdString(), 'A'));
+        m_local_bid_data.updateData(Global::qt_core_client.getOrderBookBySymbolAndType(m_current_symbol.toStdString(), 'b'));
+        m_local_ask_data.updateData(Global::qt_core_client.getOrderBookBySymbolAndType(m_current_symbol.toStdString(), 'a'));
 
-        //        auto latestPriceBook = m_qt_core_client->getLatestPriceBook();
+        //        auto latestPriceBook = Global::qt_core_client.getLatestPriceBook();
         //        double latestPrice = latestPriceBook[real_name];
 
         //        if (latestPrice) {
@@ -96,7 +95,7 @@ void OrderBookDialog::refreshData()
  */
 void OrderBookDialog::resume()
 {
-    setStocklist(m_qt_core_client->getStocklist());
+    setStocklist(Global::qt_core_client.getStocklist());
     m_timer->start();
 
     if (m_last_clicked_index == 0) {

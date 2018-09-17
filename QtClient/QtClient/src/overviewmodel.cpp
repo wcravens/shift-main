@@ -7,7 +7,6 @@
 
 
 OverviewModel::OverviewModel()
-    : m_core_client(&QtCoreClient::getInstance())
 {
     m_timer.setInterval(1000);
     connect(&m_timer, &QTimer::timeout, this, &OverviewModel::refreshWatchList);
@@ -177,7 +176,7 @@ int OverviewModel::findRowIndex(QString symbol)
  */
 void OverviewModel::receiveStocklistReady()
 {
-    QStringList stocklist = QtCoreClient::getInstance().getStocklist();
+    QStringList stocklist = Global::qt_core_client.getStocklist();
     beginInsertRows(QModelIndex(), 0, stocklist.size() - 1);
     for (int i = 0; i < stocklist.size(); i++) {
         OverviewModelItem item(stocklist[i], QPair<QString, int>("0", 2), 0, QPair<QString, int>("0", 2), QPair<QString, int>("0", 2), 0);
@@ -194,14 +193,14 @@ void OverviewModel::receiveStocklistReady()
  */
 void OverviewModel::refreshWatchList()
 {
-    QStringList stocklist = QtCoreClient::getInstance().getStocklist();
+    QStringList stocklist = Global::qt_core_client.getStocklist();
 
     resetInternalData();
     beginInsertRows(QModelIndex(), 0, stocklist.size() - 1);
     for (int i = 0; i < stocklist.size(); i++) {
         QString symbol = stocklist[i];
 
-        double last = QString::number(QtCoreClient::getInstance().getLastPriceBySymbol(symbol.toStdString()), 'f', 2).toDouble();
+        double last = QString::number(Global::qt_core_client.getLastPriceBySymbol(symbol.toStdString()), 'f', 2).toDouble();
         double lastDiff = last - m_prev_overview[i].m_last_price.first.toDouble();
         int lastChange;
         if (lastDiff > 0)
@@ -211,9 +210,9 @@ void OverviewModel::refreshWatchList()
         else
             lastChange = 2;
 
-        int bidSize = QtCoreClient::getInstance().getBestPriceBySymbol(symbol.toStdString()).getBidSize();
+        int bidSize = Global::qt_core_client.getBestPriceBySymbol(symbol.toStdString()).getBidSize();
 
-        double bid = QString::number(m_core_client->getBestPriceBySymbol(symbol.toStdString()).getBidPrice(), 'f', 2).toDouble();
+        double bid = QString::number(Global::qt_core_client.getBestPriceBySymbol(symbol.toStdString()).getBidPrice(), 'f', 2).toDouble();
         double bidDiff = bid - m_prev_overview[i].m_bid_price.first.toDouble();
         int bidChange;
         if (bidDiff > 0)
@@ -223,9 +222,9 @@ void OverviewModel::refreshWatchList()
         else
             bidChange = 2;
 
-        int askSize = m_core_client->getBestPriceBySymbol(symbol.toStdString()).getAskSize();
+        int askSize = Global::qt_core_client.getBestPriceBySymbol(symbol.toStdString()).getAskSize();
 
-        double ask = QString::number(m_core_client->getBestPriceBySymbol(symbol.toStdString()).getAskPrice(), 'f', 2).toDouble();
+        double ask = QString::number(Global::qt_core_client.getBestPriceBySymbol(symbol.toStdString()).getAskPrice(), 'f', 2).toDouble();
         double askDiff = ask - m_prev_overview[i].m_ask_price.first.toDouble();
         int askChange;
         if (askDiff > 0)

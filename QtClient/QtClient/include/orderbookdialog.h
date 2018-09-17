@@ -1,5 +1,6 @@
 #pragma once
 
+#include "global.h"
 #include "include/orderbookmodel.h"
 #include "include/stocklistfiltermodel.h"
 #include "include/qtcoreclient.h"
@@ -34,7 +35,6 @@ private:
     Ui::OrderBookDialog* ui;
     static OrderBookDialog* m_instance;
     QTimer *m_timer;
-    QtCoreClient *m_qt_core_client;
 
     OrderBookModel m_global_bid_data;
     OrderBookModel m_global_ask_data;

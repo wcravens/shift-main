@@ -1,5 +1,7 @@
 #pragma once
 
+#include "global.h"
+
 #include <QDialog>
 
 namespace Ui {

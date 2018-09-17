@@ -88,7 +88,7 @@ ChartDialog::ChartDialog(QWidget* parent)
     connect(ui->StockList, &QTableView::clicked, this, &ChartDialog::onStockListIndexChanged);
 
     // All plot related connections
-    connect(&QtCoreClient::getInstance(), &QtCoreClient::updateCandleChart, this, &ChartDialog::receiveData);
+    connect(&Global::qt_core_client, &QtCoreClient::updateCandleChart, this, &ChartDialog::receiveData);
     connect(m_navigation_plot, &NavigationPlot::timeFrameSelected, this, &ChartDialog::updateXAxis);
     connect(m_candle_plot, &CandlePlot::intervalChanged, this, &ChartDialog::updateIntervalSelection);
     connect(m_candle_plot, &CandlePlot::zoomChanged, this, &ChartDialog::updateZoomSelection);
@@ -116,10 +116,10 @@ void ChartDialog::refresh()
 void ChartDialog::start()
 {
     // return QStringList
-    setStocklist(QtCoreClient::getInstance().getStocklist());
+    setStocklist(Global::qt_core_client.getStocklist());
 
     // return vector of string
-    for (std::string name : QtCoreClient::getInstance().getStockList())
+    for (std::string name : Global::qt_core_client.getStockList())
         m_current_stocklist.push_back(QString::fromStdString(name));
 
     // Save the previously selected position.
@@ -284,8 +284,8 @@ void ChartDialog::receiveData(const QString &symbol, const long long &timestamp,
     double avg = (open + high + low + close) / 4;
     m_navigation_plot->receiveData(symbol, timestamp, avg);
 
-    QString firstSymbol = QString::fromStdString(QtCoreClient::getInstance().getStockList().front());
-    QString lastSymbol = QString::fromStdString(QtCoreClient::getInstance().getStockList().back());
+    QString firstSymbol = QString::fromStdString(Global::qt_core_client.getStockList().front());
+    QString lastSymbol = QString::fromStdString(Global::qt_core_client.getStockList().back());
 
 //    qDebug() << m_raw_samples[firstSymbol].size() << "\t" << m_raw_samples[lastSymbol].size();
     if (m_raw_samples[firstSymbol].size() > m_raw_samples[lastSymbol].size() - 10 && !m_is_loading_done) {
