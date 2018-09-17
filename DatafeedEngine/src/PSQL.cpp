@@ -817,7 +817,7 @@ long PSQL::checkEmpty(std::string tableName)
     std::string pqQuery = "SELECT count(*) FROM " + tableName;
     // Start a transaction block
     PGresult* res = PQexec(m_conn, pqQuery.c_str());
-    if (*PQgetvalue(res, 0, 0) == '0') {
+    if ('0' == *PQgetvalue(res, 0, 0)) {
         PQclear(res);
         return 0;
     } else {
