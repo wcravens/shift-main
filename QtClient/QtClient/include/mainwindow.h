@@ -33,6 +33,7 @@ public slots:
     void updateOrderEditor(QString symbol, double price);
     void updateCancelOrderEditor(QString id, QString size);
     void hideLoadingLabel();
+    void onThemeActionClicked();
 
 private:
     ChartDialog *m_chart_dialog;
@@ -40,6 +41,8 @@ private:
     OverviewModel m_overview_model;
     PortfolioModel m_portfolio_model;
     WaitingListModel m_waiting_list_model;
+
+    void setTheme(const QString &path);
 
 private slots:
     void on_actionCandlestick_Chart_triggered();

@@ -652,9 +652,9 @@ p, li { white-space: pre-wrap; }
      <property name="title">
       <string>Themes</string>
      </property>
-     <addaction name="action_none"/>
-     <addaction name="action_shift_dark"/>
-     <addaction name="action_material"/>
+     <addaction name="theme_none_action"/>
+     <addaction name="theme_dark_action"/>
+     <addaction name="theme_material_action"/>
     </widget>
     <addaction name="menuThemes_2"/>
    </widget>
@@ -677,7 +677,7 @@ p, li { white-space: pre-wrap; }
     <string>Candlestick Chart</string>
    </property>
   </action>
-  <action name="action_none">
+  <action name="theme_none_action">
    <property name="checkable">
     <bool>false</bool>
    </property>
@@ -685,7 +685,7 @@ p, li { white-space: pre-wrap; }
     <string>None</string>
    </property>
   </action>
-  <action name="action_shift_dark">
+  <action name="theme_dark_action">
    <property name="checkable">
     <bool>false</bool>
    </property>
@@ -693,7 +693,7 @@ p, li { white-space: pre-wrap; }
     <string>SHIFT Dark</string>
    </property>
   </action>
-  <action name="action_material">
+  <action name="theme_material_action">
    <property name="checkable">
     <bool>false</bool>
    </property>

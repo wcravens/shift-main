@@ -23,5 +23,4 @@ private:
     QtCoreClient *m_qt_core_client;
 
     void login();
-    void loadTheme();
 };

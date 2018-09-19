@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget* parent)
     ui->setupUi(this);
     this->setWindowTitle("Overview - SHIFT Alpha");
     this->setAttribute(Qt::WA_QuitOnClose);
+    this->setTheme(":/theme/dark.theme");
 
     // set up model
     ui->OverviewTable->setModel(&m_overview_model);
@@ -34,17 +35,20 @@ MainWindow::MainWindow(QWidget* parent)
     }
 
     // connect signal and slot
-    connect(&Global::qt_core_client, &QtCoreClient::stocklistReady, &m_overview_model, &OverviewModel::receiveStocklistReady);
-    connect(&Global::qt_core_client, &QtCoreClient::updatePortfolio, &m_portfolio_model, &PortfolioModel::receivePortfolio);
     connect(&Global::qt_core_client, &QtCoreClient::updateWaitingList, &m_waiting_list_model, &WaitingListModel::receiveWaitingList);
+    connect(&Global::qt_core_client, &QtCoreClient::updatePortfolio, &m_portfolio_model, &PortfolioModel::receivePortfolio);
+    connect(&Global::qt_core_client, &QtCoreClient::stocklistReady, &m_overview_model, &OverviewModel::receiveStocklistReady);
+    connect(m_chart_dialog, &ChartDialog::dataLoaded, this, &MainWindow::hideLoadingLabel);
+    connect(&m_overview_model, &OverviewModel::sentOpenPrice, m_order_book_dialog, &OrderBookDialog::receiveOpenPrice);
+    connect(&m_overview_model, &OverviewModel::setSendOrder, this, &MainWindow::updateOrderEditor);
     connect(&m_portfolio_model, &PortfolioModel::updateTotalPortfolio, this, &MainWindow::updatePortfolio);
     connect(&m_portfolio_model, &PortfolioModel::updateTotalPL, this, &MainWindow::updatePL);
+    connect(&m_waiting_list_model, &WaitingListModel::setCancelOrder, this, &MainWindow::updateCancelOrderEditor);
     connect(ui->OverviewTable, &QTableView::clicked, &m_overview_model, &OverviewModel::onClicked);
     connect(ui->WaitingListTable, &QTableView::clicked, &m_waiting_list_model, &WaitingListModel::onClicked);
-    connect(&m_waiting_list_model, &WaitingListModel::setCancelOrder, this, &MainWindow::updateCancelOrderEditor);
-    connect(m_chart_dialog, &ChartDialog::dataLoaded, this, &MainWindow::hideLoadingLabel);
-    connect(&m_overview_model, &OverviewModel::setSendOrder, this, &MainWindow::updateOrderEditor);
-    connect(&m_overview_model, &OverviewModel::sentOpenPrice, m_order_book_dialog, &OrderBookDialog::receiveOpenPrice);
+    connect(ui->theme_none_action, &QAction::toggled, this, &MainWindow::onThemeActionClicked);
+    connect(ui->theme_dark_action, &QAction::toggled, this, &MainWindow::onThemeActionClicked);
+    connect(ui->theme_material_action, &QAction::toggled, this, &MainWindow::onThemeActionClicked);
 }
 
 MainWindow::~MainWindow()
@@ -202,6 +206,26 @@ void MainWindow::on_CancelAllButton_clicked()
     std::vector<shift::Order> order_list = m_waiting_list_model.getAllOrders();
     for (shift::Order order : order_list)
         Global::qt_core_client.submitOrder(order);
+}
+
+void MainWindow::onThemeActionClicked()
+{
+    qDebug()<<"Change Theme";
+    if(sender() == ui->theme_none_action){
+    } else if(sender() == ui->theme_material_action) {
+        setTheme(":/theme/material.theme");
+    } else if(sender() == ui->theme_dark_action) {
+        setTheme(":/theme/dark.theme");
+    }
+
+}
+
+void MainWindow::setTheme(const QString &path)
+{
+    QFile styleFile(path);
+    styleFile.open(QFile::ReadOnly);
+    this->setStyleSheet(styleFile.readAll());
+    styleFile.close();
 }
 
 /**

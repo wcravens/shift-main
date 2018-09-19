@@ -15,8 +15,6 @@ App::App(int &argc, char **argv)
 
     connect(m_login_dialog, &LoginDialog::brokerageCenterConnected, this, &App::startConnection);
 
-    this->loadTheme();
-
     //! Trigger login window after QEventLoop of App is initialized
     QTimer::singleShot(1, [this](){login();});
 }
@@ -36,14 +34,6 @@ void App::login()
     if (m_login_dialog->exec() != QDialog::Accepted) {
         this->quit();
     }
-}
-
-void App::loadTheme()
-{
-    QFile styleFile(":/theme/dark.theme");
-    styleFile.open(QFile::ReadOnly);
-    this->setStyleSheet(styleFile.readAll());
-    styleFile.close();
 }
 
 void App::startConnection()
