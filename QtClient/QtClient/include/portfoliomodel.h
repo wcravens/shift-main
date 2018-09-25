@@ -72,7 +72,7 @@ public slots:
 
 protected:
     QMutex m_mutex;
-    QVector<std::string> m_portfolio_item;
+    QVector<std::string> m_portfolio_item_vec;
 //    double m_total_realized_PL;
     shift::PortfolioSummary m_portfolio_summary;
     QTimer m_timer;

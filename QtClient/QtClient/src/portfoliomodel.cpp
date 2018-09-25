@@ -20,7 +20,7 @@ PortfolioModel::PortfolioModel()
  */
 int PortfolioModel::rowCount(const QModelIndex& parent) const
 {
-    return m_portfolio_item.size();
+    return m_portfolio_item_vec.size();
 }
 
 /**
@@ -38,20 +38,21 @@ int PortfolioModel::columnCount(const QModelIndex& parent) const
  */
 QVariant PortfolioModel::data(const QModelIndex& index, int role) const
 {
-    double price = Global::qt_core_client.getPortfolioItems()[m_portfolio_item[index.row()]].getPrice();
-    double shares = Global::qt_core_client.getPortfolioItems()[m_portfolio_item[index.row()]].getShares();
+    shift::PortfolioItem item = Global::qt_core_client.getPortfolioItems()[m_portfolio_item_vec[index.row()]];
+    double price = item.getPrice();
+    double shares = item.getShares();
 
     // calculation
-    double currentPrice = Global::qt_core_client.getLastPriceBySymbol(m_portfolio_item[index.row()]);
+    double currentPrice = Global::qt_core_client.getLastPriceBySymbol(m_portfolio_item_vec[index.row()]);
     double unrealizedPL = (currentPrice - price) * shares;
 
-    double pl = Global::qt_core_client.getPortfolioItems()[m_portfolio_item[index.row()]].getPL() + unrealizedPL;
+    double pl = item.getPL() + unrealizedPL;
     double closePrice = (shares == 0.0 ? 0.0 : (pl / shares)) + price;
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
         case 0:
-            return QString::fromStdString(m_portfolio_item[index.row()]);
+            return QString::fromStdString(m_portfolio_item_vec[index.row()]);
             break;
 
         case 1:
@@ -114,16 +115,6 @@ QVariant PortfolioModel::headerData(int section, Qt::Orientation orientation, in
     return QVariant::Invalid;
 }
 
-/**
- * @brief Called when there's an update to portfolio. Transfer call to QtCoreClient.
- * @param double total year to date PL.
- * @param double Buying Power
- * @param int total shares traded
- * @param QString updated symbol
- * @param int traded shares for the symbol
- * @param double trading price 
- * @param double PL for the current symbol.
- */
 void PortfolioModel::receivePortfolio(std::string symbol)
 {
     {
@@ -132,8 +123,8 @@ void PortfolioModel::receivePortfolio(std::string symbol)
 
         // find symbol
         int index = -1;
-        for (int i = 0; i < m_portfolio_item.size(); i++) {
-            if (m_portfolio_item[i] == symbol) {
+        for (int i = 0; i < m_portfolio_item_vec.size(); i++) {
+            if (m_portfolio_item_vec[i] == symbol) {
                 index = i;
                 break;
             }
@@ -142,9 +133,9 @@ void PortfolioModel::receivePortfolio(std::string symbol)
         if (index == -1) {
             if (symbol != "") {
                 // insert portfolio
-                beginInsertRows(QModelIndex(), m_portfolio_item.size(), m_portfolio_item.size());
+                beginInsertRows(QModelIndex(), m_portfolio_item_vec.size(), m_portfolio_item_vec.size());
 //                PortfolioModelItem item(symbol, shares, QString::number(price, 'f', 2), "0.00", "0.00", realized_PL);
-                m_portfolio_item.push_back(symbol);
+                m_portfolio_item_vec.push_back(symbol);
                 endInsertRows();
             }
         } else {
