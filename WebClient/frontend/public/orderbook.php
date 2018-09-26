@@ -14,7 +14,6 @@ $redirect_url = '/orderbook.php';
         <script src="/static/jquery-3.1.1.min.js"></script>   
         <script src="/static/autobahn.min.js"></script>
         <script src="/static/highstock/js/highstock.js"></script>
-        <script src="/static/highstock/js/modules/exporting.js"></script> 
         <script src="/static/bootstrap/js/bootstrap.min.js"></script>
         <script src="/static/jsTimezoneDetect/jstz.min.js"></script>
         <script type="text/javascript">
