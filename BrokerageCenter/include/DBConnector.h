@@ -31,6 +31,7 @@ public:
     bool connectDB();
     void disconnectDB();
     bool createClients(const std::string& symbol);
+    bool createTradeRecordTable();
 
 private:
     DBConnector(); /* singleton pattern */

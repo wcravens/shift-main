@@ -4,49 +4,47 @@
 
 ---------------------------------------------------------------
 
--- Table: public.client_information
+-- Table: public.traders
 
-DROP TABLE IF EXISTS public.client_information CASCADE;
+DROP TABLE IF EXISTS public.traders CASCADE;
 
-CREATE TABLE public.client_information
+CREATE TABLE public.traders
 (
-  trader_id_1 character varying(15) NOT NULL,
-  trader_fname character varying(25),
-  trader_lname character varying(25),
-  trader_username character varying(15),
-  trader_password character varying(100),
-  trader_buyingp real,
-  trader_email character varying(50),
-  trader_gender integer,
-  trader_role character varying(10),
-  CONSTRAINT client_information_pkey PRIMARY KEY (trader_id_1)
+  id serial,
+  firstname character varying(40) NOT NULL,
+  lastname character varying(40) NOT NULL,
+  username character varying(40) NOT NULL,
+  password character varying(40) NOT NULL,
+  role character varying(20) NOT NULL DEFAULT 'student'::character varying,
+  email character varying(40) NOT NULL,
+  CONSTRAINT traders_pkey PRIMARY KEY (id)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE public.client_information
+ALTER TABLE public.traders
   OWNER TO hanlonpgsql4;
 
-INSERT INTO public.client_information
-  VALUES ('0000', 'Demo', 'Client', 'democlient', 'password', NULL, NULL, NULL, NULL);
+INSERT INTO public.traders (firstname, lastname, username, password, email)
+  VALUES ('Demo', 'Client', 'democlient', 'password', 'democlient@shift');
 
-INSERT INTO public.client_information
-  VALUES ('0001', 'Web', 'Client', 'webclient', 'password', NULL, NULL, NULL, NULL);
+INSERT INTO public.traders (firstname, lastname, username, password, email)
+  VALUES ('Web', 'Client', 'webclient', 'password', 'webclient@shift');
 
-INSERT INTO public.client_information
-  VALUES ('0002', 'Qt', 'Client', 'qtclient', 'password', NULL, NULL, NULL, NULL);
+INSERT INTO public.traders (firstname, lastname, username, password, email)
+  VALUES ('Qt', 'Client', 'qtclient', 'password', 'qtclient@shift');
 
 DO $$
 
 DECLARE
-  i integer := 0; 
+  i integer := 0;
 
 BEGIN
 
   WHILE i < 10 LOOP
     i := i + 1;
-    INSERT INTO public.client_information
-      VALUES (1000 + i, 'Test', LPAD(i::text, 3, '0'), 'test' || LPAD(i::text, 3, '0'), 'password', NULL, NULL, NULL, NULL);
+    INSERT INTO public.traders (firstname, lastname, username, password, email)
+      VALUES ('Test', LPAD(i::text, 3, '0'), 'test' || LPAD(i::text, 3, '0'), 'password', 'test@shift');
   END LOOP;
 
 END $$;
@@ -55,34 +53,34 @@ END $$;
 
 -- Table: public.trade_record
 
-DROP TABLE IF EXISTS public.trade_record;
+-- DROP TABLE IF EXISTS public.trade_record;
 
-CREATE TABLE public.trade_record
-(
-  real_time timestamp without time zone,
-  execute_time timestamp without time zone,
-  symbol character varying(15),
-  price real,
-  size integer,
-  trader_id_1 character varying(15),
-  trader_id_2 character varying(15),
-  order_id_1 character varying(20) NOT NULL,
-  order_id_2 character varying(20),
-  order_type_1 character varying(2),
-  order_type_2 character varying(2),
-  time1 time without time zone,
-  time2 time without time zone,
-  decision character varying(10),
-  destination character varying(10),
-  CONSTRAINT trade_record_pkey PRIMARY KEY (order_id_1),
-  CONSTRAINT trade_record_fkey FOREIGN KEY (trader_id_1)
-      REFERENCES public.client_information (trader_id_1) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION
-)
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE public.trade_record
-  OWNER TO hanlonpgsql4;
+-- CREATE TABLE public.trade_record
+-- (
+--   real_time timestamp without time zone,
+--   execute_time timestamp without time zone,
+--   symbol character varying(15),
+--   price real,
+--   size integer,
+--   trader_id_1 bigint NOT NULL,
+--   trader_id_2 bigint NOT NULL,
+--   order_id_1 character varying(20) NOT NULL,
+--   order_id_2 character varying(20),
+--   order_type_1 character varying(2),
+--   order_type_2 character varying(2),
+--   time1 time without time zone,
+--   time2 time without time zone,
+--   decision character varying(10),
+--   destination character varying(10),
+--   CONSTRAINT trade_record_pkey PRIMARY KEY (order_id_1),
+--   CONSTRAINT trade_record_fkey FOREIGN KEY (trader_id_1)
+--       REFERENCES public.traders (id) MATCH SIMPLE
+--       ON UPDATE NO ACTION ON DELETE NO ACTION
+-- )
+-- WITH (
+--   OIDS=FALSE
+-- );
+-- ALTER TABLE public.trade_record
+--   OWNER TO hanlonpgsql4;
 
 ---------------------------------------------------------------

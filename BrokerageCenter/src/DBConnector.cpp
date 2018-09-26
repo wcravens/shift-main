@@ -5,6 +5,75 @@
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 
+#define CSTR_TBLNAME_TRADE_RECORD "trade_record"
+
+struct TradeRecord;
+
+template<typename>
+struct PSQLTable;
+
+template<>
+struct PSQLTable<TradeRecord> {
+    static constexpr char sc_colsDefinition[] = "( real_time TIMESTAMP WITHOUT TIME ZONE"
+                                                ", execute_time TIMESTAMP WITHOUT TIME ZONE"
+                                                ", symbol CHARACTER VARYING(15)"
+                                                ", price REAL"
+                                                ", size INTEGER"
+
+                                                ", trader_id_1 SERIAL"
+                                                ", trader_id_2 SERIAL"
+                                                ", order_id_1 SERIAL"
+                                                ", order_id_2 SERIAL"
+                                                ", order_type_1 CHARACTER VARYING(2)"
+
+                                                ", order_type_2 CHARACTER VARYING(2)"
+                                                ", time1 TIME WITHOUT TIME ZONE"
+                                                ", time2 TIME WITHOUT TIME ZONE"
+                                                ", decision CHARACTER VARYING(10)"
+                                                ", destination CHARACTER VARYING(10)"
+
+                                                ",  CONSTRAINT trade_record_pkey PRIMARY KEY (order_id_1, order_id_2),\
+                                                    CONSTRAINT trade_record_fkey_1 FOREIGN KEY (trader_id_1)\
+                                                        REFERENCES public.traders (id) MATCH SIMPLE\
+                                                        ON UPDATE NO ACTION ON DELETE NO ACTION,\
+                                                    CONSTRAINT trade_record_fkey_2 FOREIGN KEY (trader_id_2)\
+                                                        REFERENCES public.traders (id) MATCH SIMPLE\
+                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
+                                                )";
+
+    static constexpr char sc_recordFormat[] = "( real_time, execute_time, symbol, price, size"
+                                              ", trader_id_1, trader_id_2, order_id_1, order_id_2, order_type_1"
+                                              ", order_type_2, time1, time2, decision, destination"
+                                              ") VALUES ";
+
+    enum RCD_VAL_IDX : int {
+        REAL_TIME = 0,
+        EXEC_TIME,
+        SYMBOL,
+        PRICE,
+        SIZE,
+
+        TRD_ID_1,
+        TRD_ID_2,
+        ODR_ID_1,
+        ODR_ID_2,
+        ODR_TY_1,
+
+        ODR_TY_2,
+        TIME_1,
+        TIME_2,
+        DECISION,
+        DEST,
+
+        NUM_FIELDS
+    };
+};
+
+/*static*/ constexpr char PSQLTable<TradeRecord>::sc_colsDefinition[];
+/*static*/ constexpr char PSQLTable<TradeRecord>::sc_recordFormat[];
+
+//----------------------------------------------------------------------------------------------------------------
+
 /*static*/ DBConnector* DBConnector::instance()
 {
     static DBConnector s_DBInst;
@@ -97,6 +166,22 @@ bool DBConnector::createClients(const std::string& symbol)
     return res;
 }
 
+bool DBConnector::createTradeRecordTable()
+{
+    std::string pqQuery("CREATE TABLE " CSTR_TBLNAME_TRADE_RECORD);
+    pqQuery += PSQLTable<TradeRecord>::sc_colsDefinition;
+    PGresult* res = PQexec(m_pConn, pqQuery.c_str());
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        cout << COLOR_ERROR "ERROR: Create table [ " CSTR_TBLNAME_TRADE_RECORD " ] failed.\n" NO_COLOR;
+        PQclear(res);
+        return false;
+    }
+
+    PQclear(res);
+    return true;
+}
+
 //-------------------------------------------------------------------
 
 std::vector<std::string> readCol(const std::string& sql)
@@ -120,7 +205,7 @@ std::vector<std::string> readCol(const std::string& sql)
 // void DBConnector::InsertUser(const UserInfo& client)
 // {
 //     std::string pqQuery;
-//     pqQuery = "INSERT INTO client_information VALUES ('" + client.id + "','" + client.fistName + "','" + client.lastName + "','" + client.accountName + "','" + client.password + "','" + std::to_string(client.buyingPower) + "','" + client.email + "','" + std::to_string(int(client.gender)) + "');";
+//     pqQuery = "INSERT INTO traders (firstname, lastname, username, password, email) VALUES ('" + client.fistName + "','" + client.lastName + "','" + client.accountName + "','" + client.password + "','" + client.email + "');";
 
 //     PGresult* res = PQexec(m_pConn, pqQuery.c_str());
 

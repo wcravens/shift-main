@@ -27,24 +27,6 @@ ALTER TABLE public.buying_power
 
 ---------------------------------------------------------------
 
--- Table: public.forum
-
--- DROP TABLE public.forum;
-
-CREATE TABLE public.forum
-(
-  user_name character varying,
-  comments character varying,
-  subject character varying
-)
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE public.forum
-  OWNER TO hanlonpgsql4;
-
----------------------------------------------------------------
-
 -- Table: public.holdings_xyz
 
 -- DROP TABLE public.holdings_xyz;
@@ -64,58 +46,24 @@ ALTER TABLE public.holdings_xyz
 
 ---------------------------------------------------------------
 
--- Table: public.strategies
+-- Table: public.web_traders
 
--- DROP TABLE public.strategies;
+-- DROP TABLE public.web_traders;
 
-CREATE TABLE public.strategies
+CREATE TABLE public.web_traders
 (
-  user_name character varying,
-  order_type character varying,
-  stock_name character varying,
-  "interval" character varying
-)
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE public.strategies
-  OWNER TO hanlonpgsql4;
-
----------------------------------------------------------------
-
--- Sequence: public.test_id_seq
-
--- DROP SEQUENCE public.test_id_seq;
-
-CREATE SEQUENCE public.test_id_seq
-  INCREMENT 1
-  MINVALUE 1
-  MAXVALUE 9223372036854775807
-  START 31
-  CACHE 1;
-ALTER TABLE public.test_id_seq
-  OWNER TO hanlonpgsql4;
-
----------------------------------------------------------------
-
--- Table: public.traders
-
--- DROP TABLE public.traders;
-
-CREATE TABLE public.traders
-(
-  id bigint NOT NULL DEFAULT nextval('test_id_seq'::regclass),
+  id SERIAL,
   username character varying(40) NOT NULL,
   password character varying(40) NOT NULL,
   role character varying(20) NOT NULL DEFAULT 'student'::character varying,
   email character varying(40) NOT NULL,
-  sessionid character varying(60),
-  CONSTRAINT traders_pkey PRIMARY KEY (id)
+  sessionid character varying(40),
+  CONSTRAINT web_traders_pkey PRIMARY KEY (id)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE public.traders
+ALTER TABLE public.web_traders
   OWNER TO hanlonpgsql4;
 
 ---------------------------------------------------------------
