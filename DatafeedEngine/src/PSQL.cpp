@@ -207,9 +207,9 @@ bool PSQL::connectDB()
     if (PQstatus(m_conn) != CONNECTION_OK) {
         cout << COLOR_ERROR "ERROR: Connection to database failed.\n" NO_COLOR;
         return false;
-    } else {
-        return true;
     }
+
+    return true;
 }
 
 /* Close connection to database */
@@ -230,9 +230,9 @@ void PSQL::init()
         cin.get();
         cin.get();
         return;
-    } else {
-        cout << "Connection to database is good." << endl;
     }
+    
+    cout << "Connection to database is good." << endl;
 
     if (checkTableExist(CSTR_TBLNAME_LIST_OF_TQ_TABLES) == TABLE_STATUS::NOT_EXIST) {
         // cout << CSTR_TBLNAME_LIST_OF_TQ_TABLES " does not exist." << endl;
@@ -264,66 +264,46 @@ auto PSQL::checkTableExist(std::string tableName) -> TABLE_STATUS
     auto lock{ lockPSQL() };
 
     std::string pqQuery;
-    // Start a transaction block
     PGresult* res = PQexec(m_conn, "BEGIN");
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         cout << COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR;
         PQclear(res);
         return TABLE_STATUS::DB_ERROR;
-    } else {
-        PQclear(res);
     }
+    PQclear(res);
 
-    // Fetch rows from JPM data table
     pqQuery = "DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname=\'" + tableName + "\'";
     res = PQexec(m_conn, pqQuery.c_str());
+
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         cout << COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR;
         PQclear(res);
         return TABLE_STATUS::DB_ERROR;
-    } else {
-        PQclear(res);
     }
+    PQclear(res);
 
     res = PQexec(m_conn, "FETCH ALL IN record");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         cout << COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR;
         PQclear(res);
         return TABLE_STATUS::DB_ERROR;
-    } else {
-        int nrows = PQntuples(res);
-
-        if (0 == nrows) {
-            PQclear(res);
-            res = PQexec(m_conn, "CLOSE record");
-            PQclear(res);
-
-            res = PQexec(m_conn, "END");
-            PQclear(res);
-
-            return TABLE_STATUS::NOT_EXIST;
-        } else if (1 == nrows) {
-            PQclear(res);
-
-            res = PQexec(m_conn, "CLOSE record");
-            PQclear(res);
-
-            res = PQexec(m_conn, "END");
-            PQclear(res);
-
-            return TABLE_STATUS::EXISTS;
-        } else {
-            PQclear(res);
-            res = PQexec(m_conn, "CLOSE record");
-            PQclear(res);
-
-            res = PQexec(m_conn, "END");
-            PQclear(res);
-
-            cout << COLOR_ERROR "ERROR: More than one " << tableName << " table exist." NO_COLOR << endl;
-            return TABLE_STATUS::OTHER_ERROR;
-        }
     }
+
+    int nrows = PQntuples(res);
+
+    PQclear(res);
+    res = PQexec(m_conn, "CLOSE record");
+    PQclear(res);
+    res = PQexec(m_conn, "END");
+    PQclear(res);
+
+    if (0 == nrows) {
+        return TABLE_STATUS::NOT_EXIST;
+    } else if (1 == nrows) {
+        return TABLE_STATUS::EXISTS;
+    }
+    cout << COLOR_ERROR "ERROR: More than one " << tableName << " table exist." NO_COLOR << endl;
+    return TABLE_STATUS::OTHER_ERROR;
 }
 
 /* create table used to save the trading records*/
@@ -357,10 +337,9 @@ bool PSQL::createTableOfTableNames()
         cout << COLOR_ERROR "\tERROR: Create table [ " CSTR_TBLNAME_LIST_OF_TQ_TABLES " ] failed.\n" NO_COLOR;
         PQclear(res);
         return false;
-    } else {
-        PQclear(res);
-        return true;
     }
+    PQclear(res);
+    return true;
 }
 
 /* Insert record to the table after updating one day quote&trade data to the database*/
@@ -377,10 +356,9 @@ bool PSQL::insertTableName(std::string ric, std::string reutersDate, std::string
         cout << COLOR_ERROR "\tERROR: Insert to " CSTR_TBLNAME_LIST_OF_TQ_TABLES " table failed.\t" NO_COLOR;
         PQclear(res);
         return false;
-    } else {
-        PQclear(res);
-        return true;
     }
+    PQclear(res);
+    return true;
 }
 
 /* Create Trade & Quote data table */
@@ -397,10 +375,9 @@ bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
         cout << COLOR_ERROR "\tERROR: Create " << tableName << " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR;
         PQclear(res);
         return false;
-    } else {
-        PQclear(res);
-        return true;
     }
+    PQclear(res);
+    return true;
 }
 
 /* Check if the Trade and Quote data for specific ric and date is exist
@@ -416,9 +393,8 @@ auto PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string re
         cout << COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR;
         PQclear(res);
         return TABLE_STATUS::DB_ERROR;
-    } else {
-        PQclear(res);
     }
+    PQclear(res);
 
     // Fetch rows from JPM data table
     pqQuery = "DECLARE record CURSOR FOR SELECT * FROM " CSTR_TBLNAME_LIST_OF_TQ_TABLES " WHERE reuters_date='" + reutersDate + "' AND ric='" + ric + '\'';
@@ -427,51 +403,36 @@ auto PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string re
         cout << COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_taq_tbl_exist)\n" NO_COLOR;
         PQclear(res);
         return TABLE_STATUS::DB_ERROR;
-    } else {
-        PQclear(res);
     }
+    PQclear(res);
 
     res = PQexec(m_conn, "FETCH ALL IN record");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         cout << COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR;
         PQclear(res);
         return TABLE_STATUS::DB_ERROR;
-    } else {
-        int nrows = PQntuples(res);
-
-        if (0 == nrows) {
-            PQclear(res);
-            res = PQexec(m_conn, "CLOSE record");
-            PQclear(res);
-
-            res = PQexec(m_conn, "END");
-            PQclear(res);
-
-            return TABLE_STATUS::NOT_EXIST;
-        } else if (1 == nrows) {
-            tableName = PQgetvalue(res, 0, PSQLTable<TradeAndQuoteTableNames>::RCD_VAL_IDX::REUT_TABLE_NAME);
-            PQclear(res);
-
-            res = PQexec(m_conn, "CLOSE record");
-            PQclear(res);
-
-            res = PQexec(m_conn, "END");
-            PQclear(res);
-
-            return TABLE_STATUS::EXISTS;
-        } else {
-            PQclear(res);
-
-            res = PQexec(m_conn, "CLOSE record");
-            PQclear(res);
-
-            res = PQexec(m_conn, "END");
-            PQclear(res);
-
-            cout << COLOR_ERROR "ERROR: More than one Trade & Quote table for [ " << ric << ' ' << reutersDate << " ] exist." NO_COLOR << endl;
-            return TABLE_STATUS::OTHER_ERROR;
-        }
     }
+    
+    int nrows = PQntuples(res);
+    TABLE_STATUS status;
+
+    if (0 == nrows) {
+        status = TABLE_STATUS::NOT_EXIST;
+    } else if (1 == nrows) {
+        tableName = PQgetvalue(res, 0, PSQLTable<TradeAndQuoteTableNames>::RCD_VAL_IDX::REUT_TABLE_NAME);
+        status = TABLE_STATUS::EXISTS;
+    } else {
+        cout << COLOR_ERROR "ERROR: More than one Trade & Quote table for [ " << ric << ' ' << reutersDate << " ] exist." NO_COLOR << endl;
+        status = TABLE_STATUS::OTHER_ERROR;
+    }
+
+    PQclear(res);
+    res = PQexec(m_conn, "CLOSE record");
+    PQclear(res);
+    res = PQexec(m_conn, "END");
+    PQclear(res);
+
+    return status;
 }
 
 /* read csv file, Append statement and insert record into table */
@@ -820,10 +781,9 @@ long PSQL::checkEmpty(std::string tableName)
     if ('0' == *PQgetvalue(res, 0, 0)) {
         PQclear(res);
         return 0;
-    } else {
-        PQclear(res);
-        return 1;
     }
+    PQclear(res);
+    return 1;
 }
 
 bool PSQL::insertTradingRecord(const TradingRecord& trade)
