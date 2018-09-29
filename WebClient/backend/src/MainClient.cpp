@@ -65,7 +65,7 @@ void MainClient::sendOrderBookToFront()
 {
     for (const std::string& symbol : getStockList()) {
         for (const char& type : { 'a', 'A', 'b', 'B' }) {
-            auto orderBook = getOrderBookBySymbolAndType(symbol, type);
+            auto orderBook = getOrderBook(symbol, type);
             std::set<double> myset;
             std::string res = "";
             for (const auto& entry : orderBook) {

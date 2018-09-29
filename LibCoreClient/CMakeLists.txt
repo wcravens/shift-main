@@ -57,7 +57,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/OrderBookEntry.cpp
     ${PROJECT_SOURCE_DIR}/src/OrderBookGlobalAsk.cpp
     ${PROJECT_SOURCE_DIR}/src/OrderBookGlobalBid.cpp
-	${PROJECT_SOURCE_DIR}/src/OrderBookLocalAsk.cpp
+    ${PROJECT_SOURCE_DIR}/src/OrderBookLocalAsk.cpp
     ${PROJECT_SOURCE_DIR}/src/OrderBookLocalBid.cpp
     ${PROJECT_SOURCE_DIR}/src/PortfolioItem.cpp
     ${PROJECT_SOURCE_DIR}/src/PortfolioSummary.cpp

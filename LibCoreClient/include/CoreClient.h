@@ -61,8 +61,8 @@ public:
 
     // Order book methods
     shift::BestPrice getBestPriceBySymbol(const std::string& symbol);
-    std::vector<shift::OrderBookEntry> getOrderBookBySymbolAndType(const std::string& symbol, char type);
-    std::vector<shift::OrderBookEntry> getOrderBookWithDestBySymbolAndType(const std::string& symbol, char type);
+    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, char type);
+    std::vector<shift::OrderBookEntry> getOrderBookWithDest(const std::string& symbol, char type);
 
     // Symbols list and company names
     std::vector<std::string> getStockList();
