@@ -667,7 +667,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 
             symbol = m_originalName_symbol[symbol];
             int size = atoi((std::string(orderSize)).c_str());
-            shift::Order::ORDER_TYPE type = shift::Order::ORDER_TYPE(
+            shift::Order::Type type = shift::Order::Type(
                 char(atoi(((std::string)orderType).c_str())));
 
             if (size != 0) {

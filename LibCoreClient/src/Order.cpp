@@ -15,7 +15,7 @@ shift::Order::Order()
  * @param type char value for m_orderType
  */
 shift::Order::Order(std::string symbol, double price, int size,
-    ORDER_TYPE type)
+    Type type)
     : m_symbol(std::move(symbol))
     , m_price(price)
     , m_size(size)
@@ -32,7 +32,7 @@ shift::Order::Order(std::string symbol, double price, int size,
  * @param type char value for m_orderType
  */
 shift::Order::Order(std::string symbol, double price, int size,
-    ORDER_TYPE type, std::string id)
+    Type type, std::string id)
     : m_symbol(std::move(symbol))
     , m_price(price)
     , m_size(size)
@@ -72,7 +72,7 @@ int shift::Order::getSize() const
  * @brief Getter to get the type of current Order.
  * @return Type of the current Order as a char.
  */
-shift::Order::ORDER_TYPE shift::Order::getType() const
+shift::Order::Type shift::Order::getType() const
 {
     return m_type;
 }
@@ -117,7 +117,7 @@ void shift::Order::setSize(int size)
  * @brief Setter to set order type into m_orderType.
  * @param type as ORDER_TYPE
  */
-void shift::Order::setType(ORDER_TYPE type)
+void shift::Order::setType(Type type)
 {
     m_type = type;
 }

@@ -60,7 +60,7 @@ MainWindow::~MainWindow()
 /**
  * @brief Validify all information and call QtCoreClient to submit the order to BrokerageCenter.
  */
-void MainWindow::submitOrder(shift::Order::ORDER_TYPE type)
+void MainWindow::submitOrder(shift::Order::Type type)
 {
     QString qsymbol = ui->Symbol->toPlainText().toUpper();
 

@@ -25,7 +25,7 @@ public:
 
     Ui::MainWindow* ui;
 
-    void submitOrder(shift::Order::ORDER_TYPE type);
+    void submitOrder(shift::Order::Type type);
 
 public slots:
     void updatePortfolio(double totalBP, int totalShare);
