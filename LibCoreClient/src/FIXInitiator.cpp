@@ -995,7 +995,7 @@ std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::
  * 
  * @param type The target entry type (Global bid "B"/ask "A", local bid "b"/ask "a")
  */
-std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBookWithDest(const std::string& symbol, char type)
+std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBookWithDestination(const std::string& symbol, char type)
 {
     if (m_orderBooks.find(symbol) == m_orderBooks.end()) {
         throw "There is no Order Book for symbol " + symbol;

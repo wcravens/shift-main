@@ -277,13 +277,13 @@ std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBook(const std::st
     return m_fixInitiator->getOrderBook(symbol, type);
 }
 
-std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBookWithDest(const std::string& symbol, char type)
+std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBookWithDestination(const std::string& symbol, char type)
 {
     if (!isConnected()) {
         return std::vector<shift::OrderBookEntry>();
     }
 
-    return m_fixInitiator->getOrderBookWithDest(symbol, type);
+    return m_fixInitiator->getOrderBookWithDestination(symbol, type);
 }
 
 std::vector<std::string> shift::CoreClient::getStockList()
