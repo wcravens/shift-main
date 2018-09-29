@@ -8,7 +8,7 @@ namespace strategies {
     //--------------------------------------------------------------------------
 
     StrategyParameter::StrategyParameter()
-        : m_tag(TAG::BOOL)
+        : m_tag(Tag::BOOL)
         , m_b(true)
     {
     }
@@ -20,31 +20,31 @@ namespace strategies {
     //--------------------------------------------------------------------------
 
     StrategyParameter::StrategyParameter(bool b)
-        : m_tag(TAG::BOOL)
+        : m_tag(Tag::BOOL)
         , m_b(b)
     {
     }
 
     StrategyParameter::StrategyParameter(char c)
-        : m_tag(TAG::CHAR)
+        : m_tag(Tag::CHAR)
         , m_c(c)
     {
     }
 
     StrategyParameter::StrategyParameter(double d)
-        : m_tag(TAG::DOUBLE)
+        : m_tag(Tag::DOUBLE)
         , m_d(d)
     {
     }
 
     StrategyParameter::StrategyParameter(int i)
-        : m_tag(TAG::INT)
+        : m_tag(Tag::INT)
         , m_i(i)
     {
     }
 
     StrategyParameter::StrategyParameter(const std::string& s)
-        : m_tag(TAG::STRING)
+        : m_tag(Tag::STRING)
         , m_s(s)
     {
     }
@@ -57,15 +57,15 @@ namespace strategies {
     StrategyParameter::StrategyParameter(const StrategyParameter& sp)
         : m_tag(sp.m_tag)
     {
-        if (TAG::BOOL == m_tag) {
+        if (Tag::BOOL == m_tag) {
             m_b = sp.m_b;
-        } else if (TAG::CHAR == m_tag) {
+        } else if (Tag::CHAR == m_tag) {
             m_c = sp.m_c;
-        } else if (TAG::DOUBLE == m_tag) {
+        } else if (Tag::DOUBLE == m_tag) {
             m_d = sp.m_d;
-        } else if (TAG::INT == m_tag) {
+        } else if (Tag::INT == m_tag) {
             m_i = sp.m_i;
-        } else if (TAG::STRING == m_tag) {
+        } else if (Tag::STRING == m_tag) {
             new (&m_s) std::string(sp.m_s);
         }
     }
@@ -77,7 +77,7 @@ namespace strategies {
         destroyString();
 
         m_b = b;
-        m_tag = TAG::BOOL;
+        m_tag = Tag::BOOL;
 
         return *this;
     }
@@ -87,7 +87,7 @@ namespace strategies {
         destroyString();
 
         m_c = c;
-        m_tag = TAG::CHAR;
+        m_tag = Tag::CHAR;
 
         return *this;
     }
@@ -97,7 +97,7 @@ namespace strategies {
         destroyString();
 
         m_d = d;
-        m_tag = TAG::DOUBLE;
+        m_tag = Tag::DOUBLE;
 
         return *this;
     }
@@ -107,18 +107,18 @@ namespace strategies {
         destroyString();
 
         m_i = i;
-        m_tag = TAG::INT;
+        m_tag = Tag::INT;
 
         return *this;
     }
 
     StrategyParameter& StrategyParameter::operator=(const std::string& s)
     {
-        if (TAG::STRING == m_tag) {
+        if (Tag::STRING == m_tag) {
             m_s = s;
         } else {
             new (&m_s) std::string(s);
-            m_tag = TAG::STRING;
+            m_tag = Tag::STRING;
         }
 
         return *this;
@@ -137,15 +137,15 @@ namespace strategies {
 
         m_tag = sp.m_tag;
 
-        if (TAG::BOOL == m_tag) {
+        if (Tag::BOOL == m_tag) {
             m_b = sp.m_b;
-        } else if (TAG::CHAR == m_tag) {
+        } else if (Tag::CHAR == m_tag) {
             m_c = sp.m_c;
-        } else if (TAG::DOUBLE == m_tag) {
+        } else if (Tag::DOUBLE == m_tag) {
             m_d = sp.m_d;
-        } else if (TAG::INT == m_tag) {
+        } else if (Tag::INT == m_tag) {
             m_i = sp.m_i;
-        } else if (TAG::STRING == m_tag) {
+        } else if (Tag::STRING == m_tag) {
             new (&m_s) std::string(sp.m_s);
         }
 
@@ -156,27 +156,27 @@ namespace strategies {
 
     bool StrategyParameter::isBool() const
     {
-        return TAG::BOOL == m_tag;
+        return Tag::BOOL == m_tag;
     }
 
     bool StrategyParameter::isChar() const
     {
-        return TAG::CHAR == m_tag;
+        return Tag::CHAR == m_tag;
     }
 
     bool StrategyParameter::isDouble() const
     {
-        return TAG::DOUBLE == m_tag;
+        return Tag::DOUBLE == m_tag;
     }
 
     bool StrategyParameter::isInt() const
     {
-        return TAG::INT == m_tag;
+        return Tag::INT == m_tag;
     }
 
     bool StrategyParameter::isString() const
     {
-        return TAG::STRING == m_tag;
+        return Tag::STRING == m_tag;
     }
 
     //--------------------------------------------------------------------------
@@ -250,7 +250,7 @@ namespace strategies {
 
     bool StrategyParameter::destroyString()
     {
-        if (TAG::STRING == m_tag) {
+        if (Tag::STRING == m_tag) {
             m_s.~basic_string<char>();
             return true;
         }
