@@ -31,7 +31,19 @@ public:
     bool connectDB();
     void disconnectDB();
     bool createClients(const std::string& symbol);
-    bool createTradeRecordTable();
+
+    /*@brief Indicates table status when querying */
+    enum class TABLE_STATUS : int {
+        NOT_EXIST = 0, // table does not exist
+        EXISTS, // table exists
+        DB_ERROR, // SQL database error
+        OTHER_ERROR, // other error
+    };
+
+    /*@brief Check if specific table already exists */
+    TABLE_STATUS checkTableExist(std::string tableName);
+
+    bool createTableOfTradingRecords();
 
 private:
     DBConnector(); /* singleton pattern */
