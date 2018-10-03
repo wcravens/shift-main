@@ -20,8 +20,8 @@ struct PSQLTable<TradingRecords> {
                                                 ", price REAL"
                                                 ", size INTEGER"
 
-                                                ", trader_id_1 SERIAL"
-                                                ", trader_id_2 SERIAL"
+                                                ", trader_id_1 INTEGER"
+                                                ", trader_id_2 INTEGER"
                                                 ", order_id_1 VARCHAR(40)"
                                                 ", order_id_2 VARCHAR(40)"
                                                 ", order_type_1 VARCHAR(2)"
