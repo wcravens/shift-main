@@ -20,10 +20,10 @@ struct PSQLTable<TradingRecords> {
                                                 ", price REAL"
                                                 ", size INTEGER"
 
-                                                ", trader_id_1 SERIAL" // TODO: SERIAL or VARCHAR(40) ??
-                                                ", trader_id_2 SERIAL" // TODO: ditto
-                                                ", order_id_1 VARCHAR(40)" // TODO
-                                                ", order_id_2 VARCHAR(40)" // TODO
+                                                ", trader_id_1 SERIAL"
+                                                ", trader_id_2 SERIAL"
+                                                ", order_id_1 VARCHAR(40)"
+                                                ", order_id_2 VARCHAR(40)"
                                                 ", order_type_1 VARCHAR(2)"
 
                                                 ", order_type_2 VARCHAR(2)"
