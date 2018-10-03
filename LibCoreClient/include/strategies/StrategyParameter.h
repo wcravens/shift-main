@@ -13,7 +13,7 @@ namespace strategies {
         };
 
     private:
-        enum class TAG {
+        enum class Tag {
             BOOL,
             CHAR,
             DOUBLE,
@@ -58,7 +58,7 @@ namespace strategies {
     private:
         bool destroyString();
 
-        TAG m_tag;
+        Tag m_tag;
         union {
             bool m_b;
             char m_c;
