@@ -5,38 +5,39 @@
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 
-#define CSTR_TBLNAME_TRADE_RECORD "trade_record"
+#define CSTR_TBLNAME_TRADING_RECORDS "trading_records"
 
-struct TradeRecord;
+struct TradingRecords;
 
 template<typename>
 struct PSQLTable;
 
 template<>
-struct PSQLTable<TradeRecord> {
-    static constexpr char sc_colsDefinition[] = "( real_time TIMESTAMP WITHOUT TIME ZONE"
-                                                ", execute_time TIMESTAMP WITHOUT TIME ZONE"
-                                                ", symbol CHARACTER VARYING(15)"
+struct PSQLTable<TradingRecords> {
+    static constexpr char sc_colsDefinition[] = "( real_time TIMESTAMP"
+                                                ", execute_time TIMESTAMP"
+                                                ", symbol VARCHAR(15)"
                                                 ", price REAL"
                                                 ", size INTEGER"
 
-                                                ", trader_id_1 SERIAL"
-                                                ", trader_id_2 SERIAL"
-                                                ", order_id_1 SERIAL"
-                                                ", order_id_2 SERIAL"
-                                                ", order_type_1 CHARACTER VARYING(2)"
+                                                ", trader_id_1 SERIAL" // TODO: SERIAL or VARCHAR(40) ??
+                                                ", trader_id_2 SERIAL" // TODO: ditto
+                                                ", order_id_1 VARCHAR(40)" // TODO
+                                                ", order_id_2 VARCHAR(40)" // TODO
+                                                ", order_type_1 VARCHAR(2)"
 
-                                                ", order_type_2 CHARACTER VARYING(2)"
-                                                ", time1 TIME WITHOUT TIME ZONE"
-                                                ", time2 TIME WITHOUT TIME ZONE"
-                                                ", decision CHARACTER VARYING(10)"
-                                                ", destination CHARACTER VARYING(10)"
+                                                ", order_type_2 VARCHAR(2)"
+                                                ", time1 TIMESTAMP"
+                                                ", time2 TIMESTAMP"
+                                                ", decision CHAR"
+                                                ", destination VARCHAR(10)"
 
-                                                ",  CONSTRAINT trade_record_pkey PRIMARY KEY (order_id_1, order_id_2),\
-                                                    CONSTRAINT trade_record_fkey_1 FOREIGN KEY (trader_id_1)\
+                                                ",  CONSTRAINT trading_records_pkey PRIMARY KEY (order_id_1, order_id_2),\
+                                                    \
+                                                    CONSTRAINT trading_records_fkey_1 FOREIGN KEY (trader_id_1)\
                                                         REFERENCES public.traders (id) MATCH SIMPLE\
                                                         ON UPDATE NO ACTION ON DELETE NO ACTION,\
-                                                    CONSTRAINT trade_record_fkey_2 FOREIGN KEY (trader_id_2)\
+                                                    CONSTRAINT trading_records_fkey_2 FOREIGN KEY (trader_id_2)\
                                                         REFERENCES public.traders (id) MATCH SIMPLE\
                                                         ON UPDATE NO ACTION ON DELETE NO ACTION\
                                                 )";
@@ -69,8 +70,8 @@ struct PSQLTable<TradeRecord> {
     };
 };
 
-/*static*/ constexpr char PSQLTable<TradeRecord>::sc_colsDefinition[];
-/*static*/ constexpr char PSQLTable<TradeRecord>::sc_recordFormat[];
+/*static*/ constexpr char PSQLTable<TradingRecords>::sc_colsDefinition[];
+/*static*/ constexpr char PSQLTable<TradingRecords>::sc_recordFormat[];
 
 //----------------------------------------------------------------------------------------------------------------
 
@@ -87,7 +88,10 @@ DBConnector::DBConnector()
 
 bool DBConnector::init(const std::string& cryptoKey, const std::string& fileName)
 {
+
+
     m_loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
+
     return m_loginInfo.size();
 }
 
@@ -110,14 +114,22 @@ bool DBConnector::connectDB()
     m_pConn = PQconnectdb(c);
 
     // Check to see if connection was successfully made
-    if (PQstatus(m_pConn) == CONNECTION_OK) {
-        return true;
+    if (PQstatus(m_pConn) != CONNECTION_OK) {
+        disconnectDB();
+        cout << COLOR_ERROR "ERROR: Connection to database failed.\n" NO_COLOR;
+        return false;
     }
 
-    // fail to connect the database
-    disconnectDB();
-    cout << COLOR_ERROR "ERROR: Connection to database failed.\n" NO_COLOR;
-    return false;
+    if (checkTableExist(CSTR_TBLNAME_TRADING_RECORDS) == TABLE_STATUS::NOT_EXIST) {
+        // cout << CSTR_TBLNAME_TRADING_RECORDS " does not exist." << endl;
+        if (createTableOfTradingRecords()) {
+            cout << COLOR << '\'' << CSTR_TBLNAME_TRADING_RECORDS "' was created." NO_COLOR << endl;
+        } else {
+            cout << COLOR_ERROR "Error when creating " CSTR_TBLNAME_TRADING_RECORDS NO_COLOR << endl;
+        }
+    }
+    
+    return true;
 }
 
 /** 
@@ -166,14 +178,59 @@ bool DBConnector::createClients(const std::string& symbol)
     return res;
 }
 
-bool DBConnector::createTradeRecordTable()
+auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
 {
-    std::string pqQuery("CREATE TABLE " CSTR_TBLNAME_TRADE_RECORD);
-    pqQuery += PSQLTable<TradeRecord>::sc_colsDefinition;
+    std::string pqQuery;
+    PGresult* res = PQexec(m_pConn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        cout << COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR;
+        PQclear(res);
+        return TABLE_STATUS::DB_ERROR;
+    }
+    PQclear(res);
+
+    pqQuery = "DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname=\'" + tableName + "\'";
+    res = PQexec(m_pConn, pqQuery.c_str());
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        cout << COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR;
+        PQclear(res);
+        return TABLE_STATUS::DB_ERROR;
+    }
+    PQclear(res);
+
+    res = PQexec(m_pConn, "FETCH ALL IN record");
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        cout << COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR;
+        PQclear(res);
+        return TABLE_STATUS::DB_ERROR;
+    }
+
+    int nrows = PQntuples(res);
+
+    PQclear(res);
+    res = PQexec(m_pConn, "CLOSE record");
+    PQclear(res);
+    res = PQexec(m_pConn, "END");
+    PQclear(res);
+
+    if (0 == nrows) {
+        return TABLE_STATUS::NOT_EXIST;
+    } else if (1 == nrows) {
+        return TABLE_STATUS::EXISTS;
+    }
+    cout << COLOR_ERROR "ERROR: More than one " << tableName << " table exist." NO_COLOR << endl;
+    return TABLE_STATUS::OTHER_ERROR;
+}
+
+bool DBConnector::createTableOfTradingRecords()
+{
+    std::string pqQuery("CREATE TABLE " CSTR_TBLNAME_TRADING_RECORDS);
+    pqQuery += PSQLTable<TradingRecords>::sc_colsDefinition;
     PGresult* res = PQexec(m_pConn, pqQuery.c_str());
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: Create table [ " CSTR_TBLNAME_TRADE_RECORD " ] failed.\n" NO_COLOR;
+        cout << COLOR_ERROR "ERROR: Create table [ " CSTR_TBLNAME_TRADING_RECORDS " ] failed.\n" NO_COLOR;
         PQclear(res);
         return false;
     }
