@@ -59,6 +59,9 @@ public:
     /*@brief Insert one table name into the table created by createTableOfTableNames() */
     bool insertTableName(std::string ric, std::string reutersDate, std::string tableName);
 
+    /*@brief Common PSQL query method */
+    bool doQuery(const std::string query, const std::string msgIfNotOK);
+
     /*@brief Check if the Trade and Quote data for specific ric and date exist, and if so feeds back the table name */
     TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName);
 

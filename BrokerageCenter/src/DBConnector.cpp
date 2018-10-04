@@ -88,10 +88,7 @@ DBConnector::DBConnector()
 
 bool DBConnector::init(const std::string& cryptoKey, const std::string& fileName)
 {
-
-
     m_loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
-
     return m_loginInfo.size();
 }
 

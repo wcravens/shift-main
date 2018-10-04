@@ -231,8 +231,10 @@ void RequestsProcessorPerTarget::processRequests()
         return;
     }
 
+    size_t cnt = 0;
     for (const auto& symbol : symbols) {
-        db.readSendRawData(symbol, sendFrom, sendTo, targetID);
+        if(db.readSendRawData(symbol, sendFrom, sendTo, targetID))
+            cout << '(' << ++cnt << '/' << symbols.size() << ")\n";
     }
 
     FIXAcceptor::sendNotice("SENDFINISH", lastMarketRequestPtr->getRequestID(), targetID);
