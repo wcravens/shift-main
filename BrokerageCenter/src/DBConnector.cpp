@@ -20,8 +20,8 @@ struct PSQLTable<TradingRecords> {
                                                 ", price REAL"
                                                 ", size INTEGER"
 
-                                                ", trader_id_1 INTEGER"
-                                                ", trader_id_2 INTEGER"
+                                                ", trader_id_1 INTEGER" // INTEGER: Map to SERIAL
+                                                ", trader_id_2 INTEGER" // ditto
                                                 ", order_id_1 VARCHAR(40)"
                                                 ", order_id_2 VARCHAR(40)"
                                                 ", order_type_1 VARCHAR(2)"
@@ -106,11 +106,7 @@ bool DBConnector::connectDB()
     disconnectDB();
 
     std::string info = "hostaddr=" + m_loginInfo["DBHostaddr"] + " port=" + m_loginInfo["DBPort"] + " dbname=" + m_loginInfo["DBname"] + " user=" + m_loginInfo["DBUser"] + " password=" + m_loginInfo["DBPassword"];
-    // Make a connection to the database
-    const char* c = info.c_str();
-    m_pConn = PQconnectdb(c);
-
-    // Check to see if connection was successfully made
+    m_pConn = PQconnectdb(info.c_str());
     if (PQstatus(m_pConn) != CONNECTION_OK) {
         disconnectDB();
         cout << COLOR_ERROR "ERROR: Connection to database failed.\n" NO_COLOR;
@@ -141,9 +137,6 @@ void DBConnector::disconnectDB()
     m_pConn = nullptr;
 }
 
-/**
- * @brief   
- */
 bool DBConnector::createClients(const std::string& symbol)
 {
     PGresult* res1 = PQexec(m_pConn, "SELECT * FROM buying_power;");
