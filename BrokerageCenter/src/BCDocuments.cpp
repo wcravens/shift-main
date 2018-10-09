@@ -70,10 +70,10 @@ void BCDocuments::addRiskManagementToClient(const std::string& userName, double 
 
     auto res = m_riskManagementByName.emplace(userName, nullptr);
     if (res.second) {
-        auto& plcPtr = res.first->second;
-        plcPtr.reset(new RiskManagement(userName, buyingPower, shares));
-        plcPtr->insertPortfolioItem(symbol, { symbol, price, shares });
-        plcPtr->spawn();
+        auto& rmPtr = res.first->second;
+        rmPtr.reset(new RiskManagement(userName, buyingPower, shares));
+        rmPtr->insertPortfolioItem(symbol, { symbol, price, shares });
+        rmPtr->spawn();
     }
 }
 
