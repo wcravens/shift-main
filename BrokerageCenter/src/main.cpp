@@ -35,6 +35,8 @@ using namespace std::chrono_literals;
     "timeout"
 #define CSTR_VERBOSE \
     "verbose"
+#define CSTR_RESET \
+    "reset"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -87,6 +89,7 @@ int main(int ac, char* av[])
         (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
+        (CSTR_RESET ",r", "reset clients' portfolio databases") //
         ; // add_options
 
     po::variables_map vm;
@@ -149,6 +152,12 @@ int main(int ac, char* av[])
         cout << "DB Error: Fail to connection database." << endl;
     } else {
         cout << "Success to connect database." << endl;
+
+        if (vm.count(CSTR_RESET)) {
+            DBConnector::instance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop portfolio_summary" NO_COLOR);
+            DBConnector::instance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop portfolio_items" NO_COLOR);
+            DBConnector::instance()->connectDB();
+        }
     }
 
     DBConnector::instance()->createClients("XYZ");
