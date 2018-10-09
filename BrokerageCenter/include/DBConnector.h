@@ -40,10 +40,14 @@ public:
         OTHER_ERROR, // other error
     };
 
+    bool doQuery(const std::string query, const std::string msgIfNotOK);
+
     /*@brief Check if specific table already exists */
     TABLE_STATUS checkTableExist(std::string tableName);
 
-    bool createTableOfTradingRecords();
+    /*@brief Check if specific table already exists; if not, create it */
+    template<typename _WhichTable>
+    bool checkCreateTable();
 
 private:
     DBConnector(); /* singleton pattern */

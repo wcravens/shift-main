@@ -5,9 +5,36 @@
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 
-#define CSTR_TBLNAME_TRADING_RECORDS "trading_records"
+#define CSTR_TBLNAME_TRADING_RECORDS 
+#define CSTR_TBLNAME_PORTFOLIO_SUMMARY "portfolio_summary"
+#define CSTR_TBLNAME_PORTFOLIO_ITEMS "portfolio_items"
+
 
 struct TradingRecords;
+
+
+template<typename _WhichTable>
+struct TableName;
+
+template<>
+struct TableName<TradingRecords> {
+    static const char* name;
+};
+/* static */ const char* TableName<TradingRecords>::name = "trading_records";
+
+template<>
+struct TableName<PortfolioSummary> {
+    static const char* name;
+};
+/* static */ const char* TableName<PortfolioSummary>::name = "portfolio_summary";
+
+template<>
+struct TableName<PortfolioItem> {
+    static const char* name;
+};
+/* static */ const char* TableName<PortfolioItem>::name = "portfolio_items";
+
+
 
 template<typename>
 struct PSQLTable;
@@ -73,6 +100,84 @@ struct PSQLTable<TradingRecords> {
 /*static*/ constexpr char PSQLTable<TradingRecords>::sc_colsDefinition[];
 /*static*/ constexpr char PSQLTable<TradingRecords>::sc_recordFormat[];
 
+
+template<>
+struct PSQLTable<PortfolioSummary> {
+    static constexpr char sc_colsDefinition[] = "( client_id INTEGER"
+                                                ", buying_power REAL"
+                                                ", holding_balance REAL"
+                                                ", borrowed_balance REAL"
+                                                ", total_pl REAL"
+
+                                                ", total_shares INTEGER"
+
+                                                ",  CONSTRAINT portfolio_summary_pkey PRIMARY KEY (client_id),\
+                                                    \
+                                                    CONSTRAINT portfolio_summary_fkey FOREIGN KEY (client_id)\
+                                                        REFERENCES public.traders (id) MATCH SIMPLE\
+                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
+                                                )";
+
+    static constexpr char sc_recordFormat[] = "( client_id, buying_power, holding_balance, borrowed_balance, total_pl"
+                                              ", total_shares"
+                                              ") VALUES ";
+
+    enum VAL_IDX : int {
+        CL_ID,
+        BP,
+        HB,
+        BB,
+        TOTAL_PL,
+
+        NUM_FIELDS
+    };
+};
+
+/*static*/ constexpr char PSQLTable<PortfolioSummary>::sc_colsDefinition[];
+/*static*/ constexpr char PSQLTable<PortfolioSummary>::sc_recordFormat[];
+
+
+template<>
+struct PSQLTable<PortfolioItem> {
+    static constexpr char sc_colsDefinition[] = "( client_id INTEGER"
+                                                ", symbol VARCHAR(15)"
+                                                ", borrowed_balance REAL"
+                                                ", pl REAL"
+                                                ", long_price REAL"
+
+                                                ", short_price REAL"
+                                                ", long_shares INTEGER"
+                                                ", short_shares INTEGER"
+
+                                                ",  CONSTRAINT portfolio_items_pkey PRIMARY KEY (client_id, symbol),\
+                                                    \
+                                                    CONSTRAINT portfolio_items_fkey FOREIGN KEY (client_id)\
+                                                        REFERENCES public.traders (id) MATCH SIMPLE\
+                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
+                                                )";
+
+    static constexpr char sc_recordFormat[] = "( client_id, symbol, borrowed_balance, pl, long_price"
+                                              ", short_price, long_shares, short_shares"
+                                              ") VALUES ";
+
+    enum VAL_IDX : int {
+        CL_ID,
+        SYMBOL,
+        BB,
+        PL,
+        LPRICE,
+        
+        SPRICE,
+        LSHARES,
+        SSHARES,
+
+        NUM_FIELDS
+    };
+};
+
+/*static*/ constexpr char PSQLTable<PortfolioItem>::sc_colsDefinition[];
+/*static*/ constexpr char PSQLTable<PortfolioItem>::sc_recordFormat[];
+
 //----------------------------------------------------------------------------------------------------------------
 
 /*static*/ DBConnector* DBConnector::instance()
@@ -113,16 +218,9 @@ bool DBConnector::connectDB()
         return false;
     }
 
-    if (checkTableExist(CSTR_TBLNAME_TRADING_RECORDS) == TABLE_STATUS::NOT_EXIST) {
-        // cout << CSTR_TBLNAME_TRADING_RECORDS " does not exist." << endl;
-        if (createTableOfTradingRecords()) {
-            cout << COLOR << '\'' << CSTR_TBLNAME_TRADING_RECORDS "' was created." NO_COLOR << endl;
-        } else {
-            cout << COLOR_ERROR "Error when creating " CSTR_TBLNAME_TRADING_RECORDS NO_COLOR << endl;
-        }
-    }
-    
-    return true;
+    return checkCreateTable<TradingRecords>()
+        && checkCreateTable<PortfolioSummary>()
+        && checkCreateTable<PortfolioItem>();
 }
 
 /** 
@@ -179,7 +277,7 @@ auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
     }
     PQclear(res);
 
-    pqQuery = "DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname=\'" + tableName + "\'";
+    pqQuery = "DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname = \'" + tableName + "\'";
     res = PQexec(m_pConn, pqQuery.c_str());
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -213,20 +311,35 @@ auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
     return TABLE_STATUS::OTHER_ERROR;
 }
 
-bool DBConnector::createTableOfTradingRecords()
+bool DBConnector::doQuery(const std::string query, const std::string msgIfNotOK)
 {
-    std::string pqQuery("CREATE TABLE " CSTR_TBLNAME_TRADING_RECORDS);
-    pqQuery += PSQLTable<TradingRecords>::sc_colsDefinition;
-    PGresult* res = PQexec(m_pConn, pqQuery.c_str());
-
+    PGresult* res = PQexec(m_pConn, query.c_str());
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: Create table [ " CSTR_TBLNAME_TRADING_RECORDS " ] failed.\n" NO_COLOR;
+        cout << msgIfNotOK;
         PQclear(res);
         return false;
     }
-
     PQclear(res);
     return true;
+}
+
+template<typename _WhichTable>
+bool DBConnector::checkCreateTable()
+{
+    if (checkTableExist(TableName<_WhichTable>::name) != TABLE_STATUS::NOT_EXIST)
+        return true; // currently just keep it like this...
+
+    // cout << TableName<_WhichTable>::name << " does not exist." << endl;
+
+    auto res = doQuery(std::string("CREATE TABLE ") + TableName<_WhichTable>::name + PSQLTable<_WhichTable>::sc_colsDefinition
+            , std::string(COLOR_ERROR "ERROR: Create table [ ") + TableName<_WhichTable>::name + " ] failed.\n" NO_COLOR);
+
+    if (res) {
+        cout << COLOR << '\'' << TableName<_WhichTable>::name << "' was created." NO_COLOR << endl;
+    } else {
+        cout << COLOR_ERROR "Error when creating " << TableName<_WhichTable>::name << NO_COLOR << endl;
+    }
+    return res;
 }
 
 //-------------------------------------------------------------------
