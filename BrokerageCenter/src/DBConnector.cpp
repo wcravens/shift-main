@@ -5,35 +5,8 @@
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 
-#define CSTR_TBLNAME_TRADING_RECORDS 
-#define CSTR_TBLNAME_PORTFOLIO_SUMMARY "portfolio_summary"
-#define CSTR_TBLNAME_PORTFOLIO_ITEMS "portfolio_items"
-
 
 struct TradingRecords;
-
-
-template<typename _WhichTable>
-struct TableName;
-
-template<>
-struct TableName<TradingRecords> {
-    static const char* name;
-};
-/* static */ const char* TableName<TradingRecords>::name = "trading_records";
-
-template<>
-struct TableName<PortfolioSummary> {
-    static const char* name;
-};
-/* static */ const char* TableName<PortfolioSummary>::name = "portfolio_summary";
-
-template<>
-struct TableName<PortfolioItem> {
-    static const char* name;
-};
-/* static */ const char* TableName<PortfolioItem>::name = "portfolio_items";
-
 
 
 template<typename>
@@ -74,6 +47,8 @@ struct PSQLTable<TradingRecords> {
                                               ", order_type_2, time1, time2, decision, destination"
                                               ") VALUES ";
 
+    static const char* name;
+
     enum RCD_VAL_IDX : int {
         REAL_TIME = 0,
         EXEC_TIME,
@@ -99,7 +74,7 @@ struct PSQLTable<TradingRecords> {
 
 /*static*/ constexpr char PSQLTable<TradingRecords>::sc_colsDefinition[];
 /*static*/ constexpr char PSQLTable<TradingRecords>::sc_recordFormat[];
-
+/*static*/ const char* PSQLTable<TradingRecords>::name = "trading_records";
 
 template<>
 struct PSQLTable<PortfolioSummary> {
@@ -122,6 +97,8 @@ struct PSQLTable<PortfolioSummary> {
                                               ", total_shares"
                                               ") VALUES ";
 
+    static const char* name;
+
     enum VAL_IDX : int {
         CL_ID,
         BP,
@@ -135,7 +112,7 @@ struct PSQLTable<PortfolioSummary> {
 
 /*static*/ constexpr char PSQLTable<PortfolioSummary>::sc_colsDefinition[];
 /*static*/ constexpr char PSQLTable<PortfolioSummary>::sc_recordFormat[];
-
+/*static*/ const char* PSQLTable<PortfolioSummary>::name = "portfolio_summary";
 
 template<>
 struct PSQLTable<PortfolioItem> {
@@ -160,13 +137,15 @@ struct PSQLTable<PortfolioItem> {
                                               ", short_price, long_shares, short_shares"
                                               ") VALUES ";
 
+    static const char* name;
+
     enum VAL_IDX : int {
         CL_ID,
         SYMBOL,
         BB,
         PL,
         LPRICE,
-        
+
         SPRICE,
         LSHARES,
         SSHARES,
@@ -177,6 +156,7 @@ struct PSQLTable<PortfolioItem> {
 
 /*static*/ constexpr char PSQLTable<PortfolioItem>::sc_colsDefinition[];
 /*static*/ constexpr char PSQLTable<PortfolioItem>::sc_recordFormat[];
+/*static*/ const char* PSQLTable<PortfolioItem>::name = "portfolio_items";
 
 //----------------------------------------------------------------------------------------------------------------
 
@@ -326,18 +306,18 @@ bool DBConnector::doQuery(const std::string query, const std::string msgIfNotOK)
 template<typename _WhichTable>
 bool DBConnector::checkCreateTable()
 {
-    if (checkTableExist(TableName<_WhichTable>::name) != TABLE_STATUS::NOT_EXIST)
+    if (checkTableExist(PSQLTable<_WhichTable>::name) != TABLE_STATUS::NOT_EXIST)
         return true; // currently just keep it like this...
 
-    // cout << TableName<_WhichTable>::name << " does not exist." << endl;
+    // cout << PSQLTable<_WhichTable>::name << " does not exist." << endl;
 
-    auto res = doQuery(std::string("CREATE TABLE ") + TableName<_WhichTable>::name + PSQLTable<_WhichTable>::sc_colsDefinition
-            , std::string(COLOR_ERROR "ERROR: Create table [ ") + TableName<_WhichTable>::name + " ] failed.\n" NO_COLOR);
+    auto res = doQuery(std::string("CREATE TABLE ") + PSQLTable<_WhichTable>::name + PSQLTable<_WhichTable>::sc_colsDefinition
+            , std::string(COLOR_ERROR "ERROR: Create table [ ") + PSQLTable<_WhichTable>::name + " ] failed.\n" NO_COLOR);
 
     if (res) {
-        cout << COLOR << '\'' << TableName<_WhichTable>::name << "' was created." NO_COLOR << endl;
+        cout << COLOR << '\'' << PSQLTable<_WhichTable>::name << "' was created." NO_COLOR << endl;
     } else {
-        cout << COLOR_ERROR "Error when creating " << TableName<_WhichTable>::name << NO_COLOR << endl;
+        cout << COLOR_ERROR "Error when creating " << PSQLTable<_WhichTable>::name << NO_COLOR << endl;
     }
     return res;
 }
