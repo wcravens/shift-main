@@ -66,7 +66,7 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook()
         lastEntry.setPrice(-1.0);
         lastEntry.setSize(-1);
 
-        if (lastEntry.getType() == 'A' || lastEntry.getType() == 'B')
+        if (m_type == OrderBook::Type::GLOBAL_ASK || m_type == OrderBook::Type::GLOBAL_BID)
             lastEntry.setDestination("Market");
 
         for (shift::OrderBookEntry entry : m_entries) {

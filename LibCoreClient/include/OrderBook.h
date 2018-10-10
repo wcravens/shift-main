@@ -15,6 +15,13 @@ namespace shift {
  */
 class CORECLIENT_EXPORTS OrderBook {
 public:
+    enum class Type {
+        GLOBAL_BID = 'B',
+        LOCAL_BID = 'b',
+        GLOBAL_ASK = 'A',
+        LOCAL_ASK = 'a'
+    };
+
     OrderBook();
     virtual ~OrderBook();
 
@@ -32,6 +39,8 @@ protected:
 
     std::mutex m_mutex; //!< Mutex member to lock the list when it's being adjusted.
     std::list<shift::OrderBookEntry> m_entries; //!< A list of all entries within the current OrderBook object.
+
+    Type m_type;
 };
 
 } // shift

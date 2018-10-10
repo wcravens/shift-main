@@ -104,8 +104,8 @@ protected:
 
     // Order book methods
     shift::BestPrice getBestPriceBySymbol(const std::string& symbol);
-    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, char type);
-    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, char type);
+    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type);
+    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type);
 
     // Symbols list and company names
     std::vector<std::string> getStockList();
@@ -153,7 +153,7 @@ private:
     std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value
     std::unordered_map<std::string, double> m_lastPrices; //!< Map with stock symbol as key and their current price as value.
 
-    std::unordered_map<std::string, std::map<char, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
+    std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
 
     std::mutex m_mutex_stockList;
     std::condition_variable m_cv_stockList;

@@ -65,7 +65,7 @@ void MainClient::sendOrderBookToFront()
 {
     for (const std::string& symbol : getStockList()) {
         for (const char& type : { 'a', 'A', 'b', 'B' }) {
-            auto orderBook = getOrderBook(symbol, type);
+            auto orderBook = getOrderBook(symbol, (shift::OrderBook::Type)type);
             std::set<double> myset;
             std::string res = "";
             for (const auto& entry : orderBook) {
@@ -75,7 +75,7 @@ void MainClient::sendOrderBookToFront()
                 std::ostringstream out;
                 out << "{ "
                     << "\"bookType\": "
-                    << "\"" << entry.getType() << "\","
+                    << "\"" << type << "\","
                     << "\"symbol\": "
                     << "\"" << entry.getSymbol() << "\","
                     << "\"price\": "

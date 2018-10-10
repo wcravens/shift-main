@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreClient_EXPORTS.h"
-
 #include <string>
 
 namespace shift {
@@ -14,11 +13,10 @@ class CORECLIENT_EXPORTS OrderBookEntry {
 public:
     OrderBookEntry();
 
-    OrderBookEntry(char type, std::string symbol, double price, int size,
+    OrderBookEntry(std::string symbol, double price, int size,
         std::string destination, double time);
 
     // Getters
-    char getType() const;
     const std::string& getSymbol() const;
     double getPrice() const;
     int getSize() const;
@@ -26,7 +24,6 @@ public:
     double getTime() const;
 
     // Setters
-    void setType(char type);
     void setSymbol(std::string symbol);
     void setPrice(double price);
     void setSize(int size);
@@ -34,7 +31,6 @@ public:
     void setTime(double time);
 
 private:
-    char m_type; //!< Order type
     std::string m_symbol;
     double m_price;
     int m_size;

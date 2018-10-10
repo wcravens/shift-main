@@ -16,24 +16,14 @@ shift::OrderBookEntry::OrderBookEntry()
  * @param destination string value for m_destination
  * @param time double value for m_time
  */
-shift::OrderBookEntry::OrderBookEntry(char type, std::string symbol, double price, int size,
+shift::OrderBookEntry::OrderBookEntry(std::string symbol, double price, int size,
     std::string destination, double time)
-    : m_type(type)
-    , m_symbol(std::move(symbol))
+    : m_symbol(std::move(symbol))
     , m_price(price)
     , m_size(size)
     , m_destination(std::move(destination))
     , m_time(time)
 {
-}
-
-/**
- * @brief Getter to get the type of current OrderBookEntry.
- * @return Type of the current OrderBookEntry as a char.
- */
-char shift::OrderBookEntry::getType() const
-{
-    return m_type;
 }
 
 /**
@@ -79,15 +69,6 @@ const std::string& shift::OrderBookEntry::getDestination() const
 double shift::OrderBookEntry::getTime() const
 {
     return m_time;
-}
-
-/**
- * @brief Setter to set order type into m_type.
- * @param type in char
- */
-void shift::OrderBookEntry::setType(char type)
-{
-    m_type = type;
 }
 
 /**

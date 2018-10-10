@@ -8,6 +8,7 @@
 #include "CoreClient_EXPORTS.h"
 #include "Order.h"
 #include "OrderBookEntry.h"
+#include "OrderBook.h"
 #include "PortfolioItem.h"
 #include "PortfolioSummary.h"
 
@@ -61,8 +62,8 @@ public:
 
     // Order book methods
     shift::BestPrice getBestPriceBySymbol(const std::string& symbol);
-    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, char type);
-    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, char type);
+    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, const OrderBook::Type &type);
+    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type &type);
 
     // Symbols list and company names
     std::vector<std::string> getStockList();
