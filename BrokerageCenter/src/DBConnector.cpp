@@ -313,19 +313,17 @@ bool DBConnector::checkCreateTable()
     return res;
 }
 
-//-------------------------------------------------------------------
-
-std::vector<std::string> readCol(const std::string& sql)
+/*static*/ std::vector<std::string> DBConnector::s_readField(const std::string& sql, int fieldIndex/*= 0*/)
 {
-    PGresult* res = PQexec(DBConnector::instance()->getConn(), sql.c_str());
     std::vector<std::string> vs;
 
+    PGresult* res = PQexec(instance()->getConn(), sql.c_str());
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         cout << COLOR_ERROR "ERROR: Get failed.\n" NO_COLOR;
     } else {
         int nrows = PQntuples(res);
         for (int i = 0; i < nrows; i++) {
-            vs.push_back(PQgetvalue(res, i, 0));
+            vs.push_back(PQgetvalue(res, i, fieldIndex));
         }
     }
 

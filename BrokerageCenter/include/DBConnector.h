@@ -49,6 +49,7 @@ public:
     template<typename _WhichTable>
     bool checkCreateTable();
 
+    static std::vector<std::string> s_readField(const std::string& sql, int fieldIndex = 0);
 private:
     DBConnector(); /* singleton pattern */
     std::unordered_map<std::string, std::string> m_loginInfo;
@@ -57,4 +58,3 @@ protected:
     PGconn* m_pConn;
 };
 
-std::vector<std::string> readCol(const std::string& sql);
