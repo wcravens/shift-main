@@ -256,8 +256,10 @@ auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
         return TABLE_STATUS::DB_ERROR;
 
     PGresult* pRes;
-    if (!doQuery("FETCH ALL IN record", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes))
+    if (!doQuery("FETCH ALL IN record", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
+        PQclear(pRes);
         return TABLE_STATUS::DB_ERROR;
+    }
 
     int nrows = PQntuples(pRes);
 
