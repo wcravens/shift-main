@@ -145,15 +145,29 @@ int main(int ac, char* av[])
 
     DBConnector::instance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
-    if (!DBConnector::instance()->connectDB()) {
-        cout << "DB ERROR: Failed to connect database." << endl;
-    } else {
-        cout << "DB OK: Success to connect database." << endl;
+    while(true) {
+        if (!DBConnector::instance()->connectDB()) {
+            cout.clear();
+            cout << COLOR_ERROR "DB ERROR: Failed to connect database." NO_COLOR << endl;
+            cout << "\tRetry ('Y') connection to database ? : ";
+            voh_t{ cout, params.isVerbose, true };
 
-        if (vm.count(CSTR_RESET)) {
-            DBConnector::instance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_summary ]." NO_COLOR);
-            DBConnector::instance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
-            DBConnector::instance()->connectDB();
+            char cmd = cin.get();
+            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
+            if ('Y' != cmd && 'y' != cmd)
+                return 1;
+        } else {
+            cout << "DB connection OK.\n" << endl;
+
+            if (vm.count(CSTR_RESET)) {
+                vm.erase(CSTR_RESET);
+
+                cout << COLOR_WARNING "Resetting the databases..." NO_COLOR << endl;
+                DBConnector::instance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_summary ]." NO_COLOR);
+                DBConnector::instance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
+                continue;
+            }
+            break;
         }
     }
 
