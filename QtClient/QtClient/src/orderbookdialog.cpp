@@ -50,10 +50,10 @@ void OrderBookDialog::refreshData()
     ui->TickerNameLabel->setText(m_current_symbol + (companyName == "" ? "" : " (" + companyName + ")"));
 
     if (m_current_symbol != "") {
-        m_global_bid_data.updateData(Global::qt_core_client.getOrderBook(m_current_symbol.toStdString(), 'B'));
-        m_global_ask_data.updateData(Global::qt_core_client.getOrderBook(m_current_symbol.toStdString(), 'A'));
-        m_local_bid_data.updateData(Global::qt_core_client.getOrderBook(m_current_symbol.toStdString(), 'b'));
-        m_local_ask_data.updateData(Global::qt_core_client.getOrderBook(m_current_symbol.toStdString(), 'a'));
+        m_global_bid_data.updateData(Global::qt_core_client.getOrderBook(m_current_symbol.toStdString(), shift::OrderBook::Type::GLOBAL_BID));
+        m_global_ask_data.updateData(Global::qt_core_client.getOrderBook(m_current_symbol.toStdString(), shift::OrderBook::Type::GLOBAL_ASK));
+        m_local_bid_data.updateData(Global::qt_core_client.getOrderBook(m_current_symbol.toStdString(), shift::OrderBook::Type::LOCAL_BID));
+        m_local_ask_data.updateData(Global::qt_core_client.getOrderBook(m_current_symbol.toStdString(), shift::OrderBook::Type::LOCAL_ASK));
 
         //        auto latestPriceBook = Global::qt_core_client.getLatestPriceBook();
         //        double latestPrice = latestPriceBook[real_name];
