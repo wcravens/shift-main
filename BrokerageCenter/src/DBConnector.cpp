@@ -248,59 +248,48 @@ bool DBConnector::createClients(const std::string& symbol)
 
 auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
 {
-    std::string pqQuery;
-    PGresult* res = PQexec(m_pConn, "BEGIN");
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
-    }
-    PQclear(res);
 
-    pqQuery = "DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname = \'" + tableName + "\'";
-    res = PQexec(m_pConn, pqQuery.c_str());
-
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname = \'" + tableName + "\'"
+        , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
-    }
-    PQclear(res);
 
-    res = PQexec(m_pConn, "FETCH ALL IN record");
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        cout << COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR;
-        PQclear(res);
+    PGresult* pRes;
+    if (!doQuery("FETCH ALL IN record", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes))
         return TABLE_STATUS::DB_ERROR;
-    }
 
-    int nrows = PQntuples(res);
+    int nrows = PQntuples(pRes);
 
-    PQclear(res);
-    res = PQexec(m_pConn, "CLOSE record");
-    PQclear(res);
-    res = PQexec(m_pConn, "END");
-    PQclear(res);
+    PQclear(pRes);
+    pRes = PQexec(m_pConn, "CLOSE record");
+    PQclear(pRes);
+    pRes = PQexec(m_pConn, "END");
+    PQclear(pRes);
 
-    if (0 == nrows) {
+    if (0 == nrows)
         return TABLE_STATUS::NOT_EXIST;
-    } else if (1 == nrows) {
+    else if (1 == nrows)
         return TABLE_STATUS::EXISTS;
-    }
+    
     cout << COLOR_ERROR "ERROR: More than one " << tableName << " table exist." NO_COLOR << endl;
     return TABLE_STATUS::OTHER_ERROR;
 }
 
-bool DBConnector::doQuery(const std::string query, const std::string msgIfNotOK)
+bool DBConnector::doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch/*= PGRES_COMMAND_OK*/, PGresult** ppRes/*= nullptr*/)
 {
-    PGresult* res = PQexec(m_pConn, query.c_str());
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << msgIfNotOK;
-        PQclear(res);
-        return false;
+    bool isMatch = true;
+
+    PGresult* pRes = PQexec(m_pConn, query.c_str());
+    if (PQresultStatus(pRes) != statToMatch) {
+        cout << msgIfStatMismatch;
+        isMatch = false;
     }
-    PQclear(res);
-    return true;
+
+    if (ppRes) *ppRes = pRes;
+    else PQclear(pRes);
+    
+    return isMatch;
 }
 
 template<typename _WhichTable>

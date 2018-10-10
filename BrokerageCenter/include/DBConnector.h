@@ -40,7 +40,7 @@ public:
         OTHER_ERROR, // other error
     };
 
-    bool doQuery(const std::string query, const std::string msgIfNotOK);
+    bool doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
     /*@brief Check if specific table already exists */
     TABLE_STATUS checkTableExist(std::string tableName);

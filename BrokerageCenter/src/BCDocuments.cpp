@@ -1,4 +1,5 @@
 #include "BCDocuments.h"
+#include "DBConnector.h"
 
 #include <algorithm>
 
@@ -46,24 +47,6 @@ void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction
     candPtr->enqueueTransaction(transac);
 }
 
-auto BCDocuments::addRiskManagementToClientNoLock(const std::string& userName) -> decltype(m_riskManagementByName)::iterator
-{
-    auto res = m_riskManagementByName.emplace(userName, nullptr);
-    if (res.second) {
-        auto& rmPtr = res.first->second;
-        rmPtr.reset(new RiskManagement(userName, 1e5));
-        rmPtr->spawn();
-    }
-    return res.first;
-}
-
-void BCDocuments::addQuoteToClientRiskManagement(const std::string& userName, const Quote& quote)
-{
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-    addRiskManagementToClientNoLock(userName);
-    m_riskManagementByName[userName]->enqueueQuote(quote);
-}
-
 void BCDocuments::addRiskManagementToClient(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol)
 { //for low frequency client use
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
@@ -75,6 +58,27 @@ void BCDocuments::addRiskManagementToClient(const std::string& userName, double 
         rmPtr->insertPortfolioItem(symbol, { symbol, price, shares });
         rmPtr->spawn();
     }
+}
+
+auto BCDocuments::addRiskManagementToClientNoLock(const std::string& userName) -> decltype(m_riskManagementByName)::iterator
+{
+    auto res = m_riskManagementByName.emplace(userName, nullptr);
+    if (res.second) {
+        auto& rmPtr = res.first->second;
+
+        // if(DBConnector::instance()->doQuery("")); // portfolio_summary: (client_id, buying_power, total_shares)
+
+        rmPtr.reset(new RiskManagement(userName, 1e5));
+        rmPtr->spawn();
+    }
+    return res.first;
+}
+
+void BCDocuments::addQuoteToClientRiskManagement(const std::string& userName, const Quote& quote)
+{
+    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
+    addRiskManagementToClientNoLock(userName);
+    m_riskManagementByName[userName]->enqueueQuote(quote);
 }
 
 void BCDocuments::addReportToClientRiskManagement(const std::string& userName, const Report& report)
