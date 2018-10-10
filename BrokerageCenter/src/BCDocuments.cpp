@@ -65,10 +65,32 @@ auto BCDocuments::addRiskManagementToClientNoLock(const std::string& userName) -
     auto res = m_riskManagementByName.emplace(userName, nullptr);
     if (res.second) {
         auto& rmPtr = res.first->second;
+        
+        PGresult* pRes;
+        const std::string selectClause = "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n";
+        if (DBConnector::instance()->doQuery(
+                selectClause +
+                "FROM web_traders INNER JOIN portfolio_summary ON web_traders.id = portfolio_summary.client_id\n"
+                "WHERE username = '" + userName + "';"
+                , ""
+                , PGRES_TUPLES_OK
+                , &pRes
+            )
+            && PQntuples(pRes)
+        ) {
+            // const int nFields = std::count(selectClause.begin(), selectClause.end(), ',');
+            // std::vector<std::string> vs;
 
-        // if(DBConnector::instance()->doQuery("")); // portfolio_summary: (client_id, buying_power, total_shares)
+            // for (int i = 0; i < nFields; i++) {
+            //     vs.push_back(PQgetvalue(pRes, 0, i));
+            // }
 
-        rmPtr.reset(new RiskManagement(userName, 1e5));
+            rmPtr.reset(new RiskManagement(userName, atof(PQgetvalue(pRes, 0, 0)), atoi(PQgetvalue(pRes, 0, 4))));
+        } else {
+            rmPtr.reset(new RiskManagement(userName, 1e5));
+        }
+        PQclear(pRes);
+
         rmPtr->spawn();
     }
     return res.first;
