@@ -143,19 +143,16 @@ int main(int ac, char* av[])
 
     voh_t voh(cout, params.isVerbose);
 
-    /*
-     * @brief   Try to connect database
-     */
     DBConnector::instance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     if (!DBConnector::instance()->connectDB()) {
-        cout << "DB Error: Fail to connection database." << endl;
+        cout << "DB ERROR: Failed to connect database." << endl;
     } else {
-        cout << "Success to connect database." << endl;
+        cout << "DB OK: Success to connect database." << endl;
 
         if (vm.count(CSTR_RESET)) {
-            DBConnector::instance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop portfolio_summary" NO_COLOR);
-            DBConnector::instance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop portfolio_items" NO_COLOR);
+            DBConnector::instance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_summary ]." NO_COLOR);
+            DBConnector::instance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
             DBConnector::instance()->connectDB();
         }
     }

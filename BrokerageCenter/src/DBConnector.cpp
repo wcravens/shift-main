@@ -350,7 +350,7 @@ std::vector<std::string> readCol(const std::string& sql)
 //     PGresult* res = PQexec(m_pConn, pqQuery.c_str());
 
 //     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-//         cout << "Error. Insert to qt_tablelist table failed.\n";
+//         cout << COLOR_ERROR "ERROR: Insert to [ qt_tablelist ] failed.\n" NO_COLOR;
 //         PQclear(res);
 //     } else {
 //         PQclear(res);
