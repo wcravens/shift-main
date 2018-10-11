@@ -47,7 +47,7 @@ void FIXAcceptor::connectClients(const std::string& configFile, bool verbose)
     disconnectClients();
 
     FIX::SessionSettings settings(configFile);
-    m_clientNames = DBConnector::s_readField("SELECT username FROM traders;");
+    m_clientNames = DBConnector::s_readRowsOfField("SELECT username FROM traders;");
     std::transform(m_clientNames.begin(), m_clientNames.end(), m_clientNames.begin(), ::toUpper);
 
     const FIX::Dictionary commonDict = settings.get();
@@ -525,7 +525,7 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
     message.getGroup(2, msgTypeGroup);
     password = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
-    auto pswCol = DBConnector::s_readField("SELECT password FROM traders WHERE username = '" + userName + "';");
+    auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE username = '" + userName + "';");
     if (pswCol.size() && pswCol.front() == password) {
         BCDocuments::instance()->registerClient(clntID, userName);
         cout << COLOR_PROMPT "Authentication successful for user: " << userName << NO_COLOR << endl;

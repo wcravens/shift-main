@@ -18,6 +18,15 @@ PortfolioSummary::PortfolioSummary(double buyingPower, int totalShares)
 {
 }
 
+PortfolioSummary::PortfolioSummary(double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
+    : m_buyingPower{ buyingPower }
+    , m_holdingBalance{ holdingBalance }
+    , m_borrowedBalance{ borrowedBalance }
+    , m_totalPL{ totalPL }
+    , m_totalShares{ totalShares }
+{
+}
+
 void PortfolioSummary::holdBalance(double value)
 {
     m_buyingPower -= value; // deduct the pending transaction price from the buying power

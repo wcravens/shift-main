@@ -66,30 +66,17 @@ auto BCDocuments::addRiskManagementToClientNoLock(const std::string& userName) -
     if (res.second) {
         auto& rmPtr = res.first->second;
         
-        PGresult* pRes;
-        const std::string selectClause = "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n";
-        if (DBConnector::instance()->doQuery(
-                selectClause +
-                "FROM web_traders INNER JOIN portfolio_summary ON web_traders.id = portfolio_summary.client_id\n"
-                "WHERE username = '" + userName + "';"
-                , ""
-                , PGRES_TUPLES_OK
-                , &pRes
-            )
-            && PQntuples(pRes)
-        ) {
-            // const int nFields = std::count(selectClause.begin(), selectClause.end(), ',');
-            // std::vector<std::string> vs;
-
-            // for (int i = 0; i < nFields; i++) {
-            //     vs.push_back(PQgetvalue(pRes, 0, i));
-            // }
-
-            rmPtr.reset(new RiskManagement(userName, atof(PQgetvalue(pRes, 0, 0)), atoi(PQgetvalue(pRes, 0, 4))));
-        } else {
+        auto summary = DBConnector::s_readFieldsOfRow(
+            "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
+            "FROM web_traders INNER JOIN portfolio_summary ON web_traders.id = portfolio_summary.client_id\n"
+            "WHERE username = '" + userName + "';"
+            , 5
+        );
+        
+        if(summary.empty())
             rmPtr.reset(new RiskManagement(userName, 1e5));
-        }
-        PQclear(pRes);
+        else
+            rmPtr.reset(new RiskManagement(userName, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
 
         rmPtr->spawn();
     }

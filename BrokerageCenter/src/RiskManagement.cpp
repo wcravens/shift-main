@@ -22,6 +22,13 @@ RiskManagement::RiskManagement(std::string clientID, double buyingPower, int tot
 {
 }
 
+RiskManagement::RiskManagement(std::string clientID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
+    : m_clientName(std::move(clientID))
+    , m_porfolioSummary{ buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares }
+    , m_pendingShortCashAmount{ 0.0 }
+{
+}
+
 RiskManagement::~RiskManagement()
 {
     shift::concurrency::notifyConsumerThreadToQuit(m_quitFlagExec, m_cvExecRpt, *m_execRptThread);

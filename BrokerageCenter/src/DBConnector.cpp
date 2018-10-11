@@ -313,21 +313,42 @@ bool DBConnector::checkCreateTable()
     return res;
 }
 
-/*static*/ std::vector<std::string> DBConnector::s_readField(const std::string& sql, int fieldIndex/*= 0*/)
+/*static*/ std::vector<std::string> DBConnector::s_readRowsOfField(const std::string& query, int fieldIndex/*= 0*/)
 {
     std::vector<std::string> vs;
 
-    PGresult* res = PQexec(instance()->getConn(), sql.c_str());
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        cout << COLOR_ERROR "ERROR: Get failed.\n" NO_COLOR;
-    } else {
-        int nrows = PQntuples(res);
-        for (int i = 0; i < nrows; i++) {
-            vs.push_back(PQgetvalue(res, i, fieldIndex));
+    PGresult* pRes;
+    if (instance()->doQuery(query
+                , COLOR_ERROR "ERROR: Get rows of field[" + std::to_string(fieldIndex) + "] failed.\n" NO_COLOR
+                , PGRES_TUPLES_OK
+                , &pRes)
+    ) {
+        int rows = PQntuples(pRes);
+        for (int row = 0; row < rows; row++) {
+            vs.push_back(PQgetvalue(pRes, row, fieldIndex));
         }
     }
 
-    PQclear(res);
+    PQclear(pRes);
+    return vs;
+}
+
+/*static*/ std::vector<std::string> DBConnector::s_readFieldsOfRow(const std::string& query, int numFields, int rowIndex/*= 0*/)
+{
+    std::vector<std::string> vs;
+
+    PGresult* pRes;
+    if (instance()->doQuery(query
+                , COLOR_ERROR "ERROR: Get fields of row[" + std::to_string(rowIndex) + "] failed.\n" NO_COLOR
+                , PGRES_TUPLES_OK
+                , &pRes)
+        && PQntuples(pRes) > 0
+    ) {
+        for (int field = 0; field < numFields; field++) // from the SELECT clause above
+            vs.push_back(PQgetvalue(pRes, rowIndex, field));
+    }
+
+    PQclear(pRes);
     return vs;
 }
 

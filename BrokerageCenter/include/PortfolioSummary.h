@@ -15,6 +15,7 @@ class PortfolioSummary {
 public:
     PortfolioSummary(double buyingPower);
     PortfolioSummary(double buyingPower, int totalShares);
+    PortfolioSummary(double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares);
 
     void holdBalance(double value);
     void releaseBalance(double value);

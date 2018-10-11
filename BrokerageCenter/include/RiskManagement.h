@@ -47,7 +47,10 @@ private:
 public:
     RiskManagement(std::string clientID, double buyingPower);
     RiskManagement(std::string clientID, double buyingPower, int totalShares);
+    RiskManagement(std::string clientID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares);
+
     ~RiskManagement();
+    
     void spawn();
 
     void enqueueQuote(const Quote& quote);
