@@ -9,6 +9,7 @@ store*/
 
 # QtClient folders
 *.user
+CMakeLists.txt.user*
 
 # Prerequisites
 *.d
