@@ -3,6 +3,7 @@
 #include "global.h"
 
 #include <QDialog>
+#include <QFile>
 
 namespace Ui {
 class LoginDialog;

@@ -13,6 +13,11 @@ LoginDialog::LoginDialog(QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::LoginDialog)
 {
+    QFile styleFile(":/theme/shift.theme");
+    styleFile.open(QFile::ReadOnly);
+    this->setStyleSheet(styleFile.readAll());
+    styleFile.close();
+
     ui->setupUi(this);
     this->setWindowTitle("SHIFT Alpha");
 }

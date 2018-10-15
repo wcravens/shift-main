@@ -76,24 +76,24 @@ void MainWindow::submitOrder(shift::Order::Type type)
     double price = 1;
     // if it's not Market Buy or Market Sell, get price from user input
     if (type != shift::Order::MARKET_BUY && type != shift::Order::MARKET_SELL) {
-        price = ui->Price->toPlainText().toDouble();
+        price = ui->Price->value();
     }
     double price100 = price * 100;
     int round_price = round(price100);
     if (abs(price100 - round_price) > 0.01 || price <= 0.0) {
         qDebug() << price100 << "\t" << round_price << price;
         QMessageBox msg;
-        msg.setText("Price " + ui->Price->toPlainText() + " is invalid.");
+        msg.setText("Price " +QString::number(ui->Price->value()) + " is invalid.");
         msg.exec();
         return;
     }
     price = round_price / 100;
 
     // check size
-    int size = ui->Size->toPlainText().toInt();
+    int size = ui->Size->value();
     if (size <= 0) {
         QMessageBox msg;
-        msg.setText("Size " + ui->Size->toPlainText() + " is invalid.");
+        msg.setText("Size " + QString::number(ui->Size->value()) + " is invalid.");
         msg.exec();
         return;
     }
@@ -117,8 +117,8 @@ void MainWindow::updatePL(double totalPL)
 void MainWindow::updateOrderEditor(QString symbol, double price)
 {
     ui->Symbol->setText(symbol);
-    ui->Price->setText(QString::number(price, 'f', 2));
-    ui->Size->setText(QString::number(1));
+    ui->Price->setValue(price);
+    ui->Size->setValue(1);
 }
 
 //! Inefficient funciton naming and excessive comments.
