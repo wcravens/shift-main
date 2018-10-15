@@ -5,6 +5,9 @@
 #include <QVector>
 #include <QRegExp>
 
+using namespace std::chrono_literals;
+
+
 QStringList QtCoreClient::getStocklist()
 {
     return m_stocklist;
@@ -45,8 +48,17 @@ void QtCoreClient::adaptStocklist() {
 }
 
 void QtCoreClient::subscribeCandleData(const std::vector<std::string> &stocklist) {
-    for (int i = 0; i < stocklist.size(); i++)
-        subCandleData(stocklist[i]);
+//    std::thread(
+//        [this] {
+//            while (!this->subAllCandleData()) {
+//                std::this_thread::sleep_for(1s);
+//            }
+//        })
+//        .detach();
+
+    while (!this->subAllCandleData()) {
+        std::this_thread::sleep_for(1s);
+    }
 }
 
 void QtCoreClient::receiveLastPrice(const std::string& symbol) {

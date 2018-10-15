@@ -27,6 +27,7 @@ App::~App()
         m_main_window->deleteLater();
     if(m_login_dialog)
         m_login_dialog->deleteLater();
+
 }
 
 void App::login()

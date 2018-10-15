@@ -79,6 +79,7 @@ void CandlePlot::refresh(QString symbol)
     QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyNameBySymbol(m_current_symbol.toStdString()));
     setTitle(m_current_symbol + (companyName == "" ? "" : " (" + companyName + ")"));
 
+    qDebug()<<m_current_symbol;
     long long firstTimestamp = m_candle_data[m_current_symbol]->d_samples[0].time;
     long long lastTimestamp = m_candle_data[m_current_symbol]->d_samples[m_candle_data[m_current_symbol]->d_samples.size() - 1].time;
 
@@ -164,7 +165,13 @@ void CandlePlot::setInterval(long long interval)
  */
 void CandlePlot::clearData(QString symbol)
 {
-    m_candle_data[symbol]->d_samples.clear();
+    CandleDataSet* candleDataSet = m_candle_data[symbol];
+    if(!candleDataSet)
+    {
+        qDebug()<<"no such symbol: " << symbol;
+        return;
+    }
+    candleDataSet->d_samples.clear();
     m_last_interval[symbol] = 0;
     setAxisAutoScale(QwtPlot::xBottom);
 }

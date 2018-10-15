@@ -62,7 +62,8 @@ MainWindow::~MainWindow()
  */
 void MainWindow::submitOrder(shift::Order::Type type)
 {
-    QString qsymbol = ui->Symbol->toPlainText().toUpper();
+    QString qsymbol = ui->SymbolComboBox->currentText();
+    qsymbol = ui->Symbol->text().toUpper();
 
     // check symbol
     if (!Global::qt_core_client.getStocklist().contains(qsymbol, Qt::CaseInsensitive)) {
@@ -117,6 +118,7 @@ void MainWindow::updatePL(double totalPL)
 void MainWindow::updateOrderEditor(QString symbol, double price)
 {
     ui->Symbol->setText(symbol);
+    ui->SymbolComboBox->setCurrentText(symbol);
     ui->Price->setValue(price);
     ui->Size->setValue(1);
 }
