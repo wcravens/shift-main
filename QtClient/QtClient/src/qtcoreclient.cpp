@@ -38,27 +38,18 @@ void QtCoreClient::adaptStocklist() {
     }
 
     if (is_first_time) {
-        m_candledata_loading_thread = std::thread(&QtCoreClient::subscribeCandleData, this, stocklist);
+        std::thread(
+            [this] {
+                while (!this->subAllCandleData())
+                    std::this_thread::sleep_for(1s);
+            })
+            .detach();
         is_first_time = false;
     }
 
     requestCompanyNames();
 
     emit stocklistReady();
-}
-
-void QtCoreClient::subscribeCandleData(const std::vector<std::string> &stocklist) {
-//    std::thread(
-//        [this] {
-//            while (!this->subAllCandleData()) {
-//                std::this_thread::sleep_for(1s);
-//            }
-//        })
-//        .detach();
-
-    while (!this->subAllCandleData()) {
-        std::this_thread::sleep_for(1s);
-    }
 }
 
 void QtCoreClient::receiveLastPrice(const std::string& symbol) {

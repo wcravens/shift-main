@@ -140,7 +140,7 @@ void MainWindow::updateOrderEditor(QString symbol, double price)
 void MainWindow::updateCancelOrderEditor(QString id, QString size)
 {
     ui->CancelOrderID->setText(id);
-    ui->CancelOrderSize->setText(size);
+    ui->CancelOrderSize->setValue(size.toInt());
 }
 
 /**
@@ -183,24 +183,24 @@ void MainWindow::on_CancelOrderButton_clicked()
 {
     //! Send a cancelBid/cancelAsk order (type = 5/6)
     shift::Order q;
-    if (!m_waiting_list_model.getCancelOrderByID(ui->CancelOrderID->toPlainText(), q)) {
+    if (!m_waiting_list_model.getCancelOrderByID(ui->CancelOrderID->text(), q)) {
         QMessageBox msg;
-        msg.setText("Order ID " + ui->CancelOrderID->toPlainText() + " does not exist");
+        msg.setText("Order ID " + ui->CancelOrderID->text() + " does not exist");
         msg.exec();
         return;
     }
 
-    int size = ui->CancelOrderSize->toPlainText().toInt();
+    int size = ui->CancelOrderSize->value();
     if (size <= 0 || size > q.getSize()) {
         QMessageBox msg;
-        msg.setText("Size " + ui->CancelOrderSize->toPlainText() + " is invalid");
+        msg.setText("Size " + QString::number(ui->CancelOrderSize->value()) + " is invalid");
         msg.exec();
     } else {
         q.setSize(size);
         Global::qt_core_client.submitOrder(q);
     }
     ui->CancelOrderID->setText("");
-    ui->CancelOrderSize->setText("");
+    ui->CancelOrderSize->setValue(0);
 }
 
 void MainWindow::on_CancelAllButton_clicked()

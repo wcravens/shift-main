@@ -27,7 +27,6 @@ public:
 
     QStringList getStocklist();
     void adaptStocklist();
-    void subscribeCandleData(const std::vector<std::string>& stocklist);
 
 protected:
     void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) override;
@@ -38,7 +37,6 @@ protected:
 private:
 
     QStringList m_stocklist; //!< All received stocks for this session.
-    std::thread m_candledata_loading_thread;
     bool is_first_time = true;
 
 signals:

@@ -525,15 +525,12 @@
               </widget>
              </item>
              <item>
-              <widget class="QTextEdit" name="CancelOrderID">
+              <widget class="QLineEdit" name="CancelOrderID">
                <property name="maximumSize">
                 <size>
-                 <width>16777215</width>
-                 <height>25</height>
+                 <width>200</width>
+                 <height>16777215</height>
                 </size>
-               </property>
-               <property name="tabChangesFocus">
-                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -545,17 +542,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QTextEdit" name="CancelOrderSize">
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="tabChangesFocus">
-                <bool>true</bool>
-               </property>
-              </widget>
+              <widget class="QSpinBox" name="CancelOrderSize"/>
              </item>
              <item>
               <widget class="QPushButton" name="CancelOrderButton">
@@ -663,13 +650,11 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
-  <tabstop>CancelOrderSize</tabstop>
   <tabstop>CancelOrderButton</tabstop>
   <tabstop>CancelAllButton</tabstop>
   <tabstop>PortfolioTable</tabstop>
   <tabstop>OverviewTable</tabstop>
   <tabstop>WaitingListTable</tabstop>
-  <tabstop>CancelOrderID</tabstop>
  </tabstops>
  <resources/>
  <connections/>
