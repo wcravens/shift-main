@@ -16,6 +16,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -127,6 +128,7 @@ private:
     std::vector<std::string> m_submittedOrdersIDs;
     std::unordered_map<std::string, shift::Order> m_submittedOrders;
     std::vector<shift::Order> m_waitingList;
+    std::vector<std::thread> m_samplePriceThreads;
     std::unordered_map<std::string, bool> m_samplePricesFlags;
     std::unordered_map<std::string, std::list<double>> m_sampleLastPrices;
     std::unordered_map<std::string, std::list<double>> m_sampleMidPrices;

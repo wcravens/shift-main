@@ -328,18 +328,22 @@ bool shift::CoreClient::requestSamplePrices(std::vector<std::string> symbols, do
         return false;
     }
 
-    std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
+    {
+        std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
 
-    for (auto it = symbols.begin(); it != symbols.end(); ++it) {
-        if (m_samplePricesFlags[*it]) {
-            it = symbols.erase(it);
-        } else {
-            m_samplePricesFlags[*it] = true;
+        auto it = symbols.begin();
+        while(it != symbols.end()) {
+            if (m_samplePricesFlags[*it]) {
+                it = symbols.erase(it);
+            } else {
+                m_samplePricesFlags[*it] = true;
+                ++it;
+            }
         }
     }
 
     if (symbols.begin() != symbols.end()) {
-        std::thread(&shift::CoreClient::calculateSamplePrices, this, symbols, samplingFrequency, samplingWindow).detach();
+        m_samplePriceThreads.push_back(std::thread(&shift::CoreClient::calculateSamplePrices, this, symbols, samplingFrequency, samplingWindow));
         return true;
     } else {
         return false;
@@ -350,12 +354,14 @@ bool shift::CoreClient::cancelSamplePricesRequest(const std::vector<std::string>
 {
     bool success = false;
 
-    std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
+    {
+        std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
 
-    for (auto it = symbols.begin(); it != symbols.end(); ++it) {
-        if (m_samplePricesFlags[*it]) {
-            m_samplePricesFlags[*it] = false;
-            success = true;
+        for (auto it = symbols.begin(); it != symbols.end(); ++it) {
+            if (m_samplePricesFlags[*it]) {
+                m_samplePricesFlags[*it] = false;
+                success = true;
+            }
         }
     }
 
@@ -366,12 +372,20 @@ bool shift::CoreClient::cancelAllSamplePricesRequests()
 {
     bool success = false;
 
-    std::lock_guard<std::mutex> lsamplePricesFlagsGuard(m_mutex_samplePricesFlags);
+    {
+        std::lock_guard<std::mutex> lsamplePricesFlagsGuard(m_mutex_samplePricesFlags);
 
-    for (auto& kv : m_samplePricesFlags) {
-        if (kv.second) {
-            kv.second = false;
-            success = true;
+        for (auto& kv : m_samplePricesFlags) {
+            if (kv.second) {
+                kv.second = false;
+                success = true;
+            }
+        }
+    }
+
+    for (auto& t : m_samplePriceThreads) {
+        if (t.joinable()) {
+            t.join();
         }
     }
 
@@ -621,16 +635,19 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
         }
 
         std::this_thread::sleep_for(samplingFrequency * 1s);
-
         {
             std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
             std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
-            for (auto it = symbols.begin(); it != symbols.end(); ++it) {
+            auto it = symbols.begin();
+            while(it != symbols.end()) {
                 if (!m_samplePricesFlags[*it]) {
                     m_sampleLastPrices[*it].clear();
                     m_sampleMidPrices[*it].clear();
                     it = symbols.erase(it);
+                }
+                else {
+                    ++it;
                 }
             }
         }
