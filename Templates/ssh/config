@@ -1,41 +1,41 @@
 # copy this file to ~/.ssh/config
 
-# 93-DE-ME-BC-WC (Web Demo)
-Host 93
-  User shiftpub
-  HostName 155.246.104.93
-
-# 29-DE-ME-BC-WC (Qt Demo)
-Host 29
-  User shiftpub
-  HostName 155.246.104.29
-
-# 38-BC-WC (Release)
-Host 38
-  User shiftpub
-  HostName 155.246.104.38
-
-# 31-DE-ME (Release)
-Host 31
-  User shiftpub
-  HostName 155.246.104.31
-
-# 45-BC-WC (Development)
-Host 45
-  User shiftpub
-  HostName 155.246.104.45
-
-# 32-DE-ME (Development)
-Host 32
-  User shiftpub
-  HostName 155.246.104.32
-
-# 55-DE-ME-BC-WC (Research)
+# 55-DE-ME-BC-WC (Web Demo)
 Host 55
   User shiftpub
   HostName 155.246.104.55
 
-# 60-DE-ME-BC-WC (Research)
-Host 60
+# 31-DE-ME-BC-WC (Qt Demo)
+Host 31
   User shiftpub
-  HostName 155.246.104.60
+  HostName 155.246.104.31
+
+# 28-BC-WC (Release)
+Host 28
+  User shiftpub
+  HostName 155.246.104.28
+
+# 29-DE-ME (Release)
+Host 29
+  User shiftpub
+  HostName 155.246.104.29
+
+# 25-BC-WC (Development)
+Host 25
+  User shiftpub
+  HostName 155.246.104.25
+
+# 26-DE-ME (Development)
+Host 26
+  User shiftpub
+  HostName 155.246.104.26
+
+# 93-DE-ME-BC-WC (Research)
+Host 93
+  User shiftpub
+  HostName 155.246.104.93
+
+# 32-DE-ME-BC-WC (Research)
+Host 32
+  User shiftpub
+  HostName 155.246.104.32
