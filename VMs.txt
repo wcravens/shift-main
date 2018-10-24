@@ -1,9 +1,9 @@
                 IP                  Cores / RAM     OS                  Servers
-Web Demo        155.246.104.81      8 / 8           Ubuntu 18.04        DE / ME / BC / WC
-Qt Demo         155.246.104.102     8 / 8           Ubuntu 18.04        DE / ME / BC / WC
-Release         155.246.104.28      8 / 8           Ubuntu 18.04        BC / WC
-                155.246.104.97      8 / 8           Ubuntu 18.04        DE / ME
-Development     155.246.104.25      16 / 8          Ubuntu 18.04        BC / WC
-                155.246.104.26      16 / 8          Ubuntu 18.04        DE / ME
-Research        155.246.104.90      8 / 8           Ubuntu 18.04        DE / ME / BC / WC
-                155.246.104.101     8 / 8           Ubuntu 18.04        DE / ME / BC / WC
+Web Demo        155.246.104.93      8 / 8           Ubuntu 18.04        DE / ME / BC / WC
+Qt Demo         155.246.104.29      8 / 8           Ubuntu 18.04        DE / ME / BC / WC
+Release         155.246.104.38      8 / 8           Ubuntu 18.04        BC / WC
+                155.246.104.31      8 / 8           Ubuntu 18.04        DE / ME
+Development     155.246.104.45      16 / 8          Ubuntu 18.04        BC / WC
+                155.246.104.32      16 / 8          Ubuntu 18.04        DE / ME
+Research        155.246.104.55      8 / 8           Ubuntu 18.04        DE / ME / BC / WC
+                155.246.104.60      8 / 8           Ubuntu 18.04        DE / ME / BC / WC
