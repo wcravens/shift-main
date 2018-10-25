@@ -5,12 +5,13 @@
 #include <string>
 
 /**
- * @brief Data structure for carrying Trading Record data between database and FIX components.
+ * @brief Data structure for carrying Trading Record data 
+ *        between database and FIX components.
  *        Shall always use C++ standard types.
  */
 struct TradingRecord {
-    std::string real_time;
-    // std::string execution_time;
+    FIX::UtcTimeStamp realtime;
+    FIX::UtcTimeStamp exetime;
     std::string symbol; // or RIC
     double price;
     int size;
@@ -20,17 +21,15 @@ struct TradingRecord {
     std::string order_id_2;
     char order_type_1;
     char order_type_2;
-    // std::string time_1;
-    // std::string time_2;
     char decision;
     std::string destination;
-    FIX::UtcTimeStamp utc_exetime;
-    FIX::UtcTimeStamp utc_time1;
-    FIX::UtcTimeStamp utc_time2;
+    FIX::UtcTimeStamp time1;
+    FIX::UtcTimeStamp time2;
 };
 
 /**
- * @brief Data structure for carrying Trade or Quote data between database and FIX components.
+ * @brief Data structure for carrying Trade or Quote data 
+ *        between database and FIX components.
  *        Shall always use C++ standard types.
  */
 struct RawData {
@@ -50,6 +49,6 @@ struct RawData {
     std::string exchangeTime;
     std::string quoteTime;
     std::string recordID;
-    int secs;
-    double millisec;
+    int secs;           // second of date since 1970.01.01
+    double millisec;    // millicsecond of one day
 };

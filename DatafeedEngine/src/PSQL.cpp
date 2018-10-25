@@ -771,33 +771,29 @@ long PSQL::checkEmpty(std::string tableName)
     return 1;
 }
 
-/* static */ std::string PSQL::utc_to_string(const FIX::UtcTimeStamp& utc) {
+/**
+ * @brief Convert FIX::UtcTimeStamp to String used for date field in DB
+ */
+/* static */ std::string PSQL::utcToString(const FIX::UtcTimeStamp& ts) {
     return str(
         boost::format("%04d-%02d-%02d %02d:%02d:%02d.%06d") 
-        % utc.getYear() 
-        % utc.getMonth() 
-        % utc.getDay() 
-        % utc.getHour() 
-        % utc.getMinute() 
-        % utc.getSecond() 
-        % utc.getMicroecond()
+        % ts.getYear() 
+        % ts.getMonth() 
+        % ts.getDay() 
+        % ts.getHour() 
+        % ts.getMinute() 
+        % ts.getSecond() 
+        % ts.getFraction(6) // microsecond = 10^-6 sec
     );
 }
 
 bool PSQL::insertTradingRecord(const TradingRecord& trade)
 {
-    auto exetime_s = utc_to_string(trade.utc_exetime);
-    auto time1_s = utc_to_string(trade.utc_time1);
-    auto time2_s = utc_to_string(trade.utc_time2);
-
-    // cout << "Test Use: " << exetime_s << "\n" << time1_s << "\n" << time2_s << endl;
-
     std::ostringstream temp;
     temp << "INSERT INTO " << CSTR_TBLNAME_TRADING_RECORDS << " VALUES ('"
          << s_sessionID << "','"
-         << trade.real_time << "','"
-         << exetime_s << "','"
-        //  << trade.execution_time << "','"
+         << utcToString(trade.realtime) << "','"
+         << utcToString(trade.exetime) << "','"
          << trade.symbol << "','"
          << trade.price << "','"
          << trade.size << "','"
@@ -807,10 +803,8 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
          << trade.order_id_2 << "','"
          << trade.order_type_1 << "','"
          << trade.order_type_2 << "','"
-         << time1_s << "','"
-         << time2_s << "','"
-        //  << trade.time_1 << "','"
-        //  << trade.time_2 << "','"
+         << utcToString(trade.time1) << "','"
+         << utcToString(trade.time2) << "','"
          << trade.decision << "','"
          << trade.destination << "');";
 
