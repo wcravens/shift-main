@@ -35,6 +35,7 @@ static const auto& FIXFIELD_DOM_FULL = FIX::MarketDepth(0); // Depth of market f
 static const auto& FIXFIELD_ENTRY_BID = FIX::MDEntryType('0'); // Type of market data entry, 0 = Bid
 static const auto& FIXFIELD_ENTRY_OFFER = FIX::MDEntryType('1'); // Type of market data entry, 1 = Offer
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
+static const auto &FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New FIXME: temp used
 
 /**
  * @brief Default constructor for FIXInitiator object.
@@ -433,6 +434,15 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     FIX::ExecType execType;
     message.get(execType);
 
+    // if (execType == ::FIXFIELD_EXECTYPE_NEW)
+    // {
+    //     FIX::EffectiveTime utc_comfirmTime;
+    //     FIX::Text confirmTime;
+    //     message.get(utc_comfirmTime);
+    //     message.get(confirmTime);
+    //     // cout << "Test Use: " << utc_comfirmTime.getString() << " " << confirmTime << endl;
+    // }
+
     if (execType == ::FIXFIELD_EXECTYPE_TRADE && m_connected) {
         FIX::NoPartyIDs numOfGroup;
         message.get(numOfGroup);
@@ -446,7 +456,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
         FIX::OrdType orderType;
         FIX::Price price;
         FIX::CumQty size;
-        FIX::Text confirmTime;
+        // FIX::Text confirmTime;
+        FIX::TransactTime utc_serverTime;
+        FIX::EffectiveTime utc_execTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs partyGroup;
         FIX::PartyID clientID;
@@ -457,7 +469,12 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
         message.get(orderType);
         message.get(price);
         message.get(size);
-        message.get(confirmTime);
+        // message.get(confirmTime);
+        message.get(utc_serverTime);
+        message.get(utc_execTime);
+
+        /* Proofed */
+        // cout << "Test Use: " << utc_execTime.getString() << " " << utc_serverTime.getString() << endl;;
 
         message.getGroup(1, partyGroup);
         partyGroup.get(clientID);
@@ -790,6 +807,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     FIX::HighPx high;
     FIX::LowPx low;
     FIX::LastPx close;
+    FIX::TransactTime utc_time;
 
     message.get(symbol);
     message.get(timestamp);
@@ -797,6 +815,11 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     message.get(high);
     message.get(low);
     message.get(close);
+    message.get(utc_time);
+
+    cout << "Test Use: " << symbol.getString() << " " << open.getString() << " " << utc_time.getString() << endl;
+    /* Test Use: 1521086573 20180315-04:02:53 */
+    // cout << "Test Use: " << timestamp.getString() << " " << utc_time.getString() << endl;
 
     symbol = m_originalName_symbol[symbol];
 
@@ -815,7 +838,15 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
 
     try {
         // getMainClient()->receiveCandleData(symbol, open, high, low, close, timestamp);
-        getMainClient()->receiveCandlestickData(symbol, open, high, low, close, timestamp);
+        getMainClient()->receiveCandlestickData(
+            symbol, 
+            open, 
+            high, 
+            low, 
+            close, 
+            timestamp
+            // std::to_string(utc_time.getValue().getTimeT())
+        );
     } catch (...) {
         return;
     }

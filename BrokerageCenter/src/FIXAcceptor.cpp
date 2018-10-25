@@ -269,7 +269,8 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
 
     message.setField(FIX::OrderID(report.orderID));
     message.setField(FIX::ClOrdID(report.clientID));
-    message.setField(FIX::ExecID(report.execTime));
+    message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
+    // message.setField(FIX::ExecID(report.execTime));
     message.setField(::FIXFIELD_EXECTYPE_NEW); // Required by FIX
     message.setField(FIX::OrdStatus(report.status));
     message.setField(FIX::Symbol(report.symbol));
@@ -278,8 +279,9 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     message.setField(::FIXFIELD_LEAVQTY_100); // Required by FIX
     message.setField(FIX::CumQty(report.shareSize));
     message.setField(FIX::AvgPx(report.price)); //report.getAvgPx()
-    message.setField(FIX::TransactTime(6)); // Current date
-    message.setField(FIX::Text(report.serverTime)); // Millisecond
+    message.setField(FIX::TransactTime(report.utc_servertime, 6)); // Current date
+    message.setField(FIX::EffectiveTime(report.utc_exectime, 6));
+    // message.setField(FIX::Text(report.execTime)); // Millisecond
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_CLIENTID);
@@ -361,7 +363,9 @@ void FIXAcceptor::sendTempStockSummary(const std::string& userName, const TempSt
     header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
 
     message.setField(FIX::Symbol(tempSS.getSymbol()));
-    message.setField(FIX::SecurityID(std::to_string(tempSS.getTempTimeFrom()))); // Transaction time (from)
+    message.setField(FIX::SecurityID(std::to_string(tempSS.getTempTimeFrom()))); // FIXME: to be removed
+    auto utc = FIX::UtcTimeStamp(tempSS.getTempTimeFrom(), 0);
+    message.setField(FIX::TransactTime(utc, 6));
     message.setField(FIX::StrikePrice(tempSS.getTempOpenPrice())); // Open price
     message.setField(FIX::HighPx(tempSS.getTempHighPrice())); // High price
     message.setField(FIX::LowPx(tempSS.getTempLowPrice())); // Low price
@@ -403,8 +407,9 @@ void FIXAcceptor::sendLatestStockPrice(const std::string& userName, const Transa
     message.setField(FIX::Price(transac.price));
     message.setField(::FIXFIELD_LEAVQTY_0);
     message.setField(FIX::CumQty(transac.execQty));
-    message.setField(FIX::TransactTime(6));
-    message.setField(FIX::Text(transac.execTime));
+    message.setField(FIX::EffectiveTime(transac.utc_execTime, 6));
+    message.setField(FIX::TransactTime(transac.utc_serverTime, 6));
+    // message.setField(FIX::Text(transac.execTime));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_CLIENTID);

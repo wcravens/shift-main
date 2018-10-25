@@ -4,6 +4,7 @@
 #include "FIXAcceptor.h"
 
 #include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/format.hpp>
 
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/terminal/Common.h>
@@ -690,11 +691,42 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
         return false;
     }
 
+    /*
+     * SELECT extract(epoch from reuters_date)::bigint,
+	 * extract(epoch from reuters_time)
+     * FROM public.aapl_o_20180315;
+     */
+    std::string pqQuery2;
+    pqQuery2 = "SELECT extract(epoch from reuters_date)::bigint, extract(epoch from reuters_time) FROM ";
+    pqQuery2 += table_name;
+    pqQuery2 += " WHERE reuters_time > '";
+    pqQuery2 += stime;
+    pqQuery2 += "' AND reuters_time <= '";
+    pqQuery2 += etime;
+    pqQuery2 += '\'';
+    pqQuery2 += " ORDER BY reuters_time";
+    PGresult* res_time = PQexec(m_conn, pqQuery2.c_str());
+
     RawData rawData;
+    
+    std::setprecision(15);
+    std::cout.precision(15);
+    double millisec;
+    /*
+    test use1: 2018-03-15 09:30:00.019328
+    test use2: 1521072000 34200.019328
+    */
+    // cout << "test use1: " << date << " " << time << endl;
+    // cout << "test use2: " << secs << " " << millisec << endl;
+
     // Next, save each record for each row into struct RawData and send to matching engine
     for (int i = 0, nt = PQntuples(res); i < nt; i++) {
         char* pCh{};
         using RCD_VAL_IDX = PSQLTable<TradeAndQuoteRecords>::RCD_VAL_IDX;
+
+        sscanf(PQgetvalue(res_time, i, 1), "%lf", &millisec);
+        rawData.secs = std::atol(PQgetvalue(res_time, i, 0));
+        rawData.millisec = millisec;
 
         rawData.symbol = PQgetvalue(res, i, RCD_VAL_IDX::RIC);
         rawData.reutersDate = PQgetvalue(res, i, RCD_VAL_IDX::REUT_DATE);
@@ -712,6 +744,8 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
 
         FIXAcceptor::sendRawData(rawData, targetID);
     }
+
+    PQclear(res_time);
 
     PQclear(res);
     res = PQexec(m_conn, "CLOSE data");
@@ -737,13 +771,33 @@ long PSQL::checkEmpty(std::string tableName)
     return 1;
 }
 
+/* static */ std::string PSQL::utc_to_string(const FIX::UtcTimeStamp& utc) {
+    return str(
+        boost::format("%04d-%02d-%02d %02d:%02d:%02d.%06d") 
+        % utc.getYear() 
+        % utc.getMonth() 
+        % utc.getDay() 
+        % utc.getHour() 
+        % utc.getMinute() 
+        % utc.getSecond() 
+        % utc.getMicroecond()
+    );
+}
+
 bool PSQL::insertTradingRecord(const TradingRecord& trade)
 {
+    auto exetime_s = utc_to_string(trade.utc_exetime);
+    auto time1_s = utc_to_string(trade.utc_time1);
+    auto time2_s = utc_to_string(trade.utc_time2);
+
+    // cout << "Test Use: " << exetime_s << "\n" << time1_s << "\n" << time2_s << endl;
+
     std::ostringstream temp;
     temp << "INSERT INTO " << CSTR_TBLNAME_TRADING_RECORDS << " VALUES ('"
          << s_sessionID << "','"
          << trade.real_time << "','"
-         << trade.execution_time << "','"
+         << exetime_s << "','"
+        //  << trade.execution_time << "','"
          << trade.symbol << "','"
          << trade.price << "','"
          << trade.size << "','"
@@ -753,8 +807,10 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
          << trade.order_id_2 << "','"
          << trade.order_type_1 << "','"
          << trade.order_type_2 << "','"
-         << trade.time_1 << "','"
-         << trade.time_2 << "','"
+         << time1_s << "','"
+         << time2_s << "','"
+        //  << trade.time_1 << "','"
+        //  << trade.time_2 << "','"
          << trade.decision << "','"
          << trade.destination << "');";
 

@@ -5,6 +5,8 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include <quickfix/Application.h>
+
 class timesetting {
 private:
     boost::posix_time::ptime date_time;
@@ -23,13 +25,16 @@ public:
 
     void set_start_time();
 
-    long past_milli(std::string& _date_time);
+    double past_milli(std::string& _date_time);
+    double past_milli(const FIX::UtcTimeStamp& utc);
 
     double past_milli();
 
     std::string milli2str(double milli);
+    FIX::UtcTimeStamp milli2utc(double milli);
 
     std::string timestamp_inner();
+    FIX::UtcTimeStamp timestamp_now();
 };
 
 extern timesetting timepara;

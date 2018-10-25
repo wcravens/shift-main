@@ -10,6 +10,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <string>
 
 #include <boost/format.hpp>
 
@@ -112,6 +113,17 @@ void FIXAcceptor::disconnectMatchingEngine()
     header.setField(FIX::MsgType(FIX::MsgType_Quote));
 
     std::string dateTime = rawData.reutersDate + ' ' + rawData.reutersTime;
+
+    time_t secs = rawData.secs + static_cast<int>(rawData.millisec);
+    int millisec = static_cast<int>((rawData.millisec - static_cast<int>(rawData.millisec)) * 1000000);
+    auto utc = FIX::UtcTimeStamp(secs, millisec, 6);
+    
+    auto transactTime = FIX::TransactTime(utc, 6);
+    /* Test Use: 1521101684 15595 20180315-08:14:44.015595 */
+    // cout << "Test Use: " << dateTime << " " << transactTime.getString() << endl;
+
+    message.setField(transactTime);
+
     message.setField(FIX::Text(dateTime)); // date time
     message.setField(FIX::Symbol(rawData.symbol));
     message.setField(FIX::SecurityID(rawData.toq));
@@ -221,7 +233,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     FIX::CumQty size;
     FIX::Price price;
     FIX::TransactTime serverTime;
-    FIX::Text execTime;
+    // FIX::Text execTime;
+    FIX::EffectiveTime utc_exetime;
 
     FIX50SP2::ExecutionReport::NoPartyIDs partyGroup;
     FIX::PartyID traderID1;
@@ -229,8 +242,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     FIX::PartyID destination;
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup;
-    FIX::TrdRegTimestampOrigin time1;
-    FIX::TrdRegTimestampOrigin time2;
+    // FIX::TrdRegTimestampOrigin time1;
+    // FIX::TrdRegTimestampOrigin time2;
+    FIX::TrdRegTimestamp utc_time1;
+    FIX::TrdRegTimestamp utc_time2;
 
     message.get(orderID1);
     message.get(orderID2);
@@ -241,7 +256,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     message.get(size);
     message.get(price);
     message.get(serverTime);
-    message.get(execTime);
+    // message.get(execTime);
+    message.get(utc_exetime);
 
     message.getGroup(1, partyGroup);
     partyGroup.get(traderID1);
@@ -250,10 +266,14 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     message.getGroup(3, partyGroup);
     partyGroup.get(destination);
 
+    // message.getGroup(1, timeGroup);
+    // timeGroup.get(time1);
+    // message.getGroup(2, timeGroup);
+    // timeGroup.get(time2);
     message.getGroup(1, timeGroup);
-    timeGroup.get(time1);
+    timeGroup.get(utc_time1);
     message.getGroup(2, timeGroup);
-    timeGroup.get(time2);
+    timeGroup.get(utc_time2);
 
     // Insert to trading_records failed
     if (decision != '4') { // decision == 4, means this is a trade update from TRTH, no need to save this.
@@ -261,7 +281,28 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
         std::stringstream serverTimeSStream;
         serverTimeSStream << boost::format("%04d-%02d-%02d %02d:%02d:%02d.%06d") % ts.getYear() % ts.getMonth() % ts.getDay() % ts.getHour() % ts.getMinute() % ts.getSecond() % ts.getFraction(6);
 
-        TradingRecord trade{ serverTimeSStream.str(), std::string(execTime), std::string(symbol), double(price), int(size), std::string(traderID1), std::string(traderID2), std::string(orderID1), std::string(orderID2), char(orderType1), char(orderType2), std::string(time1), std::string(time2), char(decision), std::string(destination) };
+        // cout << "Test Use: " << execTime << " " << utc_exetime.getString() << endl;
+
+        TradingRecord trade{ 
+            serverTimeSStream.str(), 
+            // std::string(execTime), 
+            std::string(symbol), 
+            double(price), 
+            int(size), 
+            std::string(traderID1), 
+            std::string(traderID2), 
+            std::string(orderID1), 
+            std::string(orderID2), 
+            char(orderType1), 
+            char(orderType2), 
+            // std::string(time1), 
+            // std::string(time2), 
+            char(decision), 
+            std::string(destination),
+            utc_exetime.getValue(),
+            utc_time1.getValue(),
+            utc_time2.getValue()
+        };
         PSQLManager::getInstance().insertTradingRecord(trade);
     }
 }

@@ -4,6 +4,7 @@
 #include "FIXAcceptor.h"
 
 #include <boost/date_time.hpp>
+#include <boost/format.hpp>
 
 #include <shift/miscutils/concurrency/Consumer.h>
 #include <shift/miscutils/terminal/Common.h>
@@ -105,7 +106,8 @@ void StockSummary::process()
         m_tranBufSizeAtom = m_transacBuff.size();
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
-        const auto texec = s_toUnixTimestamp(transac.execTime);
+        const auto texec = transac.utc_execTime.getTimeT();
+        // cout << "Test Use: " << texec << " " << m_currOpenTime << endl;
         const auto tdiff = texec - m_currOpenTime;
 
         if (m_sent) {

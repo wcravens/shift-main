@@ -1,5 +1,7 @@
 #include "threadFunction.h"
 
+#include "globalvariables.h"
+
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
 #include "Stock.h"
@@ -178,10 +180,31 @@ void createStockMarket(std::string symbol)
                 stock->second.level();
                 //stock->second.showglobal();
                 if (newquote.getsize() != 0) {
+                    auto utc_now = timepara.timestamp_now();
+                    // auto tmp = FIX::TransactTime(utc_now, 6);
+                    // Test Use: 20180315-09:30:05.408060
+                    // cout << "Test Use: " << tmp.getString() << endl;
+
                     //action(string stock1,double price1,int size1,string trader_id11,string trader_id21,char order_type11,char order_type21,string order_id11,
                     //string order_id21,string time0,string time11,string time21,char decision1,string destination1);
                     //decision 4 means this is a trade update from TRTH
-                    action newaction(newquote.getstockname(), newquote.getprice(), newquote.getsize(), "T1", "T2", '1', '2', "o1", "o2", newquote.gettime(), "t2", "t3", '4', "TRTH");
+                    // action newaction(newquote.getstockname(), newquote.getprice(), newquote.getsize(), "T1", "T2", '1', '2', "o1", "o2", newquote.gettime(), "t2", "t3", '4', "TRTH", newquote.getutctime(), utc_now, utc_now);
+                    action newaction(
+                        newquote.getstockname(), 
+                        newquote.getprice(), 
+                        newquote.getsize(), 
+                        "T1", 
+                        "T2", 
+                        '1', 
+                        '2', 
+                        "o1", 
+                        "o2", 
+                        '4', 
+                        "TRTH", 
+                        newquote.getutctime(),
+                        utc_now,
+                        utc_now 
+                    );
                     stock->second.actions.push_back(newaction);
                 }
                 break;
@@ -229,7 +252,7 @@ void createStockMarket(std::string symbol)
 
             for_each(stock->second.actions.begin(), stock->second.actions.end(), [](action& trade) {
                 //cout<<"Trade:    ";
-                trade.show();
+                // trade.show();
                 FIXInitiator::SendActionRecord(trade); ////send execution report to database
                 FIXAcceptor::SendExecution(trade);
                 //cout<<"sending execution report"<<endl;

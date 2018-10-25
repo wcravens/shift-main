@@ -5,16 +5,42 @@
  * @param stockname, traderID, orderID, price, size, time, orderType
  * @return None.
  */
-Quote::Quote(std::string stockname1, std::string trader_id1, std::string order_id1, double price1, int size1, std::string time1, char ordertype1)
+Quote::Quote(std::string stockname1, 
+            std::string trader_id1, 
+            std::string order_id1, 
+            double price1, 
+            int size1, 
+            char ordertype1, 
+            FIX::UtcTimeStamp utc
+)
 {
     stockname = stockname1;
     trader_id = trader_id1;
     order_id = order_id1;
     price = price1;
     size = size1;
-    time = time1;
+    // time = time1;
     ordertype = ordertype1;
     destination = "Server";
+    utc_time = utc;
+}
+
+Quote::Quote(std::string stockname1, 
+            double price1, 
+            int size1, 
+            std::string destination1, 
+            FIX::UtcTimeStamp utc
+)
+{
+    stockname = stockname1;
+    trader_id = "TR";
+    order_id = "Thomson";
+    price = price1;
+    size = size1;
+    // time = time1;
+    ordertype = '1';
+    destination = destination1;
+    utc_time = utc;
 }
 
 /**
@@ -22,7 +48,13 @@ Quote::Quote(std::string stockname1, std::string trader_id1, std::string order_i
  * @param stockname, traderID, orderID, price, size, orderType
  * @return None.
  */
-Quote::Quote(std::string stockname1, std::string trader_id1, std::string order_id1, double price1, int size1, char ordertype1)
+Quote::Quote(std::string stockname1, 
+            std::string trader_id1, 
+            std::string order_id1, 
+            double price1, 
+            int size1, 
+            char ordertype1
+)
 {
     stockname = stockname1;
     stockname = stockname1;
@@ -47,9 +79,10 @@ Quote::Quote(const Quote& newquote)
     mili = newquote.mili;
     price = newquote.price;
     size = newquote.size;
-    time = newquote.time;
+    // time = newquote.time;
     ordertype = newquote.ordertype;
     destination = newquote.destination;
+    utc_time = newquote.utc_time;
 }
 
 /**
@@ -83,9 +116,10 @@ void Quote::operator=(const Quote& newquote)
     mili = newquote.mili;
     price = newquote.price;
     size = newquote.size;
-    time = newquote.time;
+    // time = newquote.time;
     ordertype = newquote.ordertype;
     destination = newquote.destination;
+    utc_time = newquote.utc_time;
 }
 
 /**
@@ -193,19 +227,23 @@ int Quote::getsize()
  * @param time to be set.
  * @return None.
  */
-void Quote::settime(std::string time1)
-{
-    time = time1;
-}
+// void Quote::settime(std::string time1)
+// {
+//     time = time1;
+// }
 
 /**
  * @brief Getter for time field of current Quote object.
  * @param None.
  * @return time of the current Quote object.
  */
-std::string Quote::gettime()
-{
-    return time;
+// std::string Quote::gettime()
+// {
+//     return time;
+// }
+
+FIX::UtcTimeStamp Quote::getutctime() {
+    return utc_time;
 }
 
 /**

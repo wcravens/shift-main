@@ -122,7 +122,13 @@ void Stock::execute(int size1, Quote& newquote, char decision1, std::string dest
         newquote.setsize(-size1);
         //cout<<newquote.getsize();
     }
-    std::string time0 = now_str(); //input system time!!!
+    
+    // std::string time0 = now_str(); //input system time!!!
+    auto utc_now = timepara.timestamp_now();
+
+    // auto tmp = FIX::TransactTime(utc_now, 6);
+    // cout << "Test use: " << tmp.getString() << " " << time0 << endl;
+
     action act(
         newquote.getstockname(),
         thisquote->getprice(),
@@ -133,16 +139,20 @@ void Stock::execute(int size1, Quote& newquote, char decision1, std::string dest
         newquote.getordertype(),
         thisquote->getorder_id(),
         newquote.getorder_id(),
-        time0,
-        thisquote->gettime(),
-        newquote.gettime(),
+        // time0,
+        // thisquote->gettime(),
+        // newquote.gettime(),
         decision1,
-        destination1);
+        destination1,
+        utc_now,
+        thisquote->getutctime(),
+        newquote.getutctime()
+    );
     ////cout<<act.time1<<"   action"<<"\n";
     ////cout<<newquote.gettime()<<"   action"<<"\n";
     actions.push_back(act);
     //level();
-    cout << "actions:  " << actions.begin()->time1 << actions.begin()->decision << endl;
+    // cout << "actions:  " << actions.begin()->time1 << actions.begin()->decision << endl;
     //return newquotesize;
 }
 
@@ -157,7 +167,13 @@ void Stock::executeglobal(int size1, Quote& newquote, char decision1, std::strin
         thisglobal->setsize(0);
         newquote.setsize(-size1);
     }
-    std::string time0 = now_str(); //input system time!!!
+
+    // std::string time0 = now_str(); //input systexm time!!!
+
+    auto utc_now = timepara.timestamp_now();
+    // auto time00 = FIX::TransactTime(utc_now, 6);
+    // cout << "Test Use: " << time00.getString() << "   " << time0 << endl;
+    
     action act(
         newquote.getstockname(),
         thisglobal->getprice(),
@@ -168,11 +184,15 @@ void Stock::executeglobal(int size1, Quote& newquote, char decision1, std::strin
         newquote.getordertype(),
         thisglobal->getorder_id(),
         newquote.getorder_id(),
-        time0,
-        thisglobal->gettime(),
-        newquote.gettime(),
+        // time0,
+        // thisglobal->gettime(),
+        // newquote.gettime(),
         decision1,
-        destination1);
+        destination1,
+        utc_now,
+        thisglobal->getutctime(),
+        newquote.getutctime()
+    );
     ////cout<<act.time1<<"   action"<<"\n";
     ////cout<<newquote.gettime()<<"   action"<<"\n";
     actions.push_back(act);

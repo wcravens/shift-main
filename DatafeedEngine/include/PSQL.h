@@ -1,5 +1,7 @@
 #pragma once
 
+#include <quickfix/Application.h>
+
 #include <memory>
 #include <mutex>
 #include <string>
@@ -79,6 +81,8 @@ public:
 
     /*@brief Create table used to save the trading records*/
     bool createTableOfTradingRecords();
+
+    static std::string utc_to_string(const FIX::UtcTimeStamp& utc);
 
     /*@brief Inserts trade history into the table used to save the trading records*/
     bool insertTradingRecord(const TradingRecord& trade);
