@@ -90,6 +90,11 @@ void StockSummary::process()
 {
     thread_local auto quitFut = m_quitFlag.get_future();
 
+    auto writeStockSummaryHistory = [this](const TempStockSummary& tempSS) {
+                            std::lock_guard<std::mutex> guard(m_mtxHistory);
+                            m_history[m_currOpenTime] = tempSS;
+                        };
+
     while (true) {
         std::unique_lock<std::mutex> lock(m_mtxTransacBuff);
         if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvSS, lock, [this] { return !m_transacBuff.empty(); }))
@@ -121,10 +126,7 @@ void StockSummary::process()
                     TempStockSummary tempSS(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
                     sendCurrentStockSummary(tempSS);
 
-                    {
-                        std::lock_guard<std::mutex> guard(m_mtxHistory);
-                        m_history[m_currOpenTime] = tempSS;
-                    }
+                    writeStockSummaryHistory(tempSS);
                 }
             }
 
@@ -150,11 +152,7 @@ void StockSummary::process()
 
                 m_currClosePrice = m_currPrice;
 
-                {
-                    TempStockSummary tempSS(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
-                    std::lock_guard<std::mutex> guard(m_mtxHistory);
-                    m_history[m_currOpenTime] = tempSS;
-                }
+                writeStockSummaryHistory({m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime});
 
                 m_sent = true;
                 break;
@@ -173,10 +171,7 @@ void StockSummary::process()
             TempStockSummary tempSS(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
             sendCurrentStockSummary(tempSS);
 
-            {
-                std::lock_guard<std::mutex> guard(m_mtxHistory);
-                m_history[m_currOpenTime] = tempSS;
-            }
+            writeStockSummaryHistory(tempSS);
 
             m_sent = true;
         }
