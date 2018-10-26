@@ -691,11 +691,6 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
         return false;
     }
 
-    /*
-     * SELECT extract(epoch from reuters_date)::bigint,
-	 * extract(epoch from reuters_time)
-     * FROM public.aapl_o_20180315;
-     */
     std::string pqQuery2;
     pqQuery2 = "SELECT extract(epoch from reuters_date)::bigint, extract(epoch from reuters_time) FROM ";
     pqQuery2 += table_name;
@@ -705,27 +700,25 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     pqQuery2 += etime;
     pqQuery2 += '\'';
     pqQuery2 += " ORDER BY reuters_time";
-    PGresult* res_time = PQexec(m_conn, pqQuery2.c_str());
 
-    RawData rawData;
-    
-    std::setprecision(15);
-    std::cout.precision(15);
+    PGresult* res_time = PQexec(m_conn, pqQuery2.c_str());
+    if (PQresultStatus(res_time) != PGRES_TUPLES_OK) {
+        cout << COLOR_ERROR "ERROR: EXTRACT TIME failed.\n" NO_COLOR;
+        PQclear(res_time);
+        return false;
+    }
+
     double millisec;
-    /*
-    test use1: 2018-03-15 09:30:00.019328
-    test use2: 1521072000 34200.019328
-    */
-    // cout << "test use1: " << date << " " << time << endl;
-    // cout << "test use2: " << secs << " " << millisec << endl;
+    RawData rawData;
+    std::setprecision(15);
 
     // Next, save each record for each row into struct RawData and send to matching engine
     for (int i = 0, nt = PQntuples(res); i < nt; i++) {
         char* pCh{};
         using RCD_VAL_IDX = PSQLTable<TradeAndQuoteRecords>::RCD_VAL_IDX;
 
-        sscanf(PQgetvalue(res_time, i, 1), "%lf", &millisec);
         rawData.secs = std::atol(PQgetvalue(res_time, i, 0));
+        sscanf(PQgetvalue(res_time, i, 1), "%lf", &millisec);
         rawData.millisec = millisec;
 
         rawData.symbol = PQgetvalue(res, i, RCD_VAL_IDX::RIC);
@@ -746,8 +739,8 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     }
 
     PQclear(res_time);
-
     PQclear(res);
+    
     res = PQexec(m_conn, "CLOSE data");
     PQclear(res);
     res = PQexec(m_conn, "END");

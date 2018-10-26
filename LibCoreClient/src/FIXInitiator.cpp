@@ -434,15 +434,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     FIX::ExecType execType;
     message.get(execType);
 
-    // if (execType == ::FIXFIELD_EXECTYPE_NEW)
-    // {
-    //     FIX::EffectiveTime utc_comfirmTime;
-    //     FIX::Text confirmTime;
-    //     message.get(utc_comfirmTime);
-    //     message.get(confirmTime);
-    //     // cout << "Test Use: " << utc_comfirmTime.getString() << " " << confirmTime << endl;
-    // }
-
     if (execType == ::FIXFIELD_EXECTYPE_TRADE && m_connected) {
         FIX::NoPartyIDs numOfGroup;
         message.get(numOfGroup);
@@ -456,9 +447,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
         FIX::OrdType orderType;
         FIX::Price price;
         FIX::CumQty size;
-        // FIX::Text confirmTime;
-        FIX::TransactTime utc_serverTime;
-        FIX::EffectiveTime utc_execTime;
+        FIX::TransactTime serverTime;
+        FIX::EffectiveTime execTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs partyGroup;
         FIX::PartyID clientID;
@@ -469,12 +459,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
         message.get(orderType);
         message.get(price);
         message.get(size);
-        // message.get(confirmTime);
-        message.get(utc_serverTime);
-        message.get(utc_execTime);
-
-        /* Proofed */
-        // cout << "Test Use: " << utc_execTime.getString() << " " << utc_serverTime.getString() << endl;;
+        message.get(serverTime);
+        message.get(execTime);
 
         message.getGroup(1, partyGroup);
         partyGroup.get(clientID);
