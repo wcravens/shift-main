@@ -13,10 +13,7 @@ struct Transaction {
     double execQty;
     double leftQty;
     double price;
-    // std::string serverTime;
-    // std::string transacTime;
-    // std::string execTime;
     std::string destination;
-    FIX::UtcTimeStamp utc_serverTime;
-    FIX::UtcTimeStamp utc_execTime;
+    FIX::UtcTimeStamp serverTime;
+    FIX::UtcTimeStamp execTime;
 };

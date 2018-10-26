@@ -175,21 +175,16 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::Side orderType;
         FIX::Price price;
         FIX::LeavesQty shareSize;
-        FIX::TransactTime utc_serverTime;
-        FIX::EffectiveTime utc_confirmtime;
-        // FIX::Text confirmTime;
+        FIX::TransactTime serverTime;
+        FIX::EffectiveTime confirmTime;
 
         message.get(orderID);
         message.get(symbol);
         message.get(orderType);
         message.get(price);
         message.get(shareSize);
-        message.get(utc_serverTime);
-        message.get(utc_confirmtime);
-        // message.get(confirmTime); // YYYYMMDD-HH:MM:SS
-
-        // Test Use: 2018-03-15 09:30:32.363000 20180315-09:30:32.363656
-        // cout << "Test Use: " << confirmTime << " " << utc_confirmtime.getString() << endl;
+        message.get(serverTime);
+        message.get(confirmTime);
 
         FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
         FIX::PartyRole role;
@@ -206,22 +201,20 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             clientID,
             orderID,
             orderStatus,
-            // confirmTime,
-            // serverTime.getString(),
             symbol,
             orderType,
             price,
             shareSize,
-            utc_serverTime.getValue(),
-            utc_confirmtime.getValue()
+            serverTime.getValue(),
+            confirmTime.getValue()
         };
 
         cout << "ConfirmRepo: " 
             << clientID << "\t" 
             << orderID << "\t" 
             << orderStatus << "\t" 
-            // << confirmTime << "\t" 
-            // << serverTime.getString() << "\t" 
+            << serverTime.getString() << "\t" 
+            << confirmTime.getString() << "\t" 
             << symbol << "\t"
             << orderType << "\t" 
             << price << "\t" 
@@ -238,8 +231,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         static FIX::CumQty shareSize;
         static FIX::Price price;
         static FIX::TransactTime serverTime;
-        static FIX::EffectiveTime utcExecTime;
-        // static FIX::Text execTime;
+        static FIX::EffectiveTime execTime;
 
         static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
         static FIX::PartyID clientID1;
@@ -257,8 +249,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::Price* pPrice;
         FIX::LeavesQty* pLeftQty;
         FIX::TransactTime* pServerTime;
-        FIX::EffectiveTime* pUtcExecTime;
-        // FIX::Text* pExecTime;
+        FIX::EffectiveTime* pExecTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
         FIX::PartyID* pClientID1;
@@ -282,8 +273,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pPrice = &price;
             pLeftQty = &leftQty;
             pServerTime = &serverTime;
-            pUtcExecTime = &utcExecTime;
-            // pExecTime = &execTime;
+            pExecTime = &execTime;
             pIDGroup = &idGroup;
             pClientID1 = &clientID1;
             pClientID2 = &clientID2;
@@ -298,9 +288,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pPrice = new decltype(price);
             pLeftQty = new decltype(leftQty);
             pServerTime = new decltype(serverTime);
-            pUtcExecTime = new decltype(utcExecTime);
-            // pExecTime = new decltype(execTime);
-            // Update Version: ClientID and ExecBroker has been replaced by PartyRole and PartyID
+            pExecTime = new decltype(execTime);
             pIDGroup = new decltype(idGroup);
             pClientID1 = new decltype(clientID1);
             pClientID2 = new decltype(clientID2);
@@ -316,11 +304,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         message.get(*pPrice);
         message.get(*pLeftQty);
         message.get(*pServerTime);
-        message.get(*pUtcExecTime);
-        // message.get(*pExecTime);
-
-        /* Test Use: 20180315-04:08:50.012730 */
-        // cout << "Test Use: " << pUtcExecTime->getString() << endl;
+        message.get(*pExecTime);
 
         // Update Version: ClientID and ExecBroker has been replaced by PartyRole and PartyID
         FIX::NoPartyIDs numOfGroup;
@@ -337,13 +321,13 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         message.getGroup(3, *pIDGroup);
         pIDGroup->get(*pDestination);
 
-        auto printRpts = [](bool rpt1or2, auto pClientID, auto pOrderID, auto orderStatus, auto pServerTime, auto pSymbol, auto pOrderType, auto pPrice, auto pShareSize) {
+        auto printRpts = [](bool rpt1or2, auto pClientID, auto pOrderID, auto orderStatus, auto pServerTime, auto pExecTime, auto pSymbol, auto pOrderType, auto pPrice, auto pShareSize) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ") 
             << *pClientID << "\t" 
             << *pOrderID << "\t" 
             << orderStatus << "\t" 
-            // << *pExecTime << "\t"
-            << *pServerTime << "\t" 
+            << pServerTime->getString() << "\t" 
+            << pExecTime->getString() << "\t"
             << *pSymbol << "\t" 
             << *pOrderType << "\t" 
             << *pPrice << "\t" 
@@ -353,8 +337,6 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         switch (orderStatus) {
         case FIX::ExecType_FILL:
         case FIX::ExecType_CANCELED: {
-            // cout << "Test Case: " << pExecTime->getString() << " " << pUtcExecTime->getString() << endl;
-            
             Transaction transac = {
                 *pClientID1,
                 *pSymbol,
@@ -364,12 +346,9 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 *pShareSize,
                 *pLeftQty,
                 *pPrice,
-                // pServerTime->getString(),
-                // "<<transac time>>",
-                // *pExecTime,
                 *pDestination,
                 pServerTime->getValue(),
-                pUtcExecTime->getValue()
+                pExecTime->getValue()
             };
 
             if (FIX::ExecType_FILL == orderStatus) { // TRADE
@@ -377,32 +356,28 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     *pClientID1,
                     *pOrderID1,
                     orderStatus,
-                    // *pExecTime,
-                    // pServerTime->getString(),
                     *pSymbol,
                     *pOrderType1,
                     *pPrice,
                     *pShareSize,
                     pServerTime->getValue(),
-                    pUtcExecTime->getValue()
+                    pExecTime->getValue()
                 };
 
                 Report report2{
                     *pClientID2,
                     *pOrderID2,
                     orderStatus,
-                    // *pExecTime,
-                    // pServerTime->getString(),
                     *pSymbol,
                     *pOrderType2,
                     *pPrice,
                     *pShareSize,
                     pServerTime->getValue(),
-                    pUtcExecTime->getValue()
+                    pExecTime->getValue()
                 };
 
-                printRpts(true, pClientID1, pOrderID1, orderStatus, pServerTime, pSymbol, pOrderType1, pPrice, pShareSize);
-                printRpts(false, pClientID2, pOrderID2, orderStatus, pServerTime, pSymbol, pOrderType2, pPrice, pShareSize);
+                printRpts(true, pClientID1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
+                printRpts(false, pClientID2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
 
                 BCDocuments* docs = BCDocuments::instance();
                 docs->addCandleToSymbol(*pSymbol, transac);
@@ -419,19 +394,17 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 *pClientID2,
                 *pOrderID2,
                 orderStatus,
-                // *pExecTime,
-                // pServerTime->getString(),
                 *pSymbol,
                 *pOrderType2,
                 *pPrice,
                 *pShareSize,
                 pServerTime->getValue(),
-                pUtcExecTime->getValue()
+                pExecTime->getValue()
             };
 
             BCDocuments::instance()->addReportToClientRiskManagement(*pClientID2, report2);
-            printRpts(true, pClientID1, pOrderID1, orderStatus, pServerTime, pSymbol, pOrderType1, pPrice, pShareSize);
-            printRpts(false, pClientID2, pOrderID2, orderStatus, pServerTime, pSymbol, pOrderType2, pPrice, pShareSize);
+            printRpts(true, pClientID1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
+            printRpts(false, pClientID2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
         } break;
         } // switch
 
@@ -447,9 +420,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             delete pPrice;
             delete pLeftQty;
             delete pServerTime;
-            // delete pExecTime;
+            delete pExecTime;
             delete pDestination;
-            delete pUtcExecTime;
         }
 
         s_cntAtom--;

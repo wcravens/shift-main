@@ -802,24 +802,18 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID& sessionID) // override
 {
     FIX::Symbol symbol;
-    FIX::SecurityID timestamp;
     FIX::StrikePrice open;
     FIX::HighPx high;
     FIX::LowPx low;
     FIX::LastPx close;
-    FIX::TransactTime utc_time;
+    FIX::Text timestamp;
 
     message.get(symbol);
-    message.get(timestamp);
     message.get(open);
     message.get(high);
     message.get(low);
     message.get(close);
-    message.get(utc_time);
-
-    cout << "Test Use: " << symbol.getString() << " " << open.getString() << " " << utc_time.getString() << endl;
-    /* Test Use: 1521086573 20180315-04:02:53 */
-    // cout << "Test Use: " << timestamp.getString() << " " << utc_time.getString() << endl;
+    message.get(timestamp);
 
     symbol = m_originalName_symbol[symbol];
 
@@ -845,7 +839,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
             low, 
             close, 
             timestamp
-            // std::to_string(utc_time.getValue().getTimeT())
         );
     } catch (...) {
         return;

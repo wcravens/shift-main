@@ -106,8 +106,7 @@ void StockSummary::process()
         m_tranBufSizeAtom = m_transacBuff.size();
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
-        const auto texec = transac.utc_execTime.getTimeT();
-        // cout << "Test Use: " << texec << " " << m_currOpenTime << endl;
+        const auto texec = transac.execTime.getTimeT();
         const auto tdiff = texec - m_currOpenTime;
 
         if (m_sent) {

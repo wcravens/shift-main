@@ -41,14 +41,6 @@ void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction
     auto res = m_candleBySymbol.emplace(symbol, nullptr);
     auto& candPtr = res.first->second;
     if (res.second) { // inserted new?
-        // auto tmp = FIX::TransactTime(transac.utc_execTime, 6);
-        /* Test Use: 2018-03-15 09:30:14.718514 */
-        // std::cout << "Test Use: " << tmp.getString() << std::endl;
-
-        // time_t tmp_t = transac.utc_execTime.getTimeT();
-        // 1521106305 1521120797
-        // std::cout << "Test Use: " << tmp_t << " " << StockSummary::s_toUnixTimestamp(transac.execTime) << std::endl;
-
         candPtr.reset(
             new StockSummary(
                 transac.symbol, 
@@ -57,9 +49,7 @@ void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction
                 transac.price, 
                 transac.price, 
                 transac.price, 
-                // tmp_t
-                // StockSummary::s_toUnixTimestamp(transac.execTime)
-                transac.utc_execTime.getTimeT()
+                transac.execTime.getTimeT()
             )
         );
         candPtr->spawn();
