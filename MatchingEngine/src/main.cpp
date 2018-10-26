@@ -186,7 +186,6 @@ int main(int ac, char* av[])
         stockthreadlist[i].join();
     }
 
-    cout << timepara.timestamp_inner() << endl;
     cout << "Success!" << endl;
 
     return 0;

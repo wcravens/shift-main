@@ -161,12 +161,8 @@ void FIXInitiator::sendMarketDataRequest()
     message.setField(FIX::CumQty(actions.size));
     message.setField(FIX::Price(actions.price));
     message.setField(FIX::TransactTime(6));
-    // message.setField(FIX::Text(actions.exetime));
-    message.setField(FIX::EffectiveTime(actions.utc_exetime, 6)); // FIXME: Finally fixed !
-     
-    // auto tmp = FIX::TransactTime(actions.utc_exetime, 6);
-    // cout << "Test Use: " << tmp.getString() << endl;
- 
+    message.setField(FIX::EffectiveTime(actions.exetime, 6));
+
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
     idGroup1.setField(::FIXFIELD_CLIENTID);
     idGroup1.setField(FIX::PartyID(actions.trader_id1));
@@ -182,20 +178,12 @@ void FIXInitiator::sendMarketDataRequest()
     brokerGroup.set(FIX::PartyID(actions.destination));
     message.addGroup(brokerGroup);
 
-    // FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
-    // timeGroup1.setField(FIX::TrdRegTimestampOrigin(actions.time1));
-    // message.addGroup(timeGroup1);
-
-    // FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup2;
-    // timeGroup2.setField(FIX::TrdRegTimestampOrigin(actions.time2));
-    // message.addGroup(timeGroup2);
-
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
-    timeGroup1.setField(FIX::TrdRegTimestamp(actions.utc_time1, 6));
+    timeGroup1.setField(FIX::TrdRegTimestamp(actions.time1, 6));
     message.addGroup(timeGroup1);
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup2;
-    timeGroup2.setField(FIX::TrdRegTimestamp(actions.utc_time2, 6));
+    timeGroup2.setField(FIX::TrdRegTimestamp(actions.time2, 6));
     message.addGroup(timeGroup2);
 
     FIX::Session::sendToTarget(message);
@@ -308,7 +296,6 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
 void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID& sessionID) // override
 {
     FIX::Symbol symbol;
-    FIX::Text date_time; // FIXME: will be deleted
     FIX::SecurityID ordType;
     FIX::QuoteID buyerID;
     FIX::BidPx bidPx;
@@ -317,7 +304,6 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     
     message.get(transactTime);
     message.get(symbol);
-    message.get(date_time);
     message.get(ordType);
     message.get(buyerID);
     message.get(bidPx);
@@ -330,29 +316,10 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         return;
     }
 
-    std::string time0 = date_time;
-    int timelength = time0.size();
-    // If timelength < 19, it means we can not get two digits of seconds number
-    if (timelength < 19) {
-        return;
-    }
-
-    time0.resize(timelength - 1);
-    /**
-     * @brief Because time0[timelength-1]=' ', a blank,
-     * In order to prevent error in ptime time_from_string in timepara.past_milli(string)
-     * Need to delete the last char by resizing the string
-     */
-    // Test Use: 2018-03-15 09:43:51.048989 20180315-06:18:13.095339
-    // cout << "Test Use: " << date_time << " " << transactTime.getString() << endl;
-
     Quote newquote(symbol, bidPx, bidSize / 100, buyerID, transactTime.getValue());
     newquote.setordertype('7'); // Update as "trade" from global;
-    long tmp = timepara.past_milli(time0);
+
     long mili = timepara.past_milli(transactTime.getValue());
-
-    cout << "Test Use: " << tmp << " " << mili << endl;
-
     newquote.setmili(mili);
 
     if (ordType == "Q") { // Q = Counter-order selection

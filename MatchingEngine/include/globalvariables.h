@@ -25,16 +25,11 @@ public:
 
     void set_start_time();
 
-    double past_milli(std::string& _date_time);
+    double past_milli();
     double past_milli(const FIX::UtcTimeStamp& utc);
 
-    double past_milli();
-
-    std::string milli2str(double milli);
     FIX::UtcTimeStamp milli2utc(double milli);
-
-    std::string timestamp_inner();
-    FIX::UtcTimeStamp timestamp_now();
+    FIX::UtcTimeStamp utc_now();
 };
 
 extern timesetting timepara;

@@ -109,14 +109,11 @@ void FIXAcceptor::disconnectMatchingEngine()
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_Quote));
 
-    std::string dateTime = rawData.reutersDate + ' ' + rawData.reutersTime;
-
     time_t secs = rawData.secs + static_cast<int>(rawData.millisec);
     int millisec = static_cast<int>((rawData.millisec - static_cast<int>(rawData.millisec)) * 1000000);
     auto utcTime = FIX::UtcTimeStamp(secs, millisec, 6);
 
     message.setField(FIX::TransactTime(utcTime, 6));
-    message.setField(FIX::Text(dateTime)); // date time
     message.setField(FIX::Symbol(rawData.symbol));
     message.setField(FIX::SecurityID(rawData.toq));
 

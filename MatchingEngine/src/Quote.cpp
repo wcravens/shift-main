@@ -11,7 +11,7 @@ Quote::Quote(std::string stockname1,
             double price1, 
             int size1, 
             char ordertype1, 
-            FIX::UtcTimeStamp utc
+            FIX::UtcTimeStamp time0
 )
 {
     stockname = stockname1;
@@ -19,17 +19,16 @@ Quote::Quote(std::string stockname1,
     order_id = order_id1;
     price = price1;
     size = size1;
-    // time = time1;
     ordertype = ordertype1;
     destination = "Server";
-    utc_time = utc;
+    time = time0;
 }
 
 Quote::Quote(std::string stockname1, 
             double price1, 
             int size1, 
             std::string destination1, 
-            FIX::UtcTimeStamp utc
+            FIX::UtcTimeStamp time0
 )
 {
     stockname = stockname1;
@@ -37,10 +36,9 @@ Quote::Quote(std::string stockname1,
     order_id = "Thomson";
     price = price1;
     size = size1;
-    // time = time1;
     ordertype = '1';
     destination = destination1;
-    utc_time = utc;
+    time = time0;
 }
 
 /**
@@ -79,10 +77,9 @@ Quote::Quote(const Quote& newquote)
     mili = newquote.mili;
     price = newquote.price;
     size = newquote.size;
-    // time = newquote.time;
     ordertype = newquote.ordertype;
     destination = newquote.destination;
-    utc_time = newquote.utc_time;
+    time = newquote.time;
 }
 
 /**
@@ -116,10 +113,9 @@ void Quote::operator=(const Quote& newquote)
     mili = newquote.mili;
     price = newquote.price;
     size = newquote.size;
-    // time = newquote.time;
     ordertype = newquote.ordertype;
     destination = newquote.destination;
-    utc_time = newquote.utc_time;
+    time = newquote.time;
 }
 
 /**
@@ -143,16 +139,6 @@ std::string Quote::getstockname()
 }
 
 /**
- * @brief Setter for traderID field of current Quote object.
- * @param traderID to be set.
- * @return None.
- */
-void Quote::settrader_id(std::string trader_id1)
-{
-    trader_id = trader_id1;
-}
-
-/**
  * @brief Getter for traderID field of current Quote object.
  * @param None.
  * @return traderID of the current Quote object.
@@ -160,16 +146,6 @@ void Quote::settrader_id(std::string trader_id1)
 std::string Quote::gettrader_id()
 {
     return trader_id;
-}
-
-/**
- * @brief Setter for orderID field of current Quote object.
- * @param orderID to be set.
- * @return None.
- */
-void Quote::setorder_id(std::string order_id1)
-{
-    order_id = order_id1;
 }
 
 /**
@@ -223,27 +199,12 @@ int Quote::getsize()
 }
 
 /**
- * @brief Setter for time field of current Quote object.
- * @param time to be set.
- * @return None.
- */
-// void Quote::settime(std::string time1)
-// {
-//     time = time1;
-// }
-
-/**
  * @brief Getter for time field of current Quote object.
  * @param None.
  * @return time of the current Quote object.
  */
-// std::string Quote::gettime()
-// {
-//     return time;
-// }
-
-FIX::UtcTimeStamp Quote::getutctime() {
-    return utc_time;
+FIX::UtcTimeStamp Quote::gettime() {
+    return time;
 }
 
 /**
@@ -264,4 +225,44 @@ void Quote::setordertype(char ordertype1)
 char Quote::getordertype()
 {
     return ordertype;
+}
+
+/**
+ * @brief Setter for mili field of current Quote object.
+ * @param mili to be set.
+ * @return None.
+ */
+void Quote::setmili(long _mili)
+{
+    mili = _mili;
+}
+
+/**
+ * @brief Getter for mili field of current Quote object.
+ * @param None.
+ * @return mili of the current Quote object.
+ */
+long Quote::getmili()
+{
+    return mili;
+}
+
+/**
+ * @brief Setter for destination field of current Quote object.
+ * @param destination to be set.
+ * @return None.
+ */
+void Quote::setdestination(std::string destination1) 
+{ 
+    destination = destination1; 
+}
+
+/**
+ * @brief Getter for destination field of current Quote object.
+ * @param None.
+ * @return destination of the current Quote object.
+ */
+std::string Quote::getdestination() 
+{ 
+    return destination; 
 }

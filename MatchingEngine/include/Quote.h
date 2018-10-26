@@ -13,10 +13,9 @@ private:
     long mili;
     double price;
     int size;
-    // std::string time;
     char ordertype;
     std::string destination;
-    FIX::UtcTimeStamp utc_time;
+    FIX::UtcTimeStamp time;
     //(limit_buy,  limit_sell,  market_buy,  market_sell,  cancel_bid,  cancel_ask)
 
 public:
@@ -40,34 +39,16 @@ public:
     ~Quote(void);
 
     void operator=(const Quote& newquote);
+
     void setstockname(std::string name1);
     std::string getstockname();
 
-    void settrader_id(std::string trader_id1);
     std::string gettrader_id();
 
-    void setorder_id(std::string order_id1);
     std::string getorder_id();
 
-    /**
-	 * @brief Setter for mili field of current Quote object.
-	 * @param mili to be set.
-	 * @return None.
-	 */
-    void setmili(long _mili)
-    {
-        mili = _mili;
-    }
-
-    /**
-	 * @brief Getter for mili field of current Quote object.
-	 * @param None.
-	 * @return mili of the current Quote object.
-	 */
-    long getmili()
-    {
-        return mili;
-    }
+    void setmili(long _mili);
+    long getmili();
 
     void setprice(double price1);
     double getprice();
@@ -75,24 +56,11 @@ public:
     void setsize(int size1);
     int getsize();
 
-    // void settime(std::string time1);
-    // std::string gettime();
-    FIX::UtcTimeStamp getutctime();
+    FIX::UtcTimeStamp gettime();
 
     void setordertype(char ordertype1);
     char getordertype();
 
-    /**
-	 * @brief Setter for destination field of current Quote object.
-	 * @param destination to be set.
-	 * @return None.
-	 */
-    void setdestination(std::string destination1) { destination = destination1; }
-
-    /**
-	 * @brief Getter for destination field of current Quote object.
-	 * @param None.
-	 * @return destination of the current Quote object.
-	 */
-    std::string getdestination() { return destination; }
+    void setdestination(std::string destination1);
+    std::string getdestination();
 };

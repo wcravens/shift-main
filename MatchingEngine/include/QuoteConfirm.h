@@ -12,6 +12,5 @@ struct QuoteConfirm
     double price;
     int size;
     char ordertype;
-    // std::string time;
-    FIX::UtcTimeStamp utc_time;
+    FIX::UtcTimeStamp time;
 };

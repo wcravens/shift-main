@@ -180,15 +180,12 @@ void createStockMarket(std::string symbol)
                 stock->second.level();
                 //stock->second.showglobal();
                 if (newquote.getsize() != 0) {
-                    auto utc_now = timepara.timestamp_now();
-                    // auto tmp = FIX::TransactTime(utc_now, 6);
-                    // Test Use: 20180315-09:30:05.408060
-                    // cout << "Test Use: " << tmp.getString() << endl;
-
                     //action(string stock1,double price1,int size1,string trader_id11,string trader_id21,char order_type11,char order_type21,string order_id11,
                     //string order_id21,string time0,string time11,string time21,char decision1,string destination1);
                     //decision 4 means this is a trade update from TRTH
                     // action newaction(newquote.getstockname(), newquote.getprice(), newquote.getsize(), "T1", "T2", '1', '2', "o1", "o2", newquote.gettime(), "t2", "t3", '4', "TRTH", newquote.getutctime(), utc_now, utc_now);
+                    
+                    auto utc_now = timepara.utc_now();
                     action newaction(
                         newquote.getstockname(), 
                         newquote.getprice(), 
@@ -201,7 +198,7 @@ void createStockMarket(std::string symbol)
                         "o2", 
                         '4', 
                         "TRTH", 
-                        newquote.getutctime(),
+                        newquote.gettime(),
                         utc_now,
                         utc_now 
                     );

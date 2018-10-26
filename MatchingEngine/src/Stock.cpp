@@ -16,31 +16,6 @@ Stock::~Stock(void)
 {
 }
 
-std::string Stock::now_str()
-{
-    //    high_resolution_clock::time_point timenow;  //initiate a high resolute time point
-    //    high_resolution_clock h_resol_clock;        //initiate a high resolute clock
-    //    timenow=h_resol_clock.now();                //use the clock to get high resolute time and store in time point
-    //    //convert time point to milliseconds since 1970-1-1
-    //    long milli=std::chrono::duration_cast<std::chrono::milliseconds>(timenow.time_since_epoch()).count();
-    //    time_t seconds=milli/1000;  //get seconds since 1970-1-1
-    //    long _milli=milli%1000;     //get milliseconds left by the former divide
-    //    struct tm * timeinfo;
-    //    timeinfo=localtime(&seconds);   //transfer seconds since 1970-1-1 to struct tm
-    //
-    //    char time_str[20];
-    //    strftime (time_str,20,"%F %T",timeinfo);    //transfer struct tm to char * "yyyy-mm-dd hh:mm:ss"
-    //
-    //    char buf[5];
-    //    sprintf(buf, ".%03ld",_milli);
-    //    stringstream time_str_milli_stream;
-    //    time_str_milli_stream<<time_str<<buf;   //add milliseconds reside ".zzz" to stringstream "yyyy-mm-dd hh:mm:ss"
-    //    string time_str_milli=time_str_milli_stream.str();  //get string "yyyy-mm-dd hh:mm:ss.zzz"
-    //    //cout<<time_str_milli<<endl;
-    //    //cout<<"testing~~~~~~~~~~~~~~~~~~~~~~~"<<endl;
-    return timepara.timestamp_inner();
-}
-
 void Stock::buf_new_global(Quote& quote)
 {
     try {
@@ -123,12 +98,7 @@ void Stock::execute(int size1, Quote& newquote, char decision1, std::string dest
         //cout<<newquote.getsize();
     }
     
-    // std::string time0 = now_str(); //input system time!!!
-    auto utc_now = timepara.timestamp_now();
-
-    // auto tmp = FIX::TransactTime(utc_now, 6);
-    // cout << "Test use: " << tmp.getString() << " " << time0 << endl;
-
+    auto utc_now = timepara.utc_now();
     action act(
         newquote.getstockname(),
         thisquote->getprice(),
@@ -139,17 +109,13 @@ void Stock::execute(int size1, Quote& newquote, char decision1, std::string dest
         newquote.getordertype(),
         thisquote->getorder_id(),
         newquote.getorder_id(),
-        // time0,
-        // thisquote->gettime(),
-        // newquote.gettime(),
         decision1,
         destination1,
         utc_now,
-        thisquote->getutctime(),
-        newquote.getutctime()
+        thisquote->gettime(),
+        newquote.gettime()
     );
-    ////cout<<act.time1<<"   action"<<"\n";
-    ////cout<<newquote.gettime()<<"   action"<<"\n";
+    
     actions.push_back(act);
     //level();
     // cout << "actions:  " << actions.begin()->time1 << actions.begin()->decision << endl;
@@ -168,12 +134,7 @@ void Stock::executeglobal(int size1, Quote& newquote, char decision1, std::strin
         newquote.setsize(-size1);
     }
 
-    // std::string time0 = now_str(); //input systexm time!!!
-
-    auto utc_now = timepara.timestamp_now();
-    // auto time00 = FIX::TransactTime(utc_now, 6);
-    // cout << "Test Use: " << time00.getString() << "   " << time0 << endl;
-    
+    auto utc_now = timepara.utc_now();
     action act(
         newquote.getstockname(),
         thisglobal->getprice(),
@@ -184,17 +145,13 @@ void Stock::executeglobal(int size1, Quote& newquote, char decision1, std::strin
         newquote.getordertype(),
         thisglobal->getorder_id(),
         newquote.getorder_id(),
-        // time0,
-        // thisglobal->gettime(),
-        // newquote.gettime(),
         decision1,
         destination1,
         utc_now,
-        thisglobal->getutctime(),
-        newquote.getutctime()
+        thisglobal->gettime(),
+        newquote.gettime()
     );
-    ////cout<<act.time1<<"   action"<<"\n";
-    ////cout<<newquote.gettime()<<"   action"<<"\n";
+
     actions.push_back(act);
     //level();
     //cout<<"Global Actions happening!!!!"<<endl;
@@ -559,7 +516,7 @@ void Stock::level()
 
     std::string newlevel;
     std::stringstream ss;
-    //std::cout<<now_str()<<endl;
+
     ss << realmilliseconds << ";"
        << "Local: "
        << ";";
@@ -597,7 +554,6 @@ void Stock::showglobal()
 
     std::string newlevel;
     std::stringstream ss;
-    //std::cout<<now_str()<<endl;
 
     unsigned int _depth = globalask.size();
     _depth = depth > _depth ? _depth : depth;

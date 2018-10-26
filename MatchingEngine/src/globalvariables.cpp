@@ -32,78 +32,47 @@ void timesetting::set_start_time()
     start_time_point = h_resol_clock.now();
 }
 
-double timesetting::past_milli(std::string& _date_time)
+/**
+ * @ brief Get total millisecond from FIX::UtcTimeStamp 
+ */
+double timesetting::past_milli(const FIX::UtcTimeStamp& utc) 
 {
-    //    boost::posix_time::ptime p_date_time(boost::posix_time::time_from_string(_date_time));
-    //    boost::posix_time::time_duration timelaps=p_date_time-date_time;
-    //    return(timelaps.total_milliseconds());
-    std::stringstream ss(_date_time);
-    ss.ignore(11); //throw away date
-    double milli_second;
-    double digit;
-    ss >> digit; //get hours
-    milli_second = digit * 60; //convert to minutes
-    ss.ignore(1); //throw ':'
-    ss >> digit; //get minutes
-    milli_second += digit; //sum minutes with hours
-    ss.ignore(1);
-    ss >> digit; //get the rest, seconds and decimal: ss.000000
-    milli_second = (milli_second * 60 - hhmmss + digit) * 1000; //calculate the diff with start time
-    return milli_second * speed;
-}
-
-double timesetting::past_milli(const FIX::UtcTimeStamp& utc) {
     double mili = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - hhmmss) * 1000 + utc.getMillisecond(); 
     return mili * speed; 
 }
 
-double timesetting::past_milli()
+/**
+ * @brief Get total millisecond from now
+ */
+double timesetting::past_milli() // FIXME: can be replaced by microsecond
 {
-    std::chrono::high_resolution_clock::time_point timenow; //initiate a high resolute time point
-    std::chrono::high_resolution_clock h_resol_clock; //initiate a high resolute clock
-    timenow = h_resol_clock.now(); //use the clock to get high resolute time and store in time point
+    std::chrono::high_resolution_clock h_resol_clock; // initiate a high resolute clock
+    std::chrono::high_resolution_clock::time_point timenow = h_resol_clock.now(); // initiate a high resolute time point
     long milli = std::chrono::duration_cast<std::chrono::milliseconds>(timenow - start_time_point).count();
     return (speed * milli);
 }
 
-std::string timesetting::milli2str(double milli)
-{
-    boost::posix_time::ptime now = date_time + boost::posix_time::milliseconds(milli);
-    std::string timestamp = boost::posix_time::to_iso_extended_string(now);
-    timestamp[10] = ' ';
-    return timestamp;
-}
-
+/**
+ * @brief Get FIX::UtcTimeStamp from millisecond since server starts 
+ */
 FIX::UtcTimeStamp timesetting::milli2utc(double milli) 
 {
     boost::posix_time::ptime now = date_time + boost::posix_time::milliseconds(milli);
-    std::string timestamp = boost::posix_time::to_iso_extended_string(now);
     auto tm_now = boost::posix_time::to_tm(now);
-    auto utc_now = FIX::UtcTimeStamp(&tm_now, 0, 6);
+    auto utc_now = FIX::UtcTimeStamp(&tm_now, ((int)milli % 1000) * 1000, 6);
     return utc_now;
 } 
 
-std::string timesetting::timestamp_inner()
+/**
+ * @brief Get FIX::UtcTimeStamp from now
+ */
+FIX::UtcTimeStamp timesetting::utc_now()
 {
-    std::chrono::high_resolution_clock::time_point timenow; //initiate a high resolute time point
-    std::chrono::high_resolution_clock h_resol_clock; //initiate a high resolute clock
-    timenow = h_resol_clock.now(); //use the clock to get high resolute time and store in time point
-    boost::posix_time::microseconds micro(std::chrono::duration_cast<std::chrono::microseconds>(timenow - start_time_point).count() * speed);
-    boost::posix_time::ptime now = date_time + micro;
-    std::string timestamp = boost::posix_time::to_iso_extended_string(now);
-    timestamp[10] = ' ';
-    return timestamp;
-}
-
-FIX::UtcTimeStamp timesetting::timestamp_now()
-{
-    std::chrono::high_resolution_clock::time_point timenow; //initiate a high resolute time point
-    std::chrono::high_resolution_clock h_resol_clock; //initiate a high resolute clock
-    timenow = h_resol_clock.now(); //use the clock to get high resolute time and store in time point
+    std::chrono::high_resolution_clock h_resol_clock;
+    std::chrono::high_resolution_clock::time_point timenow = h_resol_clock.now();
     boost::posix_time::microseconds micro(std::chrono::duration_cast<std::chrono::microseconds>(timenow - start_time_point).count() * speed);
     boost::posix_time::ptime now = date_time + micro;
     auto tm_now = boost::posix_time::to_tm(now);
-    // cout << "Test Use: " << micro.fractional_seconds() << endl;
     auto utc_now = FIX::UtcTimeStamp(&tm_now, (int)micro.fractional_seconds(), 6);
     return utc_now;
 }

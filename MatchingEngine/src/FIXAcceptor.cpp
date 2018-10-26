@@ -167,8 +167,7 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
     message.setField(FIX::Price(actions.price));
 
     message.setField(FIX::TransactTime(6));
-    // message.setField(FIX::Text(actions.exetime)); // FIXME: Use FIX::EffectiveTime instead
-    message.setField(FIX::EffectiveTime(actions.utc_exetime, 6));
+    message.setField(FIX::EffectiveTime(actions.exetime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
     idGroup1.set(::FIXFIELD_CLIENTID);
@@ -262,9 +261,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
             symbol, 
             price, 
             0, 
-            ordType, 
-            // timepara.timestamp_inner(), 
-            timepara.timestamp_now()
+            ordType,
+            timepara.utc_now()
         };
         sendQuoteConfirmation(rejection);
         return;
@@ -302,21 +300,9 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
             break;
         }
         }
-
-        double millidiffer = timepara.past_milli();
-        std::string timestring = timepara.milli2str(millidiffer);
         
         double milli = timepara.past_milli();
         FIX::UtcTimeStamp utc_now = timepara.milli2utc(milli);
-        
-        cout << "test use: " << millidiffer << " " << milli << endl;
-
-        // std::string timestring = timepara.milli2str(millidiffer);
-        // cout << "Quote receive in innertime :  " << timestring << endl;
-        // auto utc_now = timepara.timestamp_now();
-
-        // auto tmp = FIX::TransactTime(utc_now, 6);
-        // cout << "Test Use: " << tmp.getString() << endl;
 
         Quote quote(symbol, clientID, orderID, price, orderQty, ordType, utc_now);
 
@@ -363,8 +349,7 @@ void FIXAcceptor::sendQuoteConfirmation(QuoteConfirm& confirm)
     message.setField(FIX::LeavesQty(confirm.size));
     message.setField(::FIXFIELD_CUMQTY_0); // Required by FIX
     message.setField(FIX::TransactTime(6));
-    message.setField(FIX::EffectiveTime(confirm.utc_time, 6));
-    // message.setField(FIX::Text(confirm.time)); // FIXME: Use FIX::EffectiveTime instead
+    message.setField(FIX::EffectiveTime(confirm.time, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_CLIENTID);
