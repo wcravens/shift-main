@@ -37,8 +37,8 @@ void timesetting::set_start_time()
  */
 double timesetting::past_milli(const FIX::UtcTimeStamp& utc) 
 {
-    double mili = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - hhmmss) * 1000 + utc.getMillisecond(); 
-    return mili * speed; 
+    double milli = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - hhmmss) * 1000 + utc.getMillisecond(); 
+    return milli * speed; 
 }
 
 /**

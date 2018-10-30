@@ -1,6 +1,6 @@
 #pragma once
 
-#include <quickfix/Application.h>
+#include <quickfix/FieldTypes.h>
 
 #include <string>
 
@@ -22,7 +22,7 @@ public:
     friend class Stock;
     //for the server to receive
     Quote(std::string stockname1, std::string trader_id1, std::string order_id1, double price1, int size1, char ordertype1, FIX::UtcTimeStamp utc);
-    
+
     // for the client to send
     Quote(std::string stockname1, std::string trader_id1, std::string order_id1, double price1, int size1, char ordertype1);
 

@@ -35,7 +35,6 @@ static const auto& FIXFIELD_DOM_FULL = FIX::MarketDepth(0); // Depth of market f
 static const auto& FIXFIELD_ENTRY_BID = FIX::MDEntryType('0'); // Type of market data entry, 0 = Bid
 static const auto& FIXFIELD_ENTRY_OFFER = FIX::MDEntryType('1'); // Type of market data entry, 1 = Offer
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
-static const auto &FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New FIXME: temp used
 
 /**
  * @brief Default constructor for FIXInitiator object.
@@ -819,13 +818,12 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     try {
         // getMainClient()->receiveCandleData(symbol, open, high, low, close, timestamp);
         getMainClient()->receiveCandlestickData(
-            symbol, 
-            open, 
-            high, 
-            low, 
-            close, 
-            timestamp
-        );
+            symbol,
+            open,
+            high,
+            low,
+            close,
+            timestamp);
     } catch (...) {
         return;
     }

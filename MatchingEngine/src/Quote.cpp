@@ -5,14 +5,13 @@
  * @param stockname, traderID, orderID, price, size, time, orderType
  * @return None.
  */
-Quote::Quote(std::string stockname1, 
-            std::string trader_id1, 
-            std::string order_id1, 
-            double price1, 
-            int size1, 
-            char ordertype1, 
-            FIX::UtcTimeStamp time0
-)
+Quote::Quote(std::string stockname1,
+    std::string trader_id1,
+    std::string order_id1,
+    double price1,
+    int size1,
+    char ordertype1,
+    FIX::UtcTimeStamp time1)
 {
     stockname = stockname1;
     trader_id = trader_id1;
@@ -21,15 +20,14 @@ Quote::Quote(std::string stockname1,
     size = size1;
     ordertype = ordertype1;
     destination = "Server";
-    time = time0;
+    time = time1;
 }
 
-Quote::Quote(std::string stockname1, 
-            double price1, 
-            int size1, 
-            std::string destination1, 
-            FIX::UtcTimeStamp time0
-)
+Quote::Quote(std::string stockname1,
+    double price1,
+    int size1,
+    std::string destination1,
+    FIX::UtcTimeStamp time1)
 {
     stockname = stockname1;
     trader_id = "TR";
@@ -38,7 +36,7 @@ Quote::Quote(std::string stockname1,
     size = size1;
     ordertype = '1';
     destination = destination1;
-    time = time0;
+    time = time1;
 }
 
 /**
@@ -46,13 +44,12 @@ Quote::Quote(std::string stockname1,
  * @param stockname, traderID, orderID, price, size, orderType
  * @return None.
  */
-Quote::Quote(std::string stockname1, 
-            std::string trader_id1, 
-            std::string order_id1, 
-            double price1, 
-            int size1, 
-            char ordertype1
-)
+Quote::Quote(std::string stockname1,
+    std::string trader_id1,
+    std::string order_id1,
+    double price1,
+    int size1,
+    char ordertype1)
 {
     stockname = stockname1;
     stockname = stockname1;
@@ -203,7 +200,8 @@ int Quote::getsize()
  * @param None.
  * @return time of the current Quote object.
  */
-FIX::UtcTimeStamp Quote::gettime() {
+FIX::UtcTimeStamp Quote::gettime()
+{
     return time;
 }
 
@@ -252,9 +250,9 @@ long Quote::getmili()
  * @param destination to be set.
  * @return None.
  */
-void Quote::setdestination(std::string destination1) 
-{ 
-    destination = destination1; 
+void Quote::setdestination(std::string destination1)
+{
+    destination = destination1;
 }
 
 /**
@@ -262,7 +260,7 @@ void Quote::setdestination(std::string destination1)
  * @param None.
  * @return destination of the current Quote object.
  */
-std::string Quote::getdestination() 
-{ 
-    return destination; 
+std::string Quote::getdestination()
+{
+    return destination;
 }

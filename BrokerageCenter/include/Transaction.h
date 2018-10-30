@@ -1,6 +1,6 @@
 #pragma once
 
-#include <quickfix/Application.h>
+#include <quickfix/FieldTypes.h>
 
 #include <string>
 

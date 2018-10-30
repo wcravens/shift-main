@@ -278,8 +278,8 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     message.setField(::FIXFIELD_LEAVQTY_100); // Required by FIX
     message.setField(FIX::CumQty(report.shareSize));
     message.setField(FIX::AvgPx(report.price)); //report.getAvgPx()
-    message.setField(FIX::TransactTime(report.servertime, 6));
-    message.setField(FIX::EffectiveTime(report.exectime, 6));
+    message.setField(FIX::TransactTime(report.serverTime, 6));
+    message.setField(FIX::EffectiveTime(report.execTime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_CLIENTID);

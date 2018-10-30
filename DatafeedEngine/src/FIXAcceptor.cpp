@@ -109,8 +109,8 @@ void FIXAcceptor::disconnectMatchingEngine()
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_Quote));
 
-    time_t secs = rawData.secs + static_cast<int>(rawData.millisec);
-    int millisec = static_cast<int>((rawData.millisec - static_cast<int>(rawData.millisec)) * 1000000);
+    time_t secs = rawData.secs + static_cast<int>(rawData.microsecs);
+    int millisec = static_cast<int>((rawData.microsecs - static_cast<int>(rawData.microsecs)) * 1000000);
     auto utcTime = FIX::UtcTimeStamp(secs, millisec, 6);
 
     message.setField(FIX::TransactTime(utcTime, 6));
@@ -258,19 +258,19 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
 
     // Insert to trading_records failed
     if (decision != '4') { // decision == 4, means this is a trade update from TRTH, no need to save this.
-        TradingRecord trade{ 
+        TradingRecord trade{
             serverTime.getValue(),
             utc_exetime.getValue(),
-            std::string(symbol), 
-            double(price), 
-            int(size), 
-            std::string(traderID1), 
-            std::string(traderID2), 
-            std::string(orderID1), 
-            std::string(orderID2), 
-            char(orderType1), 
+            std::string(symbol),
+            double(price),
+            int(size),
+            std::string(traderID1),
+            std::string(traderID2),
+            std::string(orderID1),
+            std::string(orderID2),
+            char(orderType1),
             char(orderType2),
-            char(decision), 
+            char(decision),
             std::string(destination),
             utc_time1.getValue(),
             utc_time2.getValue()

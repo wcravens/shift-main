@@ -24,7 +24,6 @@ static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
 static const auto& FIXFIELD_EXECBROKER = FIX::PartyRole(1); // 1 = ExecBroker in FIX4.2
-
 static const auto& FIXFIELD_SIDE_BUY = FIX::Side('1'); // 1 = Buy
 
 FIXInitiator::~FIXInitiator() // override
@@ -301,7 +300,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     FIX::BidPx bidPx;
     FIX::BidSize bidSize;
     FIX::TransactTime transactTime;
-    
+
     message.get(transactTime);
     message.get(symbol);
     message.get(ordType);

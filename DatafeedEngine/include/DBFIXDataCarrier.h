@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FIXAcceptor.h"
+#include "quickfix/FieldTypes.h"
 
 #include <string>
 
@@ -49,6 +49,6 @@ struct RawData {
     std::string exchangeTime;
     std::string quoteTime;
     std::string recordID;
-    int secs;           // second of date since 1970.01.01
-    double millisec;    // millicsecond of one day
+    int secs; // second of date since 1970.01.01
+    double microsecs; // millicsecond of one day
 };

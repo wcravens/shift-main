@@ -229,7 +229,7 @@ void PSQL::init()
         cin.get();
         return;
     }
-    
+
     cout << "Connection to database is good." << endl;
 
     if (checkTableExist(CSTR_TBLNAME_LIST_OF_TAQ_TABLES) == TABLE_STATUS::NOT_EXIST) {
@@ -319,36 +319,28 @@ bool PSQL::doQuery(const std::string query, const std::string msgIfNotOK)
 /* create table used to save the trading records*/
 bool PSQL::createTableOfTradingRecords()
 {
-    return doQuery(std::string("CREATE TABLE " CSTR_TBLNAME_TRADING_RECORDS) + PSQLTable<TradingRecords>::sc_colsDefinition
-                , COLOR_ERROR "ERROR: Create table [ " CSTR_TBLNAME_TRADING_RECORDS " ] failed.\n" NO_COLOR
-            );
+    return doQuery(std::string("CREATE TABLE " CSTR_TBLNAME_TRADING_RECORDS) + PSQLTable<TradingRecords>::sc_colsDefinition, COLOR_ERROR "ERROR: Create table [ " CSTR_TBLNAME_TRADING_RECORDS " ] failed.\n" NO_COLOR);
 }
 
 /* Create the list table of Trade & Quote table */
 bool PSQL::createTableOfTableNames()
 {
     auto lock{ lockPSQL() };
-    return doQuery(std::string("CREATE TABLE " CSTR_TBLNAME_LIST_OF_TAQ_TABLES) + PSQLTable<NamesOfTradeAndQuoteTables>::sc_colsDefinition
-                , COLOR_ERROR "\tERROR: Create table [ " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " ] failed.\n" NO_COLOR
-            );
+    return doQuery(std::string("CREATE TABLE " CSTR_TBLNAME_LIST_OF_TAQ_TABLES) + PSQLTable<NamesOfTradeAndQuoteTables>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create table [ " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " ] failed.\n" NO_COLOR);
 }
 
 /* Insert record to the table after updating one day quote&trade data to the database*/
 bool PSQL::insertTableName(std::string ric, std::string reutersDate, std::string tableName)
 {
     auto lock{ lockPSQL() };
-    return doQuery("INSERT INTO " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " VALUES ('" + ric + "','" + reutersDate + "','" + tableName + "');"
-                , COLOR_ERROR "\tERROR: Insert to " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " table failed.\t" NO_COLOR
-            );
+    return doQuery("INSERT INTO " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " VALUES ('" + ric + "','" + reutersDate + "','" + tableName + "');", COLOR_ERROR "\tERROR: Insert to " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " table failed.\t" NO_COLOR);
 }
 
 /* Create Trade & Quote data table */
 bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
 {
     auto lock{ lockPSQL() };
-    return doQuery("CREATE TABLE " + tableName + PSQLTable<TradeAndQuoteRecords>::sc_colsDefinition
-                , COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR
-            );
+    return doQuery("CREATE TABLE " + tableName + PSQLTable<TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
 }
 
 /* Check if the Trade and Quote data for specific ric and date is exist
@@ -380,7 +372,7 @@ auto PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string re
         PQclear(res);
         return TABLE_STATUS::DB_ERROR;
     }
-    
+
     int nrows = PQntuples(res);
     TABLE_STATUS status;
 
@@ -647,7 +639,7 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
 {
     const std::string stime = boost::posix_time::to_iso_extended_string(startTime).substr(11, 8);
     const std::string etime = boost::posix_time::to_iso_extended_string(endTime).substr(11, 8);
-    const std::string table_name = ::createTableName(symbol, boost::posix_time::to_iso_string(startTime).substr(0, 8)/*YYYYMMDD*/);
+    const std::string table_name = ::createTableName(symbol, boost::posix_time::to_iso_string(startTime).substr(0, 8)); /*YYYYMMDD*/
 
     auto lock{ lockPSQL() };
 
@@ -708,7 +700,7 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
         return false;
     }
 
-    double millisec;
+    double microsecs;
     RawData rawData;
     std::setprecision(15);
 
@@ -718,8 +710,8 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
         using RCD_VAL_IDX = PSQLTable<TradeAndQuoteRecords>::RCD_VAL_IDX;
 
         rawData.secs = std::atol(PQgetvalue(res_time, i, 0));
-        sscanf(PQgetvalue(res_time, i, 1), "%lf", &millisec);
-        rawData.millisec = millisec;
+        sscanf(PQgetvalue(res_time, i, 1), "%lf", &microsecs);
+        rawData.microsecs = microsecs;
 
         rawData.symbol = PQgetvalue(res, i, RCD_VAL_IDX::RIC);
         rawData.reutersDate = PQgetvalue(res, i, RCD_VAL_IDX::REUT_DATE);
@@ -740,7 +732,7 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
 
     PQclear(res_time);
     PQclear(res);
-    
+
     res = PQexec(m_conn, "CLOSE data");
     PQclear(res);
     res = PQexec(m_conn, "END");
@@ -767,15 +759,16 @@ long PSQL::checkEmpty(std::string tableName)
 /**
  * @brief Convert FIX::UtcTimeStamp to String used for date field in DB
  */
-/* static */ std::string PSQL::utcToString(const FIX::UtcTimeStamp& ts) {
+/* static */ std::string PSQL::utcToString(const FIX::UtcTimeStamp& ts)
+{
     return str(
-        boost::format("%04d-%02d-%02d %02d:%02d:%02d.%06d") 
-        % ts.getYear() 
-        % ts.getMonth() 
-        % ts.getDay() 
-        % ts.getHour() 
-        % ts.getMinute() 
-        % ts.getSecond() 
+        boost::format("%04d-%02d-%02d %02d:%02d:%02d.%06d")
+        % ts.getYear()
+        % ts.getMonth()
+        % ts.getDay()
+        % ts.getHour()
+        % ts.getMinute()
+        % ts.getSecond()
         % ts.getFraction(6) // microsecond = 10^-6 sec
     );
 }

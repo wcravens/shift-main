@@ -1,6 +1,6 @@
 #pragma once
 
-#include <quickfix/Application.h>
+#include <quickfix/FieldTypes.h>
 
 #include <string>
 
@@ -12,6 +12,6 @@ struct Report {
     char orderType; // see Quote::ORDER_TYPE
     double price;
     double shareSize;
-    FIX::UtcTimeStamp exectime;
-    FIX::UtcTimeStamp servertime;
+    FIX::UtcTimeStamp execTime;
+    FIX::UtcTimeStamp serverTime;
 };

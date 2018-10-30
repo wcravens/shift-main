@@ -4,7 +4,6 @@
 #include "FIXAcceptor.h"
 
 #include <boost/date_time.hpp>
-#include <boost/format.hpp>
 
 #include <shift/miscutils/concurrency/Consumer.h>
 #include <shift/miscutils/terminal/Common.h>
@@ -92,9 +91,9 @@ void StockSummary::process()
     thread_local auto quitFut = m_quitFlag.get_future();
 
     auto writeStockSummaryHistory = [this](const TempStockSummary& tempSS) {
-                            std::lock_guard<std::mutex> guard(m_mtxHistory);
-                            m_history[m_currOpenTime] = tempSS;
-                        };
+        std::lock_guard<std::mutex> guard(m_mtxHistory);
+        m_history[m_currOpenTime] = tempSS;
+    };
 
     while (true) {
         std::unique_lock<std::mutex> lock(m_mtxTransacBuff);
@@ -153,7 +152,7 @@ void StockSummary::process()
 
                 m_currClosePrice = m_currPrice;
 
-                writeStockSummaryHistory({m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime});
+                writeStockSummaryHistory({ m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime });
 
                 m_sent = true;
                 break;
