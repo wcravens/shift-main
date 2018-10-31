@@ -33,17 +33,21 @@ void QtCoreClient::adaptStocklist() {
 
     for (int i = 0; i < stocklist.size(); i++) {
         m_stocklist += QString::fromStdString(stocklist[i]);
-        if (is_first_time)
-            subOrderBook(stocklist[i]);
     }
 
     if (is_first_time) {
+        this->subAllOrderBook();
+
         std::thread(
             [this] {
                 while (!this->subAllCandleData())
+                {
+                    qDebug()<< "still doing subAllCandleData";
                     std::this_thread::sleep_for(1s);
+                }
             })
             .detach();
+
         is_first_time = false;
     }
 
