@@ -20,6 +20,7 @@ class QtCoreClient
 public:
     QtCoreClient(QWidget* parent = nullptr)
     {}
+
     QtCoreClient(std::string username, QObject* parent = nullptr)
         : QObject(parent)
         , CoreClient(username)

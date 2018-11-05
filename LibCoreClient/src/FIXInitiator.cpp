@@ -78,7 +78,7 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     m_verbose = verbose;
 
     std::string senderCompID = m_username;
-    convertToUpperCase(senderCompID);
+    std::transform(senderCompID.begin(), senderCompID.end(), senderCompID.begin(), ::toupper);
 
     FIX::SessionSettings settings(cfgFile);
     FIX::Dictionary commonDict = settings.get();
@@ -256,11 +256,6 @@ shift::CoreClient* shift::FIXInitiator::getClientByName(const std::string& name)
 bool shift::FIXInitiator::isConnected()
 {
     return m_connected;
-}
-
-inline void shift::FIXInitiator::convertToUpperCase(std::string& str)
-{
-    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
 }
 
 /**
@@ -1026,18 +1021,6 @@ std::vector<std::string> shift::FIXInitiator::getStockList()
     return m_stockList;
 }
 
-/* static */ int shift::FIXInitiator::s_writer(char* data, size_t size, size_t nmemb, std::string* buffer)
-{
-    int result = 0;
-
-    if (buffer != NULL) {
-        buffer->append(data, size * nmemb);
-        result = size * nmemb;
-    }
-
-    return result;
-}
-
 void shift::FIXInitiator::fetchCompanyName(const std::string tickerName)
 {
     // Find the target url
@@ -1060,9 +1043,21 @@ void shift::FIXInitiator::fetchCompanyName(const std::string tickerName)
     curl = curl_easy_init(); // Initilise web query
 
     if (curl) {
+        typedef size_t(*CURL_WRITEFUNCTION_PTR)(char*, size_t, size_t, std::string*);
+        auto sWriter = [](char* data, size_t size, size_t nmemb, std::string* buffer)
+        {
+            size_t result = 0;
+
+            if (buffer != nullptr) {
+                buffer->append(data, size * nmemb);
+                result = size * nmemb;
+            }
+
+            return result;
+        };
         // Since curl is a C library, need to cast url into c string to process, same for HTML
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, shift::FIXInitiator::s_writer); // manages the required buffer size
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, static_cast<CURL_WRITEFUNCTION_PTR>(sWriter)); // manages the required buffer size
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &html); // Data Pointer HTML stores downloaded web content
     } else {
         debugDump("Error creating curl object!");

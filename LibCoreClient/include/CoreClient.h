@@ -54,7 +54,8 @@ public:
     std::vector<shift::Order> getSubmittedOrders();
     int getWaitingListSize();
     std::vector<shift::Order> getWaitingList();
-    void cancelAllPendingOrders();
+    void cancelAllPendingOrders();    static int s_writer(char* data, size_t size, size_t nmemb, std::string* buffer);
+
 
     // Price methods
     double getOpenPriceBySymbol(const std::string& symbol);

@@ -39,13 +39,20 @@
 #include <quickfix/fix50sp2/RFQRequest.h>
 #include <quickfix/fixt11/Logon.h>
 
+#define R_FIXINIT /**/
+#define R_CHECKED /**/
+#define R_FIXSUB /**/
+#define R_TODO /**/
+
 namespace shift {
 
 /** 
  * @brief FIX Initiator for LibCoreClient to communicate with Brokerage Center
  */
 class CORECLIENT_EXPORTS CoreClient;
-class CORECLIENT_EXPORTS FIXInitiator : public FIX::Application, public FIX::MessageCracker {
+class CORECLIENT_EXPORTS FIXInitiator
+        : public FIX::Application
+        , public FIX::MessageCracker {
 
     friend class CoreClient;
 
@@ -71,102 +78,101 @@ public:
     CoreClient* getClientByName(const std::string& name);
 
 protected:
-    bool isConnected();
+    R_FIXINIT bool isConnected();
 
     // Inline methods
-    void convertToUpperCase(std::string& str);
-    void debugDump(const std::string& message);
-    void createSymbolMap();
-    void initializePrices();
-    void initializeOrderBooks();
+    R_TODO void debugDump(const std::string& message);
+    R_TODO void createSymbolMap();
+    R_TODO void initializePrices();
+    R_TODO void initializeOrderBooks();
 
-    // QuickFIX methods
-    void onCreate(const FIX::SessionID& sessionID) override;
-    void onLogon(const FIX::SessionID& sessionID) override;
-    void onLogout(const FIX::SessionID& sessionID) override;
-    void toAdmin(FIX::Message& message, const FIX::SessionID& sessionID) override;
-    void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override;
-    void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
-    void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
-    void onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) override;
-    void onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID& sessionID) override; // for testing when receiving order book
-    void onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) override;
-    void onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) override;
-    void onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID& sessionID) override;
+    // FIXInitiator - QuickFIX methods
+    R_FIXINIT void onCreate(const FIX::SessionID& sessionID) override;
+    R_FIXINIT void onLogon(const FIX::SessionID& sessionID) override;
+    R_FIXINIT void onLogout(const FIX::SessionID& sessionID) override;
+    R_FIXINIT void toAdmin(FIX::Message& message, const FIX::SessionID& sessionID) override;
+    R_FIXINIT void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override;
+    R_FIXINIT void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
+    R_FIXINIT void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
+    R_FIXINIT void onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) override;
+    R_FIXINIT void onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID& sessionID) override; // for testing when receiving order book
+    R_FIXINIT void onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) override;
+    R_FIXINIT void onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) override;
+    R_FIXINIT void onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID& sessionID) override;
 
-    void sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
-    void sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
-    void submitOrder(const shift::Order&, const std::string& username = "");
+    R_FIXINIT void sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
+    R_FIXINIT void sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
+    R_FIXINIT void submitOrder(const shift::Order&, const std::string& username = "");
 
     // Price methods
-    double getOpenPriceBySymbol(const std::string& symbol);
-    double getLastPriceBySymbol(const std::string& symbol);
-
+    R_FIXSUB double getOpenPriceBySymbol(const std::string& symbol);
+    R_FIXSUB double getLastPriceBySymbol(const std::string& symbol);
     // Order book methods
-    shift::BestPrice getBestPriceBySymbol(const std::string& symbol);
-    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type);
-    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type);
+    R_FIXSUB shift::BestPrice getBestPriceBySymbol(const std::string& symbol);
+    R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type);
+    R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type);
 
     // Symbols list and company names
-    std::vector<std::string> getStockList();
-    static int s_writer(char* data, size_t size, size_t nmemb, std::string* buffer);
-    void fetchCompanyName(const std::string tickerName);
-    void requestCompanyNames();
-    std::map<std::string, std::string> getCompanyNames();
-    std::string getCompanyNameBySymbol(const std::string& symbol);
+    R_FIXSUB std::vector<std::string> getStockList();
+    R_TODO void fetchCompanyName(const std::string tickerName);
+    R_FIXSUB void requestCompanyNames();
+    R_FIXSUB std::map<std::string, std::string> getCompanyNames();
+    R_FIXSUB std::string getCompanyNameBySymbol(const std::string& symbol);
 
     // Subscription methods
-    bool subOrderBook(const std::string& symbol);
-    bool unsubOrderBook(const std::string& symbol);
-    bool subAllOrderBook();
-    bool unsubAllOrderBook();
-    std::vector<std::string> getSubscribedOrderBookList();
-    bool subCandleData(const std::string& symbol);
-    bool unsubCandleData(const std::string& symbol);
-    bool subAllCandleData();
-    bool unsubAllCandleData();
-    std::vector<std::string> getSubscribedCandlestickList();
+    R_FIXSUB bool subOrderBook(const std::string& symbol);
+    R_FIXSUB bool unsubOrderBook(const std::string& symbol);
+    R_FIXSUB bool subAllOrderBook();
+    R_FIXSUB bool unsubAllOrderBook();
+    R_FIXSUB std::vector<std::string> getSubscribedOrderBookList();
+    R_FIXSUB bool subCandleData(const std::string& symbol);
+    R_FIXSUB bool unsubCandleData(const std::string& symbol);
+    R_FIXSUB bool subAllCandleData();
+    R_FIXSUB bool unsubAllCandleData();
+    R_FIXSUB std::vector<std::string> getSubscribedCandlestickList();
 
 private:
     FIXInitiator();
 
-    std::atomic<bool> m_connected;
-    std::atomic<bool> m_verbose;
 
     // Do NOT change order of these unique_ptrs:
-    std::unique_ptr<FIX::LogFactory> m_pLogFactory;
-    std::unique_ptr<FIX::MessageStoreFactory> m_pMessageStoreFactory;
-    std::unique_ptr<FIX::SocketInitiator> m_pSocketInitiator;
+    R_FIXINIT std::unique_ptr<FIX::LogFactory> m_pLogFactory;
+    R_FIXINIT std::unique_ptr<FIX::MessageStoreFactory> m_pMessageStoreFactory;
+    R_FIXINIT std::unique_ptr<FIX::SocketInitiator> m_pSocketInitiator;
 
-    std::atomic<bool> m_logonSuccess;
-    std::mutex m_mutex_logon;
-    std::condition_variable m_cv_logon;
+    // FIXInitiator - Logon related
+    R_FIXINIT std::string m_username;
+    R_FIXINIT std::string m_password;
+    R_FIXINIT std::atomic<bool> m_connected;
+    R_FIXINIT std::atomic<bool> m_verbose;
+    R_FIXINIT std::atomic<bool> m_logonSuccess;
+    R_FIXINIT std::mutex m_mutex_logon;
+    R_FIXINIT std::condition_variable m_cv_logon;
 
-    // Username and password to login to BC (as FIXInitiator)
-    std::string m_username;
-    std::string m_password;
+    // FIXInitiator - Subscriber management
+    R_FIXINIT std::unordered_map<std::string, CoreClient*> m_username_client;
 
-    std::unordered_map<std::string, CoreClient*> m_username_client;
 
-    std::atomic<bool> m_openPricesReady;
-    std::mutex m_mutex_openPrices;
-    std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value
-    std::unordered_map<std::string, double> m_lastPrices; //!< Map with stock symbol as key and their current price as value.
 
-    std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
+    R_TODO std::atomic<bool> m_openPricesReady;
+    R_TODO std::mutex m_mutex_openPrices;
+    R_FIXSUB std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value
+    R_FIXSUB std::unordered_map<std::string, double> m_lastPrices; //!< Map with stock symbol as key and their current price as value.
+
+    R_FIXSUB std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
 
     std::mutex m_mutex_stockList;
     std::condition_variable m_cv_stockList;
-    std::mutex m_mutex_companyNames;
     std::vector<std::string> m_stockList; //!< Vector of string saved names of all requested stock.
     std::unordered_map<std::string, std::string> m_symbol_originalName;
     std::unordered_map<std::string, std::string> m_originalName_symbol;
-    std::map<std::string, std::string> m_companyNames;
+    R_FIXSUB std::mutex m_mutex_companyNames;
+    R_FIXSUB std::map<std::string, std::string> m_companyNames;
 
-    std::mutex m_mutex_subscribedOrderBookSet; //!< Mutex for the subscribed order book list
-    std::mutex m_mutex_subscribedCandleStickSet; //!< Mutex for the subscribed candle stick list
-    std::set<std::string> m_subscribedOrderBookSet; //!< Set of stock symbols whose orderbook has been subscribed.
-    std::set<std::string> m_subscribedCandleStickSet; //!< Set of stock symbols whose candlestick data has been subscribed.
+    R_TODO std::mutex m_mutex_subscribedOrderBookSet; //!< Mutex for the subscribed order book list
+    R_TODO std::set<std::string> m_subscribedOrderBookSet; //!< Set of stock symbols whose orderbook has been subscribed.
+    R_TODO std::mutex m_mutex_subscribedCandleStickSet; //!< Mutex for the subscribed candle stick list
+    R_TODO std::set<std::string> m_subscribedCandleStickSet; //!< Set of stock symbols whose candlestick data has been subscribed.
 };
 
 } // shift
