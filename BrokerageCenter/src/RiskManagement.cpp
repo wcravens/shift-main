@@ -4,15 +4,53 @@
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
 
+// #include "DBConnector.h"
+
 #include <cmath>
 
 #include <shift/miscutils/concurrency/Consumer.h>
+// #include <shift/miscutils/terminal/Common.h>
+
+// static inline std::string s_getPortfolioItemsCursorName(const std::string& userName)
+// {
+//     return "csr_pi_" + userName;
+// }
+
+// static inline std::string s_getPortfolioSummaryCursorName(const std::string& userName)
+// {
+//     return "csr_ps_" + userName;
+// }
+
+// static void s_declPortfolioItemsCursor(const std::string& userName, const std::string& symbol)
+// {
+//     if(userName.empty()) return;
+
+//     const auto& csrName = s_getPortfolioItemsCursorName(userName);
+//     DBConnector::instance()->doQuery(
+//         "DECLARE " + csrName + " CURSOR FOR"
+//         "  SELECT * FROM web_traders INNER JOIN portfolio_items ON web_traders.id = portfolio_items.client_id\n"
+//         "WHERE web_traders.username = '" + userName + "' AND portfolio_items.symbol = '" + symbol + '\''
+//         , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (RiskManagement." + csrName + ")\n" NO_COLOR);
+// }
+
+// static void s_declPortfolioSummaryCursor(const std::string& userName)
+// {
+//     if(userName.empty()) return;
+
+//     const auto& csrName = s_getPortfolioSummaryCursorName(userName);
+//     DBConnector::instance()->doQuery(
+//         "DECLARE " + csrName + " CURSOR FOR"
+//         "  SELECT * FROM web_traders INNER JOIN portfolio_summary ON web_traders.id = portfolio_summary.client_id\n"
+//         "WHERE web_traders.username = '" + userName + '\''
+//         , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (RiskManagement." + csrName + ")\n" NO_COLOR);
+// }
 
 RiskManagement::RiskManagement(std::string clientID, double buyingPower)
     : m_clientName(std::move(clientID))
     , m_porfolioSummary{ buyingPower }
     , m_pendingShortCashAmount{ 0.0 }
 {
+    // s_declPortfolioSummaryCursor(clientID);
 }
 
 RiskManagement::RiskManagement(std::string clientID, double buyingPower, int totalShares)
@@ -20,6 +58,7 @@ RiskManagement::RiskManagement(std::string clientID, double buyingPower, int tot
     , m_porfolioSummary{ buyingPower, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
+    // s_declPortfolioSummaryCursor(clientID);
 }
 
 RiskManagement::RiskManagement(std::string clientID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
@@ -27,6 +66,7 @@ RiskManagement::RiskManagement(std::string clientID, double buyingPower, double 
     , m_porfolioSummary{ buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
+    // s_declPortfolioSummaryCursor(clientID);
 }
 
 RiskManagement::~RiskManagement()
@@ -181,6 +221,9 @@ void RiskManagement::processExecRpt()
             FIXAcceptor::instance()->sendConfirmationReport(*reportPtr);
         } break;
         case FIX::ExecType_FILL: { // execution report
+            // DBConnector::instance()->doQuery("BEGIN", "");
+            // s_declPortfolioItemsCursor(m_clientName, reportPtr->symbol);
+
             switch (reportPtr->orderType) {
             case QOT::MARKET_BUY:
             case QOT::LIMIT_BUY: {
@@ -219,6 +262,12 @@ void RiskManagement::processExecRpt()
                         ret = std::floor(ret * std::pow(10, 2)) / std::pow(10, 2);
                         m_porfolioSummary.returnBalance(ret);
                         item.addBorrowedBalance(-ret);
+                        // DBConnector::instance()->doQuery(
+                        //     "UPDATE portfolio_items\n"
+                        //     "SET portfolio_items.borrowed_balance = " + std::to_string(item.getBorrowedBalance()) + "\n"
+                        //     "WHERE CURRENT OF " + s_getPortfolioItemsCursorName(m_clientName)
+                        //     , ""
+                        // );
 
                         item.addShortShares(-buyShares);
                         if (item.getShortShares() == 0) {
@@ -312,6 +361,9 @@ void RiskManagement::processExecRpt()
 
             } break;
             }
+
+            // DBConnector::instance()->doQuery("CLOSE " + s_getPortfolioItemsCursorName(m_clientName), "");
+            // DBConnector::instance()->doQuery("END", "");
         } break;
         case FIX::ExecType_EXPIRED: { // cancellation report
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
