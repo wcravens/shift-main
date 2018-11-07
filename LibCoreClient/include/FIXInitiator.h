@@ -42,6 +42,7 @@
 #define R_FIXINIT /**/
 #define R_CHECKED /**/
 #define R_FIXSUB /**/
+#define R_REMOVE /**/
 #define R_TODO /**/
 
 namespace shift {
@@ -68,13 +69,13 @@ public:
     void disconnectBrokerageCenter();
 
     // Call this function to attach both ways
-    void attach(shift::CoreClient* pcc, const std::string& password = "NA", int timeout = 0);
+    R_REMOVE void attach(shift::CoreClient* pcc, const std::string& password = "NA", int timeout = 0);
 
     // call this function to send webClient username to and register at BC
     void webClientSendUsername(const std::string& username);
 
     std::vector<CoreClient*> getAttachedClients();
-    CoreClient* getMainClient();
+    R_REMOVE CoreClient* getMainClient();
     CoreClient* getClientByName(const std::string& name);
 
 protected:
