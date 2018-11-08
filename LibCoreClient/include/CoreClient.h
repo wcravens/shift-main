@@ -7,8 +7,8 @@
 #include "BestPrice.h"
 #include "CoreClient_EXPORTS.h"
 #include "Order.h"
-#include "OrderBookEntry.h"
 #include "OrderBook.h"
+#include "OrderBookEntry.h"
 #include "PortfolioItem.h"
 #include "PortfolioSummary.h"
 
@@ -63,8 +63,8 @@ public:
 
     // Order book methods
     shift::BestPrice getBestPriceBySymbol(const std::string& symbol);
-    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, const OrderBook::Type &type);
-    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type &type);
+    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, const OrderBook::Type& type);
+    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type);
 
     // Symbols list and company names
     std::vector<std::string> getStockList();
@@ -99,7 +99,8 @@ protected:
 
     // FIXInitiator interface
     bool attach(FIXInitiator& initiator);
-    void storePortfolio(double totalRealizedPL, double totalBuyingPower, int totalShares, std::string symbol, int shares, double price, double realizedPL);
+    void storePortfolioItem(const std::string& symbol, int shares, double price, double realizedPL);
+    void storePortfolioSummary(double totalRealizedPL, double totalBP, int totalShares);
     void storeWaitingList(const std::vector<shift::Order>& waitingList);
 
     // FIXInitiator callback methods

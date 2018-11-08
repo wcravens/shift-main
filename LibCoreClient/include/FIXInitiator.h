@@ -30,6 +30,7 @@
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
 #include <quickfix/fix50sp2/MassQuoteAcknowledgement.h>
+#include <quickfix/fix50sp2/PositionReport.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 #include <quickfix/fix50sp2/SecurityStatus.h>
 
@@ -89,6 +90,7 @@ protected:
     void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) override;
+    void onMessage(const FIX50SP2::PositionReport& message, const FIX::SessionID& sessionID);
     void onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID& sessionID) override; // for testing when receiving order book
     void onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) override;
     void onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) override;

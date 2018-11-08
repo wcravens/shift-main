@@ -106,9 +106,26 @@ inline void RiskManagement::sendQuoteToME(const Quote& quote)
     FIXInitiator::instance()->sendQuote(quote);
 }
 
-inline void RiskManagement::sendPortfolioToClient(const std::string& userName, const PortfolioSummary& summary, const PortfolioItem& item)
+inline void RiskManagement::sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary)
 {
-    FIXAcceptor::instance()->sendPortfolio(userName, summary, item);
+    const auto& clientID = BCDocuments::instance()->getClientIDByName(userName);
+    if (CSTR_NULL == clientID) {
+        std::cout << " Don't exist: " << userName << std::endl;
+        return;
+    }
+
+    FIXAcceptor::instance()->sendPortfolioSummary(userName, clientID, summary);
+}
+
+inline void RiskManagement::sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item)
+{
+    const auto& clientID = BCDocuments::instance()->getClientIDByName(userName);
+    if (CSTR_NULL == clientID) {
+        std::cout << " Don't exist: " << userName << std::endl;
+        return;
+    }
+
+    FIXAcceptor::instance()->sendPortfolioItem(userName, clientID, item);
 }
 
 void RiskManagement::sendPortfolioHistory()
@@ -116,11 +133,12 @@ void RiskManagement::sendPortfolioHistory()
     std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
     std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
+    sendPortfolioSummaryToClient(m_clientName, m_porfolioSummary);
+
     if (!m_portfolioItems.empty()) {
-        for (auto& i : m_portfolioItems)
-            sendPortfolioToClient(m_clientName, m_porfolioSummary, i.second);
-    } else {
-        sendPortfolioToClient(m_clientName, m_porfolioSummary, PortfolioItem());
+        for (auto& i : m_portfolioItems) {
+            sendPortfolioItemToClient(m_clientName, i.second);
+        }
     }
 }
 
@@ -407,7 +425,8 @@ void RiskManagement::processExecRpt()
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-            sendPortfolioToClient(m_clientName, m_porfolioSummary, m_portfolioItems[reportPtr->symbol]);
+            sendPortfolioItemToClient(m_clientName, m_portfolioItems[reportPtr->symbol]);
+            sendPortfolioSummaryToClient(m_clientName, m_porfolioSummary);
         }
 
         updateQuoteHistory(*reportPtr);

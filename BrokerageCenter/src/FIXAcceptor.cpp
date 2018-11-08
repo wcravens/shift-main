@@ -18,7 +18,6 @@
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1");
 static const auto& FIXFIELD_MSGTY_MASSQUOTEACK = FIX::MsgType(FIX::MsgType_MassQuoteAcknowledgement);
 static const auto& FIXFIELD_QUOTESTAT = FIX::QuoteStatus(0); // 0 = Accepted
-static const auto& FIXFIELD_TXT_PF = FIX::Text("portfolio");
 static const auto& FIXFIELD_TXT_QH = FIX::Text("quoteHistory");
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
 static const auto& FIXFIELD_EXECBROKER = FIX::PartyRole(1); // 1 = ExecBroker in FIX4.2
@@ -30,6 +29,7 @@ static const auto& FIXFIELD_QUOTESETID = FIX::QuoteSetID("");
 static const auto& FIXFIELD_TXT_OB = FIX::Text("orderbook");
 static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
+static const auto& FIXFIELD_MSGTY_POSIREPORT = FIX::MsgType(FIX::MsgType_PositionReport);
 
 FIXAcceptor::~FIXAcceptor() // override
 {
@@ -102,48 +102,73 @@ void FIXAcceptor::disconnectClients()
 }
 
 /**
- * @brief Send portfolio to LC
- * 
- * @param userName as a string to provide client name
- * 
- * @param summary as a PortfolioSummary object to 
- * provide all information about portfolio
- * 
- * @param item as a PortfolioItem object to 
+ * @brief Send Portfolio Item to LC
  */
-void FIXAcceptor::sendPortfolio(const std::string& userName, const PortfolioSummary& summary, const PortfolioItem& item)
+void FIXAcceptor::sendPortfolioItem(const std::string& userName, const std::string& clientID, const PortfolioItem& item)
 {
-    const auto& clientID = BCDocuments::instance()->getClientIDByName(userName);
-    if (CSTR_NULL == clientID) {
-        cout << " Don't exist: " << userName << endl;
-        return;
-    }
+    FIX::Message message;
 
-    FIX50SP2::MassQuoteAcknowledgement message;
     FIX::Header& header = message.getHeader();
-
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(clientID));
-    header.setField(::FIXFIELD_MSGTY_MASSQUOTEACK);
+    header.setField(FIXFIELD_MSGTY_POSIREPORT);
 
-    message.setField(::FIXFIELD_QUOTESTAT); // Required by FIX
-    message.setField(::FIXFIELD_TXT_PF);
-    message.setField(FIX::Account(userName));
+    message.setField(FIX::PosMaintRptID(shift::crossguid::newGuid().str()));
+    message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
+    message.setField(FIX::Symbol(item.getSymbol()));
+    message.setField(FIX::SecurityType("CS"));
+    message.setField(FIX::SettlPrice(item.getSummaryPrice()));
+    message.setField(FIX::PriceDelta(item.getPL()));
 
-    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
-    quoteSetGroup.set(FIX::QuoteSetID(clientID));
-    quoteSetGroup.set(FIX::UnderlyingContractMultiplier(summary.getTotalPL()));
-    quoteSetGroup.set(FIX::UnderlyingCouponRate(summary.getBuyingPower()));
-    quoteSetGroup.set(FIX::UnderlyingSecurityID(std::to_string(summary.getTotalShares())));
-    quoteSetGroup.set(FIX::UnderlyingSymbol(item.getSymbol()));
-    quoteSetGroup.set(FIX::UnderlyingStrikePrice(item.getSummaryPrice()));
-    quoteSetGroup.set(FIX::UnderlyingSymbolSfx(std::to_string(item.getSummaryShares())));
-    quoteSetGroup.set(FIX::UnderlyingIssuer(std::to_string(item.getPL())));
-    quoteSetGroup.set(FIX::UnderlyingSecurityDesc(std::to_string(summary.getHoldingBalance())));
-    message.addGroup(quoteSetGroup);
-    cout << "RIC: " << item.getSymbol() << "\n\tTotal P&L: " << summary.getTotalPL() << "\n\tTotal BP: " << summary.getBuyingPower() << "\n\tTotal Shares: " << summary.getTotalShares() << "\n\tPrice: " << item.getSummaryPrice() << "\n\tShares: " << item.getSummaryShares() << '\n'
-         << endl;
+    FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
+    userNameGroup.set(::FIXFIELD_CLIENTID);
+    userNameGroup.set(FIX::PartyID(userName));
+    message.addGroup(userNameGroup);
+
+    FIX50SP2::PositionReport::NoPositions qtyGroup;
+    qtyGroup.set(FIX::LongQty(item.getLongShares()));
+    qtyGroup.set(FIX::ShortQty(item.getShortShares()));
+    message.addGroup(qtyGroup);
+
+    FIX::Session::sendToTarget(message);
+}
+
+/**
+ * @brief Send Portfolio Summary to LC
+ */
+void FIXAcceptor::sendPortfolioSummary(const std::string& userName, const std::string& clientID, const PortfolioSummary& summary)
+{
+    FIX::Message message;
+
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::TargetCompID(clientID));
+    header.setField(FIXFIELD_MSGTY_POSIREPORT);
+
+    message.setField(FIX::PosMaintRptID(shift::crossguid::newGuid().str()));
+    message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
+    message.setField(FIX::Symbol("CASH"));
+    message.setField(FIX::SecurityType("CASH"));
+    message.setField(FIX::PriceDelta(summary.getTotalPL()));
+
+    FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
+    userNameGroup.set(::FIXFIELD_CLIENTID);
+    userNameGroup.set(FIX::PartyID(userName));
+    message.addGroup(userNameGroup);
+
+    FIX50SP2::PositionReport::NoPositions qtyGroup;
+    qtyGroup.set(FIX::LongQty(summary.getTotalShares()));
+    message.addGroup(qtyGroup);
+
+    FIX50SP2::PositionReport::NoPosAmt buyingPowerGroup;
+    buyingPowerGroup.set(FIX::PosAmt(summary.getBuyingPower()));
+    message.addGroup(buyingPowerGroup);
+
+    FIX50SP2::PositionReport::NoPosAmt holdingBalanceGroup;
+    holdingBalanceGroup.set(summary.getHoldingBalance());
+    message.addGroup(holdingBalanceGroup);
 
     FIX::Session::sendToTarget(message);
 }

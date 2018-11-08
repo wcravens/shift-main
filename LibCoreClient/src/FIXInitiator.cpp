@@ -536,6 +536,70 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 }
 
 /**
+ * @brief Method to receive portfolio item and summary from Brokerage Center.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, const FIX::SessionID& sessionID) // override
+{
+    while (!m_connected)
+        ;
+
+    FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
+    FIX::PartyID userName;
+    message.getGroup(1, userNameGroup);
+    userNameGroup.get(userName);
+
+    FIX::SecurityType type;
+    message.get(type);
+
+    if (type == "CS") { // Item
+        FIX::Symbol symbol;
+        message.get(symbol);
+
+        symbol = m_originalName_symbol[symbol];
+
+        FIX::SettlPrice price;
+        FIX::PriceDelta realizedPL;
+        FIX::LongQty longQty;
+        FIX::ShortQty shortQty;
+
+        message.get(price);
+        message.get(realizedPL);
+
+        FIX50SP2::PositionReport::NoPositions qtyGroup;
+        message.getGroup(1, qtyGroup);
+        qtyGroup.get(longQty);
+        qtyGroup.get(shortQty);
+
+        try {
+            getClientByName(userName)->storePortfolioItem(symbol, longQty - shortQty, price, realizedPL);
+        } catch (...) {
+            return;
+        }
+    } else { // Summary
+        FIX::PriceDelta totalRealizedPL;
+        FIX::LongQty totalShares;
+        FIX::PosAmt totalBuyingPower;
+
+        message.get(totalRealizedPL);
+
+        FIX50SP2::PositionReport::NoPositions qtyGroup;
+        FIX50SP2::PositionReport::NoPosAmt buyingPowerGroup;
+
+        message.getGroup(1, qtyGroup);
+        qtyGroup.get(totalShares);
+
+        message.getGroup(1, buyingPowerGroup);
+        buyingPowerGroup.get(totalBuyingPower);
+
+        try {
+            getClientByName(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
+        } catch (...) {
+            return;
+        }
+    }
+}
+
+/**
  * @brief Method to receive Global/Local orders OR portfolio update from Brokerage Center.
  * 
  * @param message as a QuoteAcknowledgement type object contains the current accepting order information.
@@ -550,54 +614,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     message.get(username);
     message.get(headline);
 
-    if (headline == "portfolio") { // Case for receiving a portfolio update
-        while (!m_connected)
-            ;
-
-        FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
-
-        message.getGroup(1, quoteSetGroup);
-
-        FIX::QuoteSetID clientID;
-        FIX::UnderlyingSymbol symbol;
-        FIX::UnderlyingSecurityID totalSharesRaw;
-        FIX::UnderlyingStrikePrice price;
-        FIX::UnderlyingContractMultiplier totalRealizedPL;
-        FIX::UnderlyingCouponRate totalBuyingPower;
-        FIX::UnderlyingSymbolSfx sharesRaw;
-        FIX::UnderlyingIssuer realizedPLRaw;
-
-        quoteSetGroup.get(clientID);
-        quoteSetGroup.get(symbol);
-        quoteSetGroup.get(totalSharesRaw);
-        quoteSetGroup.get(price);
-        quoteSetGroup.get(totalRealizedPL);
-        quoteSetGroup.get(totalBuyingPower);
-        quoteSetGroup.get(sharesRaw);
-        quoteSetGroup.get(realizedPLRaw);
-
-        symbol = m_originalName_symbol[symbol];
-
-        std::stringstream ss;
-        int totalShares, shares;
-        double realizedPL;
-
-        ss.str(totalSharesRaw);
-        ss >> totalShares;
-        ss.clear();
-        ss.str(sharesRaw);
-        ss >> shares;
-        ss.clear();
-        ss.str(realizedPLRaw);
-        ss >> realizedPL;
-
-        try {
-            getClientByName(username)->storePortfolio(totalRealizedPL, totalBuyingPower, totalShares, symbol, shares, price, realizedPL);
-            getClientByName(username)->receivePortfolio(symbol);
-        } catch (...) {
-            return;
-        }
-    } else if (headline == "orderbook") {
+    if (headline == "orderbook") {
         FIX::NoQuoteSets n;
         message.get(n);
         if (!n)

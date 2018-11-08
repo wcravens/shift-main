@@ -39,6 +39,7 @@
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
 #include <quickfix/fix50sp2/MassQuoteAcknowledgement.h>
+#include <quickfix/fix50sp2/PositionReport.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 
 class FIXAcceptor : public FIX::Application,
@@ -53,7 +54,8 @@ public:
     void connectClients(const std::string& configFile, bool verbose = false);
     void disconnectClients();
 
-    void sendPortfolio(const std::string& userName, const PortfolioSummary& summary, const PortfolioItem& item);
+    void sendPortfolioItem(const std::string& userName, const std::string& clientID, const PortfolioItem& item);
+    void sendPortfolioSummary(const std::string& userName, const std::string& clientID, const PortfolioSummary& summary);
     void sendQuoteHistory(const std::string& userName, const std::unordered_map<std::string, Quote>& quotes);
     void SendOrderbookUpdate(const std::string& userName, const OrderBookEntry& update); // send order book update to client
     void SendOrderbookUpdate2All(const std::unordered_set<std::string>& clientList, const OrderBookEntry& newOrderBook);
