@@ -122,13 +122,13 @@ void FIXAcceptor::sendPortfolioItem(const std::string& userName, const std::stri
     message.setField(FIX::PriceDelta(item.getPL()));
 
     FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
-    userNameGroup.set(::FIXFIELD_CLIENTID);
-    userNameGroup.set(FIX::PartyID(userName));
+    userNameGroup.setField(::FIXFIELD_CLIENTID);
+    userNameGroup.setField(FIX::PartyID(userName));
     message.addGroup(userNameGroup);
 
     FIX50SP2::PositionReport::NoPositions qtyGroup;
-    qtyGroup.set(FIX::LongQty(item.getLongShares()));
-    qtyGroup.set(FIX::ShortQty(item.getShortShares()));
+    qtyGroup.setField(FIX::LongQty(item.getLongShares()));
+    qtyGroup.setField(FIX::ShortQty(item.getShortShares()));
     message.addGroup(qtyGroup);
 
     FIX::Session::sendToTarget(message);
@@ -154,20 +154,20 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& userName, const std::s
     message.setField(FIX::PriceDelta(summary.getTotalPL()));
 
     FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
-    userNameGroup.set(::FIXFIELD_CLIENTID);
-    userNameGroup.set(FIX::PartyID(userName));
+    userNameGroup.setField(::FIXFIELD_CLIENTID);
+    userNameGroup.setField(FIX::PartyID(userName));
     message.addGroup(userNameGroup);
 
     FIX50SP2::PositionReport::NoPositions qtyGroup;
-    qtyGroup.set(FIX::LongQty(summary.getTotalShares()));
+    qtyGroup.setField(FIX::LongQty(summary.getTotalShares()));
     message.addGroup(qtyGroup);
 
     FIX50SP2::PositionReport::NoPosAmt buyingPowerGroup;
-    buyingPowerGroup.set(FIX::PosAmt(summary.getBuyingPower()));
+    buyingPowerGroup.setField(FIX::PosAmt(summary.getBuyingPower()));
     message.addGroup(buyingPowerGroup);
 
     FIX50SP2::PositionReport::NoPosAmt holdingBalanceGroup;
-    holdingBalanceGroup.set(summary.getHoldingBalance());
+    holdingBalanceGroup.setField(FIX::PosAmt(summary.getHoldingBalance()));
     message.addGroup(holdingBalanceGroup);
 
     FIX::Session::sendToTarget(message);
@@ -199,12 +199,12 @@ void FIXAcceptor::sendQuoteHistory(const std::string& userName, const std::unord
     FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
     for (const auto& i : quotes) {
         auto& quote = i.second;
-        quoteSetGroup.set(FIX::QuoteSetID(clientID));
-        quoteSetGroup.set(FIX::UnderlyingSecurityID(quote.getOrderID()));
-        quoteSetGroup.set(FIX::UnderlyingSymbol(quote.getSymbol()));
-        quoteSetGroup.set(FIX::UnderlyingStrikePrice(quote.getPrice()));
-        quoteSetGroup.set(FIX::UnderlyingSymbolSfx(std::to_string(quote.getShareSize())));
-        quoteSetGroup.set(FIX::UnderlyingIssuer(std::to_string(quote.getOrderType())));
+        quoteSetGroup.setField(FIX::QuoteSetID(clientID));
+        quoteSetGroup.setField(FIX::UnderlyingSecurityID(quote.getOrderID()));
+        quoteSetGroup.setField(FIX::UnderlyingSymbol(quote.getSymbol()));
+        quoteSetGroup.setField(FIX::UnderlyingStrikePrice(quote.getPrice()));
+        quoteSetGroup.setField(FIX::UnderlyingSymbolSfx(std::to_string(quote.getShareSize()))); // FIXME: replaceb by other field
+        quoteSetGroup.setField(FIX::UnderlyingIssuer(std::to_string(quote.getOrderType())));
         message.addGroup(quoteSetGroup);
     }
     FIX::Session::sendToTarget(message);
@@ -307,8 +307,8 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     message.setField(FIX::EffectiveTime(report.execTime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    idGroup.set(::FIXFIELD_CLIENTID);
-    idGroup.set(FIX::PartyID(report.clientID));
+    idGroup.setField(::FIXFIELD_CLIENTID);
+    idGroup.setField(FIX::PartyID(report.clientID));
     message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
@@ -316,13 +316,13 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
 
 static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets& quoteSetGroup, const OrderBookEntry& odrBk)
 {
-    quoteSetGroup.set(::FIXFIELD_QUOTESETID);
-    quoteSetGroup.set(FIX::UnderlyingSymbol(odrBk.getSymbol()));
-    quoteSetGroup.set(FIX::UnderlyingSecurityID(odrBk.getDestination()));
-    quoteSetGroup.set(FIX::UnderlyingStrikePrice(odrBk.getPrice()));
-    quoteSetGroup.set(FIX::UnderlyingOptAttribute(char(odrBk.getType())));
-    quoteSetGroup.set(FIX::UnderlyingContractMultiplier(odrBk.getSize()));
-    quoteSetGroup.set(FIX::UnderlyingCouponRate(odrBk.getTime()));
+    quoteSetGroup.setField(::FIXFIELD_QUOTESETID);
+    quoteSetGroup.setField(FIX::UnderlyingSymbol(odrBk.getSymbol()));
+    quoteSetGroup.setField(FIX::UnderlyingSecurityID(odrBk.getDestination()));
+    quoteSetGroup.setField(FIX::UnderlyingStrikePrice(odrBk.getPrice()));
+    quoteSetGroup.setField(FIX::UnderlyingOptAttribute(char(odrBk.getType())));
+    quoteSetGroup.setField(FIX::UnderlyingContractMultiplier(odrBk.getSize()));
+    quoteSetGroup.setField(FIX::UnderlyingCouponRate(odrBk.getTime()));
     message.addGroup(quoteSetGroup);
 }
 
@@ -386,7 +386,7 @@ void FIXAcceptor::sendTempStockSummary(const std::string& userName, const TempSt
     header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
 
     message.setField(FIX::Symbol(tempSS.getSymbol()));
-    message.setField(FIX::Text(std::to_string(tempSS.getTempTimeFrom())));
+    message.setField(FIX::Text(std::to_string(tempSS.getTempTimeFrom()))); // no need for timestamp
     message.setField(FIX::StrikePrice(tempSS.getTempOpenPrice())); // Open price
     message.setField(FIX::HighPx(tempSS.getTempHighPrice())); // High price
     message.setField(FIX::LowPx(tempSS.getTempLowPrice())); // Low price
@@ -432,13 +432,13 @@ void FIXAcceptor::sendLatestStockPrice(const std::string& userName, const Transa
     message.setField(FIX::TransactTime(transac.serverTime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    idGroup.set(::FIXFIELD_CLIENTID);
-    idGroup.set(FIX::PartyID(transac.traderID));
+    idGroup.setField(::FIXFIELD_CLIENTID);
+    idGroup.setField(FIX::PartyID(transac.traderID));
     message.addGroup(idGroup);
 
     FIX50SP2::ExecutionReport::NoPartyIDs brokerGroup;
-    brokerGroup.set(::FIXFIELD_EXECBROKER);
-    brokerGroup.set(FIX::PartyID(transac.destination));
+    brokerGroup.setField(::FIXFIELD_EXECBROKER);
+    brokerGroup.setField(FIX::PartyID(transac.destination));
     message.addGroup(brokerGroup);
 
     FIX::Session::sendToTarget(message);
@@ -753,7 +753,7 @@ void FIXAcceptor::sendSecurityList(const std::string& userName, const std::unord
     std::for_each(symbols.begin(), symbols.end(), [&stocks](const auto& e) { stocks.insert(e); });
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
     for (const auto& stock : stocks) {
-        relatedSymGroup.set(FIX::Symbol(stock));
+        relatedSymGroup.setField(FIX::Symbol(stock));
         message.addGroup(relatedSymGroup);
     }
 
