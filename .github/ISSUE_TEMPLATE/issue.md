@@ -1,6 +1,7 @@
 ---
 name: Issue
 about: General issue
+labels: 
 
 ---
 

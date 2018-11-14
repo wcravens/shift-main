@@ -1,6 +1,7 @@
 ---
 name: Feature
 about: Feature request
+labels: 
 
 ---
 
