@@ -369,9 +369,9 @@ void shift::FIXInitiator::toAdmin(FIX::Message& message, const FIX::SessionID& s
     if (FIX::MsgType_Logon == message.getHeader().getField(FIX::FIELD::MsgType)) {
         // set username and password in logon message
         FIXT11::Logon::NoMsgTypes msgTypeGroup;
-        msgTypeGroup.set(FIX::RefMsgType(m_username));
+        msgTypeGroup.setField(FIX::RefMsgType(m_username));
         message.addGroup(msgTypeGroup);
-        msgTypeGroup.set(FIX::RefMsgType(m_password));
+        msgTypeGroup.setField(FIX::RefMsgType(m_password));
         message.addGroup(msgTypeGroup);
     }
 }
@@ -531,6 +531,70 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 }
 
 /**
+ * @brief Method to receive portfolio item and summary from Brokerage Center.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, const FIX::SessionID& sessionID) // override
+{
+    while (!m_connected)
+        ;
+
+    FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
+    FIX::PartyID userName;
+    message.getGroup(1, userNameGroup);
+    userNameGroup.get(userName);
+
+    FIX::SecurityType type;
+    message.get(type);
+
+    if (type == "CS") { // Item
+        FIX::Symbol symbol;
+        message.get(symbol);
+
+        symbol = m_originalName_symbol[symbol];
+
+        FIX::SettlPrice price;
+        FIX::PriceDelta realizedPL;
+        FIX::LongQty longQty;
+        FIX::ShortQty shortQty;
+
+        message.get(price);
+        message.get(realizedPL);
+
+        FIX50SP2::PositionReport::NoPositions qtyGroup;
+        message.getGroup(1, qtyGroup);
+        qtyGroup.get(longQty);
+        qtyGroup.get(shortQty);
+
+        try {
+            getClientByName(userName)->storePortfolioItem(symbol, longQty - shortQty, price, realizedPL);
+        } catch (...) {
+            return;
+        }
+    } else { // Summary
+        FIX::PriceDelta totalRealizedPL;
+        FIX::LongQty totalShares;
+        FIX::PosAmt totalBuyingPower;
+
+        message.get(totalRealizedPL);
+
+        FIX50SP2::PositionReport::NoPositions qtyGroup;
+        FIX50SP2::PositionReport::NoPosAmt buyingPowerGroup;
+
+        message.getGroup(1, qtyGroup);
+        qtyGroup.get(totalShares);
+
+        message.getGroup(1, buyingPowerGroup);
+        buyingPowerGroup.get(totalBuyingPower);
+
+        try {
+            getClientByName(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
+        } catch (...) {
+            return;
+        }
+    }
+}
+
+/**
  * @brief Method to receive Global/Local orders OR portfolio update from Brokerage Center.
  * 
  * @param message as a QuoteAcknowledgement type object contains the current accepting order information.
@@ -545,54 +609,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     message.get(username);
     message.get(headline);
 
-    if (headline == "portfolio") { // Case for receiving a portfolio update
-        while (!m_connected)
-            ;
-
-        FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
-
-        message.getGroup(1, quoteSetGroup);
-
-        FIX::QuoteSetID clientID;
-        FIX::UnderlyingSymbol symbol;
-        FIX::UnderlyingSecurityID totalSharesRaw;
-        FIX::UnderlyingStrikePrice price;
-        FIX::UnderlyingContractMultiplier totalRealizedPL;
-        FIX::UnderlyingCouponRate totalBuyingPower;
-        FIX::UnderlyingSymbolSfx sharesRaw;
-        FIX::UnderlyingIssuer realizedPLRaw;
-
-        quoteSetGroup.get(clientID);
-        quoteSetGroup.get(symbol);
-        quoteSetGroup.get(totalSharesRaw);
-        quoteSetGroup.get(price);
-        quoteSetGroup.get(totalRealizedPL);
-        quoteSetGroup.get(totalBuyingPower);
-        quoteSetGroup.get(sharesRaw);
-        quoteSetGroup.get(realizedPLRaw);
-
-        symbol = m_originalName_symbol[symbol];
-
-        std::stringstream ss;
-        int totalShares, shares;
-        double realizedPL;
-
-        ss.str(totalSharesRaw);
-        ss >> totalShares;
-        ss.clear();
-        ss.str(sharesRaw);
-        ss >> shares;
-        ss.clear();
-        ss.str(realizedPLRaw);
-        ss >> realizedPL;
-
-        try {
-            getClientByName(username)->storePortfolio(totalRealizedPL, totalBuyingPower, totalShares, symbol, shares, price, realizedPL);
-            getClientByName(username)->receivePortfolio(symbol);
-        } catch (...) {
-            return;
-        }
-    } else if (headline == "orderbook") {
+    if (headline == "orderbook") {
         FIX::NoQuoteSets n;
         message.get(n);
         if (!n)
@@ -840,7 +857,7 @@ void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool 
     message.setField(FIX::RFQReqID(shift::crossguid::newGuid().str()));
 
     FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
-    relatedSymGroup.set(FIX::Symbol(symbol));
+    relatedSymGroup.setField(FIX::Symbol(symbol));
     message.addGroup(relatedSymGroup);
 
     if (isSubscribed) {
@@ -876,13 +893,13 @@ void shift::FIXInitiator::sendOrderBookRequest(const std::string& symbol, bool i
 
     FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup1;
     FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup2;
-    entryTypeGroup1.set(::FIXFIELD_ENTRY_BID);
-    entryTypeGroup2.set(::FIXFIELD_ENTRY_OFFER);
+    entryTypeGroup1.setField(::FIXFIELD_ENTRY_BID);
+    entryTypeGroup2.setField(::FIXFIELD_ENTRY_OFFER);
     message.addGroup(entryTypeGroup1);
     message.addGroup(entryTypeGroup2);
 
     FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
-    relatedSymGroup.set(FIX::Symbol(symbol));
+    relatedSymGroup.setField(FIX::Symbol(symbol));
     message.addGroup(relatedSymGroup);
 
     FIX::Session::sendToTarget(message);
@@ -912,11 +929,11 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
     message.setField(FIX::Price(order.getPrice()));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs partyIDGroup;
-    partyIDGroup.set(::FIXFIELD_CLIENTID);
+    partyIDGroup.setField(::FIXFIELD_CLIENTID);
     if (username != "") {
-        partyIDGroup.set(FIX::PartyID(username));
+        partyIDGroup.setField(FIX::PartyID(username));
     } else {
-        partyIDGroup.set(FIX::PartyID(m_username));
+        partyIDGroup.setField(FIX::PartyID(m_username));
     }
     message.addGroup(partyIDGroup);
 

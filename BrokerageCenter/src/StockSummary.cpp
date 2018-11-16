@@ -35,7 +35,7 @@ StockSummary::StockSummary()
     , m_currClosePrice{ .0 }
     , m_currHighPrice{ .0 }
     , m_currLowPrice{ .0 }
-    , m_sent(true)
+    , m_lastTransacSent(true)
 {
 }
 
@@ -47,7 +47,7 @@ StockSummary::StockSummary(std::string symbol, double currPrice, double currOpen
     , m_currHighPrice{ currHighPrice }
     , m_currLowPrice{ currLowPrice }
     , m_currOpenTime(currOpenTime)
-    , m_sent(true)
+    , m_lastTransacSent(true)
 {
 }
 
@@ -105,75 +105,73 @@ void StockSummary::process()
         m_tranBufSizeAtom = m_transacBuff.size();
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
-        const auto texec = transac.execTime.getTimeT();
-        const auto tdiff = texec - m_currOpenTime;
+        const auto currExecTime = transac.execTime.getTimeT();
+        const auto execTimeGap = currExecTime - m_currOpenTime;
 
-        if (m_sent) {
+        if (m_lastTransacSent) {
             DEBUG_PERFORMANCE_COUNTER(pc1, "ifsent")
 
-            if (tdiff >= 1) {
+            if (execTimeGap > 1) {
                 DEBUG_PERFORMANCE_COUNTER(pc2, "ifsentsend")
 
-                for (decltype(tdiff - 0) _i{ 1 }; _i < tdiff; _i++) {
+                // second-wise-send the data between the gap time range
+                for (int cnt = 1; cnt < execTimeGap; cnt++) {
                     m_currPrice
-                        = m_currOpenPrice
-                        = m_currHighPrice
-                        = m_currLowPrice
-                        = m_currClosePrice;
+                    = m_currOpenPrice
+                    = m_currHighPrice
+                    = m_currLowPrice
+                    = m_currClosePrice;
 
-                    m_currOpenTime += 1;
+                    m_currOpenTime++;
 
                     TempStockSummary tempSS(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
                     sendCurrentStockSummary(tempSS);
-
                     writeStockSummaryHistory(tempSS);
                 }
             }
 
             m_currPrice
-                = m_currOpenPrice
-                = m_currClosePrice
-                = m_currHighPrice
-                = m_currLowPrice
-                = transac.price;
+            = m_currOpenPrice
+            = m_currClosePrice
+            = m_currHighPrice
+            = m_currLowPrice
+            = transac.price;
 
-            m_currOpenTime = texec;
-            m_sent = false;
+            m_currOpenTime = currExecTime;
+            m_lastTransacSent = false; // reset to the state of current transaction
 
-            const auto topn = s_nowUnixTimestamp();
-
+            const auto startTime = s_nowUnixTimestamp(); // begin the timing...
             while (1 == m_tranBufSizeAtom) {
-                if (s_nowUnixTimestamp() - topn <= 1) {
+                if (s_nowUnixTimestamp() - startTime <= 1) { // elapsed NO more than 1 sec ?
                     DEBUG_PERFORMANCE_COUNTER_S(pc3, "###########", 100000);
-                    continue;
+                    continue; // timer counting continues...
                 }
-
                 DEBUG_PERFORMANCE_COUNTER_S(pc4, "%%%%%%%%%%%", 1);
 
                 m_currClosePrice = m_currPrice;
-
                 writeStockSummaryHistory({ m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime });
+                m_lastTransacSent = true;
 
-                m_sent = true;
                 break;
             }
 
-            continue; // process next transaction
-        } else if (tdiff <= 1) {
+            continue; // process next transaction immediately
+        } else if (execTimeGap <= 1) { // within 1 sec elapsed since last transac ?
             DEBUG_PERFORMANCE_COUNTER(pc5, "notsent1")
+            // update current ongoing window
 
             m_currClosePrice = m_currPrice = transac.price;
-            m_currLowPrice = (m_currPrice <= m_currLowPrice ? m_currPrice : m_currLowPrice); // min
-            m_currHighPrice = (m_currPrice >= m_currHighPrice ? m_currPrice : m_currHighPrice); // max
-        } else { // > 1
+            m_currLowPrice = std::min(m_currPrice, m_currLowPrice); // min
+            m_currHighPrice = std::max(m_currPrice, m_currHighPrice); // max
+        } else { // execTimeGap > 1
             DEBUG_PERFORMANCE_COUNTER(pc6, "notsent2")
+            // finish and send current window
 
             TempStockSummary tempSS(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
             sendCurrentStockSummary(tempSS);
-
             writeStockSummaryHistory(tempSS);
 
-            m_sent = true;
+            m_lastTransacSent = true;
         }
     }
 }

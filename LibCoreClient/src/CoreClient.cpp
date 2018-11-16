@@ -268,7 +268,7 @@ shift::BestPrice shift::CoreClient::getBestPriceBySymbol(const std::string& symb
     return m_fixInitiator->getBestPriceBySymbol(symbol);
 }
 
-std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type &type)
+std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type& type)
 {
     if (!isConnected()) {
         return std::vector<shift::OrderBookEntry>();
@@ -277,7 +277,7 @@ std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBook(const std::st
     return m_fixInitiator->getOrderBook(symbol, type);
 }
 
-std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type &type)
+std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type)
 {
     if (!isConnected()) {
         return std::vector<shift::OrderBookEntry>();
@@ -332,7 +332,7 @@ bool shift::CoreClient::requestSamplePrices(std::vector<std::string> symbols, do
         std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
 
         auto it = symbols.begin();
-        while(it != symbols.end()) {
+        while (it != symbols.end()) {
             if (m_samplePricesFlags[*it]) {
                 it = symbols.erase(it);
             } else {
@@ -551,7 +551,13 @@ bool shift::CoreClient::attach(FIXInitiator& initiator)
     return true;
 }
 
-void shift::CoreClient::storePortfolio(double totalRealizedPL, double totalBP, int totalShares, std::string symbol, int shares, double price, double realizedPL)
+void shift::CoreClient::storePortfolioItem(const std::string& symbol, int shares, double price, double realizedPL)
+{
+    std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
+    m_symbol_portfolioItem[symbol] = PortfolioItem{ symbol, shares, price, realizedPL };
+}
+
+void shift::CoreClient::storePortfolioSummary(double totalRealizedPL, double totalBP, int totalShares)
 {
     std::lock_guard<std::mutex> lk(m_mutex_portfolioSummary);
 
@@ -561,14 +567,8 @@ void shift::CoreClient::storePortfolio(double totalRealizedPL, double totalBP, i
 
     m_portfolioSummary.setTotalBP(totalBP);
     m_portfolioSummary.setTotalShares(totalShares);
-    // TODO: need to finish later
     m_portfolioSummary.setTotalPL(totalRealizedPL);
     m_portfolioSummary.setTotalRealizedPL(totalRealizedPL);
-
-    if (symbol != "") {
-        std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
-        m_symbol_portfolioItem[symbol] = PortfolioItem{ symbol, shares, price, realizedPL };
-    }
 }
 
 void shift::CoreClient::storeWaitingList(const std::vector<shift::Order>& waitingList)
@@ -640,13 +640,12 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
             std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
             auto it = symbols.begin();
-            while(it != symbols.end()) {
+            while (it != symbols.end()) {
                 if (!m_samplePricesFlags[*it]) {
                     m_sampleLastPrices[*it].clear();
                     m_sampleMidPrices[*it].clear();
                     it = symbols.erase(it);
-                }
-                else {
+                } else {
                     ++it;
                 }
             }

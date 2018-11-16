@@ -50,7 +50,7 @@ public:
     RiskManagement(std::string clientID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares);
 
     ~RiskManagement();
-    
+
     void spawn();
 
     void enqueueQuote(const Quote& quote);
@@ -64,7 +64,8 @@ public:
     bool verifyAndSendQuote(const Quote& quote);
 
     void sendQuoteToME(const Quote& quote);
-    void sendPortfolioToClient(const std::string& userName, const PortfolioSummary& summary, const PortfolioItem& item);
+    void sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary);
+    void sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item);
     void sendPortfolioHistory();
     void sendQuoteHistory() const;
     double getMarketBuyPrice(const std::string& symbol);

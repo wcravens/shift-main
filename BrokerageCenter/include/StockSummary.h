@@ -24,7 +24,7 @@ private:
     double m_currHighPrice;
     double m_currLowPrice;
     std::time_t m_currOpenTime;
-    bool m_sent;
+    bool m_lastTransacSent;
 
     std::queue<Transaction> m_transacBuff;
     std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
