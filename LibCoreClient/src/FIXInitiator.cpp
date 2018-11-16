@@ -374,9 +374,9 @@ void shift::FIXInitiator::toAdmin(FIX::Message& message, const FIX::SessionID& s
     if (FIX::MsgType_Logon == message.getHeader().getField(FIX::FIELD::MsgType)) {
         // set username and password in logon message
         FIXT11::Logon::NoMsgTypes msgTypeGroup;
-        msgTypeGroup.set(FIX::RefMsgType(m_username));
+        msgTypeGroup.setField(FIX::RefMsgType(m_username));
         message.addGroup(msgTypeGroup);
-        msgTypeGroup.set(FIX::RefMsgType(m_password));
+        msgTypeGroup.setField(FIX::RefMsgType(m_password));
         message.addGroup(msgTypeGroup);
     }
 }
@@ -862,7 +862,7 @@ void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool 
     message.setField(FIX::RFQReqID(shift::crossguid::newGuid().str()));
 
     FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
-    relatedSymGroup.set(FIX::Symbol(symbol));
+    relatedSymGroup.setField(FIX::Symbol(symbol));
     message.addGroup(relatedSymGroup);
 
     if (isSubscribed) {
@@ -898,13 +898,13 @@ void shift::FIXInitiator::sendOrderBookRequest(const std::string& symbol, bool i
 
     FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup1;
     FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup2;
-    entryTypeGroup1.set(::FIXFIELD_ENTRY_BID);
-    entryTypeGroup2.set(::FIXFIELD_ENTRY_OFFER);
+    entryTypeGroup1.setField(::FIXFIELD_ENTRY_BID);
+    entryTypeGroup2.setField(::FIXFIELD_ENTRY_OFFER);
     message.addGroup(entryTypeGroup1);
     message.addGroup(entryTypeGroup2);
 
     FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
-    relatedSymGroup.set(FIX::Symbol(symbol));
+    relatedSymGroup.setField(FIX::Symbol(symbol));
     message.addGroup(relatedSymGroup);
 
     FIX::Session::sendToTarget(message);
@@ -934,11 +934,11 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
     message.setField(FIX::Price(order.getPrice()));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs partyIDGroup;
-    partyIDGroup.set(::FIXFIELD_CLIENTID);
+    partyIDGroup.setField(::FIXFIELD_CLIENTID);
     if (username != "") {
-        partyIDGroup.set(FIX::PartyID(username));
+        partyIDGroup.setField(FIX::PartyID(username));
     } else {
-        partyIDGroup.set(FIX::PartyID(m_username));
+        partyIDGroup.setField(FIX::PartyID(m_username));
     }
     message.addGroup(partyIDGroup);
 
