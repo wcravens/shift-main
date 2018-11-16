@@ -494,7 +494,15 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 
 void FIXAcceptor::toAdmin(FIX::Message& message, const FIX::SessionID&) // override
 {
-    (void)message;
+    if (FIX::MsgType_Logout != message.getHeader().getField(FIX::FIELD::MsgType))
+        return;
+    cout << COLOR_PROMPT "DEBUG: 4 toAdmin() with msg type: " << message.getHeader().getField(FIX::FIELD::MsgType)<< NO_COLOR << endl;
+    cout << COLOR_PROMPT "DEBUG: 5 toAdmin() with msg: " << message << NO_COLOR << endl;
+
+    FIXT11::Logon::NoMsgTypes msgTypeGroup;
+    msgTypeGroup.set(FIX::RefMsgType());
+    message.addGroup(msgTypeGroup);
+
 #if SHOW_INPUT_MSG
     cout << "BC toAdmin: " << message.toString() << endl;
 #endif
@@ -519,17 +527,28 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
     std::string userName, password;
     const auto& clntID = sessionID.getTargetCompID();
 
+    cout << COLOR_PROMPT "DEBUG: 1" << NO_COLOR << endl;
+
     FIXT11::Logon::NoMsgTypes msgTypeGroup;
     message.getGroup(1, msgTypeGroup);
     userName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
     message.getGroup(2, msgTypeGroup);
     password = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
+    cout << COLOR_PROMPT "DEBUG: 2" << NO_COLOR << endl;
 
     auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE username = '" + userName + "';");
     if (pswCol.size() && pswCol.front() == password) {
         BCDocuments::instance()->registerClient(clntID, userName);
         cout << COLOR_PROMPT "Authentication successful for user: " << userName << NO_COLOR << endl;
     } else {
+        // TODO, send message
+        FIX::Message tokenMessage;
+        FIXT11::Logon::NoMsgTypes msgTypeGroup;
+        msgTypeGroup.set(FIX::RefMsgType("m_username"));
+        tokenMessage.addGroup(msgTypeGroup);
+        msgTypeGroup.set(FIX::RefMsgType("m_password"));
+        tokenMessage.addGroup(msgTypeGroup);
+
         cout << COLOR_WARNING "User name or password was wrong." NO_COLOR << endl;
         throw FIX::RejectLogon();
     }
