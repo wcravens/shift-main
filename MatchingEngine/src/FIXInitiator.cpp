@@ -294,19 +294,31 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
  */
 void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID& sessionID) // override
 {
+    FIX::QuoteType ordType; // 0 for quote / 1 for trade
+    message.get(ordType);
+
+    FIX::NoPartyIDs numOfPartyGroup;
+    message.get(numOfPartyGroup);
+
+    if ((!ordType && numOfPartyGroup < 2) || numOfPartyGroup < 1) {
+        cout << "Cant find enough Group: NoPartyIDs\n";
+        return;
+    }
+
+    FIX50SP2::Quote::NoPartyIDs partyGroup1;
+    message.getGroup(1, partyGroup1);
+    FIX::PartyID buyerID;
+    partyGroup1.getField(buyerID);
+
     FIX::Symbol symbol;
-    FIX::SecurityID ordType;
-    FIX::QuoteID buyerID;
     FIX::BidPx bidPx;
     FIX::BidSize bidSize;
     FIX::TransactTime transactTime;
 
-    message.get(transactTime);
     message.get(symbol);
-    message.get(ordType);
-    message.get(buyerID);
     message.get(bidPx);
     message.get(bidSize);
+    message.get(transactTime);
 
     std::map<std::string, Stock>::iterator stockIt;
     stockIt = stocklist.find(symbol);
@@ -321,11 +333,14 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     long mili = timepara.past_milli(transactTime.getValue());
     newquote.setmili(mili);
 
-    if (ordType == "Q") { // Q = Counter-order selection
-        FIX::QuoteReqID sellerID; // SellerID
+    if (!ordType) { // Quote
+        FIX50SP2::Quote::NoPartyIDs partyGroup2;
+        message.getGroup(2, partyGroup2);
+        FIX::PartyID sellerID;
+        partyGroup2.getField(sellerID);
+
         FIX::OfferPx offerPx;
         FIX::OfferSize offerSize;
-        message.get(sellerID);
         message.get(offerPx);
         message.get(offerSize);
 
