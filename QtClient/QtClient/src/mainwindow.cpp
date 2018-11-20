@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget* parent)
     , m_order_book_dialog(new OrderBookDialog(this))
 {
     ui->setupUi(this);
+    ui->SymbolComboBox->setHidden(true);
     this->setWindowTitle("Overview - SHIFT Alpha");
     this->setAttribute(Qt::WA_QuitOnClose);
     this->setTheme(":/theme/dark.theme");
