@@ -567,6 +567,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 
         try {
             getClientByName(userName)->storePortfolioItem(symbol, longQty - shortQty, price, realizedPL);
+            getClientByName(userName)->receivePortfolioItem(symbol);
         } catch (...) {
             return;
         }
@@ -588,6 +589,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 
         try {
             getClientByName(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
+            getClientByName(userName)->receivePortfolioSummary();
         } catch (...) {
             return;
         }

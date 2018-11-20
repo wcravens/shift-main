@@ -32,7 +32,7 @@ public:
 protected:
     void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) override;
     void receiveLastPrice(const std::string& symbol) override;
-    void receivePortfolio(const std::string& symbol) override;
+    void receivePortfolioItem(const std::string& symbol) override;
     void receiveWaitingList() override;
 
 private:
