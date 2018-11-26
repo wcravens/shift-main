@@ -11,10 +11,12 @@
 #include <iomanip>
 #include <sstream>
 
+#include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/terminal/Common.h>
 
 // Predefined constant FIX message fields (to avoid recalculations):
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1"); // FIX BEGIN STRING
+static const auto& FIXFIELD_EXEC_VENUE = FIX::PartyRole(73); // Execution Venue
 
 /*static*/ std::string FIXAcceptor::s_senderID;
 
@@ -115,17 +117,26 @@ void FIXAcceptor::disconnectMatchingEngine()
 
     message.setField(FIX::TransactTime(utcTime, 6));
     message.setField(FIX::Symbol(rawData.symbol));
-    message.setField(FIX::SecurityID(rawData.toq));
+    message.setField(FIX::QuoteType(rawData.toq.front() == 'Q' ? 0 : 1));
+    message.setField(FIX::QuoteID(shift::crossguid::newGuid().str()));
+
+    FIX50SP2::Quote::NoPartyIDs partyGroup1;
+    partyGroup1.setField(FIXFIELD_EXEC_VENUE);
+    partyGroup1.setField( // keep the order of group1 and group2
+        'Q' == rawData.toq.front() ? FIX::PartyID(rawData.buyerID) : FIX::PartyID(rawData.exchangeID));
+    message.addGroup(partyGroup1);
 
     if ('Q' == rawData.toq.front()) {
-        message.setField(FIX::QuoteID(rawData.buyerID));
+        FIX50SP2::Quote::NoPartyIDs partyGroup2;
+        partyGroup2.setField(FIXFIELD_EXEC_VENUE);
+        partyGroup2.setField(FIX::PartyID(rawData.sellerID));
+        message.addGroup(partyGroup2);
+
         message.setField(FIX::BidPx(rawData.bidPrice));
         message.setField(FIX::BidSize(rawData.bidSize));
-        message.setField(FIX::QuoteReqID(rawData.sellerID));
         message.setField(FIX::OfferSize(rawData.askSize));
         message.setField(FIX::OfferPx(rawData.askPrice));
     } else if ('T' == rawData.toq.front()) {
-        message.setField(FIX::QuoteID(rawData.exchangeID));
         message.setField(FIX::BidPx(rawData.price));
         message.setField(FIX::BidSize(rawData.volume));
     }
