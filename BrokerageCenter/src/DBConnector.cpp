@@ -5,12 +5,14 @@
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 
+//----------------------------------------------------------------------------------------------------------
 
 struct TradingRecords;
 
-
 template<typename>
 struct PSQLTable;
+
+//----------------------------------------------------------------------------------------------------------
 
 template<>
 struct PSQLTable<TradingRecords> {
@@ -76,9 +78,11 @@ struct PSQLTable<TradingRecords> {
 /*static*/ constexpr char PSQLTable<TradingRecords>::sc_recordFormat[];
 /*static*/ const char* PSQLTable<TradingRecords>::name = "trading_records";
 
+//----------------------------------------------------------------------------------------------------------
+
 template<>
 struct PSQLTable<PortfolioSummary> {
-    static constexpr char sc_colsDefinition[] = "( client_id INTEGER"
+    static constexpr char sc_colsDefinition[] = "( portfolio_id SERIAL"
                                                 ", buying_power REAL"
                                                 ", holding_balance REAL"
                                                 ", borrowed_balance REAL"
@@ -86,21 +90,16 @@ struct PSQLTable<PortfolioSummary> {
 
                                                 ", total_shares INTEGER"
 
-                                                ",  CONSTRAINT portfolio_summary_pkey PRIMARY KEY (client_id),\
-                                                    \
-                                                    CONSTRAINT portfolio_summary_fkey FOREIGN KEY (client_id)\
-                                                        REFERENCES public.traders (id) MATCH SIMPLE\
-                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
-                                                )";
+                                                ", CONSTRAINT portfolio_summary_pkey PRIMARY KEY (portfolio_id)"
+                                                ")";
 
-    static constexpr char sc_recordFormat[] = "( client_id, buying_power, holding_balance, borrowed_balance, total_pl"
+    static constexpr char sc_recordFormat[] = "( buying_power, holding_balance, borrowed_balance, total_pl"
                                               ", total_shares"
                                               ") VALUES ";
 
     static const char* name;
 
     enum VAL_IDX : int {
-        CL_ID,
         BP,
         HB,
         BB,
@@ -114,9 +113,11 @@ struct PSQLTable<PortfolioSummary> {
 /*static*/ constexpr char PSQLTable<PortfolioSummary>::sc_recordFormat[];
 /*static*/ const char* PSQLTable<PortfolioSummary>::name = "portfolio_summary";
 
+//----------------------------------------------------------------------------------------------------------
+
 template<>
 struct PSQLTable<PortfolioItem> {
-    static constexpr char sc_colsDefinition[] = "( client_id INTEGER"
+    static constexpr char sc_colsDefinition[] = "( portfolio_id INTEGER"
                                                 ", symbol VARCHAR(15)"
                                                 ", borrowed_balance REAL"
                                                 ", pl REAL"
@@ -126,14 +127,14 @@ struct PSQLTable<PortfolioItem> {
                                                 ", long_shares INTEGER"
                                                 ", short_shares INTEGER"
 
-                                                ",  CONSTRAINT portfolio_items_pkey PRIMARY KEY (client_id, symbol),\
+                                                ",  CONSTRAINT portfolio_items_pkey PRIMARY KEY (portfolio_id, symbol),\
                                                     \
-                                                    CONSTRAINT portfolio_items_fkey FOREIGN KEY (client_id)\
-                                                        REFERENCES public.traders (id) MATCH SIMPLE\
+                                                    CONSTRAINT portfolio_items_fkey FOREIGN KEY (portfolio_id)\
+                                                        REFERENCES public.portfolio_summary (portfolio_id) MATCH SIMPLE\
                                                         ON UPDATE NO ACTION ON DELETE NO ACTION\
                                                 )";
 
-    static constexpr char sc_recordFormat[] = "( client_id, symbol, borrowed_balance, pl, long_price"
+    static constexpr char sc_recordFormat[] = "( portfolio_id, symbol, borrowed_balance, pl, long_price"
                                               ", short_price, long_shares, short_shares"
                                               ") VALUES ";
 
@@ -183,7 +184,7 @@ DBConnector::~DBConnector()
 }
 
 /**
- * @brief   Establish connection to database 
+ * @brief   Establish connection to database
  * @return  whether the connection had been built
  */
 bool DBConnector::connectDB()
@@ -203,8 +204,8 @@ bool DBConnector::connectDB()
         && checkCreateTable<PortfolioItem>();
 }
 
-/** 
- * @brief   Close connection to database 
+/**
+ * @brief   Close connection to database
  */
 void DBConnector::disconnectDB()
 {
@@ -215,7 +216,7 @@ void DBConnector::disconnectDB()
     m_pConn = nullptr;
 }
 
-bool DBConnector::createClients(const std::string& symbol)
+bool DBConnector::createUsers(const std::string& symbol)
 {
     PGresult* res1 = PQexec(m_pConn, "SELECT * FROM buying_power;");
     PGresult* res2 = PQexec(m_pConn, ("SELECT * FROM holdings_" + symbol + ";").c_str());
@@ -231,14 +232,15 @@ bool DBConnector::createClients(const std::string& symbol)
         cout << "holdings_" + symbol + ": " << PQnfields(res2) << endl;
 
         for (int i = 0; i < nTup; i++) {
-            std::string clientID = PQgetvalue(res1, i, 0);
+            std::string userName = PQgetvalue(res1, i, 0);
             auto buyingPower = atof(PQgetvalue(res1, i, 1));
             auto shares = atoi(PQgetvalue(res2, i, 1));
             auto price = atof(PQgetvalue(res2, i, 2));
 
-            BCDocuments::instance()->addRiskManagementToClient(clientID, buyingPower, shares, price, symbol);
-            cout << clientID << endl;
+            BCDocuments::instance()->addRiskManagementToUser(userName, buyingPower, shares, price, symbol);
+            cout << userName << '\n';
         }
+        cout << endl;
     }
 
     PQclear(res2);
@@ -273,7 +275,7 @@ auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
         return TABLE_STATUS::NOT_EXIST;
     else if (1 == nrows)
         return TABLE_STATUS::EXISTS;
-    
+
     cout << COLOR_ERROR "ERROR: More than one " << tableName << " table exist." NO_COLOR << endl;
     return TABLE_STATUS::OTHER_ERROR;
 }
@@ -290,7 +292,7 @@ bool DBConnector::doQuery(const std::string query, const std::string msgIfStatMi
 
     if (ppRes) *ppRes = pRes;
     else PQclear(pRes);
-    
+
     return isMatch;
 }
 
@@ -352,10 +354,10 @@ bool DBConnector::checkCreateTable()
     return vs;
 }
 
-// void DBConnector::InsertUser(const UserInfo& client)
+// void DBConnector::InsertUser(const UserInfo& user)
 // {
 //     std::string pqQuery;
-//     pqQuery = "INSERT INTO traders (firstname, lastname, username, password, email) VALUES ('" + client.fistName + "','" + client.lastName + "','" + client.accountName + "','" + client.password + "','" + client.email + "');";
+//     pqQuery = "INSERT INTO traders (firstname, lastname, userName, password, email) VALUES ('" + user.fistName + "','" + user.lastName + "','" + user.accountName + "','" + user.password + "','" + user.email + "');";
 
 //     PGresult* res = PQexec(m_pConn, pqQuery.c_str());
 

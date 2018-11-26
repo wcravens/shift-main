@@ -21,7 +21,7 @@ private:
 
     mutable std::mutex m_mtxStock; ///> Mutex for Stock
     mutable std::mutex m_mtxOdrBkBuff; ///> Mutex for m_odrBkBuff.
-    mutable std::mutex m_mtxStockClientList;
+    mutable std::mutex m_mtxStockUserList;
     mutable std::mutex m_mtxOdrBkGlobalAsk;
     mutable std::mutex m_mtxOdrBkGlobalBid;
     mutable std::mutex m_mtxOdrBkLocalAsk;
@@ -38,7 +38,7 @@ private:
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalBid;
 
     std::queue<OrderBookEntry> m_odrBkBuff;
-    std::unordered_set<std::string> m_clientList; //registered client(userName)
+    std::unordered_set<std::string> m_userList; //registered user
 
 public:
     Stock();
@@ -50,8 +50,8 @@ public:
     void spawn();
     void stop();
 
-    void registerClientInStock(const std::string& userName);
-    void unregisterClientInStock(const std::string& userName);
+    void registerUserInStock(const std::string& userName);
+    void unregisterUserInStock(const std::string& userName);
 
     void broadcastWholeOrderBookToOne(const std::string& userName);
     void broadcastWholeOrderBookToAll();

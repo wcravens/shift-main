@@ -1,5 +1,5 @@
 /*
-** This file contains the acceptor which is used to 
+** This file contains the acceptor which is used to
 ** accept/send FIX messages from/to CoreClient
 **/
 
@@ -51,15 +51,15 @@ public:
 
     static FIXAcceptor* instance();
 
-    void connectClients(const std::string& configFile, bool verbose = false);
-    void disconnectClients();
+    void connectClientComputers(const std::string& configFile, bool verbose = false);
+    void disconnectClientComputers();
 
-    void sendPortfolioItem(const std::string& userName, const std::string& clientID, const PortfolioItem& item);
-    void sendPortfolioSummary(const std::string& userName, const std::string& clientID, const PortfolioSummary& summary);
+    void sendPortfolioItem(const std::string& userName, const std::string& targetID, const PortfolioItem& item);
+    void sendPortfolioSummary(const std::string& userName, const std::string& targetID, const PortfolioSummary& summary);
     void sendQuoteHistory(const std::string& userName, const std::unordered_map<std::string, Quote>& quotes);
-    void SendOrderbookUpdate(const std::string& userName, const OrderBookEntry& update); // send order book update to client
-    void SendOrderbookUpdate2All(const std::unordered_set<std::string>& clientList, const OrderBookEntry& newOrderBook);
-    void sendNewBook2all(const std::unordered_set<std::string>& clientList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
+    void sendOrderbookUpdate(const std::string& userName, const OrderBookEntry& update); // send order book update to user
+    void sendOrderbookUpdate2All(const std::unordered_set<std::string>& userList, const OrderBookEntry& newOrderBook);
+    void sendNewBook2all(const std::unordered_set<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
     void sendConfirmationReport(const Report& report); // send quote conformation report
     void sendOrderBook(const std::string& userName, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
     void sendTempStockSummary(const std::string& userName, const TempStockSummary& tempSS); // for candlestick data
@@ -87,12 +87,10 @@ private:
     void onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) override;
     void onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) override;
 
-    void sendSecurityList(const std::string& userName, const std::unordered_set<std::string>& symbols);
+    void sendSecurityList(const std::string& targetID, const std::unordered_set<std::string>& symbols);
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
     std::unique_ptr<FIX::SocketAcceptor> m_socketAcceptorPtr;
-
-    std::vector<std::string> m_clientNames;
 };

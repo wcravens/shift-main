@@ -5,7 +5,7 @@
 #include <string>
 
 struct Report {
-    std::string clientID;
+    std::string userName;
     std::string orderID; //server_order_id
     char status; //order status: http://fixwiki.org/fixwiki/OrdStatus
     std::string symbol;

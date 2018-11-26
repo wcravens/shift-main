@@ -17,7 +17,8 @@
 
 class RiskManagement {
 private:
-    std::string m_clientName;
+    int m_userID; // internal use
+    std::string m_userName;
 
     PortfolioSummary m_porfolioSummary;
     std::unordered_map<std::string, PortfolioItem> m_portfolioItems; // Symbol, PortfolioItem
@@ -45,9 +46,9 @@ private:
     std::promise<void> m_quitFlagExec;
 
 public:
-    RiskManagement(std::string clientID, double buyingPower);
-    RiskManagement(std::string clientID, double buyingPower, int totalShares);
-    RiskManagement(std::string clientID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares);
+    RiskManagement(std::string userName, double buyingPower);
+    RiskManagement(std::string userName, double buyingPower, int totalShares);
+    RiskManagement(std::string userName, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares);
 
     ~RiskManagement();
 

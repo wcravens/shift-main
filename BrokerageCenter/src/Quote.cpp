@@ -8,15 +8,15 @@ Quote::Quote() = default;
 /**
 *   @brief  Constructs with corresponding parameters.
 *   @param  symbol: The stock name of quote
-*   @param  clientID： The client ID of quote
+*   @param  userName： The user name of quote
 *   @param  orderID: The order ID of quote
 *   @param  price: The price of quote
 *   @param  shareSize: The size of quote
 *   @param  orderType: The order type of quotes
 */
-Quote::Quote(std::string symbol, std::string clientID, std::string orderID, double price, int shareSize, ORDER_TYPE orderType)
+Quote::Quote(std::string symbol, std::string userName, std::string orderID, double price, int shareSize, ORDER_TYPE orderType)
     : m_symbol(std::move(symbol))
-    , m_clientID(std::move(clientID))
+    , m_userName(std::move(userName))
     , m_orderID(std::move(orderID))
     , m_price{ price }
     , m_shareSize(shareSize)
@@ -34,12 +34,12 @@ const std::string& Quote::getSymbol() const
 }
 
 /**
-*   @brief  Getter of client ID.
-*   @return The client ID.
+*   @brief  Getter of user name.
+*   @return The user name.
 */
-const std::string& Quote::getClientID() const
+const std::string& Quote::getUserName() const
 {
-    return m_clientID;
+    return m_userName;
 }
 
 /**
@@ -53,7 +53,6 @@ const std::string& Quote::getOrderID() const
 
 /**
 *   @brief  Setter of price of the quote.
-*	@param	clientID: The price of the quote.
 *   @return nothing
 */
 void Quote::setPrice(double price)
@@ -72,7 +71,6 @@ double Quote::getPrice() const
 
 /**
 *   @brief  Setter of share size of the quote.
-*	@param	clientID: The share size of the quote.
 *   @return nothing
 */
 void Quote::setShareSize(int shareSize)

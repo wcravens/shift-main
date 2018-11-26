@@ -45,28 +45,28 @@
 //         , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (RiskManagement." + csrName + ")\n" NO_COLOR);
 // }
 
-RiskManagement::RiskManagement(std::string clientID, double buyingPower)
-    : m_clientName(std::move(clientID))
+RiskManagement::RiskManagement(std::string userName, double buyingPower)
+    : m_userName(std::move(userName))
     , m_porfolioSummary{ buyingPower }
     , m_pendingShortCashAmount{ 0.0 }
 {
-    // s_declPortfolioSummaryCursor(clientID);
+    // s_declPortfolioSummaryCursor(userName);
 }
 
-RiskManagement::RiskManagement(std::string clientID, double buyingPower, int totalShares)
-    : m_clientName(std::move(clientID))
+RiskManagement::RiskManagement(std::string userName, double buyingPower, int totalShares)
+    : m_userName(std::move(userName))
     , m_porfolioSummary{ buyingPower, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
-    // s_declPortfolioSummaryCursor(clientID);
+    // s_declPortfolioSummaryCursor(userName);
 }
 
-RiskManagement::RiskManagement(std::string clientID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
-    : m_clientName(std::move(clientID))
+RiskManagement::RiskManagement(std::string userName, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
+    : m_userName(std::move(userName))
     , m_porfolioSummary{ buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
-    // s_declPortfolioSummaryCursor(clientID);
+    // s_declPortfolioSummaryCursor(userName);
 }
 
 RiskManagement::~RiskManagement()
@@ -108,24 +108,24 @@ inline void RiskManagement::sendQuoteToME(const Quote& quote)
 
 inline void RiskManagement::sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary)
 {
-    const auto& clientID = BCDocuments::instance()->getClientIDByName(userName);
-    if (CSTR_NULL == clientID) {
+    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    if (CSTR_NULL == targetID) {
         std::cout << " Don't exist: " << userName << std::endl;
         return;
     }
 
-    FIXAcceptor::instance()->sendPortfolioSummary(userName, clientID, summary);
+    FIXAcceptor::instance()->sendPortfolioSummary(userName, targetID, summary);
 }
 
 inline void RiskManagement::sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item)
 {
-    const auto& clientID = BCDocuments::instance()->getClientIDByName(userName);
-    if (CSTR_NULL == clientID) {
+    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    if (CSTR_NULL == targetID) {
         std::cout << " Don't exist: " << userName << std::endl;
         return;
     }
 
-    FIXAcceptor::instance()->sendPortfolioItem(userName, clientID, item);
+    FIXAcceptor::instance()->sendPortfolioItem(userName, targetID, item);
 }
 
 void RiskManagement::sendPortfolioHistory()
@@ -133,20 +133,17 @@ void RiskManagement::sendPortfolioHistory()
     std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
     std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-    sendPortfolioSummaryToClient(m_clientName, m_porfolioSummary);
+    sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
 
-    if (!m_portfolioItems.empty()) {
-        for (auto& i : m_portfolioItems) {
-            sendPortfolioItemToClient(m_clientName, i.second);
-        }
-    }
+    for (auto& i : m_portfolioItems)
+        sendPortfolioItemToClient(m_userName, i.second);
 }
 
 void RiskManagement::sendQuoteHistory() const
 {
     std::lock_guard<std::mutex> guard(m_mtxQuoteHistory);
     if (!m_quoteHistory.empty())
-        FIXAcceptor::instance()->sendQuoteHistory(m_clientName, m_quoteHistory);
+        FIXAcceptor::instance()->sendQuoteHistory(m_userName, m_quoteHistory);
 }
 
 void RiskManagement::updateQuoteHistory(const Report& report)
@@ -240,7 +237,7 @@ void RiskManagement::processExecRpt()
         } break;
         case FIX::ExecType_FILL: { // execution report
             // DBConnector::instance()->doQuery("BEGIN", "");
-            // s_declPortfolioItemsCursor(m_clientName, reportPtr->symbol);
+            // s_declPortfolioItemsCursor(m_userName, reportPtr->symbol);
 
             switch (reportPtr->orderType) {
             case QOT::MARKET_BUY:
@@ -283,7 +280,7 @@ void RiskManagement::processExecRpt()
                         // DBConnector::instance()->doQuery(
                         //     "UPDATE portfolio_items\n"
                         //     "SET portfolio_items.borrowed_balance = " + std::to_string(item.getBorrowedBalance()) + "\n"
-                        //     "WHERE CURRENT OF " + s_getPortfolioItemsCursorName(m_clientName)
+                        //     "WHERE CURRENT OF " + s_getPortfolioItemsCursorName(m_userName)
                         //     , ""
                         // );
 
@@ -294,7 +291,7 @@ void RiskManagement::processExecRpt()
                     }
                 }
 
-                // the client must pay for the share that were bought
+                // the user must pay for the share that were bought
                 m_porfolioSummary.addBuyingPower(-buyShares * price);
                 // but pending transaction price is returned (also updating total holding balance)
                 m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * buyShares);
@@ -380,7 +377,7 @@ void RiskManagement::processExecRpt()
             } break;
             }
 
-            // DBConnector::instance()->doQuery("CLOSE " + s_getPortfolioItemsCursorName(m_clientName), "");
+            // DBConnector::instance()->doQuery("CLOSE " + s_getPortfolioItemsCursorName(m_userName), "");
             // DBConnector::instance()->doQuery("END", "");
         } break;
         case FIX::ExecType_EXPIRED: { // cancellation report
@@ -425,8 +422,8 @@ void RiskManagement::processExecRpt()
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-            sendPortfolioItemToClient(m_clientName, m_portfolioItems[reportPtr->symbol]);
-            sendPortfolioSummaryToClient(m_clientName, m_porfolioSummary);
+            sendPortfolioItemToClient(m_userName, m_portfolioItems[reportPtr->symbol]);
+            sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
         }
 
         updateQuoteHistory(*reportPtr);
@@ -495,7 +492,7 @@ bool RiskManagement::verifyAndSendQuote(const Quote& quote)
 
         } else if ((m_porfolioSummary.getBorrowedBalance() < usableBuyingPower) && (price * shortShares < usableBuyingPower)) {
             // m_porfolioSummary.getBorrowedBalance() < usableBuyingPower means it is still possible to "recover" from all short positions
-            // i.e. the client still has enough money to buy everything back
+            // i.e. the user still has enough money to buy everything back
             m_pendingShortCashAmount += price * shortShares; // reserve the necessary cash amount for this order
             m_pendingShortUnitAmount[quote.getSymbol()] += availableShares; // reserve remaining shares for this order
             m_pendingAskOrders[quote.getOrderID()] = std::make_pair(quote, availableShares); // store the pending transaction along with reserved shares
