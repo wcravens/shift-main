@@ -7,8 +7,8 @@
 
 App::App(int &argc, char **argv)
     : QApplication(argc, argv)
-    , m_login_dialog(new LoginDialog())
     , m_main_window(new MainWindow())
+    , m_login_dialog(new LoginDialog())
 {
     m_login_dialog->setHidden(true);
     m_main_window->setHidden(true);

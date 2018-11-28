@@ -104,10 +104,10 @@ protected:
     void storeWaitingList(const std::vector<shift::Order>& waitingList);
 
     // FIXInitiator callback methods
-    virtual void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp){}
-    virtual void receiveLastPrice(const std::string& symbol){}
+    virtual void receiveCandlestickData(const std::string& /*symbol*/, double /*open*/, double /*high*/, double /*low*/, double /*close*/, const std::string& /*timestamp*/){}
+    virtual void receiveLastPrice(const std::string& /*symbol*/){}
     virtual void receivePortfolioSummary(){}
-    virtual void receivePortfolioItem(const std::string& symbol){}
+    virtual void receivePortfolioItem(const std::string& /*symbol*/){}
     virtual void receiveWaitingList(){}
 
     // Sample prices

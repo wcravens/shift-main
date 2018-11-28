@@ -18,7 +18,8 @@ class QtCoreClient
     Q_OBJECT
 
 public:
-    QtCoreClient(QWidget* parent = nullptr)
+    QtCoreClient(QObject* parent = nullptr)
+        : QObject(parent)
     {}
 
     QtCoreClient(std::string username, QObject* parent = nullptr)

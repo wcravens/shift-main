@@ -6,12 +6,12 @@ OrderBookModel::OrderBookModel()
 {
 }
 
-int OrderBookModel::rowCount(const QModelIndex& parent) const
+int OrderBookModel::rowCount(const QModelIndex&) const
 {
     return m_order_books.size();
 }
 
-int OrderBookModel::columnCount(const QModelIndex& parent) const
+int OrderBookModel::columnCount(const QModelIndex&) const
 {
     return 2;
 }

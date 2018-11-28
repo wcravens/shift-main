@@ -114,7 +114,7 @@ shift::PortfolioItem shift::CoreClient::getPortfolioItem(const std::string& symb
 int shift::CoreClient::getSubmittedOrdersSize()
 {
     std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
-    return m_submittedOrdersIDs.size();
+    return static_cast<int>(m_submittedOrdersIDs.size());
 }
 
 std::vector<shift::Order> shift::CoreClient::getSubmittedOrders()
@@ -130,7 +130,7 @@ std::vector<shift::Order> shift::CoreClient::getSubmittedOrders()
 int shift::CoreClient::getWaitingListSize()
 {
     std::lock_guard<std::mutex> lk(m_mutex_waitingList);
-    return m_waitingList.size();
+    return static_cast<int>(m_waitingList.size());
 }
 
 std::vector<shift::Order> shift::CoreClient::getWaitingList()
@@ -397,7 +397,7 @@ int shift::CoreClient::getSamplePricesSize(const std::string& symbol)
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
     // m_sampleLastPrices[sym].size() == m_sampleMidPrices[sym].size()
-    return m_sampleLastPrices[symbol].size();
+    return static_cast<int>(m_sampleLastPrices[symbol].size());
 }
 
 std::list<double> shift::CoreClient::getSamplePrices(const std::string& symbol, bool midPrices)
@@ -416,7 +416,7 @@ int shift::CoreClient::getLogReturnsSize(const std::string& symbol)
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
     // m_sampleLastPrices[sym].size() == m_sampleMidPrices[sym].size()
-    return (m_sampleLastPrices[symbol].size() == 0) ? 0 : (m_sampleLastPrices[symbol].size() - 1);
+    return static_cast<int>((m_sampleLastPrices[symbol].size() == 0) ? 0 : (m_sampleLastPrices[symbol].size() - 1));
 }
 
 std::list<double> shift::CoreClient::getLogReturns(const std::string& symbol, bool midPrices)

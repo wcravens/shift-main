@@ -26,10 +26,10 @@ struct OverviewModelItem {
     OverviewModelItem(QString symbol, QPair<QString, int> last_price, int bid_size, QPair<QString, int> bid_price, QPair<QString, int> ask_price, int ask_size)
         : m_symbol(symbol)
         , m_last_price(last_price)
-        , m_bid_price(bid_price)
         , m_ask_price(ask_price)
-        , m_bid_size(bid_size)
+        , m_bid_price(bid_price)
         , m_ask_size(ask_size)
+        , m_bid_size(bid_size)
     {
     }
 };
