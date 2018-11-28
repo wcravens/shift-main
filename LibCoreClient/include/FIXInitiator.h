@@ -77,7 +77,7 @@ public:
 
     std::vector<CoreClient*> getAttachedClients();
     R_REMOVE CoreClient* getMainClient();
-    CoreClient* getClientByName(const std::string& name);
+    CoreClient* getClient(const std::string& name);
 
 protected:
     R_FIXINIT bool isConnected();
@@ -108,10 +108,10 @@ protected:
     R_FIXINIT void submitOrder(const shift::Order&, const std::string& username = "");
 
     // Price methods
-    R_FIXSUB double getOpenPriceBySymbol(const std::string& symbol);
-    R_FIXSUB double getLastPriceBySymbol(const std::string& symbol);
+    R_FIXSUB double getOpenPrice(const std::string& symbol);
+    R_FIXSUB double getLastPrice(const std::string& symbol);
     // Order book methods
-    R_FIXSUB shift::BestPrice getBestPriceBySymbol(const std::string& symbol);
+    R_FIXSUB shift::BestPrice getBestPrice(const std::string& symbol);
     R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type);
     R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type);
 
@@ -120,7 +120,7 @@ protected:
     R_TODO void fetchCompanyName(const std::string tickerName);
     R_FIXSUB void requestCompanyNames();
     R_FIXSUB std::map<std::string, std::string> getCompanyNames();
-    R_FIXSUB std::string getCompanyNameBySymbol(const std::string& symbol);
+    R_FIXSUB std::string getCompanyName(const std::string& symbol);
 
     // Subscription methods
     R_FIXSUB bool subOrderBook(const std::string& symbol);

@@ -46,7 +46,7 @@ OrderBookDialog::OrderBookDialog(QWidget* parent)
 
 void OrderBookDialog::refreshData()
 {
-    QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyNameBySymbol(m_current_symbol.toStdString()));
+    QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyName(m_current_symbol.toStdString()));
     ui->TickerNameLabel->setText(m_current_symbol + (companyName == "" ? "" : " (" + companyName + ")"));
 
     if (m_current_symbol != "") {

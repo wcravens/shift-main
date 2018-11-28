@@ -105,7 +105,7 @@ std::map<std::string, shift::PortfolioItem> shift::CoreClient::getPortfolioItems
     return m_symbol_portfolioItem;
 }
 
-shift::PortfolioItem shift::CoreClient::getPortfolioItemBySymbol(const std::string& symbol)
+shift::PortfolioItem shift::CoreClient::getPortfolioItem(const std::string& symbol)
 {
     std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
     return m_symbol_portfolioItem[symbol];
@@ -163,25 +163,25 @@ void shift::CoreClient::cancelAllPendingOrders()
     }
 }
 
-double shift::CoreClient::getOpenPriceBySymbol(const std::string& symbol)
+double shift::CoreClient::getOpenPrice(const std::string& symbol)
 {
     if (!isConnected()) {
         return 0.0;
     }
 
-    return m_fixInitiator->getOpenPriceBySymbol(symbol);
+    return m_fixInitiator->getOpenPrice(symbol);
 }
 
-double shift::CoreClient::getLastPriceBySymbol(const std::string& symbol)
+double shift::CoreClient::getLastPrice(const std::string& symbol)
 {
     if (!isConnected()) {
         return 0.0;
     }
 
-    return m_fixInitiator->getLastPriceBySymbol(symbol);
+    return m_fixInitiator->getLastPrice(symbol);
 }
 
-double shift::CoreClient::getClosePriceBySymbol(const std::string& symbol, bool buy, int size)
+double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int size)
 {
     if (!isConnected()) {
         return 0.0;
@@ -259,13 +259,13 @@ double shift::CoreClient::getClosePriceBySymbol(const std::string& symbol, bool 
     return closePrice;
 }
 
-shift::BestPrice shift::CoreClient::getBestPriceBySymbol(const std::string& symbol)
+shift::BestPrice shift::CoreClient::getBestPrice(const std::string& symbol)
 {
     if (!isConnected()) {
         return shift::BestPrice();
     }
 
-    return m_fixInitiator->getBestPriceBySymbol(symbol);
+    return m_fixInitiator->getBestPrice(symbol);
 }
 
 std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type& type)
@@ -313,13 +313,13 @@ std::map<std::string, std::string> shift::CoreClient::getCompanyNames()
     return m_fixInitiator->getCompanyNames();
 }
 
-std::string shift::CoreClient::getCompanyNameBySymbol(const std::string& symbol)
+std::string shift::CoreClient::getCompanyName(const std::string& symbol)
 {
     if (!isConnected()) {
         return std::string();
     }
 
-    return m_fixInitiator->getCompanyNameBySymbol(symbol);
+    return m_fixInitiator->getCompanyName(symbol);
 }
 
 bool shift::CoreClient::requestSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)
@@ -392,7 +392,7 @@ bool shift::CoreClient::cancelAllSamplePricesRequests()
     return success;
 }
 
-int shift::CoreClient::getSamplePricesSizeBySymbol(const std::string& symbol)
+int shift::CoreClient::getSamplePricesSize(const std::string& symbol)
 {
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
@@ -400,7 +400,7 @@ int shift::CoreClient::getSamplePricesSizeBySymbol(const std::string& symbol)
     return m_sampleLastPrices[symbol].size();
 }
 
-std::list<double> shift::CoreClient::getSamplePricesBySymbol(const std::string& symbol, bool midPrices)
+std::list<double> shift::CoreClient::getSamplePrices(const std::string& symbol, bool midPrices)
 {
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
@@ -411,7 +411,7 @@ std::list<double> shift::CoreClient::getSamplePricesBySymbol(const std::string& 
     }
 }
 
-int shift::CoreClient::getLogReturnsSizeBySymbol(const std::string& symbol)
+int shift::CoreClient::getLogReturnsSize(const std::string& symbol)
 {
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
@@ -419,7 +419,7 @@ int shift::CoreClient::getLogReturnsSizeBySymbol(const std::string& symbol)
     return (m_sampleLastPrices[symbol].size() == 0) ? 0 : (m_sampleLastPrices[symbol].size() - 1);
 }
 
-std::list<double> shift::CoreClient::getLogReturnsBySymbol(const std::string& symbol, bool midPrices)
+std::list<double> shift::CoreClient::getLogReturns(const std::string& symbol, bool midPrices)
 {
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
@@ -592,13 +592,13 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
         ready = 0;
         for (const std::string& sym : symbols) {
             // Last price
-            price = getLastPriceBySymbol(sym);
+            price = getLastPrice(sym);
             lastPrice[sym] = (price == 0.0) ? lastPrice[sym] : price;
 
             // Mid price
-            price = getBestPriceBySymbol(sym).getBidPrice();
+            price = getBestPrice(sym).getBidPrice();
             bestBid[sym] = (price == 0.0) ? bestBid[sym] : price;
-            price = getBestPriceBySymbol(sym).getAskPrice();
+            price = getBestPrice(sym).getAskPrice();
             bestAsk[sym] = (price == 0.0) ? bestAsk[sym] : price;
 
             if (lastPrice[sym] != 0.0 && bestBid[sym] != 0.0 && bestAsk[sym] != 0.0) { // Wait until first prices are available
@@ -611,13 +611,13 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
     while (symbols.begin() != symbols.end()) {
         for (const std::string& sym : symbols) {
             // Last price
-            price = getLastPriceBySymbol(sym);
+            price = getLastPrice(sym);
             lastPrice[sym] = (price == 0.0) ? lastPrice[sym] : price;
 
             // Mid price
-            price = getBestPriceBySymbol(sym).getBidPrice();
+            price = getBestPrice(sym).getBidPrice();
             bestBid[sym] = (price == 0.0) ? bestBid[sym] : price;
-            price = getBestPriceBySymbol(sym).getAskPrice();
+            price = getBestPrice(sym).getAskPrice();
             bestAsk[sym] = (price == 0.0) ? bestAsk[sym] : price;
 
             {

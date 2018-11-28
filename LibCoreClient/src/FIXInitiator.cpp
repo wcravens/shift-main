@@ -234,7 +234,7 @@ std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
 
 shift::CoreClient* shift::FIXInitiator::getMainClient()
 {
-    return getClientByName(m_username);
+    return getClient(m_username);
 }
 
 /**
@@ -242,7 +242,7 @@ shift::CoreClient* shift::FIXInitiator::getMainClient()
  * 
  * @param name as a string to provide the client name.
  */
-shift::CoreClient* shift::FIXInitiator::getClientByName(const std::string& name)
+shift::CoreClient* shift::FIXInitiator::getClient(const std::string& name)
 {
     if (m_username_client.find(name) != m_username_client.end()) {
         return m_username_client[name];
@@ -566,8 +566,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         qtyGroup.get(shortQty);
 
         try {
-            getClientByName(userName)->storePortfolioItem(symbol, longQty - shortQty, price, realizedPL);
-            getClientByName(userName)->receivePortfolioItem(symbol);
+            getClient(userName)->storePortfolioItem(symbol, longQty - shortQty, price, realizedPL);
+            getClient(userName)->receivePortfolioItem(symbol);
         } catch (...) {
             return;
         }
@@ -588,8 +588,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         buyingPowerGroup.get(totalBuyingPower);
 
         try {
-            getClientByName(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
-            getClientByName(userName)->receivePortfolioSummary();
+            getClient(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
+            getClient(userName)->receivePortfolioSummary();
         } catch (...) {
             return;
         }
@@ -694,9 +694,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 
         try {
             // store the data in target client
-            getClientByName(username)->storeWaitingList(waitingList);
+            getClient(username)->storeWaitingList(waitingList);
             // notify target client
-            getClientByName(username)->receiveWaitingList();
+            getClient(username)->receiveWaitingList();
         } catch (...) {
             return;
         }
@@ -948,7 +948,7 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
  * @param symbol The name of the symbol to be searched as a string.
  * @return The result open price as a double.
  */
-double shift::FIXInitiator::getOpenPriceBySymbol(const std::string& symbol)
+double shift::FIXInitiator::getOpenPrice(const std::string& symbol)
 {
     std::lock_guard<std::mutex> opGuard(m_mutex_openPrices);
     if (m_openPrices.find(symbol) != m_openPrices.end()) {
@@ -964,7 +964,7 @@ double shift::FIXInitiator::getOpenPriceBySymbol(const std::string& symbol)
  * @param symbol The name of the symbol to be searched as a string.
  * @return The result last price as a double.
  */
-double shift::FIXInitiator::getLastPriceBySymbol(const std::string& symbol)
+double shift::FIXInitiator::getLastPrice(const std::string& symbol)
 {
     return m_lastPrices[symbol];
 }
@@ -976,7 +976,7 @@ double shift::FIXInitiator::getLastPriceBySymbol(const std::string& symbol)
  * 
  * @return shift::BestPrice for the target symbol.
  */
-shift::BestPrice shift::FIXInitiator::getBestPriceBySymbol(const std::string& symbol)
+shift::BestPrice shift::FIXInitiator::getBestPrice(const std::string& symbol)
 {
     shift::BestPrice bp = shift::BestPrice(m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestPrice(),
         m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestSize(),
@@ -1116,7 +1116,7 @@ std::map<std::string, std::string> shift::FIXInitiator::getCompanyNames()
     return m_companyNames;
 }
 
-std::string shift::FIXInitiator::getCompanyNameBySymbol(const std::string& symbol)
+std::string shift::FIXInitiator::getCompanyName(const std::string& symbol)
 {
     std::lock_guard<std::mutex> cnGuard(m_mutex_companyNames);
     return m_companyNames[symbol];
@@ -1196,7 +1196,7 @@ std::vector<std::string> shift::FIXInitiator::getSubscribedOrderBookList()
 
 bool shift::FIXInitiator::subCandleData(const std::string& symbol)
 {
-    if (getLastPriceBySymbol(symbol) == 0.0) {
+    if (getLastPrice(symbol) == 0.0) {
         return false;
     }
 

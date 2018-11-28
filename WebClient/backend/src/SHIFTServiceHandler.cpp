@@ -21,7 +21,7 @@ void SHIFTServiceHandler::submitOrder(const std::string& stockName, const std::s
     if (orderID != "") {
         order.setID(orderID);
     }
-    shift::CoreClient* ccptr = shift::FIXInitiator::getInstance().getClientByName(username);
+    shift::CoreClient* ccptr = shift::FIXInitiator::getInstance().getClient(username);
     if (ccptr)
         ccptr->submitOrder(order);
 }
@@ -37,7 +37,7 @@ void SHIFTServiceHandler::webUserLogin(const std::string& username)
         return;
 
     try {
-        shift::FIXInitiator::getInstance().getClientByName(username);
+        shift::FIXInitiator::getInstance().getClient(username);
         shift::FIXInitiator::getInstance().webClientSendUsername(username);
     } catch (...) {
         shift::CoreClient* ccptr = new UserClient(username);

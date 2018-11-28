@@ -43,7 +43,7 @@ QVariant PortfolioModel::data(const QModelIndex& index, int role) const
     double shares = item.getShares();
 
     // calculation
-    double currentPrice = Global::qt_core_client.getLastPriceBySymbol(m_portfolio_item_vec[index.row()]);
+    double currentPrice = Global::qt_core_client.getLastPrice(m_portfolio_item_vec[index.row()]);
     double unrealizedPL = (currentPrice - price) * shares;
 
     double pl = item.getPL() + unrealizedPL;
@@ -165,7 +165,7 @@ void PortfolioModel::refreshPortfolioPL()
 //    if (!m_portfolio_item.empty()) {
 //        for (int i = 0; i < m_portfolio_item.size(); i++) {
 ////            std::string symbol = m_portfolio_item[i].m_symbol.toStdString();
-//            double current_price = QtCoreClient::getInstance() -> getLatestPriceBySymbol(m_portfolio_item[i]);
+//            double current_price = QtCoreClient::getInstance() -> getLatestPrice(m_portfolio_item[i]);
 //            double unrealized_pl = (current_price - QtCoreClient::getInstance() -> getPortfolioItems()[m_portfolio_item[i]].getPrice()) * QtCoreClient::getInstance() -> getPortfolioItems()[m_portfolio_item[i]].getShares();
 //            total_PL += unrealized_pl;
 //            double current_pl = unrealized_pl +  QtCoreClient::getInstance() -> getPortfolioItems()[m_portfolio_item[i]].getPL();

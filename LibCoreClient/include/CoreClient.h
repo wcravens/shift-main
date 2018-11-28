@@ -49,21 +49,20 @@ public:
     // Portfolio methods
     PortfolioSummary getPortfolioSummary();
     std::map<std::string, PortfolioItem> getPortfolioItems();
-    PortfolioItem getPortfolioItemBySymbol(const std::string& symbol);
+    PortfolioItem getPortfolioItem(const std::string& symbol);
     int getSubmittedOrdersSize();
     std::vector<shift::Order> getSubmittedOrders();
     int getWaitingListSize();
     std::vector<shift::Order> getWaitingList();
-    void cancelAllPendingOrders();    static int s_writer(char* data, size_t size, size_t nmemb, std::string* buffer);
-
+    void cancelAllPendingOrders();
 
     // Price methods
-    double getOpenPriceBySymbol(const std::string& symbol);
-    double getLastPriceBySymbol(const std::string& symbol);
-    double getClosePriceBySymbol(const std::string& symbol, bool buy, int size);
+    double getOpenPrice(const std::string& symbol);
+    double getLastPrice(const std::string& symbol);
+    double getClosePrice(const std::string& symbol, bool buy, int size);
 
     // Order book methods
-    shift::BestPrice getBestPriceBySymbol(const std::string& symbol);
+    shift::BestPrice getBestPrice(const std::string& symbol);
     std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, const OrderBook::Type& type);
     std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type);
 
@@ -71,16 +70,16 @@ public:
     std::vector<std::string> getStockList();
     void requestCompanyNames();
     std::map<std::string, std::string> getCompanyNames();
-    std::string getCompanyNameBySymbol(const std::string& symbol);
+    std::string getCompanyName(const std::string& symbol);
 
     // Sample prices
     bool requestSamplePrices(std::vector<std::string> symbols, double samplingFrequency = 1, unsigned int samplingWindow = 31);
     bool cancelSamplePricesRequest(const std::vector<std::string>& symbols);
     bool cancelAllSamplePricesRequests();
-    int getSamplePricesSizeBySymbol(const std::string& symbol);
-    std::list<double> getSamplePricesBySymbol(const std::string& symbol, bool midPrices = false);
-    int getLogReturnsSizeBySymbol(const std::string& symbol);
-    std::list<double> getLogReturnsBySymbol(const std::string& symbol, bool midPrices = false);
+    int getSamplePricesSize(const std::string& symbol);
+    std::list<double> getSamplePrices(const std::string& symbol, bool midPrices = false);
+    int getLogReturnsSize(const std::string& symbol);
+    std::list<double> getLogReturns(const std::string& symbol, bool midPrices = false);
 
     // Subscription methods
     bool subOrderBook(const std::string& symbol);
@@ -105,11 +104,11 @@ protected:
     void storeWaitingList(const std::vector<shift::Order>& waitingList);
 
     // FIXInitiator callback methods
-    virtual void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp){};
-    virtual void receiveLastPrice(const std::string& symbol){};
-    virtual void receivePortfolioSummary(){};
-    virtual void receivePortfolioItem(const std::string& symbol){};
-    virtual void receiveWaitingList(){};
+    virtual void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp){}
+    virtual void receiveLastPrice(const std::string& symbol){}
+    virtual void receivePortfolioSummary(){}
+    virtual void receivePortfolioItem(const std::string& symbol){}
+    virtual void receiveWaitingList(){}
 
     // Sample prices
     void calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow);

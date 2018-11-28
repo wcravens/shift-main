@@ -76,7 +76,7 @@ void CandlePlot::refresh(QString symbol)
     if (symbol != m_current_symbol)
         m_current_symbol = symbol;
 
-    QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyNameBySymbol(m_current_symbol.toStdString()));
+    QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyName(m_current_symbol.toStdString()));
     setTitle(m_current_symbol + (companyName == "" ? "" : " (" + companyName + ")"));
 
     qDebug()<<m_current_symbol;
