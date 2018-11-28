@@ -31,7 +31,7 @@ QwtText CandlePlotPicker::trackerTextF(const QPointF& pos) const
         QwtOHLCSample sample;
         if (m_candle_data_set->getSampleByTimestamp(timestamp, sample)) {
             QString text;
-            text.append(QString(QDateTime::fromMSecsSinceEpoch(timestamp).toString("dddd, MMMM dd, hh:mm:ss") + "\n"));
+            text.append(QString(QDateTime::fromMSecsSinceEpoch(timestamp, Qt::UTC).toString("dddd, MMMM dd, hh:mm:ss") + "\n"));
             text.append(QString("Open  %1\n").arg(sample.open, 2));
             text.append(QString("High  %1\n").arg(sample.high, 2));
             text.append(QString("Low   %1\n").arg(sample.low, 2));

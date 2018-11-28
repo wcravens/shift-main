@@ -108,7 +108,7 @@ void UserClient::sendPortfolioToFront()
 
             double tradedPrice = it->second.getPrice();
             bool buy = (currentShares < 0);
-            double closePrice = (currentShares == 0) ? 0.0 : getClosePriceBySymbol(symbol, buy, currentShares / 100);
+            double closePrice = (currentShares == 0) ? 0.0 : getClosePrice(symbol, buy, currentShares / 100);
             double unrealizedPL = (closePrice - tradedPrice) * currentShares;
             portfolioUnrealizedPL += unrealizedPL;
             auto pl = decimalTruncate(it->second.getPL() + unrealizedPL, 2);

@@ -14,7 +14,7 @@ QwtText NavPicker::trackerTextF(const QPointF& pos) const
     long long timestamp = pos.x();
 
     QString timeText;
-    timeText.append(QDateTime::fromMSecsSinceEpoch(timestamp).toString("yyyy-MM-dd hh:mm:ss"));
+    timeText.append(QDateTime::fromMSecsSinceEpoch(timestamp, Qt::UTC).toString("yyyy-MM-dd hh:mm:ss"));
 
     return QwtText(timeText);
 }

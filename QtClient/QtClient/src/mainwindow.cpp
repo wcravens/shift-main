@@ -37,7 +37,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     // connect signal and slot
     connect(&Global::qt_core_client, &QtCoreClient::updateWaitingList, &m_waiting_list_model, &WaitingListModel::receiveWaitingList);
-    connect(&Global::qt_core_client, &QtCoreClient::updatePortfolio, &m_portfolio_model, &PortfolioModel::receivePortfolio);
+    connect(&Global::qt_core_client, &QtCoreClient::updatePortfolioItem, &m_portfolio_model, &PortfolioModel::updatePortfolioItem);
+    connect(&Global::qt_core_client, &QtCoreClient::updatePortfolioSummary, &m_portfolio_model, &PortfolioModel::updatePortfolioSummary);
     connect(&Global::qt_core_client, &QtCoreClient::stocklistReady, &m_overview_model, &OverviewModel::receiveStocklistReady);
     connect(m_chart_dialog, &ChartDialog::dataLoaded, this, &MainWindow::hideLoadingLabel);
     connect(&m_overview_model, &OverviewModel::sentOpenPrice, m_order_book_dialog, &OrderBookDialog::receiveOpenPrice);

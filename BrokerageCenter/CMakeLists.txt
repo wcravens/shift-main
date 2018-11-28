@@ -41,6 +41,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/Stock.h
     ${PROJECT_SOURCE_DIR}/include/CandlestickData.h
     ${PROJECT_SOURCE_DIR}/include/TempCandlestickData.h
+    ${PROJECT_SOURCE_DIR}/include/TokenPool.h
     ${PROJECT_SOURCE_DIR}/include/Transaction.h
 )
 
@@ -58,6 +59,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/Stock.cpp
     ${PROJECT_SOURCE_DIR}/src/CandlestickData.cpp
     ${PROJECT_SOURCE_DIR}/src/TempCandlestickData.cpp
+    ${PROJECT_SOURCE_DIR}/src/TokenPool.cpp
 )
 
 set(OTHER

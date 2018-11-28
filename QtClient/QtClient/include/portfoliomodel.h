@@ -67,7 +67,8 @@ signals:
     void updateTotalPL(double total_PL);
 
 public slots:
-    void receivePortfolio(std::string symbol);
+    void updatePortfolioItem(std::string symbol);
+    void updatePortfolioSummary();
     void refreshPortfolioPL();
 
 protected:

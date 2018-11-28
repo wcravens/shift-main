@@ -96,8 +96,8 @@ void MainClient::sendOrderBookToFront()
             if (res == "") {
                 res = "{ \"bookType\": \"" + std::string(1, type) + "\",\"size\": \"0\"}";
             }
-            double lastPrice = getLastPriceBySymbol(symbol);
-            double diff = lastPrice - getOpenPriceBySymbol(symbol);
+            double lastPrice = getLastPrice(symbol);
+            double diff = lastPrice - getOpenPrice(symbol);
             std::ostringstream out;
             out << "{ "
                 << "\"category\":"
@@ -105,7 +105,7 @@ void MainClient::sendOrderBookToFront()
                 << "\"lastPrice\": "
                 << "\"" << lastPrice << "\","
                 << "\"rate\": "
-                << "\"" << ((getOpenPriceBySymbol(symbol) == 0) ? 0.0 : diff / getOpenPriceBySymbol(symbol)) << "\","
+                << "\"" << ((getOpenPrice(symbol) == 0) ? 0.0 : diff / getOpenPrice(symbol)) << "\","
                 << "\"diff\": "
                 << "\"" << diff << "\","
                 << "\"data\":["
@@ -129,13 +129,13 @@ void MainClient::receiveRequestFromPHP()
 void MainClient::sendOverviewInfoToFront()
 {
     for (const std::string& symbol : getStockList()) {
-        shift::BestPrice price = getBestPriceBySymbol(symbol);
+        shift::BestPrice price = getBestPrice(symbol);
         std::ostringstream out;
         out << "{\"category\": \"bestPrice\", \"data\":{ "
             << "\"symbol\": "
             << "\"" << symbol << "\","
             << "\"lastPrice\": "
-            << "\"" << getLastPriceBySymbol(symbol) << "\","
+            << "\"" << getLastPrice(symbol) << "\","
             << "\"best_bid_price\": "
             << "\"" << price.getBidPrice() << "\","
             << "\"best_bid_size\": "
@@ -152,14 +152,14 @@ void MainClient::sendOverviewInfoToFront()
 void MainClient::sendLastPriceToFront()
 {
     for (auto symbol : getStockList()) {
-        double lastPrice = getLastPriceBySymbol(symbol);
-        double diff = lastPrice - getOpenPriceBySymbol(symbol);
+        double lastPrice = getLastPrice(symbol);
+        double diff = lastPrice - getOpenPrice(symbol);
         std::ostringstream out;
         out << "{\"category\": \"lastPriceView_" << symbol << "\", \"data\":{ "
             << "\"lastPrice\": "
             << "\"" << lastPrice << "\","
             << "\"rate\": "
-            << "\"" << ((getOpenPriceBySymbol(symbol) == 0) ? 0.0 : diff / getOpenPriceBySymbol(symbol)) << "\","
+            << "\"" << ((getOpenPrice(symbol) == 0) ? 0.0 : diff / getOpenPrice(symbol)) << "\","
             << "\"diff\": "
             << "\"" << diff << "\""
             << "} }";

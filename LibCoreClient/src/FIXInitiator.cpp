@@ -78,7 +78,7 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     m_verbose = verbose;
 
     std::string senderCompID = m_username;
-    convertToUpperCase(senderCompID);
+    std::transform(senderCompID.begin(), senderCompID.end(), senderCompID.begin(), ::toupper);
 
     FIX::SessionSettings settings(cfgFile);
     FIX::Dictionary commonDict = settings.get();
@@ -234,7 +234,7 @@ std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
 
 shift::CoreClient* shift::FIXInitiator::getMainClient()
 {
-    return getClientByName(m_username);
+    return getClient(m_username);
 }
 
 /**
@@ -242,7 +242,7 @@ shift::CoreClient* shift::FIXInitiator::getMainClient()
  * 
  * @param name as a string to provide the client name.
  */
-shift::CoreClient* shift::FIXInitiator::getClientByName(const std::string& name)
+shift::CoreClient* shift::FIXInitiator::getClient(const std::string& name)
 {
     if (m_username_client.find(name) != m_username_client.end()) {
         return m_username_client[name];
@@ -256,11 +256,6 @@ shift::CoreClient* shift::FIXInitiator::getClientByName(const std::string& name)
 bool shift::FIXInitiator::isConnected()
 {
     return m_connected;
-}
-
-inline void shift::FIXInitiator::convertToUpperCase(std::string& str)
-{
-    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
 }
 
 /**
@@ -571,8 +566,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         qtyGroup.get(shortQty);
 
         try {
-            getClientByName(userName)->storePortfolioItem(symbol, longQty - shortQty, price, realizedPL);
-            getClientByName(userName)->receivePortfolioItem(symbol);
+            getClient(userName)->storePortfolioItem(symbol, longQty - shortQty, price, realizedPL);
+            getClient(userName)->receivePortfolioItem(symbol);
         } catch (...) {
             return;
         }
@@ -593,8 +588,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         buyingPowerGroup.get(totalBuyingPower);
 
         try {
-            getClientByName(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
-            getClientByName(userName)->receivePortfolioSummary();
+            getClient(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
+            getClient(userName)->receivePortfolioSummary();
         } catch (...) {
             return;
         }
@@ -699,9 +694,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 
         try {
             // store the data in target client
-            getClientByName(username)->storeWaitingList(waitingList);
+            getClient(username)->storeWaitingList(waitingList);
             // notify target client
-            getClientByName(username)->receiveWaitingList();
+            getClient(username)->receiveWaitingList();
         } catch (...) {
             return;
         }
@@ -953,7 +948,7 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
  * @param symbol The name of the symbol to be searched as a string.
  * @return The result open price as a double.
  */
-double shift::FIXInitiator::getOpenPriceBySymbol(const std::string& symbol)
+double shift::FIXInitiator::getOpenPrice(const std::string& symbol)
 {
     std::lock_guard<std::mutex> opGuard(m_mutex_openPrices);
     if (m_openPrices.find(symbol) != m_openPrices.end()) {
@@ -969,7 +964,7 @@ double shift::FIXInitiator::getOpenPriceBySymbol(const std::string& symbol)
  * @param symbol The name of the symbol to be searched as a string.
  * @return The result last price as a double.
  */
-double shift::FIXInitiator::getLastPriceBySymbol(const std::string& symbol)
+double shift::FIXInitiator::getLastPrice(const std::string& symbol)
 {
     return m_lastPrices[symbol];
 }
@@ -981,7 +976,7 @@ double shift::FIXInitiator::getLastPriceBySymbol(const std::string& symbol)
  * 
  * @return shift::BestPrice for the target symbol.
  */
-shift::BestPrice shift::FIXInitiator::getBestPriceBySymbol(const std::string& symbol)
+shift::BestPrice shift::FIXInitiator::getBestPrice(const std::string& symbol)
 {
     shift::BestPrice bp = shift::BestPrice(m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestPrice(),
         m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestSize(),
@@ -1045,18 +1040,6 @@ std::vector<std::string> shift::FIXInitiator::getStockList()
     return m_stockList;
 }
 
-/* static */ int shift::FIXInitiator::s_writer(char* data, size_t size, size_t nmemb, std::string* buffer)
-{
-    int result = 0;
-
-    if (buffer != NULL) {
-        buffer->append(data, size * nmemb);
-        result = size * nmemb;
-    }
-
-    return result;
-}
-
 void shift::FIXInitiator::fetchCompanyName(const std::string tickerName)
 {
     // Find the target url
@@ -1079,9 +1062,21 @@ void shift::FIXInitiator::fetchCompanyName(const std::string tickerName)
     curl = curl_easy_init(); // Initilise web query
 
     if (curl) {
+        typedef size_t(*CURL_WRITEFUNCTION_PTR)(char*, size_t, size_t, std::string*);
+        auto sWriter = [](char* data, size_t size, size_t nmemb, std::string* buffer)
+        {
+            size_t result = 0;
+
+            if (buffer != nullptr) {
+                buffer->append(data, size * nmemb);
+                result = size * nmemb;
+            }
+
+            return result;
+        };
         // Since curl is a C library, need to cast url into c string to process, same for HTML
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, shift::FIXInitiator::s_writer); // manages the required buffer size
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, static_cast<CURL_WRITEFUNCTION_PTR>(sWriter)); // manages the required buffer size
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &html); // Data Pointer HTML stores downloaded web content
     } else {
         debugDump("Error creating curl object!");
@@ -1121,7 +1116,7 @@ std::map<std::string, std::string> shift::FIXInitiator::getCompanyNames()
     return m_companyNames;
 }
 
-std::string shift::FIXInitiator::getCompanyNameBySymbol(const std::string& symbol)
+std::string shift::FIXInitiator::getCompanyName(const std::string& symbol)
 {
     std::lock_guard<std::mutex> cnGuard(m_mutex_companyNames);
     return m_companyNames[symbol];
@@ -1201,7 +1196,7 @@ std::vector<std::string> shift::FIXInitiator::getSubscribedOrderBookList()
 
 bool shift::FIXInitiator::subCandleData(const std::string& symbol)
 {
-    if (getLastPriceBySymbol(symbol) == 0.0) {
+    if (getLastPrice(symbol) == 0.0) {
         return false;
     }
 

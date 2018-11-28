@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
         return 1;
     }
     // cout << "##########################################################" << endl;
-    // cmdExtract.serialize(cout);
+    cmdExtract.serialize(cout);
     // cout << "\n##########################################################" << endl;
 
     cout << "Requesting Extraction..." << endl;
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     auto extrRawJobID = utility::string_t("");
     try {
         client.request(req).then([&extrRawJobID](web::http::http_response resp) {
-                               cout << std::setw(20) << std::right << "Status:  " << resp.status_code() << endl;
+	                           cout << std::setw(20) << std::right << "Status:  " << resp.to_string() << endl;
                                cout << std::setw(20) << std::right << "Reason:  " << resp.reason_phrase() << endl;
 
                                // utility::ofstream_t outf("extracted.html");

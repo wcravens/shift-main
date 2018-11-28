@@ -62,8 +62,12 @@ void QtCoreClient::receiveLastPrice(const std::string& symbol) {
 
 void QtCoreClient::receivePortfolioItem(const std::string& symbol)
 {
-    qDebug()<< symbol.c_str();
-    emit updatePortfolio(symbol);
+    emit updatePortfolioItem(symbol);
+}
+
+void QtCoreClient::receivePortfolioSummary()
+{
+    emit updatePortfolioSummary();
 }
 
 /**

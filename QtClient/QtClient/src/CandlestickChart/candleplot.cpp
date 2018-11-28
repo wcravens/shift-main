@@ -14,7 +14,7 @@ CandlePlot::CandlePlot(QWidget* parent)
     setTitle("Candlestick Chart");
 
     // since data is in GMT, current time is UTC, set offset as 14400
-    m_date_scale_draw = new DateScaleDraw(Qt::OffsetFromUTC);
+    m_date_scale_draw = new DateScaleDraw(Qt::UTC);
 
     QDateTime utcTime = QDateTime::currentDateTime().toUTC();
     QDateTime localTime(utcTime.date(), utcTime.time(), Qt::LocalTime);
@@ -76,7 +76,7 @@ void CandlePlot::refresh(QString symbol)
     if (symbol != m_current_symbol)
         m_current_symbol = symbol;
 
-    QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyNameBySymbol(m_current_symbol.toStdString()));
+    QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyName(m_current_symbol.toStdString()));
     setTitle(m_current_symbol + (companyName == "" ? "" : " (" + companyName + ")"));
 
     qDebug()<<m_current_symbol;
@@ -135,14 +135,14 @@ void CandlePlot::receiveData(QString symbol, long long timestamp,
         m_candle_data[symbol] = new CandleDataSet(symbol);
 
     if (timestamp - m_last_interval[symbol] < m_frequency) {
-        QDateTime qtime = QDateTime::fromMSecsSinceEpoch(timestamp);
+        QDateTime qtime = QDateTime::fromMSecsSinceEpoch(timestamp, Qt::UTC);
         double qwtTime = QwtDate::toDouble(qtime);
 
         QwtOHLCSample sample(qwtTime, open, high, low, close);
         m_candle_data[symbol]->update(sample);
     } else {
         m_last_interval[symbol] += m_frequency;
-        QDateTime qtime = QDateTime::fromMSecsSinceEpoch(timestamp);
+        QDateTime qtime = QDateTime::fromMSecsSinceEpoch(timestamp, Qt::UTC);
         double qwtTime = QwtDate::toDouble(qtime);
 
         m_candle_data[symbol]->append(QwtOHLCSample(qwtTime, open, high, low, close));
