@@ -3,7 +3,7 @@
 #include <ctime>
 #include <string>
 
-class TempStockSummary {
+class TempCandlestickData {
     std::string m_symbol;
     std::time_t m_tempTimeFrom;
     double m_tempOpenPrice;
@@ -12,8 +12,8 @@ class TempStockSummary {
     double m_tempLowPrice;
 
 public:
-    TempStockSummary();
-    TempStockSummary(std::string symbol, double tempOpenPrice, double tempClosePrice, double tempHighPrice, double tempLowPrice, std::time_t tempTimeFrom);
+    TempCandlestickData();
+    TempCandlestickData(std::string symbol, double tempOpenPrice, double tempClosePrice, double tempHighPrice, double tempLowPrice, std::time_t tempTimeFrom);
 
     std::time_t getTempTimeFrom() const;
     const std::string& getSymbol() const;

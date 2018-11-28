@@ -1,4 +1,4 @@
-#include "StockSummary.h"
+#include "CandlestickData.h"
 
 #include "BCDocuments.h"
 #include "FIXAcceptor.h"
@@ -29,7 +29,7 @@
 #define DEBUG_PERFORMANCE_COUNTER_S(_NAME, _LABEL, _STRIDE)
 #endif
 
-StockSummary::StockSummary()
+CandlestickData::CandlestickData()
     : m_currPrice{ .0 }
     , m_currOpenPrice{ .0 }
     , m_currClosePrice{ .0 }
@@ -39,7 +39,7 @@ StockSummary::StockSummary()
 {
 }
 
-StockSummary::StockSummary(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
+CandlestickData::CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
     : m_symbol(std::move(symbol))
     , m_currPrice{ currPrice }
     , m_currOpenPrice{ currOpenPrice }
@@ -51,24 +51,24 @@ StockSummary::StockSummary(std::string symbol, double currPrice, double currOpen
 {
 }
 
-StockSummary::~StockSummary()
+CandlestickData::~CandlestickData()
 {
     shift::concurrency::notifyConsumerThreadToQuit(m_quitFlag, m_cvSS, *m_th);
     m_th = nullptr;
 }
 
-const std::string& StockSummary::getSymbol() const
+const std::string& CandlestickData::getSymbol() const
 {
     return m_symbol;
 }
 
-/*static*/ std::time_t StockSummary::s_nowUnixTimestamp() noexcept
+/*static*/ std::time_t CandlestickData::s_nowUnixTimestamp() noexcept
 {
     auto tnow = boost::posix_time::to_tm(boost::posix_time::microsec_clock::local_time());
     return std::mktime(&tnow);
 }
 
-/*static*/ std::time_t StockSummary::s_toUnixTimestamp(const std::string& time) noexcept
+/*static*/ std::time_t CandlestickData::s_toUnixTimestamp(const std::string& time) noexcept
 {
     struct std::tm tm;
     ::strptime(time.c_str(), CSTR_TIME_FORMAT_YMDHMS, &tm);
@@ -76,7 +76,7 @@ const std::string& StockSummary::getSymbol() const
     return t;
 }
 
-void StockSummary::enqueueTransaction(const Transaction& t)
+void CandlestickData::enqueueTransaction(const Transaction& t)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxTransacBuff);
@@ -86,13 +86,13 @@ void StockSummary::enqueueTransaction(const Transaction& t)
     m_cvSS.notify_one();
 }
 
-void StockSummary::process()
+void CandlestickData::process()
 {
     thread_local auto quitFut = m_quitFlag.get_future();
 
-    auto writeStockSummaryHistory = [this](const TempStockSummary& tempSS) {
+    auto writeCandlestickDataHistory = [this](const TempCandlestickData& tmpCandle) {
         std::lock_guard<std::mutex> guard(m_mtxHistory);
-        m_history[m_currOpenTime] = tempSS;
+        m_history[m_currOpenTime] = tmpCandle;
     };
 
     while (true) {
@@ -124,9 +124,9 @@ void StockSummary::process()
 
                     m_currOpenTime++;
 
-                    TempStockSummary tempSS(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
-                    sendCurrentStockSummary(tempSS);
-                    writeStockSummaryHistory(tempSS);
+                    TempCandlestickData tmpCandle(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
+                    sendCurrentCandlestickData(tmpCandle);
+                    writeCandlestickDataHistory(tmpCandle);
                 }
             }
 
@@ -142,17 +142,17 @@ void StockSummary::process()
 
             const auto startTime = s_nowUnixTimestamp(); // begin the timing...
             while (1 == m_tranBufSizeAtom) {
-                if (s_nowUnixTimestamp() - startTime <= 1) { // elapsed NO more than 1 sec ?
-                    DEBUG_PERFORMANCE_COUNTER_S(pc3, "###########", 100000);
-                    continue; // timer counting continues...
+                if (s_nowUnixTimestamp() - startTime > 1) { // elapsed more than 1 sec ?
+                    DEBUG_PERFORMANCE_COUNTER_S(pc4, "%%%%%%%%%%%", 1);
+
+                    m_currClosePrice = m_currPrice;
+                    writeCandlestickDataHistory({ m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime });
+                    m_lastTransacSent = true;
+
+                    break;
                 }
-                DEBUG_PERFORMANCE_COUNTER_S(pc4, "%%%%%%%%%%%", 1);
-
-                m_currClosePrice = m_currPrice;
-                writeStockSummaryHistory({ m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime });
-                m_lastTransacSent = true;
-
-                break;
+                DEBUG_PERFORMANCE_COUNTER_S(pc3, "###########", 100000);
+                // timer counting continues...
             }
 
             continue; // process next transaction immediately
@@ -167,52 +167,52 @@ void StockSummary::process()
             DEBUG_PERFORMANCE_COUNTER(pc6, "notsent2")
             // finish and send current window
 
-            TempStockSummary tempSS(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
-            sendCurrentStockSummary(tempSS);
-            writeStockSummaryHistory(tempSS);
+            TempCandlestickData tmpCandle(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
+            sendCurrentCandlestickData(tmpCandle);
+            writeCandlestickDataHistory(tmpCandle);
 
             m_lastTransacSent = true;
         }
     }
 }
 
-void StockSummary::spawn()
+void CandlestickData::spawn()
 {
-    m_th.reset(new std::thread(&StockSummary::process, this));
+    m_th.reset(new std::thread(&CandlestickData::process, this));
 }
 
-void StockSummary::sendCurrentStockSummary(const TempStockSummary& tempSS)
+void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpCandle)
 {
-    std::lock_guard<std::mutex> guard(m_mtxSSUserList);
+    std::lock_guard<std::mutex> guard(m_mtxCDUserList);
     for (const auto& userName : m_userList)
-        FIXAcceptor::instance()->sendTempStockSummary(userName, tempSS);
+        FIXAcceptor::instance()->sendTempCandlestickData(userName, tmpCandle);
 }
 
-void StockSummary::sendHistory(const std::string userName)
+void CandlestickData::sendHistory(const std::string userName)
 {
-    std::map<std::time_t, TempStockSummary> history;
+    std::map<std::time_t, TempCandlestickData> history;
     {
         std::lock_guard<std::mutex> guard(m_mtxHistory);
         history = m_history;
     }
     for (const auto& i : history) {
-        FIXAcceptor::instance()->sendTempStockSummary(userName, i.second);
+        FIXAcceptor::instance()->sendTempCandlestickData(userName, i.second);
     }
 }
 
-void StockSummary::registerUserInSS(const std::string& userName)
+void CandlestickData::registerUserInSS(const std::string& userName)
 {
-    std::thread(&StockSummary::sendHistory, this, userName).detach();
+    std::thread(&CandlestickData::sendHistory, this, userName).detach();
     {
-        std::lock_guard<std::mutex> guard(m_mtxSSUserList);
+        std::lock_guard<std::mutex> guard(m_mtxCDUserList);
         m_userList.insert(userName);
     }
     BCDocuments::instance()->addCandleSymbolToUser(userName, m_symbol);
 }
 
-void StockSummary::unregisterUserInSS(const std::string& userName)
+void CandlestickData::unregisterUserInSS(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guard(m_mtxSSUserList);
+    std::lock_guard<std::mutex> guard(m_mtxCDUserList);
     auto it = m_userList.find(userName);
     if (it != m_userList.end()) {
         m_userList.erase(it);
@@ -221,7 +221,7 @@ void StockSummary::unregisterUserInSS(const std::string& userName)
 
 //----------------------------------------------------------------------------
 
-// /*static*/ std::string StockSummary::s_toNormalTime(std::time_t t)
+// /*static*/ std::string CandlestickData::s_toNormalTime(std::time_t t)
 // {
 //     struct std::tm* tm = std::localtime(&t);
 //     char normalTimeC[20];

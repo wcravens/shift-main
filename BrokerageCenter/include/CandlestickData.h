@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TempStockSummary.h"
+#include "TempCandlestickData.h"
 #include "Transaction.h"
 
 #include <atomic>
@@ -15,7 +15,7 @@
 #include <thread>
 #include <unordered_set>
 
-class StockSummary {
+class CandlestickData {
 private:
     std::string m_symbol;
     double m_currPrice;
@@ -30,10 +30,10 @@ private:
     std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
 
     std::unordered_set<std::string> m_userList; // userName
-    std::map<std::time_t, TempStockSummary> m_history;
+    std::map<std::time_t, TempCandlestickData> m_history;
 
     mutable std::mutex m_mtxTransacBuff;
-    mutable std::mutex m_mtxSSUserList;
+    mutable std::mutex m_mtxCDUserList;
     mutable std::mutex m_mtxHistory;
 
     std::unique_ptr<std::thread> m_th;
@@ -41,11 +41,11 @@ private:
     std::promise<void> m_quitFlag;
 
 public:
-    StockSummary();
-    StockSummary(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime);
-    ~StockSummary();
+    CandlestickData();
+    CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime);
+    ~CandlestickData();
 
-    void sendCurrentStockSummary(const TempStockSummary& tempSS);
+    void sendCurrentCandlestickData(const TempCandlestickData& tmpCandle);
     void sendHistory(const std::string userName);
 
     const std::string& getSymbol() const;

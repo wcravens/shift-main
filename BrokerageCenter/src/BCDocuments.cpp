@@ -42,7 +42,7 @@ void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction
     auto& candPtr = res.first->second;
     if (res.second) { // inserted new?
         candPtr.reset(
-            new StockSummary(
+            new CandlestickData(
                 transac.symbol,
                 transac.price,
                 transac.price,

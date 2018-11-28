@@ -369,7 +369,7 @@ void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<doub
     FIX::Session::sendToTarget(message);
 }
 
-void FIXAcceptor::sendTempStockSummary(const std::string& userName, const TempStockSummary& tempSS)
+void FIXAcceptor::sendTempCandlestickData(const std::string& userName, const TempCandlestickData& tmpCandle)
 { //for candlestick data
     const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
@@ -385,12 +385,12 @@ void FIXAcceptor::sendTempStockSummary(const std::string& userName, const TempSt
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
 
-    message.setField(FIX::Symbol(tempSS.getSymbol()));
-    message.setField(FIX::Text(std::to_string(tempSS.getTempTimeFrom()))); // no need for timestamp
-    message.setField(FIX::StrikePrice(tempSS.getTempOpenPrice())); // Open price
-    message.setField(FIX::HighPx(tempSS.getTempHighPrice())); // High price
-    message.setField(FIX::LowPx(tempSS.getTempLowPrice())); // Low price
-    message.setField(FIX::LastPx(tempSS.getTempClosePrice())); // Close price
+    message.setField(FIX::Symbol(tmpCandle.getSymbol()));
+    message.setField(FIX::Text(std::to_string(tmpCandle.getTempTimeFrom()))); // no need for timestamp
+    message.setField(FIX::StrikePrice(tmpCandle.getTempOpenPrice())); // Open price
+    message.setField(FIX::HighPx(tmpCandle.getTempHighPrice())); // High price
+    message.setField(FIX::LowPx(tmpCandle.getTempLowPrice())); // Low price
+    message.setField(FIX::LastPx(tmpCandle.getTempClosePrice())); // Close price
 
     FIX::Session::sendToTarget(message);
 }

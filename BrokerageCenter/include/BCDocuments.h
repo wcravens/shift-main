@@ -5,7 +5,7 @@
 #include "Report.h"
 #include "RiskManagement.h"
 #include "Stock.h"
-#include "StockSummary.h"
+#include "CandlestickData.h"
 #include "Transaction.h"
 
 #include <mutex>
@@ -41,7 +41,7 @@ class BCDocuments {
     std::unordered_map<std::string, std::string> m_mapName2TarID; // map from User Name to Target Computer ID
 
     std::unordered_map<std::string, std::unique_ptr<Stock>> m_stockBySymbol; // symbol, Stock; contains 4 types of orderbook for each stock
-    std::unordered_map<std::string, std::unique_ptr<StockSummary>> m_candleBySymbol; // symbol, StockSummery; contains current price and candle data history for each stock
+    std::unordered_map<std::string, std::unique_ptr<CandlestickData>> m_candleBySymbol; // symbol, StockSummery; contains current price and candle data history for each stock
     std::unordered_map<std::string, std::unique_ptr<RiskManagement>> m_riskManagementByName; // UserName, RiskManagement
     std::unordered_map<std::string, std::unordered_set<std::string>> m_orderbookSymbolsByName; // UserName, symbols; for orderbook subscription
     std::unordered_map<std::string, std::unordered_set<std::string>> m_candleSymbolsByName; // UserName, symbols; for candle stick data subscription
