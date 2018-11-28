@@ -15,11 +15,11 @@ OrderBookEntry::OrderBookEntry() = default;
 
 /**
  * @brief   Constructs with corresponding parameters.
- * @param   bookType: The versioning of the Option Constract.
+ * @param   type: The versioning of the Option Constract.
  * @param	symbol: The symbol of the order.
  * @param   price: The price of order.
  * @param	size: The contract size.
- * @param   rate: The time passed by.
+ * @param   time: The time passed by.
  * @param   destination: The security ID used as destination.
  */
 OrderBookEntry::OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, double time, std::string destination)

@@ -183,8 +183,8 @@ void StockSummary::spawn()
 
 void StockSummary::sendCurrentStockSummary(const TempStockSummary& tempSS)
 {
-    std::lock_guard<std::mutex> guard(m_mtxSSClientList);
-    for (const auto& userName : m_clientList)
+    std::lock_guard<std::mutex> guard(m_mtxSSUserList);
+    for (const auto& userName : m_userList)
         FIXAcceptor::instance()->sendTempStockSummary(userName, tempSS);
 }
 
@@ -200,22 +200,22 @@ void StockSummary::sendHistory(const std::string userName)
     }
 }
 
-void StockSummary::registerClientInSS(const std::string& userName)
+void StockSummary::registerUserInSS(const std::string& userName)
 {
     std::thread(&StockSummary::sendHistory, this, userName).detach();
     {
-        std::lock_guard<std::mutex> guard(m_mtxSSClientList);
-        m_clientList.insert(userName);
+        std::lock_guard<std::mutex> guard(m_mtxSSUserList);
+        m_userList.insert(userName);
     }
-    BCDocuments::instance()->addCandleSymbolToClient(userName, m_symbol);
+    BCDocuments::instance()->addCandleSymbolToUser(userName, m_symbol);
 }
 
-void StockSummary::unregisterClientInSS(const std::string& userName)
+void StockSummary::unregisterUserInSS(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guard(m_mtxSSClientList);
-    auto it = m_clientList.find(userName);
-    if (it != m_clientList.end()) {
-        m_clientList.erase(it);
+    std::lock_guard<std::mutex> guard(m_mtxSSUserList);
+    auto it = m_userList.find(userName);
+    if (it != m_userList.end()) {
+        m_userList.erase(it);
     }
 }
 

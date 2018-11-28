@@ -2,6 +2,10 @@
 
 #include <string>
 
+/**
+*   @brief The "Position" item of the user's portfolio.
+*/
+
 class PortfolioItem {
     std::string m_symbol;
     double m_borrowedBalance;

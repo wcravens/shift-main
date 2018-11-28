@@ -43,12 +43,12 @@ void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction
     if (res.second) { // inserted new?
         candPtr.reset(
             new StockSummary(
-                transac.symbol, 
-                transac.price, 
-                transac.price, 
-                transac.price, 
-                transac.price, 
-                transac.price, 
+                transac.symbol,
+                transac.price,
+                transac.price,
+                transac.price,
+                transac.price,
+                transac.price,
                 transac.execTime.getTimeT()
             )
         );
@@ -57,7 +57,7 @@ void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction
     candPtr->enqueueTransaction(transac);
 }
 
-void BCDocuments::addRiskManagementToClient(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol)
+void BCDocuments::addRiskManagementToUser(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol)
 { //for low frequency client use
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
 
@@ -70,19 +70,20 @@ void BCDocuments::addRiskManagementToClient(const std::string& userName, double 
     }
 }
 
-auto BCDocuments::addRiskManagementToClientNoLock(const std::string& userName) -> decltype(m_riskManagementByName)::iterator
+auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> decltype(m_riskManagementByName)::iterator
 {
     auto res = m_riskManagementByName.emplace(userName, nullptr);
     if (res.second) {
         auto& rmPtr = res.first->second;
-        
+
+        const std::string table = 0 ? "traders" : "web_traders";
         auto summary = DBConnector::s_readFieldsOfRow(
             "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
-            "FROM web_traders INNER JOIN portfolio_summary ON web_traders.id = portfolio_summary.client_id\n"
+            "FROM " + table + " INNER JOIN portfolio_summary ON " + table + ".portfolio_id = portfolio_summary.portfolio_id\n"
             "WHERE username = '" + userName + "';"
             , 5
         );
-        
+
         if(summary.empty())
             rmPtr.reset(new RiskManagement(userName, 1e5));
         else
@@ -93,19 +94,18 @@ auto BCDocuments::addRiskManagementToClientNoLock(const std::string& userName) -
     return res.first;
 }
 
-void BCDocuments::addQuoteToClientRiskManagement(const std::string& userName, const Quote& quote)
+void BCDocuments::addQuoteToUserRiskManagement(const std::string& userName, const Quote& quote)
 {
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-    addRiskManagementToClientNoLock(userName);
+    addRiskManagementToUserNoLock(userName);
     m_riskManagementByName[userName]->enqueueQuote(quote);
 }
 
-void BCDocuments::addReportToClientRiskManagement(const std::string& userName, const Report& report)
+void BCDocuments::addReportToUserRiskManagement(const std::string& userName, const Report& report)
 {
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
     if ("TR" == userName)
         return;
-
+    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
     m_riskManagementByName[userName]->enqueueExecRpt(report);
 }
 
@@ -139,46 +139,46 @@ double BCDocuments::getStockOrderBookMarketFirstPrice(bool isBuy, const std::str
     }
 }
 
-bool BCDocuments::manageStockOrderBookClient(bool isRegister, const std::string& symbol, const std::string& userName) const
+bool BCDocuments::manageStockOrderBookUser(bool isRegister, const std::string& symbol, const std::string& userName) const
 {
     std::lock_guard<std::mutex> guard(m_mtxStockBySymbol);
 
     auto pos = m_stockBySymbol.find(symbol);
     if (m_stockBySymbol.end() != pos) {
         if (isRegister)
-            pos->second->registerClientInStock(userName);
+            pos->second->registerUserInStock(userName);
         else // unregister
-            pos->second->unregisterClientInStock(userName);
+            pos->second->unregisterUserInStock(userName);
         return true;
     }
 
     return false;
 }
 
-bool BCDocuments::manageCandleStickDataClient(bool isRegister, const std::string& userName, const std::string& symbol) const
+bool BCDocuments::manageCandleStickDataUser(bool isRegister, const std::string& userName, const std::string& symbol) const
 {
     std::lock_guard<std::mutex> guard(m_mtxCandleBySymbol);
 
     auto pos = m_candleBySymbol.find(symbol);
     if (m_candleBySymbol.end() != pos) {
         if (isRegister)
-            pos->second->registerClientInSS(userName);
+            pos->second->registerUserInSS(userName);
         else
-            pos->second->unregisterClientInSS(userName);
+            pos->second->unregisterUserInSS(userName);
         return true;
     }
 
     return false;
 }
 
-int BCDocuments::sendHistoryToClient(const std::string& userName)
+int BCDocuments::sendHistoryToUser(const std::string& userName)
 {
     int res = 0;
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
 
     auto pos = m_riskManagementByName.find(userName);
     if (m_riskManagementByName.end() == pos) {
-        pos = addRiskManagementToClientNoLock(userName);
+        pos = addRiskManagementToUserNoLock(userName);
         res = 1;
     }
     pos->second->sendPortfolioHistory();
@@ -187,81 +187,83 @@ int BCDocuments::sendHistoryToClient(const std::string& userName)
     return res;
 }
 
-std::unordered_map<std::string, std::string> BCDocuments::getClientList()
+std::unordered_map<std::string, std::string> BCDocuments::getUserList()
 {
-    std::lock_guard<std::mutex> guard(m_mtxName2ID);
-    return m_mapName2ID;
+    std::lock_guard<std::mutex> guard(m_mtxName2TarID);
+    return m_mapName2TarID;
 }
 
-std::string BCDocuments::getClientID(const std::string& name)
+std::string BCDocuments::getTargetID(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guard(m_mtxName2ID);
+    std::lock_guard<std::mutex> guard(m_mtxName2TarID);
 
-    auto pos = m_mapName2ID.find(name);
-    if (m_mapName2ID.end() != pos)
+    auto pos = m_mapName2TarID.find(userName);
+    if (m_mapName2TarID.end() != pos)
         return pos->second;
 
     return CSTR_NULL;
 }
 
-void BCDocuments::registerClient(const std::string& clientID, const std::string& userName)
+void BCDocuments::registerUserInDoc(const std::string& targetID, const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2ID);
+    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
+    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
 
-    m_mapID2Name[clientID] = userName;
-    m_mapName2ID[userName] = clientID;
+    m_mapTarID2Name[targetID] = userName;
+    m_mapName2TarID[userName] = targetID;
 }
 
-void BCDocuments::unregisterClientInDocs(const std::string& userName)
+void BCDocuments::unregisterUserInDoc(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2ID);
+    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
+    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
 
-    auto posN2ID = m_mapName2ID.find(userName);
-    if (m_mapName2ID.end() != posN2ID) {
-        m_mapID2Name.erase(posN2ID->second);
-        m_mapName2ID.erase(posN2ID);
+    auto posN2ID = m_mapName2TarID.find(userName);
+    if (m_mapName2TarID.end() != posN2ID) {
+        const auto& tarID = posN2ID->second;
+        m_mapTarID2Name.erase(tarID);
+
+        m_mapName2TarID.erase(posN2ID);
     }
 }
 
-std::string BCDocuments::getClientIDByName(const std::string& userName)
+std::string BCDocuments::getTargetIDByUserName(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxID2Name); // this is also needed to avoid potential deadlocks
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2ID);
+    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name); // this is also needed to avoid potential deadlocks
+    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
 
-    auto pos = m_mapName2ID.find(userName);
-    if (m_mapName2ID.end() == pos)
+    auto pos = m_mapName2TarID.find(userName);
+    if (m_mapName2TarID.end() == pos)
         return ::STDSTR_NULL;
 
     return pos->second;
 }
 
-std::string BCDocuments::getClientNameByID(const std::string& clientID)
+std::string BCDocuments::getUserNameByTargetID(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2ID); // this is also needed to avoid potential deadlocks
+    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
+    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID); // this is also needed to avoid potential deadlocks
 
-    auto pos = m_mapID2Name.find(clientID);
-    if (m_mapID2Name.end() == pos)
+    auto pos = m_mapTarID2Name.find(targetID);
+    if (m_mapTarID2Name.end() == pos)
         return ::STDSTR_NULL;
 
     return pos->second;
 }
 
-void BCDocuments::addOrderbookSymbolToClient(const std::string& userName, const std::string& symbol)
+void BCDocuments::addOrderbookSymbolToUser(const std::string& userName, const std::string& symbol)
 {
     std::lock_guard<std::mutex> guard(m_mtxOrderbookSymbolsByName);
     m_orderbookSymbolsByName[userName].insert(symbol);
 }
 
-void BCDocuments::addCandleSymbolToClient(const std::string& userName, const std::string& symbol)
+void BCDocuments::addCandleSymbolToUser(const std::string& userName, const std::string& symbol)
 {
     std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByName);
     m_candleSymbolsByName[userName].insert(symbol);
 }
 
-void BCDocuments::removeClientFromStocks(const std::string& userName)
+void BCDocuments::removeUserFromStocks(const std::string& userName)
 {
     std::lock_guard<std::mutex> guardSBS(m_mtxStockBySymbol);
     std::lock_guard<std::mutex> guardOSBN(m_mtxOrderbookSymbolsByName);
@@ -269,13 +271,13 @@ void BCDocuments::removeClientFromStocks(const std::string& userName)
     auto pos = m_orderbookSymbolsByName.find(userName);
     if (m_orderbookSymbolsByName.end() != pos) {
         for (const auto& stock : pos->second) {
-            m_stockBySymbol[stock]->unregisterClientInStock(userName);
+            m_stockBySymbol[stock]->unregisterUserInStock(userName);
         }
         m_orderbookSymbolsByName.erase(pos);
     }
 }
 
-void BCDocuments::removeClientFromCandles(const std::string& userName)
+void BCDocuments::removeUserFromCandles(const std::string& userName)
 {
     std::lock_guard<std::mutex> guardCSBN(m_mtxCandleSymbolsByName);
     std::lock_guard<std::mutex> guardCBS(m_mtxCandleBySymbol);
@@ -283,13 +285,13 @@ void BCDocuments::removeClientFromCandles(const std::string& userName)
     auto pos = m_candleSymbolsByName.find(userName);
     if (m_candleSymbolsByName.end() != pos) {
         for (const auto& stock : pos->second) {
-            m_candleBySymbol[stock]->unregisterClientInSS(userName);
+            m_candleBySymbol[stock]->unregisterUserInSS(userName);
         }
         m_candleSymbolsByName.erase(pos);
     }
 }
 
-void BCDocuments::removeCandleSymbolFromClient(const std::string& userName, const std::string& symbol)
+void BCDocuments::removeCandleSymbolFromUser(const std::string& userName, const std::string& symbol)
 {
     std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByName);
 
@@ -313,6 +315,8 @@ void BCDocuments::broadcastStocks() const
         i.second->broadcastWholeOrderBookToAll();
     }
 }
+
+//-------------------------------------------------------------------------------------------
 
 std::string toUpper(const std::string& str)
 {

@@ -1,4 +1,4 @@
-/* 
+/*
 ** DBConnector maintains the connection between BC and database
 */
 
@@ -30,7 +30,7 @@ public:
     PGconn* getConn() { return m_pConn; } // establish connection to database
     bool connectDB();
     void disconnectDB();
-    bool createClients(const std::string& symbol);
+    bool createUsers(const std::string& symbol);
 
     /*@brief Indicates table status when querying */
     enum class TABLE_STATUS : int {

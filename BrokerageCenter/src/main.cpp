@@ -1,4 +1,4 @@
-/* 
+/*
 ** This file contains the main function of BrokerageCenter
 **
 ** Function List:
@@ -45,7 +45,7 @@ using voh_t = shift::terminal::VerboseOptHelper;
 
 static std::atomic<bool> s_isBroadcasting{ true };
 
-/* 
+/*
  * @brief   Function to broadcast order books, for broadcast order book thread
  */
 static void s_broadcastOrderBook() // broadcasting the whole orderbook
@@ -60,8 +60,8 @@ static void s_broadcastOrderBook() // broadcasting the whole orderbook
 int main(int ac, char* av[])
 {
     /**
-     * @brief Centralizes and classifies all necessary parameters and 
-     * hides them behind one variable to ease understanding and debugging. 
+     * @brief Centralizes and classifies all necessary parameters and
+     * hides them behind one variable to ease understanding and debugging.
      */
     struct {
         std::string configDir;
@@ -171,13 +171,13 @@ int main(int ac, char* av[])
         }
     }
 
-    DBConnector::instance()->createClients("XYZ");
+    DBConnector::instance()->createUsers("XYZ");
 
     /*
      * @brief   Try to connect Matching Engine and waiting for client
      */
     FIXInitiator::instance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose);
-    FIXAcceptor::instance()->connectClients(params.configDir + "acceptor.cfg", params.isVerbose);
+    FIXAcceptor::instance()->connectClientComputers(params.configDir + "acceptor.cfg", params.isVerbose);
 
     /*
      * @brief   Create a broadcaster to broadcast all orderbook
@@ -216,13 +216,13 @@ int main(int ac, char* av[])
     }
 
     /*
-     * @brief   Close program 
+     * @brief   Close program
      */
     ::s_isBroadcasting = false; // to terminate broadcaster
     if (broadcaster.joinable())
         broadcaster.join(); // wait for termination
 
-    FIXAcceptor::instance()->disconnectClients();
+    FIXAcceptor::instance()->disconnectClientComputers();
     FIXInitiator::instance()->disconnectMatchingEngine();
 
     if (params.isVerbose) {

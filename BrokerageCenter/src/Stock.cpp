@@ -98,33 +98,33 @@ void Stock::stop()
 }
 
 /**
-*   @brief  Thread-safely registers a client to the list by user name.
-*	@param	userName: The user name of the client.
+*   @brief  Thread-safely registers a user to the list by user name.
+*	@param	userName: The name of the user to be registered.
 *   @return nothing
 */
-void Stock::registerClientInStock(const std::string& userName)
+void Stock::registerUserInStock(const std::string& userName)
 {
     broadcastWholeOrderBookToOne(userName);
     {
-        std::lock_guard<std::mutex> guard(m_mtxStockClientList);
-        m_clientList.insert(userName);
+        std::lock_guard<std::mutex> guard(m_mtxStockUserList);
+        m_userList.insert(userName);
     }
-    BCDocuments::instance()->addOrderbookSymbolToClient(userName, m_symbol);
+    BCDocuments::instance()->addOrderbookSymbolToUser(userName, m_symbol);
 }
 
 /**
-*   @brief  Thread-safely unregisters a client from the list by user name.
-*	@param	userName: The user name of the client.
+*   @brief  Thread-safely unregisters a user from the list by user name.
+*	@param	userName: The user name of the user.
 *   @return nothing
 */
-void Stock::unregisterClientInStock(const std::string& userName)
+void Stock::unregisterUserInStock(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guard(m_mtxStockClientList);
-    m_clientList.erase(userName);
+    std::lock_guard<std::mutex> guard(m_mtxStockUserList);
+    m_userList.erase(userName);
 }
 
 /**
-*   @brief  Thread-safely sends an orderbook's single update to all clients.
+*   @brief  Thread-safely sends an orderbook's single update to all users.
 *	@param	record: The OrderBook record to be sent.
 *   @return nothing
 */
@@ -157,12 +157,12 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& record)
         return;
     }
 
-    toWCPtr->SendOrderbookUpdate2All(m_clientList, record);
+    toWCPtr->sendOrderbookUpdate2All(m_userList, record);
 }
 
 /**
-*   @brief  Thread-safely sends complete order books to one user client.
-*	@param	userName: The user client to be sent to.
+*   @brief  Thread-safely sends complete order books to one user user.
+*	@param	userName: The user user to be sent to.
 *   @return nothing
 */
 void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
@@ -184,13 +184,13 @@ void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
 }
 
 /**
-*   @brief  Thread-safely sends complete order books to all clients.
+*   @brief  Thread-safely sends complete order books to all users.
 *   @return nothing
 */
 void Stock::broadcastWholeOrderBookToAll()
 {
-    std::lock_guard<std::mutex> guard(m_mtxStockClientList);
-    if (m_clientList.empty())
+    std::lock_guard<std::mutex> guard(m_mtxStockUserList);
+    if (m_userList.empty())
         return; // nobody to sent to.
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
@@ -200,13 +200,13 @@ void Stock::broadcastWholeOrderBookToAll()
 
     FIXAcceptor* toWCPtr = FIXAcceptor::instance();
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendNewBook2all(m_clientList, m_odrBkGlobalAsk);
+        toWCPtr->sendNewBook2all(m_userList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendNewBook2all(m_clientList, m_odrBkLocalAsk);
+        toWCPtr->sendNewBook2all(m_userList, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendNewBook2all(m_clientList, m_odrBkGlobalBid);
+        toWCPtr->sendNewBook2all(m_userList, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendNewBook2all(m_clientList, m_odrBkLocalBid);
+        toWCPtr->sendNewBook2all(m_userList, m_odrBkLocalBid);
 }
 
 /**

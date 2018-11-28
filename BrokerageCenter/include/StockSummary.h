@@ -29,11 +29,11 @@ private:
     std::queue<Transaction> m_transacBuff;
     std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
 
-    std::unordered_set<std::string> m_clientList; // userName
+    std::unordered_set<std::string> m_userList; // userName
     std::map<std::time_t, TempStockSummary> m_history;
 
     mutable std::mutex m_mtxTransacBuff;
-    mutable std::mutex m_mtxSSClientList;
+    mutable std::mutex m_mtxSSUserList;
     mutable std::mutex m_mtxHistory;
 
     std::unique_ptr<std::thread> m_th;
@@ -53,8 +53,8 @@ public:
     static std::time_t s_nowUnixTimestamp() noexcept;
     static std::time_t s_toUnixTimestamp(const std::string& time) noexcept;
 
-    void registerClientInSS(const std::string& userName);
-    void unregisterClientInSS(const std::string& userName);
+    void registerUserInSS(const std::string& userName);
+    void unregisterUserInSS(const std::string& userName);
     void enqueueTransaction(const Transaction& t);
     void process();
     void spawn();
