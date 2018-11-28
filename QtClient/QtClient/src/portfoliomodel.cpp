@@ -115,42 +115,33 @@ QVariant PortfolioModel::headerData(int section, Qt::Orientation orientation, in
     return QVariant::Invalid;
 }
 
-void PortfolioModel::receivePortfolio(std::string symbol)
+void PortfolioModel::updatePortfolioItem(std::string symbol)
 {
-    {
-        // update price and size
-        m_portfolio_summary = Global::qt_core_client.getPortfolioSummary();
-
-        // find symbol
-        int index = -1;
-        for (int i = 0; i < m_portfolio_item_vec.size(); i++) {
-            if (m_portfolio_item_vec[i] == symbol) {
-                index = i;
-                break;
-            }
-        }
-
-        if (index == -1) {
-            if (symbol != "") {
-                // insert portfolio
-                beginInsertRows(QModelIndex(), m_portfolio_item_vec.size(), m_portfolio_item_vec.size());
-//                PortfolioModelItem item(symbol, shares, QString::number(price, 'f', 2), "0.00", "0.00", realized_PL);
-                m_portfolio_item_vec.push_back(symbol);
-                endInsertRows();
-            }
-        } else {
-            // update portfolio
-//            m_portfolio_item[index].m_shares = shares;
-//            m_portfolio_item[index].m_price = QString::number(price, 'f', 2);
-//            m_portfolio_item[index].m_realized_PL = realized_PL;
-//            m_portfolio_item[index].m_close_price = QString::number(realized_PL / shares + price, 'f', 2);
-
-            emit dataChanged(this->index(index, 1), this->index(index, 2));
+    // find symbol
+    int index = -1;
+    for (int i = 0; i < m_portfolio_item_vec.size(); i++) {
+        if (m_portfolio_item_vec[i] == symbol) {
+            index = i;
+            break;
         }
     }
-    emit updateTotalPortfolio(m_portfolio_summary.getTotalBP(), m_portfolio_summary.getTotalShares());
+    if (index == -1) {
+        if (symbol != "") {
+            // insert portfolio
+            beginInsertRows(QModelIndex(), m_portfolio_item_vec.size(), m_portfolio_item_vec.size());
+            m_portfolio_item_vec.push_back(symbol);
+            endInsertRows();
+        }
+    } else {
+        emit dataChanged(this->index(index, 1), this->index(index, 2));
+    }
 
-    // update P&L
+}
+
+void PortfolioModel::updatePortfolioSummary()
+{
+    m_portfolio_summary = Global::qt_core_client.getPortfolioSummary();
+    emit updateTotalPortfolio(m_portfolio_summary.getTotalBP(), m_portfolio_summary.getTotalShares());
     refreshPortfolioPL();
 }
 
