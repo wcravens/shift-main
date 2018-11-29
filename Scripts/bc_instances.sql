@@ -3,6 +3,7 @@
 DROP DATABASE IF EXISTS "shift_brokeragecenter";
 CREATE DATABASE "shift_brokeragecenter" WITH OWNER "hanlonpgsql4" TEMPLATE template1 ENCODING UTF8;
 
+-- http://www.postgresqltutorial.com/postgresql-uuid/
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 ---------------------------------------------------------------
