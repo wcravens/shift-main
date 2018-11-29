@@ -588,7 +588,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         buyingPowerGroup.get(totalBuyingPower);
 
         try {
-            getClient(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
+            getClient(userName)->storePortfolioSummary(totalBuyingPower, totalShares, totalRealizedPL);
             getClient(userName)->receivePortfolioSummary();
         } catch (...) {
             return;

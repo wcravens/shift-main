@@ -433,7 +433,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>Total P&amp;L:</string>
+                <string>Total Realized P&amp;L:</string>
                </property>
               </widget>
              </item>
