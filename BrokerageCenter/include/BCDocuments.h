@@ -1,11 +1,11 @@
 #pragma once
 
+#include "CandlestickData.h"
 #include "OrderBookEntry.h"
 #include "Quote.h"
 #include "Report.h"
 #include "RiskManagement.h"
 #include "Stock.h"
-#include "CandlestickData.h"
 #include "Transaction.h"
 
 #include <mutex>

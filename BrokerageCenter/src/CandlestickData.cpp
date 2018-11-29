@@ -53,7 +53,7 @@ CandlestickData::CandlestickData(std::string symbol, double currPrice, double cu
 
 CandlestickData::~CandlestickData()
 {
-    shift::concurrency::notifyConsumerThreadToQuit(m_quitFlag, m_cvSS, *m_th);
+    shift::concurrency::notifyConsumerThreadToQuit(m_quitFlag, m_cvCD, *m_th);
     m_th = nullptr;
 }
 
@@ -83,7 +83,7 @@ void CandlestickData::enqueueTransaction(const Transaction& t)
         m_transacBuff.push(t);
         m_tranBufSizeAtom = m_transacBuff.size();
     }
-    m_cvSS.notify_one();
+    m_cvCD.notify_one();
 }
 
 void CandlestickData::process()
@@ -97,7 +97,7 @@ void CandlestickData::process()
 
     while (true) {
         std::unique_lock<std::mutex> lock(m_mtxTransacBuff);
-        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvSS, lock, [this] { return !m_transacBuff.empty(); }))
+        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvCD, lock, [this] { return !m_transacBuff.empty(); }))
             return;
 
         const auto transac = m_transacBuff.front();
@@ -200,7 +200,7 @@ void CandlestickData::sendHistory(const std::string userName)
     }
 }
 
-void CandlestickData::registerUserInSS(const std::string& userName)
+void CandlestickData::registerUserInCD(const std::string& userName)
 {
     std::thread(&CandlestickData::sendHistory, this, userName).detach();
     {
@@ -210,7 +210,7 @@ void CandlestickData::registerUserInSS(const std::string& userName)
     BCDocuments::instance()->addCandleSymbolToUser(userName, m_symbol);
 }
 
-void CandlestickData::unregisterUserInSS(const std::string& userName)
+void CandlestickData::unregisterUserInCD(const std::string& userName)
 {
     std::lock_guard<std::mutex> guard(m_mtxCDUserList);
     auto it = m_userList.find(userName);

@@ -162,9 +162,9 @@ bool BCDocuments::manageCandleStickDataUser(bool isRegister, const std::string& 
     auto pos = m_candleBySymbol.find(symbol);
     if (m_candleBySymbol.end() != pos) {
         if (isRegister)
-            pos->second->registerUserInSS(userName);
+            pos->second->registerUserInCD(userName);
         else
-            pos->second->unregisterUserInSS(userName);
+            pos->second->unregisterUserInCD(userName);
         return true;
     }
 
@@ -285,7 +285,7 @@ void BCDocuments::removeUserFromCandles(const std::string& userName)
     auto pos = m_candleSymbolsByName.find(userName);
     if (m_candleSymbolsByName.end() != pos) {
         for (const auto& stock : pos->second) {
-            m_candleBySymbol[stock]->unregisterUserInSS(userName);
+            m_candleBySymbol[stock]->unregisterUserInCD(userName);
         }
         m_candleSymbolsByName.erase(pos);
     }

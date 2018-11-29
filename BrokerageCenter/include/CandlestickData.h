@@ -37,7 +37,7 @@ private:
     mutable std::mutex m_mtxHistory;
 
     std::unique_ptr<std::thread> m_th;
-    std::condition_variable m_cvSS;
+    std::condition_variable m_cvCD;
     std::promise<void> m_quitFlag;
 
 public:
@@ -53,8 +53,8 @@ public:
     static std::time_t s_nowUnixTimestamp() noexcept;
     static std::time_t s_toUnixTimestamp(const std::string& time) noexcept;
 
-    void registerUserInSS(const std::string& userName);
-    void unregisterUserInSS(const std::string& userName);
+    void registerUserInCD(const std::string& userName);
+    void unregisterUserInCD(const std::string& userName);
     void enqueueTransaction(const Transaction& t);
     void process();
     void spawn();
