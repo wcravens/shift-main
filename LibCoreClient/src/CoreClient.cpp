@@ -557,7 +557,7 @@ void shift::CoreClient::storePortfolioItem(const std::string& symbol, int shares
     m_symbol_portfolioItem[symbol] = PortfolioItem{ symbol, shares, price, realizedPL };
 }
 
-void shift::CoreClient::storePortfolioSummary(double totalRealizedPL, double totalBP, int totalShares)
+void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)
 {
     std::lock_guard<std::mutex> lk(m_mutex_portfolioSummary);
 
@@ -567,7 +567,6 @@ void shift::CoreClient::storePortfolioSummary(double totalRealizedPL, double tot
 
     m_portfolioSummary.setTotalBP(totalBP);
     m_portfolioSummary.setTotalShares(totalShares);
-    m_portfolioSummary.setTotalPL(totalRealizedPL);
     m_portfolioSummary.setTotalRealizedPL(totalRealizedPL);
 }
 

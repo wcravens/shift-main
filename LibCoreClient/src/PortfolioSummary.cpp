@@ -1,5 +1,24 @@
 #include "PortfolioSummary.h"
 
+shift::PortfolioSummary::PortfolioSummary()
+    : m_totalBP(0.0)
+    , m_totalShares(0.0)
+    , m_totalRealizedPL(0.0)
+    , m_openBP(0.0)
+    , m_isOpenBPReady(false)
+{
+}
+
+shift::PortfolioSummary::PortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)
+    : m_totalBP(totalBP)
+    , m_totalShares(totalShares)
+    , m_totalRealizedPL(totalRealizedPL)
+    , m_openBP(totalBP)
+    , m_isOpenBPReady(true)
+{
+}
+
+
 double shift::PortfolioSummary::getTotalBP() const
 {
     return m_totalBP;
@@ -8,11 +27,6 @@ double shift::PortfolioSummary::getTotalBP() const
 int shift::PortfolioSummary::getTotalShares() const
 {
     return m_totalShares;
-}
-
-double shift::PortfolioSummary::getTotalPL() const
-{
-    return m_totalPL;
 }
 
 double shift::PortfolioSummary::getTotalRealizedPL() const
@@ -33,17 +47,11 @@ bool shift::PortfolioSummary::isOpenBPReady() const
 void shift::PortfolioSummary::setTotalBP(double totalBP)
 {
     m_totalBP = totalBP;
-    m_isOpenBPReady = true;
 }
 
 void shift::PortfolioSummary::setTotalShares(int totalShares)
 {
     m_totalShares = totalShares;
-}
-
-void shift::PortfolioSummary::setTotalPL(double totalPL)
-{
-    m_totalPL = totalPL;
 }
 
 void shift::PortfolioSummary::setTotalRealizedPL(double totalRealizedPL)
@@ -54,4 +62,5 @@ void shift::PortfolioSummary::setTotalRealizedPL(double totalRealizedPL)
 void shift::PortfolioSummary::setOpenBP(double openBP)
 {
     m_openBP = openBP;
+    m_isOpenBPReady = true;
 }

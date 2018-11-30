@@ -3,22 +3,26 @@
 #include "include/qtcoreclient.h"
 
 #include <QMutexLocker>
+#include <QDebug>
 
 
 PortfolioModel::PortfolioModel()
 {
-//    m_total_realized_PL = 0.0f;
-
-    connect(&m_timer, &QTimer::timeout, this, &PortfolioModel::refreshPortfolioPL);
-    m_timer.setInterval(500); // millisecond
-    m_timer.start();
+    QTimer *t = new QTimer(this);
+    t->setInterval(1000);
+    t->setSingleShot(false);
+    connect(t, &QTimer::timeout, [this](){
+        for(std::string symbol : m_portfolio_item_vec)
+            updatePortfolioItem(symbol);
+    });
+    t->start();
 }
 
 /**
  * @brief Get how many rows should the model has.
  * @return int: number of rows for the PortfolioModel.
  */
-int PortfolioModel::rowCount(const QModelIndex& parent) const
+int PortfolioModel::rowCount(const QModelIndex&) const
 {
     return m_portfolio_item_vec.size();
 }
@@ -27,9 +31,9 @@ int PortfolioModel::rowCount(const QModelIndex& parent) const
  * @brief Get how many columns should the model has.
  * @return int: number of columns for the PortfolioModel.
  */
-int PortfolioModel::columnCount(const QModelIndex& parent) const
+int PortfolioModel::columnCount(const QModelIndex&) const
 {
-    return 5;
+    return 6;
 }
 
 /**
@@ -39,15 +43,14 @@ int PortfolioModel::columnCount(const QModelIndex& parent) const
 QVariant PortfolioModel::data(const QModelIndex& index, int role) const
 {
     shift::PortfolioItem item = Global::qt_core_client.getPortfolioItems()[m_portfolio_item_vec[index.row()]];
-    double price = item.getPrice();
-    double shares = item.getShares();
+    double tradedPrice = item.getPrice();
+    int currentShares = item.getShares();
 
     // calculation
-    double currentPrice = Global::qt_core_client.getLastPrice(m_portfolio_item_vec[index.row()]);
-    double unrealizedPL = (currentPrice - price) * shares;
-
-    double pl = item.getPL() + unrealizedPL;
-    double closePrice = (shares == 0.0 ? 0.0 : (pl / shares)) + price;
+    bool buy = (currentShares < 0);
+    double closePrice = (currentShares == 0) ? 0.0 : Global::qt_core_client.getClosePrice(item.getSymbol(), buy, currentShares / 100);
+    double unrealizedPL = (closePrice - tradedPrice) * currentShares;
+    double pl = item.getRealizedPL() + unrealizedPL;
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
@@ -56,11 +59,11 @@ QVariant PortfolioModel::data(const QModelIndex& index, int role) const
             break;
 
         case 1:
-            return shares;
+            return currentShares;
             break;
 
         case 2:
-            return QString::number(price, 'f', 2);
+            return QString::number(tradedPrice, 'f', 2);
             break;
 
         case 3:
@@ -68,6 +71,10 @@ QVariant PortfolioModel::data(const QModelIndex& index, int role) const
             break;
 
         case 4:
+            return QString::number(unrealizedPL, 'f', 2);
+            break;
+
+        case 5:
             return QString::number(pl, 'f', 2);
             break;
 
@@ -105,6 +112,9 @@ QVariant PortfolioModel::headerData(int section, Qt::Orientation orientation, in
                 return QString("Close Price");
                 break;
             case 4:
+                return QString("Unrealized P&L");
+                break;
+            case 5:
                 return QString("P&L");
                 break;
             default:
@@ -141,33 +151,8 @@ void PortfolioModel::updatePortfolioItem(std::string symbol)
 void PortfolioModel::updatePortfolioSummary()
 {
     m_portfolio_summary = Global::qt_core_client.getPortfolioSummary();
-    emit updateTotalPortfolio(m_portfolio_summary.getTotalBP(), m_portfolio_summary.getTotalShares());
-    refreshPortfolioPL();
+    emit updateTotalPortfolio(m_portfolio_summary.getTotalBP()
+                              , m_portfolio_summary.getTotalShares()
+                              , m_portfolio_summary.getTotalRealizedPL());
 }
 
-/** 
- * @brief Method to refresh buying power/traded shares/totalPL.
- */
-void PortfolioModel::refreshPortfolioPL()
-{
-//    QMutexLocker lock(&m_mutex);
-    double total_PL = m_portfolio_summary.getTotalPL();
-
-//    if (!m_portfolio_item.empty()) {
-//        for (int i = 0; i < m_portfolio_item.size(); i++) {
-////            std::string symbol = m_portfolio_item[i].m_symbol.toStdString();
-//            double current_price = QtCoreClient::getInstance() -> getLatestPrice(m_portfolio_item[i]);
-//            double unrealized_pl = (current_price - QtCoreClient::getInstance() -> getPortfolioItems()[m_portfolio_item[i]].getPrice()) * QtCoreClient::getInstance() -> getPortfolioItems()[m_portfolio_item[i]].getShares();
-//            total_PL += unrealized_pl;
-//            double current_pl = unrealized_pl +  QtCoreClient::getInstance() -> getPortfolioItems()[m_portfolio_item[i]].getPL();
-//            QString pl_str = QString::number(current_pl, 'f', 2);
-//            m_portfolio_item[i].m_pl = pl_str;
-////            if (m_portfolio_item[i].m_shares != 0)
-////                m_portfolio_item[i].m_close_price = QString::number(current_pl / m_portfolio_item[i].m_shares + m_portfolio_item[i].m_price.toDouble(), 'f', 2);
-////            else
-////                m_portfolio_item[i].m_close_price = "0.00";
-//        }
-//        emit dataChanged(this->index(0, 3), this->index(m_portfolio_item.size() - 1, 4));
-//    }
-    emit updateTotalPL(total_PL);
-}

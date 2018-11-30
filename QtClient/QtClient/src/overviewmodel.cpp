@@ -9,7 +9,7 @@
 OverviewModel::OverviewModel()
 {
     m_timer.setInterval(1000);
-    connect(&m_timer, &QTimer::timeout, this, &OverviewModel::refreshWatchList);
+    connect(&m_timer, &QTimer::timeout, this, &OverviewModel::refresh);
 }
 
 /**
@@ -191,7 +191,7 @@ void OverviewModel::receiveStocklistReady()
 /**
  * @brief Method to refresh the data in overview table.
  */
-void OverviewModel::refreshWatchList()
+void OverviewModel::refresh()
 {
     QStringList stocklist = Global::qt_core_client.getStocklist();
 
