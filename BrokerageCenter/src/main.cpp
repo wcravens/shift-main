@@ -14,11 +14,13 @@
 #include "FIXInitiator.h"
 
 #include <atomic>
+#include <algorithm>
 
 #include <boost/program_options.hpp>
 
 #include <shift/miscutils/terminal/Common.h>
 #include <shift/miscutils/terminal/Options.h>
+#include <shift/miscutils/crypto/Encryptor.h>
 
 using namespace std::chrono_literals;
 
@@ -37,6 +39,12 @@ using namespace std::chrono_literals;
     "verbose"
 #define CSTR_RESET \
     "reset"
+#define CSTR_USERNAME \
+    "username"
+#define CSTR_PASSWORD \
+    "password"
+#define CSTR_INFO \
+    "info"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -72,6 +80,11 @@ int main(int ac, char* av[])
             min_t minutes;
         } timer;
         bool isVerbose;
+        struct { // user creation settings
+            std::string userName; // needs also password & info
+            std::string password;
+            std::vector<std::string> info;
+        } user;
     } params = {
         "/usr/local/share/SHIFT/BrokerageCenter/", // default installation folder for configuration
         "SHIFT123", // built-in initial crypto key used for encrypting dbLogin.txt
@@ -90,6 +103,9 @@ int main(int ac, char* av[])
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         (CSTR_RESET ",r", "reset clients' portfolio databases") //
+        (CSTR_USERNAME ",u", po::value<std::string>(), "name of the new user") //
+        (CSTR_PASSWORD ",p", po::value<std::string>(), "password of the new user") //
+        (CSTR_INFO ",i", po::value<std::vector<std::string>>()->multitoken(), "<first name>  <last name>  <email>") //
         ; // add_options
 
     po::variables_map vm;
@@ -141,6 +157,40 @@ int main(int ac, char* av[])
         params.isVerbose = true;
     }
 
+    const auto userOpts = { CSTR_USERNAME, CSTR_PASSWORD, CSTR_INFO };
+    auto isIncluded = [&vm, &userOpts](auto* opt) { return vm.count(opt); };
+    if (std::any_of(userOpts.begin(), userOpts.end(), isIncluded)) {
+        if(! std::all_of(userOpts.begin(), userOpts.end(), isIncluded)) {
+            cout << COLOR_ERROR "ERROR: The new user options are not sufficient."
+                    " Please provide -u, -p, and -i at the same time." NO_COLOR << '\n'
+                 << endl;
+            return 3;
+        }
+
+        params.user.userName = vm[CSTR_USERNAME].as<std::string>();
+
+        std::istringstream iss(vm[CSTR_PASSWORD].as<std::string>());
+        shift::crypto::Encryptor enc(params.cryptoKey);
+        iss >> enc >> params.user.password;
+        /* Encrypted password may contain character ' (i.e. a single-quote)
+            that is treated as special char in PSQL commands.
+            To ambiguate this, we need to DOUBLE them (i.e. ' -> '') to avoid such treatment.
+        */
+        std::vector<std::string::size_type> quotePoses;
+        for(size_t i = 0; i < params.user.password.length(); i++) {
+            if('\'' == params.user.password[i])
+                quotePoses.push_back(i);
+        }
+        for(size_t i = quotePoses.size(); i > 0; i--)
+            params.user.password.insert(quotePoses[i - 1], 1, '\'');
+
+        params.user.info = vm[CSTR_INFO].as<std::vector<std::string>>();
+        if(params.user.info.size() != 3) {
+            cout << COLOR_ERROR "ERROR: The new user information is not complete (" << params.user.info.size() << " info are provided) !" NO_COLOR "\n" << endl;
+            return 4;
+        }
+    }
+
     voh_t voh(cout, params.isVerbose);
 
     DBConnector::instance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
@@ -167,7 +217,31 @@ int main(int ac, char* av[])
                 DBConnector::instance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
                 continue;
             }
-            break;
+
+            if (vm.count(CSTR_USERNAME)) { // add user ?
+                const auto& fname = params.user.info[0];
+                const auto& lname = params.user.info[1];
+                const auto& email = params.user.info[2];
+
+                auto res = DBConnector::s_readRowsOfField("SELECT id FROM new_traders WHERE username = '" + params.user.userName + "';");
+                if(res.size()) {
+                    cout << COLOR_WARNING "The user " << params.user.userName << " already exists!" NO_COLOR << endl;
+                    return 1;
+                }
+
+                const auto insert = "INSERT INTO new_traders (username, password, firstname, lastname, email) VALUES ('"
+                                    + params.user.userName + "','"
+                                    + params.user.password + "','"
+                                    + fname + "','" + lname + "','" + email + "');"; // info
+                if (DBConnector::instance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!" NO_COLOR)) {
+                    cout << COLOR "User " << params.user.userName << " was successfully inserted." NO_COLOR << endl;
+                    return 0;
+                }
+
+                return 5;
+            }
+
+            break; // finished connection and continues
         }
     }
 

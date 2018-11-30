@@ -3,12 +3,12 @@
 DROP DATABASE IF EXISTS "shift_brokeragecenter";
 CREATE DATABASE "shift_brokeragecenter" WITH OWNER "hanlonpgsql4" TEMPLATE template1 ENCODING UTF8;
 
--- http://www.postgresqltutorial.com/postgresql-uuid/
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 ---------------------------------------------------------------
 
 \connect shift_brokeragecenter;
+
+-- http://www.postgresqltutorial.com/postgresql-uuid/
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- This must come after the connection
 
 ---------------------------------------------------------------
 
@@ -82,8 +82,8 @@ ALTER TABLE PUBLIC.web_traders
 
 CREATE TABLE public.new_traders
 (
-  id UUID DEFAULT uuid_generate_v4(),
-  username VARCHAR(40) NOT NULL,
+  id UUID DEFAULT uuid_generate_v4() NOT NULL,
+  username VARCHAR(40) UNIQUE NOT NULL,
   password VARCHAR(40) NOT NULL,
   firstname VARCHAR(40) NOT NULL,
   lastname VARCHAR(40) NOT NULL,

@@ -22,8 +22,8 @@ struct PSQLTable<TradingRecords> {
                                                 ", price REAL"
                                                 ", size INTEGER"
 
-                                                ", trader_id_1 INTEGER" // INTEGER: Map to SERIAL
-                                                ", trader_id_2 INTEGER" // ditto
+                                                ", trader_id_1 UUID" // UUID: Map to new_traders.id
+                                                ", trader_id_2 UUID" // ditto
                                                 ", order_id_1 VARCHAR(40)"
                                                 ", order_id_2 VARCHAR(40)"
                                                 ", order_type_1 VARCHAR(2)"
@@ -34,13 +34,13 @@ struct PSQLTable<TradingRecords> {
                                                 ", decision CHAR"
                                                 ", destination VARCHAR(10)"
 
-                                                ",  CONSTRAINT trading_records_pkey PRIMARY KEY (order_id_1, order_id_2),\
+                                                ",  CONSTRAINT trading_records_pkey PRIMARY KEY (order_id_1, order_id_2)\
                                                     \
-                                                    CONSTRAINT trading_records_fkey_1 FOREIGN KEY (trader_id_1)\
-                                                        REFERENCES public.traders (id) MATCH SIMPLE\
-                                                        ON UPDATE NO ACTION ON DELETE NO ACTION,\
-                                                    CONSTRAINT trading_records_fkey_2 FOREIGN KEY (trader_id_2)\
-                                                        REFERENCES public.traders (id) MATCH SIMPLE\
+                                                 ,  CONSTRAINT trading_records_fkey_1 FOREIGN KEY (trader_id_1)\
+                                                        REFERENCES PUBLIC.new_traders (id) MATCH SIMPLE\
+                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
+                                                 ,  CONSTRAINT trading_records_fkey_2 FOREIGN KEY (trader_id_2)\
+                                                        REFERENCES PUBLIC.new_traders (id) MATCH SIMPLE\
                                                         ON UPDATE NO ACTION ON DELETE NO ACTION\
                                                 )";
 
@@ -82,7 +82,7 @@ struct PSQLTable<TradingRecords> {
 
 template<>
 struct PSQLTable<PortfolioSummary> {
-    static constexpr char sc_colsDefinition[] = "( portfolio_id SERIAL"
+    static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
                                                 ", buying_power REAL"
                                                 ", holding_balance REAL"
                                                 ", borrowed_balance REAL"
@@ -90,20 +90,27 @@ struct PSQLTable<PortfolioSummary> {
 
                                                 ", total_shares INTEGER"
 
-                                                ", CONSTRAINT portfolio_summary_pkey PRIMARY KEY (portfolio_id)"
-                                                ")";
+                                                ", CONSTRAINT portfolio_summary_pkey PRIMARY KEY (id)\
+                                                   \
+                                                 , CONSTRAINT portfolio_summary_fkey FOREIGN KEY (id)\
+                                                       REFERENCES PUBLIC.new_traders (id) MATCH SIMPLE\
+                                                       ON UPDATE NO ACTION ON DELETE NO ACTION\
+                                                )";
 
-    static constexpr char sc_recordFormat[] = "( buying_power, holding_balance, borrowed_balance, total_pl"
+    static constexpr char sc_recordFormat[] = "( id, buying_power, holding_balance, borrowed_balance, total_pl"
                                               ", total_shares"
                                               ") VALUES ";
 
     static const char* name;
 
     enum VAL_IDX : int {
+        ID,
         BP,
         HB,
         BB,
         TOTAL_PL,
+
+        TOTAL_SH,
 
         NUM_FIELDS
     };
@@ -117,7 +124,7 @@ struct PSQLTable<PortfolioSummary> {
 
 template<>
 struct PSQLTable<PortfolioItem> {
-    static constexpr char sc_colsDefinition[] = "( portfolio_id INTEGER"
+    static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
                                                 ", symbol VARCHAR(15)"
                                                 ", borrowed_balance REAL"
                                                 ", pl REAL"
@@ -127,21 +134,21 @@ struct PSQLTable<PortfolioItem> {
                                                 ", long_shares INTEGER"
                                                 ", short_shares INTEGER"
 
-                                                ",  CONSTRAINT portfolio_items_pkey PRIMARY KEY (portfolio_id, symbol),\
-                                                    \
-                                                    CONSTRAINT portfolio_items_fkey FOREIGN KEY (portfolio_id)\
-                                                        REFERENCES public.portfolio_summary (portfolio_id) MATCH SIMPLE\
-                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
+                                                ", CONSTRAINT portfolio_items_pkey PRIMARY KEY (id, symbol)\
+                                                   \
+                                                 , CONSTRAINT portfolio_items_fkey FOREIGN KEY (id)\
+                                                       REFERENCES PUBLIC.new_traders (id) MATCH SIMPLE\
+                                                       ON UPDATE NO ACTION ON DELETE NO ACTION\
                                                 )";
 
-    static constexpr char sc_recordFormat[] = "( portfolio_id, symbol, borrowed_balance, pl, long_price"
+    static constexpr char sc_recordFormat[] = "( id, symbol, borrowed_balance, pl, long_price"
                                               ", short_price, long_shares, short_shares"
                                               ") VALUES ";
 
     static const char* name;
 
     enum VAL_IDX : int {
-        CL_ID,
+        ID,
         SYMBOL,
         BB,
         PL,
@@ -353,19 +360,3 @@ bool DBConnector::checkCreateTable()
     PQclear(pRes);
     return vs;
 }
-
-// void DBConnector::InsertUser(const UserInfo& user)
-// {
-//     std::string pqQuery;
-//     pqQuery = "INSERT INTO traders (firstname, lastname, userName, password, email) VALUES ('" + user.fistName + "','" + user.lastName + "','" + user.accountName + "','" + user.password + "','" + user.email + "');";
-
-//     PGresult* res = PQexec(m_pConn, pqQuery.c_str());
-
-//     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-//         cout << COLOR_ERROR "ERROR: Insert to [ qt_tablelist ] failed.\n" NO_COLOR;
-//         PQclear(res);
-//     } else {
-//         PQclear(res);
-//         cout << "Successful Inserted!";
-//     }
-// }

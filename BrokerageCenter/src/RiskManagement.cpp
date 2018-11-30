@@ -28,8 +28,8 @@
 //     const auto& csrName = s_getPortfolioItemsCursorName(userName);
 //     DBConnector::instance()->doQuery(
 //         "DECLARE " + csrName + " CURSOR FOR"
-//         "  SELECT * FROM web_traders INNER JOIN portfolio_items ON web_traders.id = portfolio_items.client_id\n"
-//         "WHERE web_traders.username = '" + userName + "' AND portfolio_items.symbol = '" + symbol + '\''
+//         "  SELECT * FROM new_traders INNER JOIN portfolio_items ON new_traders.id = portfolio_items.client_id\n"
+//         "WHERE new_traders.username = '" + userName + "' AND portfolio_items.symbol = '" + symbol + '\''
 //         , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (RiskManagement." + csrName + ")\n" NO_COLOR);
 // }
 
@@ -40,8 +40,8 @@
 //     const auto& csrName = s_getPortfolioSummaryCursorName(userName);
 //     DBConnector::instance()->doQuery(
 //         "DECLARE " + csrName + " CURSOR FOR"
-//         "  SELECT * FROM web_traders INNER JOIN portfolio_summary ON web_traders.id = portfolio_summary.client_id\n"
-//         "WHERE web_traders.username = '" + userName + '\''
+//         "  SELECT * FROM new_traders INNER JOIN portfolio_summary ON new_traders.id = portfolio_summary.client_id\n"
+//         "WHERE new_traders.username = '" + userName + '\''
 //         , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (RiskManagement." + csrName + ")\n" NO_COLOR);
 // }
 

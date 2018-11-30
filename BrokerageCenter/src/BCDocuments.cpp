@@ -76,10 +76,9 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
     if (res.second) {
         auto& rmPtr = res.first->second;
 
-        const std::string table = 0 ? "traders" : "web_traders";
         auto summary = DBConnector::s_readFieldsOfRow(
             "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
-            "FROM " + table + " INNER JOIN portfolio_summary ON " + table + ".portfolio_id = portfolio_summary.portfolio_id\n"
+            "FROM new_traders INNER JOIN portfolio_summary ON new_traders.id = portfolio_summary.id\n"
             "WHERE username = '" + userName + "';"
             , 5
         );

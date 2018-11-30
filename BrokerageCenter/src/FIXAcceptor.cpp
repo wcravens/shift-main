@@ -47,7 +47,7 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
     disconnectClientComputers();
 
     FIX::SessionSettings settings(configFile);
-    auto targetIDs = DBConnector::s_readRowsOfField("SELECT target_id FROM traders;");
+    auto targetIDs = DBConnector::s_readRowsOfField("SELECT username FROM new_traders;");
     const FIX::Dictionary commonDict = settings.get();
 
     for (const auto& tarID : targetIDs) {
@@ -557,12 +557,12 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
     FIXT11::Logon::NoMsgTypes msgTypeGroup;
     message.getGroup(1, msgTypeGroup);
     adminName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
-    message.getGroup(2, msgTypeGroup);
 
+    message.getGroup(2, msgTypeGroup);
     cout << COLOR_PROMPT "DEBUG: 2" << NO_COLOR << endl;
     adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
-    auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE upper(target_id) = '" + targetID + "';"); // TODO: User name or Target ID ??
+    auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM new_traders WHERE username = '" + adminName + "';");
     if (pswCol.size() && pswCol.front() == adminPsw) {
         BCDocuments::instance()->registerUserInDoc(targetID, adminName);
         cout << COLOR_PROMPT "Authentication successful for " << targetID << ':' << adminName << NO_COLOR << endl;
