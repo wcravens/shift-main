@@ -1,5 +1,10 @@
 ---------------------------------------------------------------
 
+DROP DATABASE IF EXISTS "shift_brokeragecenter";
+CREATE DATABASE "shift_brokeragecenter" WITH OWNER "hanlonpgsql4" TEMPLATE template1 ENCODING UTF8;
+
+---------------------------------------------------------------
+
 \connect shift_brokeragecenter;
 
 -- http://www.postgresqltutorial.com/postgresql-uuid/
