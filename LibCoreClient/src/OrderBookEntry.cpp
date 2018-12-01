@@ -4,6 +4,11 @@
  * @brief Default constructor for OrderBookEntry object.
  */
 shift::OrderBookEntry::OrderBookEntry()
+    : m_symbol("")
+    , m_price(0.0)
+    , m_size(0)
+    , m_destination("")
+    , m_time(0.0)
 {
 }
 

@@ -187,8 +187,8 @@ double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int
         return 0.0;
     }
 
-    auto global = (buy) ? getOrderBook(symbol, OrderBook::Type::GLOBAL_ASK) : getOrderBook(symbol, OrderBook::Type::GLOBAL_BID);
-    auto local = (buy) ? getOrderBook(symbol, OrderBook::Type::LOCAL_ASK) : getOrderBook(symbol, OrderBook::Type::LOCAL_BID);
+    auto global = (buy) ? getOrderBookWithDestination(symbol, OrderBook::Type::GLOBAL_ASK) : getOrderBookWithDestination(symbol, OrderBook::Type::GLOBAL_BID);
+    auto local = (buy) ? getOrderBookWithDestination(symbol, OrderBook::Type::LOCAL_ASK) : getOrderBookWithDestination(symbol, OrderBook::Type::LOCAL_BID);
     int buySign = ((buy) ? 1 : -1);
 
     double closePrice = 0.0;
@@ -268,13 +268,13 @@ shift::BestPrice shift::CoreClient::getBestPrice(const std::string& symbol)
     return m_fixInitiator->getBestPrice(symbol);
 }
 
-std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type& type)
+std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel)
 {
     if (!isConnected()) {
         return std::vector<shift::OrderBookEntry>();
     }
 
-    return m_fixInitiator->getOrderBook(symbol, type);
+    return m_fixInitiator->getOrderBook(symbol, type, maxLevel);
 }
 
 std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type)

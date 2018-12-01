@@ -112,7 +112,7 @@ protected:
     R_FIXSUB double getLastPrice(const std::string& symbol);
     // Order book methods
     R_FIXSUB shift::BestPrice getBestPrice(const std::string& symbol);
-    R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type);
+    R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel);
     R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type);
 
     // Symbols list and company names

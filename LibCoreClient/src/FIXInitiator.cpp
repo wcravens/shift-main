@@ -997,7 +997,7 @@ shift::BestPrice shift::FIXInitiator::getBestPrice(const std::string& symbol)
  * 
  * @param type The target entry type (Global bid "B"/ask "A", local bid "b"/ask "a")
  */
-std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::string& symbol, OrderBook::Type type)
+std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel)
 {
     if (m_orderBooks.find(symbol) == m_orderBooks.end()) {
         throw "There is no Order Book for symbol " + symbol;
@@ -1007,7 +1007,7 @@ std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::
         throw "Order Book type is invalid";
     }
 
-    return m_orderBooks[symbol][type]->getOrderBook();
+    return m_orderBooks[symbol][type]->getOrderBook();;
 }
 
 /**
