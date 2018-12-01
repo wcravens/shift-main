@@ -89,6 +89,7 @@ CREATE TABLE public.new_traders
   lastname VARCHAR(40) NOT NULL,
   email VARCHAR(40) NOT NULL,
   role VARCHAR(20) NOT NULL DEFAULT 'student'::VARCHAR,
+  webclient BOOLEAN NOT NULL DEFAULT FALSE,
   sessionid VARCHAR(40),
 
   CONSTRAINT new_traders_pkey PRIMARY KEY (id)
