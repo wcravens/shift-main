@@ -18,7 +18,6 @@ shift::PortfolioSummary::PortfolioSummary(double totalBP, int totalShares, doubl
 {
 }
 
-
 double shift::PortfolioSummary::getTotalBP() const
 {
     return m_totalBP;

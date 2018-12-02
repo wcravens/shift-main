@@ -14,9 +14,9 @@ shift::Order::Order()
  * @param size int value for m_size
  * @param type char value for m_orderType
  */
-shift::Order::Order(std::string symbol, double price, int size,
+shift::Order::Order(const std::string& symbol, double price, int size,
     Type type)
-    : m_symbol(std::move(symbol))
+    : m_symbol(symbol)
     , m_price(price)
     , m_size(size)
     , m_type(type)
@@ -31,13 +31,13 @@ shift::Order::Order(std::string symbol, double price, int size,
  * @param size int value for m_size
  * @param type char value for m_orderType
  */
-shift::Order::Order(std::string symbol, double price, int size,
-    Type type, std::string id)
-    : m_symbol(std::move(symbol))
+shift::Order::Order(const std::string& symbol, double price, int size,
+    Type type, const std::string& id)
+    : m_symbol(symbol)
     , m_price(price)
     , m_size(size)
     , m_type(type)
-    , m_id(std::move(id))
+    , m_id(id)
 {
 }
 
@@ -90,9 +90,9 @@ const std::string& shift::Order::getID() const
  * @brief Setter to set Order symbol into m_symbol.
  * @param symbol as string
  */
-void shift::Order::setSymbol(std::string symbol)
+void shift::Order::setSymbol(const std::string& symbol)
 {
-    m_symbol = std::move(symbol);
+    m_symbol = symbol;
 }
 
 /**
@@ -126,7 +126,7 @@ void shift::Order::setType(Type type)
  * @brief Setter to set ID into m_id.
  * @param id as string
  */
-void shift::Order::setID(std::string id)
+void shift::Order::setID(const std::string& id)
 {
-    m_id = std::move(id);
+    m_id = id;
 }

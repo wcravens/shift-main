@@ -8,6 +8,7 @@
 #include "OrderBookLocalBid.h"
 
 #include <cmath>
+#include <list>
 #include <regex>
 #include <thread>
 
@@ -629,7 +630,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
         FIX::UnderlyingContractMultiplier size; //double
         FIX::UnderlyingCouponRate time; //double
 
-        std::vector<shift::OrderBookEntry> orderBook;
+        std::list<shift::OrderBookEntry> orderBook;
 
         for (int i = 1; i <= n; i++) {
             message.getGroup(i, quoteSetGroup);
@@ -643,8 +644,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
             quoteSetGroup.get(time);
 
             symbol = m_originalName_symbol[symbol];
-            shift::OrderBookEntry entry(symbol, price, size, destination, time);
-            orderBook.push_back(entry);
+            orderBook.push_back({ symbol, price, (int)size, destination, time });
         }
 
         try {
@@ -1007,7 +1007,7 @@ std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::
         throw "Order Book type is invalid";
     }
 
-    return m_orderBooks[symbol][type]->getOrderBook();;
+    return m_orderBooks[symbol][type]->getOrderBook();
 }
 
 /**
@@ -1062,9 +1062,8 @@ void shift::FIXInitiator::fetchCompanyName(const std::string tickerName)
     curl = curl_easy_init(); // Initilise web query
 
     if (curl) {
-        typedef size_t(*CURL_WRITEFUNCTION_PTR)(char*, size_t, size_t, std::string*);
-        auto sWriter = [](char* data, size_t size, size_t nmemb, std::string* buffer)
-        {
+        typedef size_t (*CURL_WRITEFUNCTION_PTR)(char*, size_t, size_t, std::string*);
+        auto sWriter = [](char* data, size_t size, size_t nmemb, std::string* buffer) {
             size_t result = 0;
 
             if (buffer != nullptr) {

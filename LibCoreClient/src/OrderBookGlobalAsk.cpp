@@ -1,17 +1,10 @@
 #include "OrderBookGlobalAsk.h"
 
 /**
- * @brief Default constructor of OrderBookGlobalAsk class.
- */
-shift::OrderBookGlobalAsk::OrderBookGlobalAsk()
-{
-}
-
-/**
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */
-void shift::OrderBookGlobalAsk::update(shift::OrderBookEntry entry)
+void shift::OrderBookGlobalAsk::update(const shift::OrderBookEntry& entry)
 {
     std::lock_guard<std::mutex> guard(m_mutex);
 

@@ -19,16 +19,16 @@ shift::Report::Report()
  * @param executionTime string value for m_executionTime
  * @param serverTime string value for m_serverTime
  */
-shift::Report::Report(std::string clientID, std::string orderID, std::string symbol, double price, char orderType,
-    char orderStatus, int size, std::string executionTime, std::string serverTime)
-    : m_clientID(std::move(clientID))
-    , m_orderID(std::move(orderID))
-    , m_symbol(std::move(symbol))
+shift::Report::Report(const std::string& clientID, const std::string& orderID, const std::string& symbol, double price, char orderType,
+    char orderStatus, int size, const std::string& executionTime, const std::string& serverTime)
+    : m_clientID(clientID)
+    , m_orderID(orderID)
+    , m_symbol(symbol)
     , m_price(price)
     , m_orderType(orderType)
     , m_orderStatus(orderStatus)
     , m_size(size)
-    , m_executionTime(std::move(executionTime))
-    , m_serverTime(std::move(serverTime))
+    , m_executionTime(executionTime)
+    , m_serverTime(serverTime)
 {
 }

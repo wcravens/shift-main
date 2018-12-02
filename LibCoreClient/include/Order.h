@@ -28,8 +28,8 @@ public:
     };
 
     Order();
-    Order(std::string symbol, double price, int size, Type type);
-    Order(std::string symbol, double price, int size, Type type, std::string id);
+    Order(const std::string& symbol, double price, int size, Type type);
+    Order(const std::string& symbol, double price, int size, Type type, const std::string& id);
 
     // Getters
     const std::string& getSymbol() const;
@@ -39,11 +39,11 @@ public:
     const std::string& getID() const;
 
     // Setters
-    void setSymbol(std::string);
+    void setSymbol(const std::string&);
     void setPrice(double);
     void setSize(int);
     void setType(Type);
-    void setID(std::string);
+    void setID(const std::string&);
 
 private:
     std::string m_symbol; //!< Trading symbol for the current quote.

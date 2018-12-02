@@ -31,12 +31,12 @@ public:
     std::vector<shift::OrderBookEntry> getOrderBook2(int maxLevel);
     std::vector<shift::OrderBookEntry> getOrderBookWithDestination();
 
-    void setOrderBook(std::vector<shift::OrderBookEntry> entries);
+    void setOrderBook(const std::list<shift::OrderBookEntry>& entries);
 
-    virtual void update(shift::OrderBookEntry entry) = 0;
+    virtual void update(const shift::OrderBookEntry& entry) = 0;
 
 protected:
-    std::list<shift::OrderBookEntry>::iterator findEntryByDestPrice(std::string dest, double price);
+    std::list<shift::OrderBookEntry>::iterator findEntryByDestPrice(const std::string& dest, double price);
 
     std::mutex m_mutex; //!< Mutex member to lock the list when it's being adjusted.
     std::list<shift::OrderBookEntry> m_entries; //!< A list of all entries within the current OrderBook object.

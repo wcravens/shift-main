@@ -91,12 +91,12 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook()
 }
 
 std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook2(int maxLevel)
-{    
+{
     std::list<shift::OrderBookEntry> original;
     std::vector<shift::OrderBookEntry> output;
     shift::OrderBookEntry newEntry;
 
-    if(maxLevel <= 0)
+    if (maxLevel <= 0)
         return output;
 
     {
@@ -111,7 +111,7 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook2(int maxLevel)
             else {
                 if (newEntry.getSize() > 0) {
                     output.push_back(newEntry);
-                    if(--maxLevel == 0)
+                    if (--maxLevel == 0)
                         return output;
                 }
                 newEntry = entry;
@@ -140,16 +140,13 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBookWithDestination
 }
 
 /**
- * @brief Method to set the input vector of entries into m_entries of current order book.
- * @param entries A vector of shift::OrderBookEntry including all entries to be inserted.
+ * @brief Method to set the input list of entries into m_entries of current order book.
+ * @param entries A list of shift::OrderBookEntry including all entries to be inserted.
  */
-void shift::OrderBook::setOrderBook(std::vector<shift::OrderBookEntry> entries)
+void shift::OrderBook::setOrderBook(const std::list<shift::OrderBookEntry>& entries)
 {
     std::lock_guard<std::mutex> guard(m_mutex);
-    m_entries.clear();
-    for (shift::OrderBookEntry entry : entries)
-        if (entry.getSize())
-            m_entries.push_back(entry);
+    m_entries = entries;
 }
 
 /**
@@ -158,7 +155,7 @@ void shift::OrderBook::setOrderBook(std::vector<shift::OrderBookEntry> entries)
  * @param price the target price value as a double
  * @return A list iterator who points to the position of the requested order book entry.
  */
-std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntryByDestPrice(std::string dest, double price)
+std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntryByDestPrice(const std::string& dest, double price)
 {
     for (auto it = m_entries.begin(); it != m_entries.end(); it++) {
         if (it->getPrice() != price)
