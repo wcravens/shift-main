@@ -47,13 +47,18 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
     disconnectClientComputers();
 
     FIX::SessionSettings settings(configFile);
-    auto targetIDs = DBConnector::s_readRowsOfField("SELECT username FROM new_traders;");
+    auto targetIDs = DBConnector::s_readRowsOfField("SELECT target_id FROM traders;");
+    if (targetIDs.empty()) {
+        cout << COLOR_WARNING "WARNING: No target is present in the database. The system terminates." NO_COLOR << endl;
+        std::terminate();
+    }
+
     const FIX::Dictionary commonDict = settings.get();
 
     for (const auto& tarID : targetIDs) {
-        FIX::SessionID sid(commonDict.getString("BeginString")
-            , commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER
-            , ::toUpper(tarID) // e.g. WEBCLIENT
+        FIX::SessionID sid(commonDict.getString("BeginString"), commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER
+            ,
+            ::toUpper(tarID) // e.g. WEBCLIENT
         );
         FIX::Dictionary dict;
 
@@ -521,7 +526,7 @@ void FIXAcceptor::toAdmin(FIX::Message& message, const FIX::SessionID&) // overr
 {
     if (FIX::MsgType_Logout != message.getHeader().getField(FIX::FIELD::MsgType))
         return;
-    cout << COLOR_PROMPT "DEBUG: 4 toAdmin() with msg type: " << message.getHeader().getField(FIX::FIELD::MsgType)<< NO_COLOR << endl;
+    cout << COLOR_PROMPT "DEBUG: 4 toAdmin() with msg type: " << message.getHeader().getField(FIX::FIELD::MsgType) << NO_COLOR << endl;
     cout << COLOR_PROMPT "DEBUG: 5 toAdmin() with msg: " << message << NO_COLOR << endl;
 
     FIXT11::Logon::NoMsgTypes msgTypeGroup;
