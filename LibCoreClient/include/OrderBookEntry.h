@@ -30,6 +30,14 @@ public:
     void setDestination(const std::string& destination);
     void setTime(double time);
 
+    inline friend bool operator==(const OrderBookEntry& lhs, const OrderBookEntry& rhs) {
+        return (lhs.m_destination == rhs.m_destination
+                && lhs.m_symbol == rhs.m_symbol
+                && lhs.m_price == rhs.m_price
+                && lhs.m_size == rhs.m_size
+                && lhs.m_time == rhs.m_time);
+    }
+
 private:
     std::string m_symbol;
     double m_price;

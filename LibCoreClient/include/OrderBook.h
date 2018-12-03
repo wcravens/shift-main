@@ -27,8 +27,7 @@ public:
 
     double getBestPrice();
     int getBestSize();
-    std::vector<shift::OrderBookEntry> getOrderBook();
-    std::vector<shift::OrderBookEntry> getOrderBook2(int maxLevel);
+    std::vector<shift::OrderBookEntry> getOrderBook(int maxLevel);
     std::vector<shift::OrderBookEntry> getOrderBookWithDestination();
 
     void setOrderBook(const std::list<shift::OrderBookEntry>& entries);

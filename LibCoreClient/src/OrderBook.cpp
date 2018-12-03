@@ -52,45 +52,10 @@ int shift::OrderBook::getBestSize()
 }
 
 /**
- * @brief Method to return up to the top 5 orders from the current orderbook.
- * @return A vector contains up to 5 orders from the current orderbook.
+ * @brief Method to return up to the top maxLevel orders from the current orderbook.
+ * @return A vector contains up to maxLevel orders from the current orderbook.
  */
-std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook()
-{
-    std::lock_guard<std::mutex> guard(m_mutex);
-    std::vector<shift::OrderBookEntry> orderBook;
-
-    if (!m_entries.empty()) {
-        int level = 0;
-        shift::OrderBookEntry lastEntry = *m_entries.begin();
-        lastEntry.setPrice(-1.0);
-        lastEntry.setSize(-1);
-
-        if (m_type == OrderBook::Type::GLOBAL_ASK || m_type == OrderBook::Type::GLOBAL_BID)
-            lastEntry.setDestination("Market");
-
-        for (shift::OrderBookEntry entry : m_entries) {
-            if (lastEntry.getPrice() == entry.getPrice())
-                lastEntry.setSize(lastEntry.getSize() + entry.getSize());
-            else {
-                if (lastEntry.getPrice() > 0.0)
-                    orderBook.push_back(lastEntry);
-                lastEntry.setSize(entry.getSize());
-                lastEntry.setPrice(entry.getPrice());
-
-                // Display at most 5 levels of order book.
-                if (++level > 5)
-                    return orderBook;
-            }
-        }
-        if (lastEntry.getPrice() > 0.0)
-            orderBook.push_back(lastEntry);
-    }
-
-    return orderBook;
-}
-
-std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook2(int maxLevel)
+std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook(int maxLevel)
 {
     std::list<shift::OrderBookEntry> original;
     std::vector<shift::OrderBookEntry> output;

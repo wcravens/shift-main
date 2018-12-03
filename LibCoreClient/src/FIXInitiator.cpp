@@ -1007,7 +1007,7 @@ std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::
         throw "Order Book type is invalid";
     }
 
-    return m_orderBooks[symbol][type]->getOrderBook();
+    return m_orderBooks[symbol][type]->getOrderBook(maxLevel);
 }
 
 /**
