@@ -567,7 +567,7 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
     cout << COLOR_PROMPT "DEBUG: 2" << NO_COLOR << endl;
     adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
-    auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM new_traders WHERE username = '" + adminName + "';");
+    auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE target_id = '" + adminName + "';");
     if (pswCol.size() && pswCol.front() == adminPsw) {
         BCDocuments::instance()->registerUserInDoc(targetID, adminName);
         cout << COLOR_PROMPT "Authentication successful for " << targetID << ':' << adminName << NO_COLOR << endl;
