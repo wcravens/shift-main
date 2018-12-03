@@ -13,7 +13,8 @@ if (JSON.parse(localStorage.getItem('dark-theme-enabled'))) {
     custthemecss = $('<link rel="stylesheet" href="/style/theme_cyborg.css?version=' + php_shiftversion + '">');
     document.getElementById("changethemebtn").innerHTML = "wb_sunny";
 } else {
-    themesheet = $('<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">');
+    // themesheet = $('<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">');
+    themesheet = $('<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">');
     custthemecss = $('<link rel="stylesheet" href="/style/theme_origin.css?version=' + php_shiftversion + '">');
     document.getElementById("changethemebtn").innerHTML = "brightness_3";
 }
@@ -27,7 +28,8 @@ themesheet.appendTo('head');
 custthemecss.appendTo('head');
 
 $('.theme-link').click(function () {
-    var themeurl = "//bootswatch.com/slate/bootstrap.min.css";
+    // var themeurl = "//bootswatch.com/slate/bootstrap.min.css";
+    var themeurl = "//bootswatch.com/slate/bootstrap.css";
     themesheet.attr('href', themeurl);
 });
 
@@ -35,7 +37,8 @@ function toggleDarkTheme() {
     if (JSON.parse(localStorage.getItem('dark-theme-enabled'))) {
         document.getElementById("changethemebtn").innerHTML = "brightness_3";
         localStorage.setItem('dark-theme-enabled', false);
-        themesheet.attr('href', "/static/bootstrap/css/bootstrap.min.css");
+        // themesheet.attr('href', "/static/bootstrap/css/bootstrap.min.css");
+        themesheet.attr('href', "/static/bootstrap/css/bootstrap.css");
     } else {
         document.getElementById("changethemebtn").innerHTML = "wb_sunny";
         localStorage.setItem('dark-theme-enabled', true);
