@@ -8,11 +8,7 @@ CREATE DATABASE "shift_brokeragecenter" WITH OWNER "hanlonpgsql4" TEMPLATE templ
 \connect shift_brokeragecenter;
 
 -- http://www.postgresqltutorial.com/postgresql-uuid/
-<<<<<<< HEAD
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- This must come after the connection
-=======
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
->>>>>>> bae017d9de608e0169d8e91fe701e6d8e8a6b5c4
 
 ---------------------------------------------------------------
 
@@ -94,7 +90,7 @@ CREATE TABLE public.new_traders
   email VARCHAR(40) NOT NULL,
   role VARCHAR(20) NOT NULL DEFAULT 'student'::VARCHAR,
   sessionid VARCHAR(40),
-  target BOOLEAN NOT NULL DEFAULT FALSE,
+  super BOOLEAN NOT NULL DEFAULT FALSE,
 
   CONSTRAINT new_traders_pkey PRIMARY KEY (id)
 )
