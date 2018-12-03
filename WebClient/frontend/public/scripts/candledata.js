@@ -206,7 +206,7 @@ $(document).ready(function () {
 
     Highcharts.setOptions({
         global: {
-            timezoneOffset: n
+            timezoneOffset: 0
         },
         lang: {
             rangeSelectorZoom: "Zoom:"

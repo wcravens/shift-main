@@ -63,7 +63,7 @@ public:
 
     // Order book methods
     shift::BestPrice getBestPrice(const std::string& symbol);
-    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, const OrderBook::Type& type);
+    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel = 99);
     std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type);
 
     // Symbols list and company names
@@ -100,15 +100,15 @@ protected:
     // FIXInitiator interface
     bool attach(FIXInitiator& initiator);
     void storePortfolioItem(const std::string& symbol, int shares, double price, double realizedPL);
-    void storePortfolioSummary(double totalRealizedPL, double totalBP, int totalShares);
+    void storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
     void storeWaitingList(const std::vector<shift::Order>& waitingList);
 
     // FIXInitiator callback methods
-    virtual void receiveCandlestickData(const std::string& /*symbol*/, double /*open*/, double /*high*/, double /*low*/, double /*close*/, const std::string& /*timestamp*/){}
-    virtual void receiveLastPrice(const std::string& /*symbol*/){}
-    virtual void receivePortfolioSummary(){}
-    virtual void receivePortfolioItem(const std::string& /*symbol*/){}
-    virtual void receiveWaitingList(){}
+    virtual void receiveCandlestickData(const std::string& /*symbol*/, double /*open*/, double /*high*/, double /*low*/, double /*close*/, const std::string& /*timestamp*/) {}
+    virtual void receiveLastPrice(const std::string& /*symbol*/) {}
+    virtual void receivePortfolioSummary() {}
+    virtual void receivePortfolioItem(const std::string& /*symbol*/) {}
+    virtual void receiveWaitingList() {}
 
     // Sample prices
     void calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow);

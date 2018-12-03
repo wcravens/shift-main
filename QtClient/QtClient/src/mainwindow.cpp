@@ -44,7 +44,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(&m_overview_model, &OverviewModel::sentOpenPrice, m_order_book_dialog, &OrderBookDialog::receiveOpenPrice);
     connect(&m_overview_model, &OverviewModel::setSendOrder, this, &MainWindow::updateOrderEditor);
     connect(&m_portfolio_model, &PortfolioModel::updateTotalPortfolio, this, &MainWindow::updatePortfolio);
-    connect(&m_portfolio_model, &PortfolioModel::updateTotalPL, this, &MainWindow::updatePL);
     connect(&m_waiting_list_model, &WaitingListModel::setCancelOrder, this, &MainWindow::updateCancelOrderEditor);
     connect(ui->OverviewTable, &QTableView::clicked, &m_overview_model, &OverviewModel::onClicked);
     connect(ui->WaitingListTable, &QTableView::clicked, &m_waiting_list_model, &WaitingListModel::onClicked);
@@ -105,15 +104,10 @@ void MainWindow::submitOrder(shift::Order::Type type)
     Global::qt_core_client.submitOrder(order);
 }
 
-void MainWindow::updatePortfolio(double totalBP, int totalShare)
+void MainWindow::updatePortfolio(double totalBP, int totalShare, double totalPL)
 {
     ui->BuyingPower->setText(QString::number(totalBP, 'f', 2));
     ui->TotalShare->setText(QString::number(totalShare));
-}
-
-void MainWindow::updatePL(double totalPL)
-
-{
     ui->TotalPL->setText(QString::number(totalPL, 'f', 2));
 }
 

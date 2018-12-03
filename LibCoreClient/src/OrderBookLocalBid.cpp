@@ -1,21 +1,14 @@
 #include "OrderBookLocalBid.h"
 
 /**
- * @brief Default constructor of OrderBookLocalBid class.
- */
-shift::OrderBookLocalBid::OrderBookLocalBid()
-{
-}
-
-/**
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */
-void shift::OrderBookLocalBid::update(shift::OrderBookEntry entry)
+void shift::OrderBookLocalBid::update(const shift::OrderBookEntry& entry)
 {
     std::lock_guard<std::mutex> guard(m_mutex);
 
-    std::list<shift::OrderBookEntry>::iterator it = m_entries.begin();
+    auto it = m_entries.begin();
 
     for (; it != m_entries.end(); it++) {
         if (it->getPrice() < entry.getPrice())

@@ -12,9 +12,9 @@ namespace shift {
 class CORECLIENT_EXPORTS OrderBookGlobalAsk : public OrderBook {
 
 public:
-    OrderBookGlobalAsk();
+    OrderBookGlobalAsk() = default;
 
-    virtual void update(shift::OrderBookEntry entry) override;
+    virtual void update(const shift::OrderBookEntry& entry) override;
 };
 
 } // shift

@@ -65,12 +65,12 @@ void MainClient::sendOrderBookToFront()
 {
     for (const std::string& symbol : getStockList()) {
         for (const char& type : { 'a', 'A', 'b', 'B' }) {
-            auto orderBook = getOrderBook(symbol, (shift::OrderBook::Type)type);
-            std::set<double> myset;
+            auto orderBook = getOrderBook(symbol, (shift::OrderBook::Type)type); // TODO: add maxLevel parameter = 5
+            std::set<double> myset; // TODO: delete
             std::string res = "";
             for (const auto& entry : orderBook) {
-                myset.insert(entry.getPrice());
-                if (myset.size() > 5)
+                myset.insert(entry.getPrice()); // TODO: delete
+                if (myset.size() > 5) // TODO: delete
                     break;
                 std::ostringstream out;
                 out << "{ "

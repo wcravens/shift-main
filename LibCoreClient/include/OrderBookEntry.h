@@ -13,8 +13,8 @@ class CORECLIENT_EXPORTS OrderBookEntry {
 public:
     OrderBookEntry();
 
-    OrderBookEntry(std::string symbol, double price, int size,
-        std::string destination, double time);
+    OrderBookEntry(const std::string& symbol, double price, int size,
+        const std::string& destination, double time);
 
     // Getters
     const std::string& getSymbol() const;
@@ -24,10 +24,10 @@ public:
     double getTime() const;
 
     // Setters
-    void setSymbol(std::string symbol);
+    void setSymbol(const std::string& symbol);
     void setPrice(double price);
     void setSize(int size);
-    void setDestination(std::string destination);
+    void setDestination(const std::string& destination);
     void setTime(double time);
 
 private:

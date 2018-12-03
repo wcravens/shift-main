@@ -63,7 +63,7 @@ signals:
 
 public slots:
     void receiveStocklistReady();
-    void refreshWatchList();
+    void refresh();
     void onClicked(const QModelIndex& index);
 
 private slots:

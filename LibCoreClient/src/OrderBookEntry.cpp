@@ -4,6 +4,11 @@
  * @brief Default constructor for OrderBookEntry object.
  */
 shift::OrderBookEntry::OrderBookEntry()
+    : m_symbol("")
+    , m_price(0.0)
+    , m_size(0)
+    , m_destination("")
+    , m_time(0.0)
 {
 }
 
@@ -16,12 +21,12 @@ shift::OrderBookEntry::OrderBookEntry()
  * @param destination string value for m_destination
  * @param time double value for m_time
  */
-shift::OrderBookEntry::OrderBookEntry(std::string symbol, double price, int size,
-    std::string destination, double time)
-    : m_symbol(std::move(symbol))
+shift::OrderBookEntry::OrderBookEntry(const std::string& symbol, double price, int size,
+    const std::string& destination, double time)
+    : m_symbol(symbol)
     , m_price(price)
     , m_size(size)
-    , m_destination(std::move(destination))
+    , m_destination(destination)
     , m_time(time)
 {
 }
@@ -75,9 +80,9 @@ double shift::OrderBookEntry::getTime() const
  * @brief Setter to set order symbol into m_symbol.
  * @param symbol in string
  */
-void shift::OrderBookEntry::setSymbol(std::string symbol)
+void shift::OrderBookEntry::setSymbol(const std::string& symbol)
 {
-    m_symbol = std::move(symbol);
+    m_symbol = symbol;
 }
 
 /**
@@ -102,7 +107,7 @@ void shift::OrderBookEntry::setSize(int size)
  * @brief Setter to set order destination into m_destination.
  * @param destination in string
  */
-void shift::OrderBookEntry::setDestination(std::string destination)
+void shift::OrderBookEntry::setDestination(const std::string& destination)
 {
     m_destination = destination;
 }

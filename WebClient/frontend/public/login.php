@@ -35,7 +35,8 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
     <head>
         <title>SHIFT Alpha</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+        <!-- <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css"> -->
+        <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
         <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-theme.min.css">
         <?php
             echo '<link rel="stylesheet" href="/style/login.css?version='.$SHIFT_version.'"></script>';
@@ -127,6 +128,12 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
                                     <form id="register-form" action="/register.php" method="post" role="form" style="display: none;">
                                         <div class="form-group">
                                             <input type="text" name="username" id="username-reg" tabindex="1" class="form-control" placeholder="Username" value="">
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="text" name="firstname" id="firstname" tabindex="1" class="form-control" placeholder="First Name" value="">
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="text" name="lastname" id="lastname" tabindex="1" class="form-control" placeholder="Last Name" value="">
                                         </div>
                                         <div class="form-group">
                                             <input type="email" name="email" id="email" tabindex="1" class="form-control" placeholder="Email Address" value="">

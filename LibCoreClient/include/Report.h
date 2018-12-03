@@ -11,8 +11,8 @@ class CORECLIENT_EXPORTS Report {
 public:
     Report();
 
-    Report(std::string clientID, std::string orderID, std::string symbol, double price, char orderType,
-        char orderStatus, int size, std::string executionTime, std::string serverTime);
+    Report(const std::string& clientID, const std::string& orderID, const std::string& symbol, double price, char orderType,
+        char orderStatus, int size, const std::string& executionTime, const std::string& serverTime);
 
 private:
     std::string m_clientID; //!< ClientID of the client who submit previous orders

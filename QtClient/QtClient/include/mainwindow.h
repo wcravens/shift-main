@@ -28,8 +28,7 @@ public:
     void submitOrder(shift::Order::Type type);
 
 public slots:
-    void updatePortfolio(double totalBP, int totalShare);
-    void updatePL(double totalPL);
+    void updatePortfolio(double totalBP, int totalShare, double totalPL);
     void updateOrderEditor(QString symbol, double price);
     void updateCancelOrderEditor(QString id, QString size);
     void hideLoadingLabel();

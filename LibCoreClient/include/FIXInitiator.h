@@ -53,8 +53,8 @@ namespace shift {
  */
 class CORECLIENT_EXPORTS CoreClient;
 class CORECLIENT_EXPORTS FIXInitiator
-        : public FIX::Application
-        , public FIX::MessageCracker {
+    : public FIX::Application,
+      public FIX::MessageCracker {
 
     friend class CoreClient;
 
@@ -97,7 +97,7 @@ protected:
     R_FIXINIT void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     R_FIXINIT void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     R_FIXINIT void onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) override;
-    R_FIXINIT void onMessage(const FIX50SP2::PositionReport& message, const FIX::SessionID& sessionID);
+    R_FIXINIT void onMessage(const FIX50SP2::PositionReport& message, const FIX::SessionID& sessionID) override;
     R_FIXINIT void onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID& sessionID) override; // for testing when receiving order book
     R_FIXINIT void onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) override;
     R_FIXINIT void onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) override;
@@ -112,7 +112,7 @@ protected:
     R_FIXSUB double getLastPrice(const std::string& symbol);
     // Order book methods
     R_FIXSUB shift::BestPrice getBestPrice(const std::string& symbol);
-    R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type);
+    R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel);
     R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type);
 
     // Symbols list and company names
@@ -137,7 +137,6 @@ protected:
 private:
     FIXInitiator();
 
-
     // Do NOT change order of these unique_ptrs:
     R_FIXINIT std::unique_ptr<FIX::LogFactory> m_pLogFactory;
     R_FIXINIT std::unique_ptr<FIX::MessageStoreFactory> m_pMessageStoreFactory;
@@ -154,8 +153,6 @@ private:
 
     // FIXInitiator - Subscriber management
     R_FIXINIT std::unordered_map<std::string, CoreClient*> m_username_client;
-
-
 
     R_TODO std::atomic<bool> m_openPricesReady;
     R_TODO std::mutex m_mutex_openPrices;

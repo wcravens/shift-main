@@ -90,6 +90,41 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook()
     return orderBook;
 }
 
+std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook2(int maxLevel)
+{
+    std::list<shift::OrderBookEntry> original;
+    std::vector<shift::OrderBookEntry> output;
+    shift::OrderBookEntry newEntry;
+
+    if (maxLevel <= 0)
+        return output;
+
+    {
+        std::lock_guard<std::mutex> guard(m_mutex);
+        original = m_entries;
+    }
+
+    if (!original.empty()) {
+        for (shift::OrderBookEntry entry : original) {
+            if (newEntry.getPrice() == entry.getPrice())
+                newEntry.setSize(newEntry.getSize() + entry.getSize());
+            else {
+                if (newEntry.getSize() > 0) {
+                    output.push_back(newEntry);
+                    if (--maxLevel == 0)
+                        return output;
+                }
+                newEntry = entry;
+                if (m_type == OrderBook::Type::GLOBAL_ASK || m_type == OrderBook::Type::GLOBAL_BID)
+                    newEntry.setDestination("Market");
+            }
+        }
+        output.push_back(newEntry);
+    }
+
+    return output;
+}
+
 /**
  * @brief Method to return the designated order book searched by destination.
  * @return the target order book with their own destination. (Not combined to "Market")
@@ -97,33 +132,21 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook()
 std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBookWithDestination()
 {
     std::lock_guard<std::mutex> guard(m_mutex);
-    std::vector<shift::OrderBookEntry> orderBook;
-    double lastPrice = -1.0;
-    int level = 0;
+    std::vector<shift::OrderBookEntry> output(m_entries.size());
 
-    for (shift::OrderBookEntry entry : m_entries) {
-        if (entry.getPrice() != lastPrice) {
-            lastPrice = entry.getPrice();
-            if (++level > 5)
-                return orderBook;
-        }
-        orderBook.push_back(entry);
-    }
+    std::copy(m_entries.begin(), m_entries.end(), output.begin());
 
-    return orderBook;
+    return output;
 }
 
 /**
- * @brief Method to set the input vector of entries into m_entries of current order book.
- * @param entries A vector of shift::OrderBookEntry including all entries to be inserted.
+ * @brief Method to set the input list of entries into m_entries of current order book.
+ * @param entries A list of shift::OrderBookEntry including all entries to be inserted.
  */
-void shift::OrderBook::setOrderBook(std::vector<shift::OrderBookEntry> entries)
+void shift::OrderBook::setOrderBook(const std::list<shift::OrderBookEntry>& entries)
 {
     std::lock_guard<std::mutex> guard(m_mutex);
-    m_entries.clear();
-    for (shift::OrderBookEntry entry : entries)
-        if (entry.getSize())
-            m_entries.push_back(entry);
+    m_entries = entries;
 }
 
 /**
@@ -132,9 +155,9 @@ void shift::OrderBook::setOrderBook(std::vector<shift::OrderBookEntry> entries)
  * @param price the target price value as a double
  * @return A list iterator who points to the position of the requested order book entry.
  */
-std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntryByDestPrice(std::string dest, double price)
+std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntryByDestPrice(const std::string& dest, double price)
 {
-    for (std::list<shift::OrderBookEntry>::iterator it = m_entries.begin(); it != m_entries.end(); it++) {
+    for (auto it = m_entries.begin(); it != m_entries.end(); it++) {
         if (it->getPrice() != price)
             break;
 

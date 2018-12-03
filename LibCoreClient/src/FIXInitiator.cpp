@@ -8,6 +8,7 @@
 #include "OrderBookLocalBid.h"
 
 #include <cmath>
+#include <list>
 #include <regex>
 #include <thread>
 
@@ -588,7 +589,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         buyingPowerGroup.get(totalBuyingPower);
 
         try {
-            getClient(userName)->storePortfolioSummary(totalRealizedPL, totalBuyingPower, totalShares);
+            getClient(userName)->storePortfolioSummary(totalBuyingPower, totalShares, totalRealizedPL);
             getClient(userName)->receivePortfolioSummary();
         } catch (...) {
             return;
@@ -629,7 +630,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
         FIX::UnderlyingContractMultiplier size; //double
         FIX::UnderlyingCouponRate time; //double
 
-        std::vector<shift::OrderBookEntry> orderBook;
+        std::list<shift::OrderBookEntry> orderBook;
 
         for (int i = 1; i <= n; i++) {
             message.getGroup(i, quoteSetGroup);
@@ -643,8 +644,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
             quoteSetGroup.get(time);
 
             symbol = m_originalName_symbol[symbol];
-            shift::OrderBookEntry entry(symbol, price, size, destination, time);
-            orderBook.push_back(entry);
+            orderBook.push_back({ symbol, price, (int)size, destination, time });
         }
 
         try {
@@ -997,7 +997,7 @@ shift::BestPrice shift::FIXInitiator::getBestPrice(const std::string& symbol)
  * 
  * @param type The target entry type (Global bid "B"/ask "A", local bid "b"/ask "a")
  */
-std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::string& symbol, OrderBook::Type type)
+std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel)
 {
     if (m_orderBooks.find(symbol) == m_orderBooks.end()) {
         throw "There is no Order Book for symbol " + symbol;
@@ -1062,9 +1062,8 @@ void shift::FIXInitiator::fetchCompanyName(const std::string tickerName)
     curl = curl_easy_init(); // Initilise web query
 
     if (curl) {
-        typedef size_t(*CURL_WRITEFUNCTION_PTR)(char*, size_t, size_t, std::string*);
-        auto sWriter = [](char* data, size_t size, size_t nmemb, std::string* buffer)
-        {
+        typedef size_t (*CURL_WRITEFUNCTION_PTR)(char*, size_t, size_t, std::string*);
+        auto sWriter = [](char* data, size_t size, size_t nmemb, std::string* buffer) {
             size_t result = 0;
 
             if (buffer != nullptr) {
