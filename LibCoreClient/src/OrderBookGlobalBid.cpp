@@ -1,6 +1,14 @@
 #include "OrderBookGlobalBid.h"
 
 /**
+ * @brief Default constructor of OrderBookGlobalBid class.
+ */
+shift::OrderBookGlobalBid::OrderBookGlobalBid()
+{
+    m_type = Type::GLOBAL_BID;
+}
+
+/**
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */

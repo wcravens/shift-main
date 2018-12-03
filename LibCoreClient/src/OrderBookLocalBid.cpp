@@ -1,6 +1,14 @@
 #include "OrderBookLocalBid.h"
 
 /**
+ * @brief Default constructor of OrderBookLocalBid class.
+ */
+shift::OrderBookLocalBid::OrderBookLocalBid()
+{
+    m_type = Type::LOCAL_BID;
+}
+
+/**
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */

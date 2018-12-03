@@ -3,6 +3,7 @@
 #include "CoreClient_EXPORTS.h"
 #include "OrderBookEntry.h"
 
+#include <iostream>
 #include <list>
 #include <mutex>
 #include <string>
@@ -37,10 +38,10 @@ public:
 protected:
     std::list<shift::OrderBookEntry>::iterator findEntryByDestPrice(const std::string& dest, double price);
 
+    Type m_type;
+
     std::mutex m_mutex; //!< Mutex member to lock the list when it's being adjusted.
     std::list<shift::OrderBookEntry> m_entries; //!< A list of all entries within the current OrderBook object.
-
-    Type m_type;
 };
 
 } // shift

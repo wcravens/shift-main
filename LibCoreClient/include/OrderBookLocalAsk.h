@@ -12,7 +12,7 @@ namespace shift {
 class CORECLIENT_EXPORTS OrderBookLocalAsk : public OrderBook {
 
 public:
-    OrderBookLocalAsk() = default;
+    OrderBookLocalAsk();
 
     virtual void update(const shift::OrderBookEntry& entry) override;
 };

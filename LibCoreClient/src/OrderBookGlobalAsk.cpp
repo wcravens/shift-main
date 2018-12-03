@@ -1,6 +1,14 @@
 #include "OrderBookGlobalAsk.h"
 
 /**
+ * @brief Default constructor of OrderBookGlobalAsk class.
+ */
+shift::OrderBookGlobalAsk::OrderBookGlobalAsk()
+{
+    m_type = Type::GLOBAL_ASK;
+}
+
+/**
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */

@@ -1,6 +1,14 @@
 #include "OrderBookLocalAsk.h"
 
 /**
+ * @brief Default constructor of OrderBookLocalAsk class.
+ */
+shift::OrderBookLocalAsk::OrderBookLocalAsk()
+{
+    m_type = Type::LOCAL_ASK;
+}
+
+/**
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */

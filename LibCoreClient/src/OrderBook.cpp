@@ -80,8 +80,9 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook(int maxLevel)
                         return output;
                 }
                 newEntry = entry;
-                if (m_type == OrderBook::Type::GLOBAL_ASK || m_type == OrderBook::Type::GLOBAL_BID)
+                if (m_type == OrderBook::Type::GLOBAL_ASK || m_type == OrderBook::Type::GLOBAL_BID) {
                     newEntry.setDestination("Market");
+                }
             }
         }
         output.push_back(newEntry);
