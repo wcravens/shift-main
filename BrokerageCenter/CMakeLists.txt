@@ -59,7 +59,6 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/Stock.cpp
     ${PROJECT_SOURCE_DIR}/src/CandlestickData.cpp
     ${PROJECT_SOURCE_DIR}/src/TempCandlestickData.cpp
-    ${PROJECT_SOURCE_DIR}/src/TokenPool.cpp
 )
 
 set(OTHER
