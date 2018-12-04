@@ -23,8 +23,11 @@ public:
         LOCAL_ASK = 'a'
     };
 
-    OrderBook();
+    OrderBook(const std::string& symbol, Type type);
     virtual ~OrderBook();
+
+    const std::string& getSymbol() const;
+    Type getType() const;
 
     double getBestPrice();
     int getBestSize();
@@ -36,8 +39,9 @@ public:
     virtual void update(const shift::OrderBookEntry& entry) = 0;
 
 protected:
-    std::list<shift::OrderBookEntry>::iterator findEntryByDestPrice(const std::string& dest, double price);
+    std::list<shift::OrderBookEntry>::iterator findEntry(double price, const std::string& destination);
 
+    std::string m_symbol;
     Type m_type;
 
     std::mutex m_mutex; //!< Mutex member to lock the list when it's being adjusted.

@@ -70,10 +70,10 @@ void MainClient::sendOrderBookToFront()
             for (const auto& entry : orderBook) {
                 std::ostringstream out;
                 out << "{ "
+                    << "\"symbol\": "
+                    << "\"" << symbol << "\","
                     << "\"bookType\": "
                     << "\"" << type << "\","
-                    << "\"symbol\": "
-                    << "\"" << entry.getSymbol() << "\","
                     << "\"price\": "
                     << "\"" << entry.getPrice() << "\","
                     << "\"size\": "

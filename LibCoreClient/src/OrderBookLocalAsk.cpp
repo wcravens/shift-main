@@ -1,11 +1,12 @@
 #include "OrderBookLocalAsk.h"
 
 /**
- * @brief Default constructor of OrderBookLocalAsk class.
+ * @brief Constructor with all members preset.
+ * @param symbol string value to be set in m_symbol
  */
-shift::OrderBookLocalAsk::OrderBookLocalAsk()
+shift::OrderBookLocalAsk::OrderBookLocalAsk(const std::string& symbol)
+    : OrderBook(symbol, shift::OrderBook::Type::LOCAL_ASK)
 {
-    m_type = Type::LOCAL_ASK;
 }
 
 /**

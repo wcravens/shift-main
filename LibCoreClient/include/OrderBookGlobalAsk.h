@@ -12,7 +12,7 @@ namespace shift {
 class CORECLIENT_EXPORTS OrderBookGlobalAsk : public OrderBook {
 
 public:
-    OrderBookGlobalAsk();
+    OrderBookGlobalAsk(const std::string& symbol);
 
     virtual void update(const shift::OrderBookEntry& entry) override;
 };

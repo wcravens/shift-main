@@ -1,11 +1,12 @@
 #include "OrderBookLocalBid.h"
 
 /**
- * @brief Default constructor of OrderBookLocalBid class.
+ * @brief Constructor with all members preset.
+ * @param symbol string value to be set in m_symbol
  */
-shift::OrderBookLocalBid::OrderBookLocalBid()
+shift::OrderBookLocalBid::OrderBookLocalBid(const std::string& symbol)
+    : OrderBook(symbol, shift::OrderBook::Type::LOCAL_BID)
 {
-    m_type = Type::LOCAL_BID;
 }
 
 /**

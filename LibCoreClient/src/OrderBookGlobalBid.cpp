@@ -1,11 +1,12 @@
 #include "OrderBookGlobalBid.h"
 
 /**
- * @brief Default constructor of OrderBookGlobalBid class.
+ * @brief Constructor with all members preset.
+ * @param symbol string value to be set in m_symbol
  */
-shift::OrderBookGlobalBid::OrderBookGlobalBid()
+shift::OrderBookGlobalBid::OrderBookGlobalBid(const std::string& symbol)
+    : OrderBook(symbol, shift::OrderBook::Type::GLOBAL_BID)
 {
-    m_type = Type::GLOBAL_BID;
 }
 
 /**
@@ -22,7 +23,7 @@ void shift::OrderBookGlobalBid::update(const shift::OrderBookEntry& entry)
             it = m_entries.erase(it);
         else {
             // check if the destination exist
-            auto it_dest = findEntryByDestPrice(entry.getDestination(), entry.getPrice());
+            auto it_dest = findEntry(entry.getPrice(), entry.getDestination());
             if (it_dest != m_entries.end()) {
                 *it = entry;
                 return;

@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(LIMITBUYTEST)
     auto prev_size = testClient->getWaitingListSize();
     std::cout << "previous size should be: " << prev_size << std::endl;
 
-    Order order(stockName, limitBuyPrice, TESTSIZE, Order::LIMIT_BUY);
+    Order order(stockName, limitBuyPrice, TESTSIZE, shift::Order::LIMIT_BUY);
     testClient->submitOrder(order);
     sleep(5);
 
