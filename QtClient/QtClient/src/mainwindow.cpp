@@ -100,7 +100,7 @@ void MainWindow::submitOrder(shift::Order::Type type)
         return;
     }
 
-    shift::Order order(qsymbol.toStdString(), price, size, type);
+    shift::Order order(type, qsymbol.toStdString(), size, price);
     Global::qt_core_client.submitOrder(order);
 }
 
