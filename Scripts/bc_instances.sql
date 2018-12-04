@@ -49,33 +49,6 @@ ALTER TABLE PUBLIC.holdings_xyz
 
 ---------------------------------------------------------------
 
--- Table: PUBLIC.web_traders
-
--- DROP TABLE PUBLIC.web_traders;
-
-CREATE TABLE PUBLIC.web_traders
-(
-  id SERIAL,
-  portfolio_id INTEGER DEFAULT -1,
-  username VARCHAR(40) NOT NULL UNIQUE,
-  password VARCHAR(40) NOT NULL,
-  role VARCHAR(20) NOT NULL DEFAULT 'student'::VARCHAR,
-  email VARCHAR(40) NOT NULL,
-  sessionid VARCHAR(40),
-
-  CONSTRAINT web_traders_pkey PRIMARY KEY (id)
-  -- CONSTRAINT web_traders_fkey FOREIGN KEY (portfolio_id)
-  --   REFERENCES PUBLIC.portfolio_summary (portfolio_id) MATCH SIMPLE
-  --   ON UPDATE NO ACTION ON DELETE NO ACTION
-)
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE PUBLIC.web_traders
-  OWNER TO hanlonpgsql4;
-
----------------------------------------------------------------
-
 -- Table: public.new_traders
 
 -- DROP TABLE public.new_traders;
