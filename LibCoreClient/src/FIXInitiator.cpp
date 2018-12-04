@@ -644,7 +644,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
             quoteSetGroup.get(time);
 
             symbol = m_originalName_symbol[symbol];
-            orderBook.push_back({ price, (int)size, destination, time });
+            orderBook.push_back({ price, (int)size, time, destination });
         }
 
         try {
@@ -687,8 +687,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
                 char(atoi(((std::string)orderType).c_str())));
 
             if (size != 0) {
-                shift::Order o(symbol, price, size, type, orderID);
-                waitingList.push_back(o);
+                waitingList.push_back({ type, symbol, size, price, orderID });
             }
         }
 
@@ -740,7 +739,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     partyGroup.get(destination);
 
     symbol = m_originalName_symbol[symbol];
-    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, std::stod(time) });
+    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, std::stod(time), destination });
 }
 
 /**

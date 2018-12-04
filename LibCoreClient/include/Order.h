@@ -28,29 +28,28 @@ public:
     };
 
     Order();
-    Order(const std::string& symbol, double price, int size, Type type);
-    Order(const std::string& symbol, double price, int size, Type type, const std::string& id);
+    Order(Type type, const std::string& symbol, int size, double price = 0.0, const std::string& id = "");
 
     // Getters
-    const std::string& getSymbol() const;
-    double getPrice() const;
-    int getSize() const;
     Type getType() const;
+    const std::string& getSymbol() const;
+    int getSize() const;
+    double getPrice() const;
     const std::string& getID() const;
 
     // Setters
-    void setSymbol(const std::string&);
-    void setPrice(double);
-    void setSize(int);
-    void setType(Type);
-    void setID(const std::string&);
+    void setType(Type type);
+    void setSymbol(const std::string& symbol);
+    void setSize(int size);
+    void setPrice(double price);
+    void setID(const std::string& id);
 
 private:
-    std::string m_symbol; //!< Trading symbol for the current quote.
+    Type m_type;
+    std::string m_symbol;
+    int m_size;
     double m_price;
-    int m_size; //!< Trading size of the current quote, 1 size = 100 shares.
-    Type m_type; //!< '1':LimitBuy; '2':LimitSell; '3':MarketBuy; '4':MarketSell; '5':CancelBid; '6':CancelAsk
-    std::string m_id; //!< Order ID of the current quote.
+    std::string m_id;
 };
 
 } // shift

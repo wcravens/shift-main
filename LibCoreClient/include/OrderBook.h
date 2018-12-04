@@ -18,8 +18,8 @@ class CORECLIENT_EXPORTS OrderBook {
 public:
     enum class Type {
         GLOBAL_BID = 'B',
-        LOCAL_BID = 'b',
         GLOBAL_ASK = 'A',
+        LOCAL_BID = 'b',
         LOCAL_ASK = 'a'
     };
 
