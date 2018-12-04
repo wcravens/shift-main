@@ -9,43 +9,53 @@ $(document).ready(function () {
         function () {
             conn.subscribe('submittedOrders_' + php_username, function (topic, data) {
                 var stock_list_table = document.getElementById("stock_list");
+                var tableCells = 8; // cell count
                 if (data.data.length != 0 && document.getElementById("emptyList"))
                     stock_list_table.deleteRow(1);
                         
                 for (var i = 0; i < data.data.length; i++) {
                     var index = i + 1;                    
+                    var cNum = 0;
                     if (stock_list_table.rows[index]) {
-                        stock_list_table.rows[index].cells[0].innerHTML = data.data[i].symbol;
-                        stock_list_table.rows[index].cells[1].innerHTML = (data.data[i].orderType == "3" || data.data[i].orderType == "4") ? "" : numFloat(data.data[i].price);
-                        stock_list_table.rows[index].cells[2].innerHTML = numInt(data.data[i].shares);
-                        stock_list_table.rows[index].cells[4].innerHTML = orderTypeStrs[data.data[i].orderType];
-                        stock_list_table.rows[index].cells[5].innerHTML = data.data[i].orderId;
-                        stock_list_table.rows[index].cells[5].className += " notimpcol2";
-                        stock_list_table.rows[index].cells[6].className += " notimpcol";
-                        stock_list_table.rows[index].cells[7].className += " notimpcol";
+                        stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].symbol;
+                        cNum++; // order type
+                        stock_list_table.rows[index].cells[cNum].innerHTML = orderTypeStrs[data.data[i].orderType];
+                        cNum++; // price
+                        stock_list_table.rows[index].cells[cNum].innerHTML = (data.data[i].orderType == "3" || data.data[i].orderType == "4") ? "" : numFloat(data.data[i].price);
+                        cNum++; // order size
+                        stock_list_table.rows[index].cells[cNum].innerHTML = numInt(data.data[i].shares);
+                        cNum++; // empty column
+                        cNum++; // order id
+                        stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].orderId;
+                        stock_list_table.rows[index].cells[cNum].className += " notimpcol2";
+                        cNum++; // accepted flag
+                        stock_list_table.rows[index].cells[cNum].className += " notimpcol";
+                        cNum++; // cancelled flag
+                        stock_list_table.rows[index].cells[cNum].className += " notimpcol";
                     } else {
                         var row = stock_list_table.insertRow(index);
-                        var cell0 = row.insertCell(0);
-                        cell0.className = "bold";
-                        var cell1 = row.insertCell(1);
-                        cell1.className = "text-right";
-                        var cell2 = row.insertCell(2);
-                        cell2.className = "text-right";
-                        var cell3 = row.insertCell(3); // nothing
-                        cell3.className = "text-right";
-                        var cell4 = row.insertCell(4); // order type
-                        var cell5 = row.insertCell(5); // order id
-                        var cell6 = row.insertCell(6); // accepted flag
-                        var cell7 = row.insertCell(7); // cancelled flag
-
-                        cell0.innerHTML = data.data[i].symbol;
-                        cell1.innerHTML = (data.data[i].orderType == "3" || data.data[i].orderType == "4") ? "" : numFloat(data.data[i].price);;
-                        cell2.innerHTML = numInt(data.data[i].shares);
-                        cell4.innerHTML = orderTypeStrs[data.data[i].orderType];
-                        cell5.innerHTML = data.data[i].orderId;
-                        cell5.className = " notimpcol2";
-                        cell6.className = " notimpcol";
-                        cell7.className = " notimpcol";
+                        for (var j = 0; j < tableCells; j++){
+                            row.insertCell(j);
+                        }
+                        row.cells[cNum].innerHTML = data.data[i].symbol;
+                        row.cells[cNum].className = "bold";
+                        cNum++; // order type
+                        row.cells[cNum].innerHTML = orderTypeStrs[data.data[i].orderType];
+                        row.cells[cNum].className = "text-right";
+                        cNum++; // price
+                        row.cells[cNum].innerHTML = (data.data[i].orderType == "3" || data.data[i].orderType == "4") ? "" : numFloat(data.data[i].price);;
+                        row.cells[cNum].className = "text-right";
+                        cNum++; // order size
+                        row.cells[cNum].innerHTML = numInt(data.data[i].shares);
+                        row.cells[cNum].className = "text-right";
+                        cNum++; // empty column
+                        cNum++; // order id
+                        row.cells[cNum].innerHTML = data.data[i].orderId;
+                        row.cells[cNum].className = " notimpcol2";
+                        cNum++; // accepted flag
+                        row.cells[cNum].className = " notimpcol";
+                        cNum++; // cancelled flag
+                        row.cells[cNum].className = " notimpcol";
                     }
                 }
 
@@ -58,7 +68,7 @@ $(document).ready(function () {
                     var row = stock_list_table.insertRow(1);
                     row.id = "emptyList";
                     cell = row.insertCell(0);
-                    cell.colSpan = 8;
+                    cell.colSpan = tableCells;
                     cell.innerHTML = "You haven't submitted any orders yet.";
                     cell.className = "text-center";
                 }
