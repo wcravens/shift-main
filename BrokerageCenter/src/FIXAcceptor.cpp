@@ -762,10 +762,13 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID, const std::unord
 
     message.setField(FIX::SecurityResponseID(shift::crossguid::newGuid().str()));
 
-    const std::set<std::string> stocks(symbols.begin(), symbols.end()); // ordered stock symbols
+    // make acscending ordered stock symbols
+    std::vector<std::string> ascStocks(symbols.begin(), symbols.end());
+    std::sort(ascStocks.begin(), ascStocks.end());
+
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
 
-    for (const auto& stock : stocks) {
+    for (const auto& stock : ascStocks) {
         relatedSymGroup.setField(FIX::Symbol(stock));
         message.addGroup(relatedSymGroup);
     }
