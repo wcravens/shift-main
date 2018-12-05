@@ -49,9 +49,7 @@ void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction
                 transac.price,
                 transac.price,
                 transac.price,
-                transac.execTime.getTimeT()
-            )
-        );
+                transac.execTime.getTimeT()));
         candPtr->spawn();
     }
     candPtr->enqueueTransaction(transac);
@@ -78,12 +76,12 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
 
         auto summary = DBConnector::s_readFieldsOfRow(
             "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
-            "FROM new_traders INNER JOIN portfolio_summary ON new_traders.id = portfolio_summary.id\n"
-            "WHERE username = '" + userName + "';"
-            , 5
-        );
+            "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n"
+            "WHERE username = '"
+                + userName + "';",
+            5);
 
-        if(summary.empty())
+        if (summary.empty())
             rmPtr.reset(new RiskManagement(userName, 1e5));
         else
             rmPtr.reset(new RiskManagement(userName, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));

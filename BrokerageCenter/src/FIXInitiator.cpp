@@ -38,7 +38,7 @@ void FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
     disconnectMatchingEngine();
 
     FIX::SessionSettings settings(configFile);
-    FIX::Dictionary commonDict = settings.get();
+    const FIX::Dictionary& commonDict = settings.get();
 
     if (commonDict.has("FileLogPath")) {
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
@@ -210,15 +210,15 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         };
 
         cout << "ConfirmRepo: "
-            << userName << "\t"
-            << orderID << "\t"
-            << orderStatus << "\t"
-            << serverTime.getString() << "\t"
-            << confirmTime.getString() << "\t"
-            << symbol << "\t"
-            << orderType << "\t"
-            << price << "\t"
-            << shareSize << endl;
+             << userName << "\t"
+             << orderID << "\t"
+             << orderStatus << "\t"
+             << serverTime.getString() << "\t"
+             << confirmTime.getString() << "\t"
+             << symbol << "\t"
+             << orderType << "\t"
+             << price << "\t"
+             << shareSize << endl;
         BCDocuments::instance()->addReportToUserRiskManagement(userName, report);
 
     } else { // For execution report
@@ -323,15 +323,15 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
         auto printRpts = [](bool rpt1or2, auto pUserName, auto pOrderID, auto orderStatus, auto pServerTime, auto pExecTime, auto pSymbol, auto pOrderType, auto pPrice, auto pShareSize) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
-            << *pUserName << "\t"
-            << *pOrderID << "\t"
-            << orderStatus << "\t"
-            << pServerTime->getString() << "\t"
-            << pExecTime->getString() << "\t"
-            << *pSymbol << "\t"
-            << *pOrderType << "\t"
-            << *pPrice << "\t"
-            << *pShareSize << endl;
+                 << *pUserName << "\t"
+                 << *pOrderID << "\t"
+                 << orderStatus << "\t"
+                 << pServerTime->getString() << "\t"
+                 << pExecTime->getString() << "\t"
+                 << *pSymbol << "\t"
+                 << *pOrderType << "\t"
+                 << *pPrice << "\t"
+                 << *pShareSize << endl;
         };
 
         switch (orderStatus) {
@@ -523,9 +523,9 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     OrderBookEntry update{
         OrderBookEntry::s_toOrderBookType(*pBookType),
         pSymbol->getString(),
-        double{*pPrice},
-        double{*pSize},
-        double{std::stod(pTime->getString())},
+        double{ *pPrice },
+        double{ *pSize },
+        double{ std::stod(pTime->getString()) },
         pDestination->getString()
     };
     BCDocuments::instance()->addStockToSymbol(*pSymbol, update);

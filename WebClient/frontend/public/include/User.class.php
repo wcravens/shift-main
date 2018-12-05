@@ -15,7 +15,7 @@ class User
             return $_SESSION['err'] = 'Provided passwords do not match.';
         }
         $dbh = DB::get_dbh();
-        $sql = 'INSERT INTO new_traders (username, password, firstname, lastname, email) VALUES (?, ?, ?, ?, ?)';
+        $sql = 'INSERT INTO traders (username, password, firstname, lastname, email) VALUES (?, ?, ?, ?, ?)';
         $sth = $dbh->prepare($sql);
         $is_succ = $sth->execute(array($username, sha1($password), $firstname, $lastname, $email));
         if ($is_succ == false) {
@@ -33,7 +33,7 @@ class User
             return $_SESSION['err'] = 'Please provide both username and password.';
         }
         $dbh = DB::get_dbh();
-        $sql = 'SELECT * FROM new_traders WHERE username = ? AND password = ?';
+        $sql = 'SELECT * FROM traders WHERE username = ? AND password = ?';
         $sth = $dbh->prepare($sql);
         $sth->execute(array($username, sha1($password)));
         $rows = $sth->fetchAll();
@@ -43,7 +43,7 @@ class User
         $sessionid = $this->create_sessionid();
 
         //save sessionid into db
-        $save_sessionid_sql = 'UPDATE new_traders SET sessionid = ? WHERE username = ?';
+        $save_sessionid_sql = 'UPDATE traders SET sessionid = ? WHERE username = ?';
         $sth2 = $dbh->prepare($save_sessionid_sql);
         $is_succ = $sth2->execute(array($sessionid, $username));
         if ($is_succ == false) {
@@ -64,7 +64,7 @@ class User
 
         $sessionid = $_COOKIE['sessionid'];
         $dbh = DB::get_dbh();
-        $sql = 'SELECT * FROM new_traders WHERE sessionid = ?';
+        $sql = 'SELECT * FROM traders WHERE sessionid = ?';
 
         $sth = $dbh->prepare($sql);
         $sth->execute(array($sessionid));
@@ -78,7 +78,7 @@ class User
         return $rows[0];
     }
 
-    
+
     public function create_sessionid()
     {
         return gen_uuid();
@@ -87,7 +87,7 @@ class User
     public function get_user_by_username($username)
     {
         $dbh = DB::get_dbh();
-        $sql = 'SELECT * FROM new_traders WHERE username = ?';
+        $sql = 'SELECT * FROM traders WHERE username = ?';
         $sth = $dbh->prepare($sql);
         $sth->execute(array($username));
         return $sth->fetchAll();

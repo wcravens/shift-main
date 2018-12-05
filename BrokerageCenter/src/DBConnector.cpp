@@ -9,12 +9,12 @@
 
 struct TradingRecords;
 
-template<typename>
+template <typename>
 struct PSQLTable;
 
 //----------------------------------------------------------------------------------------------------------
 
-template<>
+template <>
 struct PSQLTable<TradingRecords> {
     static constexpr char sc_colsDefinition[] = "( real_time TIMESTAMP"
                                                 ", execute_time TIMESTAMP"
@@ -22,7 +22,7 @@ struct PSQLTable<TradingRecords> {
                                                 ", price REAL"
                                                 ", size INTEGER"
 
-                                                ", trader_id_1 UUID" // UUID: Map to new_traders.id
+                                                ", trader_id_1 UUID" // UUID: Map to traders.id
                                                 ", trader_id_2 UUID" // ditto
                                                 ", order_id_1 VARCHAR(40)"
                                                 ", order_id_2 VARCHAR(40)"
@@ -37,10 +37,10 @@ struct PSQLTable<TradingRecords> {
                                                 ",  CONSTRAINT trading_records_pkey PRIMARY KEY (order_id_1, order_id_2)\
                                                     \
                                                  ,  CONSTRAINT trading_records_fkey_1 FOREIGN KEY (trader_id_1)\
-                                                        REFERENCES PUBLIC.new_traders (id) MATCH SIMPLE\
+                                                        REFERENCES PUBLIC.traders (id) MATCH SIMPLE\
                                                         ON UPDATE NO ACTION ON DELETE NO ACTION\
                                                  ,  CONSTRAINT trading_records_fkey_2 FOREIGN KEY (trader_id_2)\
-                                                        REFERENCES PUBLIC.new_traders (id) MATCH SIMPLE\
+                                                        REFERENCES PUBLIC.traders (id) MATCH SIMPLE\
                                                         ON UPDATE NO ACTION ON DELETE NO ACTION\
                                                 )";
 
@@ -80,7 +80,7 @@ struct PSQLTable<TradingRecords> {
 
 //----------------------------------------------------------------------------------------------------------
 
-template<>
+template <>
 struct PSQLTable<PortfolioSummary> {
     static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
                                                 ", buying_power REAL"
@@ -93,7 +93,7 @@ struct PSQLTable<PortfolioSummary> {
                                                 ", CONSTRAINT portfolio_summary_pkey PRIMARY KEY (id)\
                                                    \
                                                  , CONSTRAINT portfolio_summary_fkey FOREIGN KEY (id)\
-                                                       REFERENCES PUBLIC.new_traders (id) MATCH SIMPLE\
+                                                       REFERENCES PUBLIC.traders (id) MATCH SIMPLE\
                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
                                                 )";
 
@@ -122,7 +122,7 @@ struct PSQLTable<PortfolioSummary> {
 
 //----------------------------------------------------------------------------------------------------------
 
-template<>
+template <>
 struct PSQLTable<PortfolioItem> {
     static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
                                                 ", symbol VARCHAR(15)"
@@ -137,7 +137,7 @@ struct PSQLTable<PortfolioItem> {
                                                 ", CONSTRAINT portfolio_items_pkey PRIMARY KEY (id, symbol)\
                                                    \
                                                  , CONSTRAINT portfolio_items_fkey FOREIGN KEY (id)\
-                                                       REFERENCES PUBLIC.new_traders (id) MATCH SIMPLE\
+                                                       REFERENCES PUBLIC.traders (id) MATCH SIMPLE\
                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
                                                 )";
 
@@ -260,8 +260,7 @@ auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
     if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
 
-    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname = \'" + tableName + "\'"
-        , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR))
+    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname = \'" + tableName + "\'", COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
 
     PGresult* pRes;
@@ -287,7 +286,7 @@ auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
     return TABLE_STATUS::OTHER_ERROR;
 }
 
-bool DBConnector::doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch/*= PGRES_COMMAND_OK*/, PGresult** ppRes/*= nullptr*/)
+bool DBConnector::doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
 {
     bool isMatch = true;
 
@@ -297,13 +296,15 @@ bool DBConnector::doQuery(const std::string query, const std::string msgIfStatMi
         isMatch = false;
     }
 
-    if (ppRes) *ppRes = pRes;
-    else PQclear(pRes);
+    if (ppRes)
+        *ppRes = pRes;
+    else
+        PQclear(pRes);
 
     return isMatch;
 }
 
-template<typename _WhichTable>
+template <typename _WhichTable>
 bool DBConnector::checkCreateTable()
 {
     if (checkTableExist(PSQLTable<_WhichTable>::name) != TABLE_STATUS::NOT_EXIST)
@@ -311,8 +312,7 @@ bool DBConnector::checkCreateTable()
 
     // cout << PSQLTable<_WhichTable>::name << " does not exist." << endl;
 
-    auto res = doQuery(std::string("CREATE TABLE ") + PSQLTable<_WhichTable>::name + PSQLTable<_WhichTable>::sc_colsDefinition
-            , std::string(COLOR_ERROR "ERROR: Create table [ ") + PSQLTable<_WhichTable>::name + " ] failed.\n" NO_COLOR);
+    auto res = doQuery(std::string("CREATE TABLE ") + PSQLTable<_WhichTable>::name + PSQLTable<_WhichTable>::sc_colsDefinition, std::string(COLOR_ERROR "ERROR: Create table [ ") + PSQLTable<_WhichTable>::name + " ] failed.\n" NO_COLOR);
 
     if (res) {
         cout << COLOR << '\'' << PSQLTable<_WhichTable>::name << "' was created." NO_COLOR << endl;
@@ -322,16 +322,12 @@ bool DBConnector::checkCreateTable()
     return res;
 }
 
-/*static*/ std::vector<std::string> DBConnector::s_readRowsOfField(const std::string& query, int fieldIndex/*= 0*/)
+/*static*/ std::vector<std::string> DBConnector::s_readRowsOfField(const std::string& query, int fieldIndex /*= 0*/)
 {
     std::vector<std::string> vs;
 
     PGresult* pRes;
-    if (instance()->doQuery(query
-                , COLOR_ERROR "ERROR: Get rows of field[" + std::to_string(fieldIndex) + "] failed.\n" NO_COLOR
-                , PGRES_TUPLES_OK
-                , &pRes)
-    ) {
+    if (instance()->doQuery(query, COLOR_ERROR "ERROR: Get rows of field[" + std::to_string(fieldIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
         int rows = PQntuples(pRes);
         for (int row = 0; row < rows; row++) {
             vs.push_back(PQgetvalue(pRes, row, fieldIndex));
@@ -342,17 +338,13 @@ bool DBConnector::checkCreateTable()
     return vs;
 }
 
-/*static*/ std::vector<std::string> DBConnector::s_readFieldsOfRow(const std::string& query, int numFields, int rowIndex/*= 0*/)
+/*static*/ std::vector<std::string> DBConnector::s_readFieldsOfRow(const std::string& query, int numFields, int rowIndex /*= 0*/)
 {
     std::vector<std::string> vs;
 
     PGresult* pRes;
-    if (instance()->doQuery(query
-                , COLOR_ERROR "ERROR: Get fields of row[" + std::to_string(rowIndex) + "] failed.\n" NO_COLOR
-                , PGRES_TUPLES_OK
-                , &pRes)
-        && PQntuples(pRes) > 0
-    ) {
+    if (instance()->doQuery(query, COLOR_ERROR "ERROR: Get fields of row[" + std::to_string(rowIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)
+        && PQntuples(pRes) > 0) {
         for (int field = 0; field < numFields; field++) // from the SELECT clause above
             vs.push_back(PQgetvalue(pRes, rowIndex, field));
     }

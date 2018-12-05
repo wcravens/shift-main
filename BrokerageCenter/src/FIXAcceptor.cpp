@@ -8,6 +8,7 @@
 #include "DBConnector.h"
 
 #include <shift/miscutils/crossguid/Guid.h>
+#include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 
 #define SHOW_INPUT_MSG false
@@ -46,14 +47,14 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
 {
     disconnectClientComputers();
 
-    FIX::SessionSettings settings(configFile);
-    auto targetIDs = DBConnector::s_readRowsOfField("SELECT target_id FROM traders;");
+    const auto targetIDs = DBConnector::s_readRowsOfField("SELECT username FROM traders WHERE super = TRUE;");
     if (targetIDs.empty()) {
         cout << COLOR_WARNING "WARNING: No target is present in the database. The system terminates." NO_COLOR << endl;
         std::terminate();
     }
 
-    const FIX::Dictionary commonDict = settings.get();
+    FIX::SessionSettings settings(configFile);
+    const FIX::Dictionary& commonDict = settings.get();
 
     for (const auto& tarID : targetIDs) {
         FIX::SessionID sid(commonDict.getString("BeginString"), commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER
@@ -557,17 +558,14 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
     std::string adminName, adminPsw;
     const auto& targetID = static_cast<std::string>(sessionID.getTargetCompID());
 
-    cout << COLOR_PROMPT "DEBUG: 1" << NO_COLOR << endl;
-
     FIXT11::Logon::NoMsgTypes msgTypeGroup;
     message.getGroup(1, msgTypeGroup);
     adminName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
     message.getGroup(2, msgTypeGroup);
-    cout << COLOR_PROMPT "DEBUG: 2" << NO_COLOR << endl;
     adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
-    auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE target_id = '" + adminName + "';");
+    const auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE username = '" + adminName + "';");
     if (pswCol.size() && pswCol.front() == adminPsw) {
         BCDocuments::instance()->registerUserInDoc(targetID, adminName);
         cout << COLOR_PROMPT "Authentication successful for " << targetID << ':' << adminName << NO_COLOR << endl;

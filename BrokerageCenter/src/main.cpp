@@ -130,6 +130,12 @@ int main(int ac, char* av[])
         return 1;
     }
 
+    if (vm.count(CSTR_VERBOSE)) {
+        params.isVerbose = true;
+    }
+
+    voh_t voh(cout, params.isVerbose);
+
     if (vm.count(CSTR_CONFIG)) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
@@ -154,10 +160,6 @@ int main(int ac, char* av[])
             cout << COLOR "Note: The timeout option is ignored because of the given value." NO_COLOR << '\n'
                  << endl;
         }
-    }
-
-    if (vm.count(CSTR_VERBOSE)) {
-        params.isVerbose = true;
     }
 
     const auto optsUPI = { CSTR_USERNAME, CSTR_PASSWORD, CSTR_INFO };
@@ -197,8 +199,6 @@ int main(int ac, char* av[])
         }
     }
 
-    voh_t voh(cout, params.isVerbose);
-
     DBConnector::instance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     while (true) {
@@ -230,13 +230,13 @@ int main(int ac, char* av[])
                 const auto& lname = params.user.info[1];
                 const auto& email = params.user.info[2];
 
-                auto res = DBConnector::s_readRowsOfField("SELECT id FROM new_traders WHERE username = '" + params.user.userName + "';");
+                const auto res = DBConnector::s_readRowsOfField("SELECT id FROM traders WHERE username = '" + params.user.userName + "';");
                 if (res.size()) {
                     cout << COLOR_WARNING "The user " << params.user.userName << " already exists!" NO_COLOR << endl;
                     return 1;
                 }
 
-                const auto insert = "INSERT INTO new_traders (username, password, firstname, lastname, email, super) VALUES ('"
+                const auto insert = "INSERT INTO traders (username, password, firstname, lastname, email, super) VALUES ('"
                     + params.user.userName + "','"
                     + params.user.password + "','"
                     + fname + "','" + lname + "','" + email // info
