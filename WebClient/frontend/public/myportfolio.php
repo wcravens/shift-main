@@ -69,10 +69,10 @@ $redirect_url = '/myportfolio.php';
                         <table class="table notselectable bborder" id="stock_list">
                             <tr>
                                 <th class="notwrap" width="5%">Symbol</th>
+                                <th class="text-right notwrap" width="14%">Order Type</th>
                                 <th class="text-right notwrap" width="9.5%">Price</th>
                                 <th class="text-right notwrap" width="9.5%">Size</th>
                                 <th width="5%"></th>
-                                <th class="notwrap" width="14%">Order Type</th>
                                 <th class="notwrap notimpcol2" width="35%">Order ID</th>
                                 <th class="text-right notwrap notimpcol" width="22%">Operation</th> 
                             </tr>

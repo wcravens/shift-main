@@ -1,6 +1,15 @@
 #include "OrderBookGlobalAsk.h"
 
 /**
+ * @brief Constructor with all members preset.
+ * @param symbol string value to be set in m_symbol
+ */
+shift::OrderBookGlobalAsk::OrderBookGlobalAsk(const std::string& symbol)
+    : OrderBook(symbol, shift::OrderBook::Type::GLOBAL_ASK)
+{
+}
+
+/**
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */
@@ -14,7 +23,7 @@ void shift::OrderBookGlobalAsk::update(const shift::OrderBookEntry& entry)
             it = m_entries.erase(it);
         else {
             // check if the destination exist
-            auto it_dest = findEntryByDestPrice(entry.getDestination(), entry.getPrice());
+            auto it_dest = findEntry(entry.getPrice(), entry.getDestination());
             if (it_dest != m_entries.end()) {
                 *it = entry;
                 return;

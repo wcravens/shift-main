@@ -187,8 +187,8 @@ double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int
         return 0.0;
     }
 
-    auto global = (buy) ? getOrderBookWithDestination(symbol, OrderBook::Type::GLOBAL_ASK) : getOrderBookWithDestination(symbol, OrderBook::Type::GLOBAL_BID);
-    auto local = (buy) ? getOrderBookWithDestination(symbol, OrderBook::Type::LOCAL_ASK) : getOrderBookWithDestination(symbol, OrderBook::Type::LOCAL_BID);
+    auto global = (buy) ? getOrderBookWithDestination(symbol, shift::OrderBook::Type::GLOBAL_ASK) : getOrderBookWithDestination(symbol, shift::OrderBook::Type::GLOBAL_BID);
+    auto local = (buy) ? getOrderBookWithDestination(symbol, shift::OrderBook::Type::LOCAL_ASK) : getOrderBookWithDestination(symbol, shift::OrderBook::Type::LOCAL_BID);
     int buySign = ((buy) ? 1 : -1);
 
     double closePrice = 0.0;

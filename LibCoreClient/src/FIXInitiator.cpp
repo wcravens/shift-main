@@ -307,25 +307,25 @@ inline void shift::FIXInitiator::initializePrices()
 inline void shift::FIXInitiator::initializeOrderBooks()
 {
     for (const auto& symbol : m_stockList) {
-        if (m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK]) {
-            delete m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK];
+        if (m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]) {
+            delete m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK];
         }
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK] = new OrderBookGlobalAsk();
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK] = new OrderBookGlobalAsk(symbol);
 
-        if (m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]) {
-            delete m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID];
+        if (m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID]) {
+            delete m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID];
         }
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID] = new OrderBookGlobalBid();
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID] = new OrderBookGlobalBid(symbol);
 
-        if (m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK]) {
-            delete m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK];
+        if (m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_ASK]) {
+            delete m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_ASK];
         }
-        m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK] = new OrderBookLocalAsk();
+        m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_ASK] = new OrderBookLocalAsk(symbol);
 
-        if (m_orderBooks[symbol][OrderBook::Type::LOCAL_BID]) {
-            delete m_orderBooks[symbol][OrderBook::Type::LOCAL_BID];
+        if (m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_BID]) {
+            delete m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_BID];
         }
-        m_orderBooks[symbol][OrderBook::Type::LOCAL_BID] = new OrderBookLocalBid();
+        m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_BID] = new OrderBookLocalBid(symbol);
     }
 }
 
@@ -644,7 +644,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
             quoteSetGroup.get(time);
 
             symbol = m_originalName_symbol[symbol];
-            orderBook.push_back({ symbol, price, (int)size, destination, time });
+            orderBook.push_back({ price, (int)size, time, destination });
         }
 
         try {
@@ -687,8 +687,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
                 char(atoi(((std::string)orderType).c_str())));
 
             if (size != 0) {
-                shift::Order o(symbol, price, size, type, orderID);
-                waitingList.push_back(o);
+                waitingList.push_back({ type, symbol, size, price, orderID });
             }
         }
 
@@ -740,8 +739,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     partyGroup.get(destination);
 
     symbol = m_originalName_symbol[symbol];
-    shift::OrderBookEntry entry(symbol, price, size, destination, std::stod(time));
-    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update(entry);
+    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, std::stod(time), destination });
 }
 
 /**
@@ -978,14 +976,14 @@ double shift::FIXInitiator::getLastPrice(const std::string& symbol)
  */
 shift::BestPrice shift::FIXInitiator::getBestPrice(const std::string& symbol)
 {
-    shift::BestPrice bp = shift::BestPrice(m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestPrice(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestSize(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK]->getBestPrice(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK]->getBestSize(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestPrice(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestSize(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK]->getBestPrice(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK]->getBestSize());
+    shift::BestPrice bp = shift::BestPrice(m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID]->getBestPrice(),
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID]->getBestSize(),
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]->getBestPrice(),
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]->getBestSize(),
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID]->getBestPrice(),
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID]->getBestSize(),
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]->getBestPrice(),
+        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]->getBestSize());
 
     return bp;
 }
@@ -1007,7 +1005,7 @@ std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::
         throw "Order Book type is invalid";
     }
 
-    return m_orderBooks[symbol][type]->getOrderBook();
+    return m_orderBooks[symbol][type]->getOrderBook(maxLevel);
 }
 
 /**

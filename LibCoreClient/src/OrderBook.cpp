@@ -1,9 +1,13 @@
 #include "OrderBook.h"
 
 /**
- * @brief Default constructor.
+ * @brief Constructor with all members preset.
+ * @param symbol string value to be set in m_symbol
+ * @param type Type value for m_type
  */
-shift::OrderBook::OrderBook()
+shift::OrderBook::OrderBook(const std::string& symbol, shift::OrderBook::Type type)
+    : m_symbol(symbol)
+    , m_type(type)
 {
 }
 
@@ -12,6 +16,16 @@ shift::OrderBook::OrderBook()
  */
 shift::OrderBook::~OrderBook()
 {
+}
+
+const std::string& shift::OrderBook::getSymbol() const
+{
+    return m_symbol;
+}
+
+shift::OrderBook::Type shift::OrderBook::getType() const
+{
+    return m_type;
 }
 
 /**
@@ -52,45 +66,10 @@ int shift::OrderBook::getBestSize()
 }
 
 /**
- * @brief Method to return up to the top 5 orders from the current orderbook.
- * @return A vector contains up to 5 orders from the current orderbook.
+ * @brief Method to return up to the top maxLevel orders from the current orderbook.
+ * @return A vector contains up to maxLevel orders from the current orderbook.
  */
-std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook()
-{
-    std::lock_guard<std::mutex> guard(m_mutex);
-    std::vector<shift::OrderBookEntry> orderBook;
-
-    if (!m_entries.empty()) {
-        int level = 0;
-        shift::OrderBookEntry lastEntry = *m_entries.begin();
-        lastEntry.setPrice(-1.0);
-        lastEntry.setSize(-1);
-
-        if (m_type == OrderBook::Type::GLOBAL_ASK || m_type == OrderBook::Type::GLOBAL_BID)
-            lastEntry.setDestination("Market");
-
-        for (shift::OrderBookEntry entry : m_entries) {
-            if (lastEntry.getPrice() == entry.getPrice())
-                lastEntry.setSize(lastEntry.getSize() + entry.getSize());
-            else {
-                if (lastEntry.getPrice() > 0.0)
-                    orderBook.push_back(lastEntry);
-                lastEntry.setSize(entry.getSize());
-                lastEntry.setPrice(entry.getPrice());
-
-                // Display at most 5 levels of order book.
-                if (++level > 5)
-                    return orderBook;
-            }
-        }
-        if (lastEntry.getPrice() > 0.0)
-            orderBook.push_back(lastEntry);
-    }
-
-    return orderBook;
-}
-
-std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook2(int maxLevel)
+std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook(int maxLevel)
 {
     std::list<shift::OrderBookEntry> original;
     std::vector<shift::OrderBookEntry> output;
@@ -115,8 +94,9 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook2(int maxLevel)
                         return output;
                 }
                 newEntry = entry;
-                if (m_type == OrderBook::Type::GLOBAL_ASK || m_type == OrderBook::Type::GLOBAL_BID)
+                if (m_type == shift::OrderBook::Type::GLOBAL_ASK || m_type == shift::OrderBook::Type::GLOBAL_BID) {
                     newEntry.setDestination("Market");
+                }
             }
         }
         output.push_back(newEntry);
@@ -150,18 +130,18 @@ void shift::OrderBook::setOrderBook(const std::list<shift::OrderBookEntry>& entr
 }
 
 /**
- * @brief Method to return target position of the order book entry who has the requested destination and price.
- * @param dest the target destination as a string
+ * @brief Method to return target position of the order book entry who has the requested price and destination.
  * @param price the target price value as a double
+ * @param destination the target destination as a string
  * @return A list iterator who points to the position of the requested order book entry.
  */
-std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntryByDestPrice(const std::string& dest, double price)
+std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntry(double price, const std::string& destination)
 {
     for (auto it = m_entries.begin(); it != m_entries.end(); it++) {
         if (it->getPrice() != price)
             break;
 
-        if (it->getDestination() == dest)
+        if (it->getDestination() == destination)
             return it;
     }
     return m_entries.end();

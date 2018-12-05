@@ -1,6 +1,15 @@
 #include "OrderBookLocalBid.h"
 
 /**
+ * @brief Constructor with all members preset.
+ * @param symbol string value to be set in m_symbol
+ */
+shift::OrderBookLocalBid::OrderBookLocalBid(const std::string& symbol)
+    : OrderBook(symbol, shift::OrderBook::Type::LOCAL_BID)
+{
+}
+
+/**
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */
