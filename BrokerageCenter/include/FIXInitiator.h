@@ -50,12 +50,8 @@ private:
     void onLogon(const FIX::SessionID& sessionID) override;
     void onLogout(const FIX::SessionID& sessionID) override;
     void toAdmin(FIX::Message& message, const FIX::SessionID& sessionID) override {}
-    void toApp(FIX::Message& message, const FIX::SessionID& sessionID) // If sending application message to client
-        throw(FIX::DoNotSend) override;
-    void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) // Member function of MessageCracker
-        throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override
-    {
-    }
+    void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override;
+    void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
     void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) override; // To receive execution report (order confirmation , trade , cancel )from matchgin engine
     void onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) override; // Receive order book updates
