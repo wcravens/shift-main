@@ -166,15 +166,18 @@ If you correctly created the "hanlonpgsql4" user in the previous step, use the s
 - Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a "C++" folder in your home directory, and then:
 
 ``` bash
-curl -LO http://prdownloads.sourceforge.net/quickfix/quickfix-1.15.1.tar.gz
-tar -zxf quickfix-1.15.1.tar.gz
+git clone https://github.com/quickfix/quickfix.git
 cd quickfix
-./bootstrap
-./configure --prefix=/usr/local/
+mkdir build
+cd build
+
+# Ubuntu:
+cmake .. -DHAVE_SSL=ON
+# macOS:
+cmake .. -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+
 make
 sudo make install
-cd ..
-rm quickfix-1.15.1.tar.gz
 ```
 
 - Further Documentation: <http://www.quickfixengine.org/quickfix/doc/html/> 

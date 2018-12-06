@@ -923,15 +923,18 @@ border-bottom-color: #eee;
 <ul>
 <li>Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="ex">curl</span> -LO http://prdownloads.sourceforge.net/quickfix/quickfix-1.15.1.tar.gz</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">tar</span> -zxf quickfix-1.15.1.tar.gz</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="bu">cd</span> quickfix</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="ex">./bootstrap</span></a>
-<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="ex">./configure</span> --prefix=/usr/local/</a>
-<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="fu">make</span></a>
-<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="fu">sudo</span> make install</a>
-<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="bu">cd</span> ..</a>
-<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="fu">rm</span> quickfix-1.15.1.tar.gz</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/quickfix/quickfix.git</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="bu">cd</span> quickfix</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="fu">mkdir</span> build</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="bu">cd</span> build</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="co"># Ubuntu:</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="fu">cmake</span> .. -DHAVE_SSL=ON</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="co"># macOS:</span></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="fu">cmake</span> .. -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl</a>
+<a class="sourceLine" id="cb4-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb4-11" data-line-number="11"><span class="fu">make</span></a>
+<a class="sourceLine" id="cb4-12" data-line-number="12"><span class="fu">sudo</span> make install</a></code></pre></div>
 <ul>
 <li>Further Documentation: <a href="http://www.quickfixengine.org/quickfix/doc/html/" class="uri">http://www.quickfixengine.org/quickfix/doc/html/</a></li>
 </ul>
