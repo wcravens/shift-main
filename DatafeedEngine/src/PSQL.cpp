@@ -3,8 +3,8 @@
 #include "DBFIXDataCarrier.h"
 #include "FIXAcceptor.h"
 
-#include <boost/date_time/posix_time/conversion.hpp>
-#include <boost/format.hpp>
+#include <ctime>
+#include <iomanip>
 
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/terminal/Common.h>
@@ -757,20 +757,20 @@ long PSQL::checkEmpty(std::string tableName)
 }
 
 /**
- * @brief Convert FIX::UtcTimeStamp to String used for date field in DB
+ * @brief Convert FIX::UtcTimeStamp to string used for date field in DB
  */
-/* static */ std::string PSQL::utcToString(const FIX::UtcTimeStamp& ts)
+/* static */ std::string PSQL::utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
 {
-    return str(
-        boost::format("%04d-%02d-%02d %02d:%02d:%02d.%06d")
-        % ts.getYear()
-        % ts.getMonth()
-        % ts.getDay()
-        % ts.getHour()
-        % ts.getMinute()
-        % ts.getSecond()
-        % ts.getFraction(6) // microsecond = 10^-6 sec
-    );
+    std::ostringstream os;
+    time_t t = ts.getTimeT();
+    if (localTime) {
+        os << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
+    } else {
+        os << std::put_time(std::gmtime(&t), "%Y-%m-%d %H:%M:%S");
+    }
+    os << '.';
+    os << ts.getFraction(6);
+    return os.str();
 }
 
 bool PSQL::insertTradingRecord(const TradingRecord& trade)
@@ -778,7 +778,7 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
     std::ostringstream temp;
     temp << "INSERT INTO " << CSTR_TBLNAME_TRADING_RECORDS << " VALUES ('"
          << s_sessionID << "','"
-         << utcToString(trade.realtime) << "','"
+         << utcToString(trade.realtime, true) << "','"
          << utcToString(trade.exetime) << "','"
          << trade.symbol << "','"
          << trade.price << "','"

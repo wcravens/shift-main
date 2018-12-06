@@ -82,8 +82,8 @@ public:
     /*@brief Create table used to save the trading records*/
     bool createTableOfTradingRecords();
 
-    /*@brief Convert FIX::UtcTimeStamp to string used for date in db*/
-    static std::string utcToString(const FIX::UtcTimeStamp& utc);
+    /*@brief Convert FIX::UtcTimeStamp to string used for date field in DB*/
+    static std::string utcToString(const FIX::UtcTimeStamp& utc, bool localTime = false);
 
     /*@brief Inserts trade history into the table used to save the trading records*/
     bool insertTradingRecord(const TradingRecord& trade);
