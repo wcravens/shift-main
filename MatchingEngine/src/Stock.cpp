@@ -97,7 +97,7 @@ void Stock::execute(int size1, Quote& newquote, char decision1, std::string dest
         newquote.setsize(-size1);
         //cout<<newquote.getsize();
     }
-    
+
     auto utc_now = timepara.utc_now();
     action act(
         newquote.getstockname(),
@@ -113,9 +113,8 @@ void Stock::execute(int size1, Quote& newquote, char decision1, std::string dest
         destination1,
         utc_now,
         thisquote->gettime(),
-        newquote.gettime()
-    );
-    
+        newquote.gettime());
+
     actions.push_back(act);
     //level();
     // cout << "actions:  " << actions.begin()->time1 << actions.begin()->decision << endl;
@@ -149,8 +148,7 @@ void Stock::executeglobal(int size1, Quote& newquote, char decision1, std::strin
         destination1,
         utc_now,
         thisglobal->gettime(),
-        newquote.gettime()
-    );
+        newquote.gettime());
 
     actions.push_back(act);
     //level();

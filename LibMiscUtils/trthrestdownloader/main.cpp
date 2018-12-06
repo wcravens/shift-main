@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     auto extrRawJobID = utility::string_t("");
     try {
         client.request(req).then([&extrRawJobID](web::http::http_response resp) {
-	                           cout << std::setw(20) << std::right << "Status:  " << resp.to_string() << endl;
+                               cout << std::setw(20) << std::right << "Status:  " << resp.to_string() << endl;
                                cout << std::setw(20) << std::right << "Reason:  " << resp.reason_phrase() << endl;
 
                                // utility::ofstream_t outf("extracted.html");

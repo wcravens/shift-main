@@ -4,33 +4,31 @@
 
 #include <set>
 
-template<typename Uuid>
-class TokenPool
-{
+template <typename Uuid>
+class TokenPool {
 public:
-    TokenPool(const int &size);
+    TokenPool(const int& size);
 
     Uuid take();
-    void use(const Uuid &t);
+    void use(const Uuid& t);
     void recycle(const Uuid& t);
 
 private:
-    void move(std::set<Uuid>* from, std::set<Uuid>* to, const Uuid &val);
+    void move(std::set<Uuid>* from, std::set<Uuid>* to, const Uuid& val);
 
     std::set<Uuid> m_unusedTokens;
     std::set<Uuid> m_takenTokens;
     std::set<Uuid> m_usingTokens;
 };
 
-
-template<typename Uuid>
-TokenPool<Uuid>::TokenPool(const int &size)
+template <typename Uuid>
+TokenPool<Uuid>::TokenPool(const int& size)
 {
-    for (int i = 0; i < size; ++ i)
+    for (int i = 0; i < size; ++i)
         m_unusedTokens.insert(shift::crossguid::newGuid());
 }
 
-template<typename Uuid>
+template <typename Uuid>
 Uuid TokenPool<Uuid>::take()
 {
     Uuid t = *m_unusedTokens.begin();
@@ -38,20 +36,20 @@ Uuid TokenPool<Uuid>::take()
     return t;
 }
 
-template<typename Uuid>
-void TokenPool<Uuid>::use(const Uuid &t)
+template <typename Uuid>
+void TokenPool<Uuid>::use(const Uuid& t)
 {
     move(&m_takenTokens, &m_usingTokens, t);
 }
 
-template<typename Uuid>
-void TokenPool<Uuid>::recycle(const Uuid &t)
+template <typename Uuid>
+void TokenPool<Uuid>::recycle(const Uuid& t)
 {
     move(&m_usingTokens, &m_unusedTokens, t);
 }
 
-template<typename Uuid>
-void TokenPool<Uuid>::move(std::set<Uuid> *from, std::set<Uuid> *to, const Uuid &val)
+template <typename Uuid>
+void TokenPool<Uuid>::move(std::set<Uuid>* from, std::set<Uuid>* to, const Uuid& val)
 {
     auto i = from->find(val);
     Uuid t = *i;
