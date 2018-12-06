@@ -565,6 +565,7 @@ void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, d
         m_portfolioSummary.setOpenBP(totalBP);
     }
 
+    m_portfolioSummary.setTimestamp(); // current time
     m_portfolioSummary.setTotalBP(totalBP);
     m_portfolioSummary.setTotalShares(totalShares);
     m_portfolioSummary.setTotalRealizedPL(totalRealizedPL);

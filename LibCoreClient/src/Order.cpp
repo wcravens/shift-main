@@ -20,6 +20,7 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
     , m_size(size)
     , m_price(price)
     , m_id(id)
+    , m_timestamp(std::chrono::system_clock::now())
 {
     if (m_price <= 0.0) {
         m_price = 0.0;
@@ -36,8 +37,8 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
 }
 
 /**
- * @brief Getter to get the type of current Order.
- * @return Type of the current Order as a char.
+ * @brief Getter to get the type of Order.
+ * @return Type of the Order as a char.
  */
 shift::Order::Type shift::Order::getType() const
 {
@@ -45,8 +46,8 @@ shift::Order::Type shift::Order::getType() const
 }
 
 /**
- * @brief Getter to get the symbol of current Order.
- * @return Symbol of the current Quote as a string.
+ * @brief Getter to get the symbol of Order.
+ * @return Symbol of the Quote as a string.
  */
 const std::string& shift::Order::getSymbol() const
 {
@@ -54,8 +55,8 @@ const std::string& shift::Order::getSymbol() const
 }
 
 /**
- * @brief Getter to get the size of current Order.
- * @return Size of the current Order as a int.
+ * @brief Getter to get the size of Order.
+ * @return Size of the Order as a int.
  */
 int shift::Order::getSize() const
 {
@@ -63,8 +64,8 @@ int shift::Order::getSize() const
 }
 
 /**
- * @brief Getter to get the price of current Order.
- * @return Price of the current Order as a double.
+ * @brief Getter to get the price of Order.
+ * @return Price of the Order as a double.
  */
 double shift::Order::getPrice() const
 {
@@ -72,12 +73,21 @@ double shift::Order::getPrice() const
 }
 
 /**
- * @brief Getter to get the ID of current Order.
- * @return ID of the current Order as a string.
+ * @brief Getter to get the ID of Order.
+ * @return ID of the Order as a string.
  */
 const std::string& shift::Order::getID() const
 {
     return m_id;
+}
+
+/**
+ * @brief Getter to get the Timestamp of Order.
+ * @return Timestamp of the Order as a std::chrono::system_clock::time_point.
+ */
+const std::chrono::system_clock::time_point& shift::Order::getTimestamp() const
+{
+    return m_timestamp;
 }
 
 /**
@@ -123,4 +133,12 @@ void shift::Order::setPrice(double price)
 void shift::Order::setID(const std::string& id)
 {
     m_id = id;
+}
+
+/**
+ * @brief Setter to set timestamp (current time) into m_timestamp.
+ */
+void shift::Order::setTimestamp()
+{
+    m_timestamp = std::chrono::system_clock::now();
 }

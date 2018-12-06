@@ -1,21 +1,33 @@
 #include "PortfolioSummary.h"
 
 shift::PortfolioSummary::PortfolioSummary()
-    : m_totalBP(0.0)
+    : m_isOpenBPReady(false)
+    , m_openBP(0.0)
+    , m_totalBP(0.0)
     , m_totalShares(0.0)
     , m_totalRealizedPL(0.0)
-    , m_openBP(0.0)
-    , m_isOpenBPReady(false)
+    , m_timestamp(std::chrono::system_clock::now())
 {
 }
 
 shift::PortfolioSummary::PortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)
-    : m_totalBP(totalBP)
+    : m_isOpenBPReady(true)
+    , m_openBP(totalBP)
+    , m_totalBP(totalBP)
     , m_totalShares(totalShares)
     , m_totalRealizedPL(totalRealizedPL)
-    , m_openBP(totalBP)
-    , m_isOpenBPReady(true)
+    , m_timestamp(std::chrono::system_clock::now())
 {
+}
+
+bool shift::PortfolioSummary::isOpenBPReady() const
+{
+    return m_isOpenBPReady;
+}
+
+double shift::PortfolioSummary::getOpenBP() const
+{
+    return m_openBP;
 }
 
 double shift::PortfolioSummary::getTotalBP() const
@@ -33,14 +45,15 @@ double shift::PortfolioSummary::getTotalRealizedPL() const
     return m_totalRealizedPL;
 }
 
-double shift::PortfolioSummary::getOpenBP() const
+const std::chrono::system_clock::time_point& shift::PortfolioSummary::getTimestamp() const
 {
-    return m_openBP;
+    return m_timestamp;
 }
 
-bool shift::PortfolioSummary::isOpenBPReady() const
+void shift::PortfolioSummary::setOpenBP(double openBP)
 {
-    return m_isOpenBPReady;
+    m_openBP = openBP;
+    m_isOpenBPReady = true;
 }
 
 void shift::PortfolioSummary::setTotalBP(double totalBP)
@@ -58,8 +71,7 @@ void shift::PortfolioSummary::setTotalRealizedPL(double totalRealizedPL)
     m_totalRealizedPL = totalRealizedPL;
 }
 
-void shift::PortfolioSummary::setOpenBP(double openBP)
+void shift::PortfolioSummary::setTimestamp()
 {
-    m_openBP = openBP;
-    m_isOpenBPReady = true;
+    m_timestamp = std::chrono::system_clock::now();
 }

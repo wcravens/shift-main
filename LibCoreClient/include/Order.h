@@ -36,6 +36,7 @@ public:
     int getSize() const;
     double getPrice() const;
     const std::string& getID() const;
+    const std::chrono::system_clock::time_point& getTimestamp() const;
 
     // Setters
     void setType(Type type);
@@ -43,6 +44,7 @@ public:
     void setSize(int size);
     void setPrice(double price);
     void setID(const std::string& id);
+    void setTimestamp();
 
 private:
     Type m_type;
@@ -50,6 +52,7 @@ private:
     int m_size;
     double m_price;
     std::string m_id;
+    std::chrono::system_clock::time_point m_timestamp;
 };
 
 } // shift
