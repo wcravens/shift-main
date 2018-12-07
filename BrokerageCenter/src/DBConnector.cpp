@@ -168,7 +168,7 @@ struct PSQLTable<PortfolioItem> {
 
 //----------------------------------------------------------------------------------------------------------------
 
-/*static*/ DBConnector* DBConnector::instance()
+/*static*/ DBConnector* DBConnector::getInstance()
 {
     static DBConnector s_DBInst;
     return &s_DBInst;
@@ -244,7 +244,7 @@ bool DBConnector::createUsers(const std::string& symbol)
             auto shares = atoi(PQgetvalue(res2, i, 1));
             auto price = atof(PQgetvalue(res2, i, 2));
 
-            BCDocuments::instance()->addRiskManagementToUser(userName, buyingPower, shares, price, symbol);
+            BCDocuments::getInstance()->addRiskManagementToUser(userName, buyingPower, shares, price, symbol);
             cout << userName << '\n';
         }
         cout << endl;
@@ -327,7 +327,7 @@ bool DBConnector::checkCreateTable()
     std::vector<std::string> vs;
 
     PGresult* pRes;
-    if (instance()->doQuery(query, COLOR_ERROR "ERROR: Get rows of field[" + std::to_string(fieldIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
+    if (getInstance()->doQuery(query, COLOR_ERROR "ERROR: Get rows of field[" + std::to_string(fieldIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
         int rows = PQntuples(pRes);
         for (int row = 0; row < rows; row++) {
             vs.push_back(PQgetvalue(pRes, row, fieldIndex));
@@ -343,7 +343,7 @@ bool DBConnector::checkCreateTable()
     std::vector<std::string> vs;
 
     PGresult* pRes;
-    if (instance()->doQuery(query, COLOR_ERROR "ERROR: Get fields of row[" + std::to_string(rowIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)
+    if (getInstance()->doQuery(query, COLOR_ERROR "ERROR: Get fields of row[" + std::to_string(rowIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)
         && PQntuples(pRes) > 0) {
         for (int field = 0; field < numFields; field++) // from the SELECT clause above
             vs.push_back(PQgetvalue(pRes, rowIndex, field));

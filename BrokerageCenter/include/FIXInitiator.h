@@ -35,7 +35,7 @@ public:
 
     ~FIXInitiator() override;
 
-    static FIXInitiator* instance();
+    static FIXInitiator* getInstance();
 
     void connectMatchingEngine(const std::string& configFile, bool verbose = false);
     void disconnectMatchingEngine();
@@ -60,5 +60,5 @@ private:
     // DO NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
-    std::unique_ptr<FIX::SocketInitiator> m_socketInitiatorPtr;
+    std::unique_ptr<FIX::Initiator> m_initiatorPtr;
 };

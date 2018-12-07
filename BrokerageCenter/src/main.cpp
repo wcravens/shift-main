@@ -63,7 +63,7 @@ static void s_broadcastOrderBook() // broadcasting the whole orderbook
     while (::s_isBroadcasting) {
         // broadcast the full order book of every stock every 1s (forcing a refresh in the client side)
         std::this_thread::sleep_for(1s);
-        BCDocuments::instance()->broadcastStocks();
+        BCDocuments::getInstance()->broadcastStocks();
     }
 }
 
@@ -199,10 +199,10 @@ int main(int ac, char* av[])
         }
     }
 
-    DBConnector::instance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+    DBConnector::getInstance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     while (true) {
-        if (!DBConnector::instance()->connectDB()) {
+        if (!DBConnector::getInstance()->connectDB()) {
             cout.clear();
             cout << COLOR_ERROR "DB ERROR: Failed to connect database." NO_COLOR << endl;
             cout << "\tRetry ('Y') connection to database ? : ";
@@ -220,8 +220,8 @@ int main(int ac, char* av[])
                 vm.erase(CSTR_RESET);
 
                 cout << COLOR_WARNING "Resetting the databases..." NO_COLOR << endl;
-                DBConnector::instance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_summary ]." NO_COLOR);
-                DBConnector::instance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
+                DBConnector::getInstance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_summary ]." NO_COLOR);
+                DBConnector::getInstance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
                 continue;
             }
 
@@ -241,7 +241,7 @@ int main(int ac, char* av[])
                     + params.user.password + "','"
                     + fname + "','" + lname + "','" + email // info
                     + (vm.count(CSTR_SUPER) > 0 ? "',TRUE);" : "');");
-                if (DBConnector::instance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!" NO_COLOR)) {
+                if (DBConnector::getInstance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!" NO_COLOR)) {
                     cout << COLOR "User " << params.user.userName << " was successfully inserted." NO_COLOR << endl;
                     return 0;
                 }
@@ -253,13 +253,13 @@ int main(int ac, char* av[])
         }
     }
 
-    DBConnector::instance()->createUsers("XYZ");
+    DBConnector::getInstance()->createUsers("XYZ");
 
     /*
      * @brief   Try to connect Matching Engine and waiting for client
      */
-    FIXInitiator::instance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose);
-    FIXAcceptor::instance()->connectClientComputers(params.configDir + "acceptor.cfg", params.isVerbose);
+    FIXInitiator::getInstance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose);
+    FIXAcceptor::getInstance()->connectClientComputers(params.configDir + "acceptor.cfg", params.isVerbose);
 
     /*
      * @brief   Create a broadcaster to broadcast all orderbook
@@ -304,8 +304,8 @@ int main(int ac, char* av[])
     if (broadcaster.joinable())
         broadcaster.join(); // wait for termination
 
-    FIXAcceptor::instance()->disconnectClientComputers();
-    FIXInitiator::instance()->disconnectMatchingEngine();
+    FIXAcceptor::getInstance()->disconnectClientComputers();
+    FIXInitiator::getInstance()->disconnectMatchingEngine();
 
     if (params.isVerbose) {
         cout.clear();

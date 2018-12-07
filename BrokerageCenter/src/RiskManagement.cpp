@@ -26,7 +26,7 @@
 //     if(userName.empty()) return;
 
 //     const auto& csrName = s_getPortfolioItemsCursorName(userName);
-//     DBConnector::instance()->doQuery(
+//     DBConnector::getInstance()->doQuery(
 //         "DECLARE " + csrName + " CURSOR FOR"
 //         "  SELECT * FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.client_id\n"
 //         "WHERE traders.username = '" + userName + "' AND portfolio_items.symbol = '" + symbol + '\''
@@ -38,7 +38,7 @@
 //     if(userName.empty()) return;
 
 //     const auto& csrName = s_getPortfolioSummaryCursorName(userName);
-//     DBConnector::instance()->doQuery(
+//     DBConnector::getInstance()->doQuery(
 //         "DECLARE " + csrName + " CURSOR FOR"
 //         "  SELECT * FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.client_id\n"
 //         "WHERE traders.username = '" + userName + '\''
@@ -103,29 +103,29 @@ void RiskManagement::enqueueExecRpt(const Report& report)
 
 inline void RiskManagement::sendQuoteToME(const Quote& quote)
 {
-    FIXInitiator::instance()->sendQuote(quote);
+    FIXInitiator::getInstance()->sendQuote(quote);
 }
 
 inline void RiskManagement::sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary)
 {
-    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
         std::cout << " Don't exist: " << userName << std::endl;
         return;
     }
 
-    FIXAcceptor::instance()->sendPortfolioSummary(userName, targetID, summary);
+    FIXAcceptor::getInstance()->sendPortfolioSummary(userName, targetID, summary);
 }
 
 inline void RiskManagement::sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item)
 {
-    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
         std::cout << " Don't exist: " << userName << std::endl;
         return;
     }
 
-    FIXAcceptor::instance()->sendPortfolioItem(userName, targetID, item);
+    FIXAcceptor::getInstance()->sendPortfolioItem(userName, targetID, item);
 }
 
 void RiskManagement::sendPortfolioHistory()
@@ -143,7 +143,7 @@ void RiskManagement::sendQuoteHistory() const
 {
     std::lock_guard<std::mutex> guard(m_mtxQuoteHistory);
     if (!m_quoteHistory.empty())
-        FIXAcceptor::instance()->sendQuoteHistory(m_userName, m_quoteHistory);
+        FIXAcceptor::getInstance()->sendQuoteHistory(m_userName, m_quoteHistory);
 }
 
 void RiskManagement::updateQuoteHistory(const Report& report)
@@ -177,12 +177,12 @@ void RiskManagement::insertPortfolioItem(const std::string& symbol, const Portfo
 
 inline double RiskManagement::getMarketBuyPrice(const std::string& symbol)
 {
-    return BCDocuments::instance()->getStockOrderBookMarketFirstPrice(true, symbol);
+    return BCDocuments::getInstance()->getStockOrderBookMarketFirstPrice(true, symbol);
 }
 
 inline double RiskManagement::getMarketSellPrice(const std::string& symbol)
 {
-    return BCDocuments::instance()->getStockOrderBookMarketFirstPrice(false, symbol);
+    return BCDocuments::getInstance()->getStockOrderBookMarketFirstPrice(false, symbol);
 }
 
 void RiskManagement::processQuote()
@@ -233,10 +233,10 @@ void RiskManagement::processExecRpt()
 
         switch (reportPtr->status) {
         case FIX::OrdStatus_NEW: { // confirmation report, not used in LC
-            FIXAcceptor::instance()->sendConfirmationReport(*reportPtr);
+            FIXAcceptor::getInstance()->sendConfirmationReport(*reportPtr);
         } break;
         case FIX::ExecType_FILL: { // execution report
-            // DBConnector::instance()->doQuery("BEGIN", "");
+            // DBConnector::getInstance()->doQuery("BEGIN", "");
             // s_declPortfolioItemsCursor(m_userName, reportPtr->symbol);
 
             switch (reportPtr->orderType) {
@@ -277,7 +277,7 @@ void RiskManagement::processExecRpt()
                         ret = std::floor(ret * std::pow(10, 2)) / std::pow(10, 2);
                         m_porfolioSummary.returnBalance(ret);
                         item.addBorrowedBalance(-ret);
-                        // DBConnector::instance()->doQuery(
+                        // DBConnector::getInstance()->doQuery(
                         //     "UPDATE portfolio_items\n"
                         //     "SET portfolio_items.borrowed_balance = " + std::to_string(item.getBorrowedBalance()) + "\n"
                         //     "WHERE CURRENT OF " + s_getPortfolioItemsCursorName(m_userName)
@@ -377,8 +377,8 @@ void RiskManagement::processExecRpt()
             } break;
             }
 
-            // DBConnector::instance()->doQuery("CLOSE " + s_getPortfolioItemsCursorName(m_userName), "");
-            // DBConnector::instance()->doQuery("END", "");
+            // DBConnector::getInstance()->doQuery("CLOSE " + s_getPortfolioItemsCursorName(m_userName), "");
+            // DBConnector::getInstance()->doQuery("END", "");
         } break;
         case FIX::ExecType_EXPIRED: { // cancellation report
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);

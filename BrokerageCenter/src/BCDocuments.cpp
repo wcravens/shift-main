@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-/*static*/ BCDocuments* BCDocuments::instance()
+/*static*/ BCDocuments* BCDocuments::getInstance()
 {
     static BCDocuments s_BCDocInst;
     return &s_BCDocInst;
