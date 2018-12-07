@@ -247,11 +247,13 @@ void createStockMarket(std::string symbol)
             }
 
             for_each(stock->second.actions.begin(), stock->second.actions.end(), [](action& trade) {
-                //cout<<"Trade:    ";
-                // trade.show();
-                FIXInitiator::SendActionRecord(trade); ////send execution report to database
+                // send execution report to DatafeedEngine
+                // decision == 4 means this is a trade update from TRTH -> no need to send it to DatafeedEngine
+                if (trade.decision != '4') {
+                    FIXInitiator::SendActionRecord(trade);
+                }
+                // send execution report to BrokerageCenter
                 FIXAcceptor::SendExecution(trade);
-                //cout<<"sending execution report"<<endl;
             });
             stock->second.actions.clear();
 
