@@ -15,7 +15,8 @@ namespace crypto {
     */
     class MISCUTILS_EXPORTS Decryptor {
     public:
-        Decryptor(const std::string& key);
+        Decryptor(const std::string& cryptoKey);
+
         ~Decryptor();
 
         operator std::istream&(); ///> Enable the object transfers decrypted results as an input stream later on. E.g. dec_obj >> str;.

@@ -43,6 +43,8 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/crypto/Cryptor.h
     ${PROJECT_SOURCE_DIR}/src/crypto/Decryptor.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Encryptor.cpp
+    ${PROJECT_SOURCE_DIR}/src/crypto/SHA1.h
+    ${PROJECT_SOURCE_DIR}/src/crypto/SHA1.cpp
     ${PROJECT_SOURCE_DIR}/src/terminal/Options.cpp
 )
 

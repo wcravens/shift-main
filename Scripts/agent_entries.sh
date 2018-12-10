@@ -23,10 +23,12 @@ then
     echo
     echo -ne "status: ${COLOR_PROMPT}all users were successfully created${NO_COLOR}"
     echo
+    echo
     exit 0
 else
     echo
     echo -ne "status: ${COLOR_ERROR}some of the users failed to be created${NO_COLOR}"
+    echo
     echo
     exit 1
 fi
