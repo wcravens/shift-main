@@ -875,20 +875,12 @@ border-bottom-color: #eee;
 <h2 id="postgresql-database-instances-creation">PostgreSQL Database Instances Creation</h2>
 <p>These are the database instances that are required per project:</p>
 <table>
-<colgroup>
-<col style="width: 17%"></col>
-<col style="width: 24%"></col>
-<col style="width: 17%"></col>
-<col style="width: 20%"></col>
-<col style="width: 20%"></col>
-</colgroup>
 <thead>
 <tr class="header">
 <th>Project</th>
 <th>Database Name</th>
 <th>Database Owner</th>
 <th>Creation Script</th>
-<th>Extra Script</th>
 </tr>
 </thead>
 <tbody>
@@ -897,14 +889,12 @@ border-bottom-color: #eee;
 <td>HFSL_dbhft</td>
 <td>hanlonpgsql4</td>
 <td><code>de_instances.sql</code></td>
-<td><em>none</em></td>
 </tr>
 <tr class="even">
 <td>BrokerageCenter</td>
 <td>shift_brokeragecenter</td>
 <td>hanlonpgsql4</td>
 <td><code>bc_instances.sql</code></td>
-<td><code>user_entries.sql</code></td>
 </tr>
 </tbody>
 </table>
@@ -986,7 +976,7 @@ border-bottom-color: #eee;
 <td>MatchingEngine</td>
 <td>Server (Binary)</td>
 <td><code>MatchingEngine</code></td>
-<td><em>none</em></td>
+<td>LM</td>
 </tr>
 <tr class="even">
 <td>BC</td>
@@ -1033,6 +1023,18 @@ border-bottom-color: #eee;
 </tbody>
 </table>
 <p><strong>*</strong> Library files with enabled debug symbols are also provided with the <code>-d</code> postfix.</p>
+<hr />
+<h2 id="adding-users-to-the-system">Adding Users to the System</h2>
+<p>To add users to the system:</p>
+<ul>
+<li>In the Terminal: <code>BrokerageCenter -u [username] -p [password] -i [firstName] [lastName] [email]</code></li>
+</ul>
+<p>These can only connect to the platform using the WebClient, and can also be added via the WebClient interface.</p>
+<p>If one wants to connect directly to the BrokerageCenter (e.g. with the PythonClient), the <code>-s</code> parameter is also required:</p>
+<ul>
+<li>In the Terminal: <code>BrokerageCenter -u [username] -p [password] -i [firstName] [lastName] [email] -s</code></li>
+</ul>
+<p>A <code>user_entries.sh</code> script contained in the <code>Scripts</code> folder is provided to create the required clients for the system to work.</p>
 <hr />
 <h2 id="starting-and-stopping-all-services">Starting and Stopping all Services</h2>
 <p>To start up all services:</p>
