@@ -31,7 +31,7 @@ RequestsProcessorPerTarget::~RequestsProcessorPerTarget()
 }
 
 /**
- * @brief Enqueue one Market Data request to process 
+ * @brief Enqueue one Market Data request to process
  */
 void RequestsProcessorPerTarget::enqueueMarketDataRequest(FIX::SecurityResponseID&& reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime)
 {
@@ -94,7 +94,7 @@ void RequestsProcessorPerTarget::processRequests()
         return {};
 
     auto& db = PSQLManager::getInstance();
-    if (!db.connectDB()) {
+    if (!db.isConnected()) {
         cerr << "ERROR: s_processRequestMarketData connect to DB failed." << endl;
         return {};
     }
@@ -226,7 +226,7 @@ void RequestsProcessorPerTarget::processRequests()
          << endl;
 
     auto& db = PSQLManager::getInstance();
-    if (!db.connectDB()) {
+    if (!db.isConnected()) {
         cerr << "ERROR: s_processRequestNextData connect to DB failed." << endl;
         return;
     }

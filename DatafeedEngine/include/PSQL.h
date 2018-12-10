@@ -33,10 +33,11 @@ public:
 
     auto getLoginInfo() const -> const decltype(m_loginInfo)& { return m_loginInfo; }
 
-    PGconn* getConn() { return m_conn; }
-
     /*@brief Establish connection to database */
     bool connectDB();
+
+    /*@brief Test connection to database */
+    bool isConnected() const;
 
     /*@brief Close connection to database */
     void disconnectDB();

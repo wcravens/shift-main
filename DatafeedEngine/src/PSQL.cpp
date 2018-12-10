@@ -206,10 +206,19 @@ bool PSQL::connectDB()
     m_conn = PQconnectdb(c);
     if (PQstatus(m_conn) != CONNECTION_OK) {
         cout << COLOR_ERROR "ERROR: Connection to database failed.\n" NO_COLOR;
+
+        PQfinish(m_conn); // https://www.postgresql.org/docs/8.1/libpq.html \> PQfinish
+        m_conn = nullptr;
+
         return false;
     }
 
     return true;
+}
+
+bool PSQL::isConnected() const
+{
+    return m_conn && PQstatus(m_conn) == CONNECTION_OK;
 }
 
 /* Close connection to database */

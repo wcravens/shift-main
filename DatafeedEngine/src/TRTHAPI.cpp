@@ -112,9 +112,10 @@ void TRTHAPI::processRequests()
         m_requests.pop();
         lock.unlock(); // so that request supplier threads can push queue in time
 
-        while (!db.connectDB()) {
+        while (!db.isConnected()) {
             cout << "Request processor is trying to connect DB..." << endl;
             std::this_thread::sleep_for(5s);
+            db.connectDB();
         }
 
         // Shall detect duplicated requests and skip them:
@@ -147,12 +148,7 @@ void TRTHAPI::processRequests()
 
         if (flag == 0) {
             std::string csvName = ::createCSVName(req.symbol, req.date);
-
-            if (db.connectDB()) {
-                isPerfect &= db.saveCSVIntoDB(csvName, req.symbol, req.date);
-            } else {
-                isPerfect = false;
-            }
+            isPerfect &= db.isConnected() && db.saveCSVIntoDB(csvName, req.symbol, req.date);
 
             if (isPerfect) {
                 std::remove(csvName.c_str());
