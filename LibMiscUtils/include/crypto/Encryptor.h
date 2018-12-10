@@ -14,7 +14,9 @@ namespace crypto {
     */
     class MISCUTILS_EXPORTS Encryptor {
     public:
-        Encryptor(const std::string& key);
+        Encryptor(const std::string& cryptoKey);
+        Encryptor(); ///> SHA1
+
         ~Encryptor();
 
         operator std::istream&(); ///> Enable the object transfers encrypted results as an input stream later on. E.g. enc_obj >> str;.

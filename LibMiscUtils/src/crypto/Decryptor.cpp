@@ -7,14 +7,14 @@
 
 struct shift::crypto::Decryptor::Impl : shift::crypto::Cryptor {
     //using shift::crypto::Cryptor::Cryptor;
-    Impl(const std::string& str)
-        : Cryptor(str)
+    Impl(const std::string& cryptoKey)
+        : Cryptor(cryptoKey)
     {
     }
 };
 
-shift::crypto::Decryptor::Decryptor(const std::string& key)
-    : m_impl(new Decryptor::Impl(key))
+shift::crypto::Decryptor::Decryptor(const std::string& cryptoKey)
+    : m_impl(new Decryptor::Impl(cryptoKey))
 {
 }
 

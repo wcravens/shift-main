@@ -78,21 +78,9 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
 
     m_username = pmc->getUsername();
 
-    if (std::istringstream iss{ password }) {
-        shift::crypto::Encryptor enc("SHIFT123");
-        iss >> enc >> m_password;
-        /* Encrypted password may contain character ' (i.e. a single-quote)
-            that is treated as special char in PSQL commands.
-            To ambiguate this, we need to DOUBLE them (i.e. ' -> '') to avoid such treatment.
-        */
-        std::vector<std::string::size_type> quotePoses;
-        for (size_t i = 0; i < m_password.length(); i++) {
-            if ('\'' == m_password[i])
-                quotePoses.push_back(i);
-        }
-        for (size_t i = quotePoses.size(); i > 0; i--)
-            m_password.insert(quotePoses[i - 1], 1, '\'');
-    }
+    std::istringstream iss{ password };
+    shift::crypto::Encryptor enc;
+    iss >> enc >> m_password;
 
     m_verbose = verbose;
 

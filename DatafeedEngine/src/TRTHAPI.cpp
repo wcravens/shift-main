@@ -73,9 +73,9 @@ static auto operator>>(utility::ifstream_t&& istrm, _Sink&& s) -> decltype(istrm
 /*static*/ std::unique_ptr<TRTHAPI> TRTHAPI::s_pInst;
 /*static*/ std::once_flag TRTHAPI::s_instFlag;
 
-TRTHAPI::TRTHAPI(const std::string& key, const std::string& dir)
-    : m_key(key)
-    , m_cfgDir(dir)
+TRTHAPI::TRTHAPI(const std::string& cryptoKey, const std::string& configDir)
+    : m_key(cryptoKey)
+    , m_cfgDir(configDir)
 {
 }
 

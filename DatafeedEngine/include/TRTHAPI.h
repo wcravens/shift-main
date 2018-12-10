@@ -38,10 +38,10 @@ private:
     std::mutex m_mtxReqsUnavail; ///> One per target; for guarding list of unavailable/unrecognizable requests
 
     void processRequests();
-    TRTHAPI(const std::string& usr, const std::string& pwd);
+    TRTHAPI(const std::string& cryptoKey, const std::string& configDir);
 
 public:
-    static TRTHAPI* createInstance(const std::string& key, const std::string& dir);
+    static TRTHAPI* createInstance(const std::string& cryptoKey, const std::string& configDir);
     static TRTHAPI* getInstance();
 
     // prevent copy for singleton

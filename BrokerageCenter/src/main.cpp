@@ -177,19 +177,8 @@ int main(int ac, char* av[])
         params.user.userName = vm[CSTR_USERNAME].as<std::string>();
 
         std::istringstream iss(vm[CSTR_PASSWORD].as<std::string>());
-        shift::crypto::Encryptor enc(params.cryptoKey);
+        shift::crypto::Encryptor enc;
         iss >> enc >> params.user.password;
-        /* Encrypted password may contain character ' (i.e. a single-quote)
-            that is treated as special char in PSQL commands.
-            To ambiguate this, we need to DOUBLE them (i.e. ' -> '') to avoid such treatment.
-        */
-        std::vector<std::string::size_type> quotePoses;
-        for (size_t i = 0; i < params.user.password.length(); i++) {
-            if ('\'' == params.user.password[i])
-                quotePoses.push_back(i);
-        }
-        for (size_t i = quotePoses.size(); i > 0; i--)
-            params.user.password.insert(quotePoses[i - 1], 1, '\'');
 
         params.user.info = vm[CSTR_INFO].as<std::vector<std::string>>();
         if (params.user.info.size() != 3) {
@@ -240,8 +229,8 @@ int main(int ac, char* av[])
                     + params.user.userName + "','"
                     + params.user.password + "','"
                     + fname + "','" + lname + "','" + email // info
-                    + (vm.count(CSTR_SUPER) > 0 ? "',TRUE);" : "');");
-                if (DBConnector::instance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!" NO_COLOR)) {
+                    + (vm.count(CSTR_SUPER) > 0 ? "',TRUE);" : "',FALSE);");
+                if (DBConnector::instance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!" NO_COLOR "\n")) {
                     cout << COLOR "User " << params.user.userName << " was successfully inserted." NO_COLOR << endl;
                     return 0;
                 }
