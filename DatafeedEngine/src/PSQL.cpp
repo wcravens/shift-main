@@ -61,7 +61,7 @@ struct PSQLTable<TradeAndQuoteRecords> {
                                               ", quote_time) "
                                               "  VALUES ";
 
-    enum RCD_VAL_IDX : int {
+    enum VAL_IDX : int {
         RIC = 0,
         REUT_DATE,
         REUT_TIME,
@@ -97,7 +97,7 @@ struct PSQLTable<NamesOfTradeAndQuoteTables> {
                                                 ", reuters_table_name VARCHAR(23)"
                                                 ", PRIMARY KEY (ric, reuters_date) ) ";
 
-    enum RCD_VAL_IDX : int {
+    enum VAL_IDX : int {
         RIC = 0,
         REUT_DATE,
         REUT_TABLE_NAME,
@@ -260,43 +260,48 @@ void PSQL::init()
     }
 }
 
+bool PSQL::doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
+{
+    bool isMatch = true;
+
+    PGresult* pRes = PQexec(m_conn, query.c_str());
+    if (PQresultStatus(pRes) != statToMatch) {
+        cout << msgIfStatMismatch;
+        isMatch = false;
+    }
+
+    if (ppRes)
+        *ppRes = pRes;
+    else
+        PQclear(pRes);
+
+    return isMatch;
+}
+
 auto PSQL::checkTableExist(std::string tableName) -> TABLE_STATUS
 {
     std::string pqQuery;
     auto lock{ lockPSQL() };
 
-    PGresult* res = PQexec(m_conn, "BEGIN");
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
-    }
-    PQclear(res);
 
-    pqQuery = "DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname=\'" + tableName + "\'";
-    res = PQexec(m_conn, pqQuery.c_str());
-
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname=\'" + tableName + "\'", COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
-    }
-    PQclear(res);
 
-    res = PQexec(m_conn, "FETCH ALL IN record");
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        cout << COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR;
-        PQclear(res);
+    PGresult* pRes;
+    if (!doQuery("FETCH ALL IN record", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
+        PQclear(pRes);
         return TABLE_STATUS::DB_ERROR;
     }
 
-    int nrows = PQntuples(res);
+    int nrows = PQntuples(pRes);
 
-    PQclear(res);
-    res = PQexec(m_conn, "CLOSE record");
-    PQclear(res);
-    res = PQexec(m_conn, "END");
-    PQclear(res);
+    PQclear(pRes);
+    pRes = PQexec(m_conn, "CLOSE record");
+    PQclear(pRes);
+    pRes = PQexec(m_conn, "END");
+    PQclear(pRes);
 
     lock.unlock();
 
@@ -307,19 +312,6 @@ auto PSQL::checkTableExist(std::string tableName) -> TABLE_STATUS
     }
     cout << COLOR_ERROR "ERROR: More than one " << tableName << " table exist." NO_COLOR << endl;
     return TABLE_STATUS::OTHER_ERROR;
-}
-
-bool PSQL::doQuery(const std::string query, const std::string msgIfNotOK)
-{
-    PGresult* res = PQexec(m_conn, query.c_str());
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << msgIfNotOK;
-        PQclear(res);
-        return false;
-    }
-    PQclear(res);
-
-    return true;
 }
 
 /* create table used to save the trading records*/
@@ -340,7 +332,7 @@ bool PSQL::createTableOfTableNames()
 bool PSQL::insertTableName(std::string ric, std::string reutersDate, std::string tableName)
 {
     auto lock{ lockPSQL() };
-    return doQuery("INSERT INTO " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " VALUES ('" + ric + "','" + reutersDate + "','" + tableName + "');", COLOR_ERROR "\tERROR: Insert to " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " table failed.\t" NO_COLOR);
+    return doQuery("INSERT INTO " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " VALUES ('" + ric + "','" + reutersDate + "','" + tableName + "');", COLOR_ERROR "\tERROR: Insert into " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " table failed.\t" NO_COLOR);
 }
 
 /* Create Trade & Quote data table */
@@ -356,48 +348,36 @@ auto PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string re
 {
     auto lock{ lockPSQL() };
 
-    PGresult* res = PQexec(m_conn, "BEGIN");
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
-    }
-    PQclear(res);
 
-    std::string pqQuery = "DECLARE record CURSOR FOR SELECT * FROM " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " WHERE reuters_date='" + reutersDate + "' AND ric='" + ric + '\'';
-    res = PQexec(m_conn, pqQuery.c_str());
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_taq_tbl_exist)\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " WHERE reuters_date='" + reutersDate + "' AND ric='" + ric + '\'', COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_taq_tbl_exist)\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
-    }
-    PQclear(res);
 
-    res = PQexec(m_conn, "FETCH ALL IN record");
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        cout << COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR;
-        PQclear(res);
+    PGresult* pRes;
+    if (!doQuery("FETCH ALL IN record", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
+        PQclear(pRes);
         return TABLE_STATUS::DB_ERROR;
     }
 
-    int nrows = PQntuples(res);
+    int nrows = PQntuples(pRes);
     TABLE_STATUS status;
 
     if (0 == nrows) {
         status = TABLE_STATUS::NOT_EXIST;
     } else if (1 == nrows) {
-        tableName = PQgetvalue(res, 0, PSQLTable<NamesOfTradeAndQuoteTables>::RCD_VAL_IDX::REUT_TABLE_NAME);
+        tableName = PQgetvalue(pRes, 0, PSQLTable<NamesOfTradeAndQuoteTables>::VAL_IDX::REUT_TABLE_NAME);
         status = TABLE_STATUS::EXISTS;
     } else {
         cout << COLOR_ERROR "ERROR: More than one Trade & Quote table for [ " << ric << ' ' << reutersDate << " ] exist." NO_COLOR << endl;
         status = TABLE_STATUS::OTHER_ERROR;
     }
 
-    PQclear(res);
-    res = PQexec(m_conn, "CLOSE record");
-    PQclear(res);
-    res = PQexec(m_conn, "END");
-    PQclear(res);
+    PQclear(pRes);
+    pRes = PQexec(m_conn, "CLOSE record");
+    PQclear(pRes);
+    pRes = PQexec(m_conn, "END");
+    PQclear(pRes);
 
     return status;
 }
@@ -604,12 +584,8 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                  << endl;
 #endif
             auto lock{ lockPSQL() };
-            PGresult* res = PQexec(m_conn, pqQuery.c_str());
-            if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-                cout << " - " << COLOR_ERROR "ERROR: Insert to " << tableName << " table failed.\n" NO_COLOR;
-                PQclear(res);
+            if (!doQuery(pqQuery, COLOR_ERROR "ERROR: Insert into [ " + tableName + " ] failed.\n" NO_COLOR))
                 return false;
-            }
             lock.unlock();
 
             n = 1;
@@ -632,12 +608,8 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
 
     auto lock{ lockPSQL() };
 
-    PGresult* res = PQexec(m_conn, pqQuery.c_str());
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << " - " << COLOR_ERROR "ERROR: Insert to " << tableName << " table failed.\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery(pqQuery, COLOR_ERROR "ERROR: Insert into [ " + tableName + " ] failed.\n" NO_COLOR))
         return false;
-    }
 
     return true;
 }
@@ -650,17 +622,12 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     const std::string table_name = ::createTableName(symbol, boost::posix_time::to_iso_string(startTime).substr(0, 8)); /*YYYYMMDD*/
     auto lock{ lockPSQL() };
 
-    PGresult* res = PQexec(m_conn, "BEGIN");
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return false;
-    }
-    PQclear(res);
 
     const std::string csTQRecFmt = PSQLTable<TradeAndQuoteRecords>::sc_recordFormat;
     std::string pqQuery;
-    pqQuery = "DECLARE data CURSOR FOR SELECT " + csTQRecFmt.substr(csTQRecFmt.find('(') + 1, csTQRecFmt.rfind(')') - csTQRecFmt.find('(') - 1) + " FROM ";
+    pqQuery += "DECLARE data CURSOR FOR SELECT " + csTQRecFmt.substr(csTQRecFmt.find('(') + 1, csTQRecFmt.rfind(')') - csTQRecFmt.find('(') - 1) + " FROM ";
     pqQuery += table_name;
     pqQuery += " WHERE reuters_time > '";
     pqQuery += stime;
@@ -675,35 +642,28 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
          << endl;
 #endif
 
-    res = PQexec(m_conn, pqQuery.c_str());
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_ERROR "ERROR: DECLARE CURSOR [ " << table_name << " ] failed. (send_raw_data)\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery(pqQuery, COLOR_ERROR "ERROR: DECLARE CURSOR [ " + table_name + " ] failed. (send_raw_data)\n" NO_COLOR))
         return false;
-    }
-    PQclear(res);
 
-    res = PQexec(m_conn, "FETCH ALL FROM data");
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        cout << COLOR_ERROR "ERROR: FETCH failed.\n" NO_COLOR;
-        PQclear(res);
+    PGresult* pRes;
+    if (!doQuery("FETCH ALL FROM data", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
+        PQclear(pRes);
         return false;
     }
 
-    std::string pqQuery2;
-    pqQuery2 = "SELECT extract(epoch from reuters_date)::bigint, extract(epoch from reuters_time) FROM ";
-    pqQuery2 += table_name;
-    pqQuery2 += " WHERE reuters_time > '";
-    pqQuery2 += stime;
-    pqQuery2 += "' AND reuters_time <= '";
-    pqQuery2 += etime;
-    pqQuery2 += '\'';
-    pqQuery2 += " ORDER BY reuters_time";
+    std::string queryTime;
+    queryTime += "SELECT extract(epoch from reuters_date)::bigint, extract(epoch from reuters_time) FROM ";
+    queryTime += table_name;
+    queryTime += " WHERE reuters_time > '";
+    queryTime += stime;
+    queryTime += "' AND reuters_time <= '";
+    queryTime += etime;
+    queryTime += '\'';
+    queryTime += " ORDER BY reuters_time";
 
-    PGresult* res_time = PQexec(m_conn, pqQuery2.c_str());
-    if (PQresultStatus(res_time) != PGRES_TUPLES_OK) {
-        cout << COLOR_ERROR "ERROR: EXTRACT TIME failed.\n" NO_COLOR;
-        PQclear(res_time);
+    PGresult* pResTime;
+    if (!doQuery(queryTime, COLOR_ERROR "ERROR: EXTRACT TIME failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pResTime)) {
+        PQclear(pResTime);
         return false;
     }
 
@@ -712,38 +672,38 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     std::setprecision(15);
 
     // Next, save each record for each row into struct RawData and send to matching engine
-    for (int i = 0, nt = PQntuples(res); i < nt; i++) {
+    for (int i = 0, nt = PQntuples(pRes); i < nt; i++) {
         char* pCh{};
-        using RCD_VAL_IDX = PSQLTable<TradeAndQuoteRecords>::RCD_VAL_IDX;
+        using VAL_IDX = PSQLTable<TradeAndQuoteRecords>::VAL_IDX;
 
-        rawData.secs = std::atol(PQgetvalue(res_time, i, 0));
-        sscanf(PQgetvalue(res_time, i, 1), "%lf", &microsecs);
+        rawData.secs = std::atol(PQgetvalue(pResTime, i, 0));
+        sscanf(PQgetvalue(pResTime, i, 1), "%lf", &microsecs);
         rawData.microsecs = microsecs;
 
-        rawData.symbol = PQgetvalue(res, i, RCD_VAL_IDX::RIC);
-        rawData.reutersDate = PQgetvalue(res, i, RCD_VAL_IDX::REUT_DATE);
-        rawData.reutersTime = PQgetvalue(res, i, RCD_VAL_IDX::REUT_TIME);
-        rawData.toq = PQgetvalue(res, i, RCD_VAL_IDX::TOQ);
-        rawData.exchangeID = PQgetvalue(res, i, RCD_VAL_IDX::EXCH_ID);
-        rawData.price = std::strtod(PQgetvalue(res, i, RCD_VAL_IDX::PRICE), &pCh);
-        rawData.volume = std::atoi(PQgetvalue(res, i, RCD_VAL_IDX::VOLUMN));
-        rawData.buyerID = PQgetvalue(res, i, RCD_VAL_IDX::BUYER_ID);
-        rawData.bidPrice = std::strtod(PQgetvalue(res, i, RCD_VAL_IDX::BID_PRICE), &pCh);
-        rawData.bidSize = std::atoi(PQgetvalue(res, i, RCD_VAL_IDX::BID_SIZE));
-        rawData.sellerID = PQgetvalue(res, i, RCD_VAL_IDX::SELLER_ID);
-        rawData.askPrice = std::strtod(PQgetvalue(res, i, RCD_VAL_IDX::ASK_PRICE), &pCh);
-        rawData.askSize = std::atoi(PQgetvalue(res, i, RCD_VAL_IDX::ASK_SIZE));
+        rawData.symbol = PQgetvalue(pRes, i, VAL_IDX::RIC);
+        rawData.reutersDate = PQgetvalue(pRes, i, VAL_IDX::REUT_DATE);
+        rawData.reutersTime = PQgetvalue(pRes, i, VAL_IDX::REUT_TIME);
+        rawData.toq = PQgetvalue(pRes, i, VAL_IDX::TOQ);
+        rawData.exchangeID = PQgetvalue(pRes, i, VAL_IDX::EXCH_ID);
+        rawData.price = std::strtod(PQgetvalue(pRes, i, VAL_IDX::PRICE), &pCh);
+        rawData.volume = std::atoi(PQgetvalue(pRes, i, VAL_IDX::VOLUMN));
+        rawData.buyerID = PQgetvalue(pRes, i, VAL_IDX::BUYER_ID);
+        rawData.bidPrice = std::strtod(PQgetvalue(pRes, i, VAL_IDX::BID_PRICE), &pCh);
+        rawData.bidSize = std::atoi(PQgetvalue(pRes, i, VAL_IDX::BID_SIZE));
+        rawData.sellerID = PQgetvalue(pRes, i, VAL_IDX::SELLER_ID);
+        rawData.askPrice = std::strtod(PQgetvalue(pRes, i, VAL_IDX::ASK_PRICE), &pCh);
+        rawData.askSize = std::atoi(PQgetvalue(pRes, i, VAL_IDX::ASK_SIZE));
 
         FIXAcceptor::sendRawData(rawData, targetID);
     }
 
-    PQclear(res_time);
-    PQclear(res);
+    PQclear(pResTime);
+    PQclear(pRes);
 
-    res = PQexec(m_conn, "CLOSE data");
-    PQclear(res);
-    res = PQexec(m_conn, "END");
-    PQclear(res);
+    pRes = PQexec(m_conn, "CLOSE data");
+    PQclear(pRes);
+    pRes = PQexec(m_conn, "END");
+    PQclear(pRes);
 
     cout << std::setw(10 + 9) << table_name << std::setw(12) << std::right << " - Finished ";
 
@@ -756,12 +716,12 @@ long PSQL::checkEmpty(std::string tableName)
     std::string pqQuery = "SELECT count(*) FROM " + tableName;
     auto lock{ lockPSQL() };
 
-    PGresult* res = PQexec(m_conn, pqQuery.c_str());
-    if ('0' == *PQgetvalue(res, 0, 0)) {
-        PQclear(res);
+    PGresult* pRes = PQexec(m_conn, pqQuery.c_str());
+    if ('0' == *PQgetvalue(pRes, 0, 0)) {
+        PQclear(pRes);
         return 0;
     }
-    PQclear(res);
+    PQclear(pRes);
 
     return 1;
 }
@@ -804,16 +764,9 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
          << trade.decision << "','"
          << trade.destination << "');";
 
-    const std::string& pqQuery = temp.str();
     auto lock{ lockPSQL() };
-
-    PGresult* res = PQexec(m_conn, pqQuery.c_str());
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        cout << COLOR_WARNING "Insert to trading_records failed\n" NO_COLOR;
-        PQclear(res);
+    if (!doQuery(temp.str(), COLOR_WARNING "Insert into [ " CSTR_TBLNAME_TRADING_RECORDS " ] failed.\n" NO_COLOR))
         return false;
-    }
-    PQclear(res);
 
     return true;
 }

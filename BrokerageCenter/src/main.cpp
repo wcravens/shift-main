@@ -182,7 +182,7 @@ int main(int ac, char* av[])
 
         params.user.info = vm[CSTR_INFO].as<std::vector<std::string>>();
         if (params.user.info.size() != 3) {
-            cout << COLOR_ERROR "ERROR: The new user information is not complete (" << params.user.info.size() << " info are provided) !" NO_COLOR "\n"
+            cout << COLOR_ERROR "ERROR: The new user information is not complete (" << params.user.info.size() << " info are provided) !\n" NO_COLOR
                  << endl;
             return 4;
         }
@@ -230,7 +230,7 @@ int main(int ac, char* av[])
                     + params.user.password + "','"
                     + fname + "','" + lname + "','" + email // info
                     + (vm.count(CSTR_SUPER) > 0 ? "',TRUE);" : "',FALSE);");
-                if (DBConnector::getInstance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!" NO_COLOR "\n")) {
+                if (DBConnector::getInstance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!\n" NO_COLOR)) {
                     cout << COLOR "User " << params.user.userName << " was successfully inserted." NO_COLOR << endl;
                     return 0;
                 }

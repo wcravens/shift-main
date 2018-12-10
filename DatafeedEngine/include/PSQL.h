@@ -62,7 +62,7 @@ public:
     bool insertTableName(std::string ric, std::string reutersDate, std::string tableName);
 
     /*@brief Common PSQL query method */
-    bool doQuery(const std::string query, const std::string msgIfNotOK);
+    bool doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
     /*@brief Check if the Trade and Quote data for specific ric and date exist, and if so feeds back the table name */
     TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName);
