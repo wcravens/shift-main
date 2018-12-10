@@ -167,7 +167,7 @@ static std::string getUpdateReutersTimeOrder(const std::string& currReutersTime,
 //-----------------------------------------------------------------------------------------------
 
 /**
- * 
+ *
  * class PSQL
  * Note: PSQL is logically agnostic about the type conversion between FIX protocal data types and C++ standard types.
  *       All such conversion are encapsulated in other FIX-related parts(e.g. FIXAcceptor).
@@ -201,18 +201,21 @@ bool PSQL::connectDB()
 {
     std::string info = "hostaddr=" + m_loginInfo["DBHostaddr"] + " port=" + m_loginInfo["DBPort"] + " dbname=" + m_loginInfo["DBname"] + " user=" + m_loginInfo["DBUser"] + " password=" + m_loginInfo["DBPassword"];
     const char* c = info.c_str();
-    m_conn = PQconnectdb(c);
+    auto lock{ lockPSQL() };
 
+    m_conn = PQconnectdb(c);
     if (PQstatus(m_conn) != CONNECTION_OK) {
         cout << COLOR_ERROR "ERROR: Connection to database failed.\n" NO_COLOR;
         return false;
     }
+
     return true;
 }
 
 /* Close connection to database */
 void PSQL::disconnectDB()
 {
+    auto lock{ lockPSQL() };
     if (nullptr == m_conn)
         return;
 
@@ -259,9 +262,9 @@ void PSQL::init()
 
 auto PSQL::checkTableExist(std::string tableName) -> TABLE_STATUS
 {
+    std::string pqQuery;
     auto lock{ lockPSQL() };
 
-    std::string pqQuery;
     PGresult* res = PQexec(m_conn, "BEGIN");
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         cout << COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR;
@@ -295,6 +298,8 @@ auto PSQL::checkTableExist(std::string tableName) -> TABLE_STATUS
     res = PQexec(m_conn, "END");
     PQclear(res);
 
+    lock.unlock();
+
     if (0 == nrows) {
         return TABLE_STATUS::NOT_EXIST;
     } else if (1 == nrows) {
@@ -313,12 +318,14 @@ bool PSQL::doQuery(const std::string query, const std::string msgIfNotOK)
         return false;
     }
     PQclear(res);
+
     return true;
 }
 
 /* create table used to save the trading records*/
 bool PSQL::createTableOfTradingRecords()
 {
+    auto lock{ lockPSQL() };
     return doQuery(std::string("CREATE TABLE " CSTR_TBLNAME_TRADING_RECORDS) + PSQLTable<TradingRecords>::sc_colsDefinition, COLOR_ERROR "ERROR: Create table [ " CSTR_TBLNAME_TRADING_RECORDS " ] failed.\n" NO_COLOR);
 }
 
@@ -398,8 +405,6 @@ auto PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string re
 /* read csv file, Append statement and insert record into table */
 bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName)
 {
-    auto lock{ lockPSQL() };
-
     std::ifstream file(csvName); //define input stream
     std::string line;
     std::string cell;
@@ -598,13 +603,14 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                  << pqQuery << '\n'
                  << endl;
 #endif
-
+            auto lock{ lockPSQL() };
             PGresult* res = PQexec(m_conn, pqQuery.c_str());
             if (PQresultStatus(res) != PGRES_COMMAND_OK) {
                 cout << " - " << COLOR_ERROR "ERROR: Insert to " << tableName << " table failed.\n" NO_COLOR;
                 PQclear(res);
                 return false;
             }
+            lock.unlock();
 
             n = 1;
             pqQuery = "INSERT INTO " + tableName + PSQLTable<TradeAndQuoteRecords>::sc_recordFormat;
@@ -624,6 +630,8 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
          << endl;
 #endif
 
+    auto lock{ lockPSQL() };
+
     PGresult* res = PQexec(m_conn, pqQuery.c_str());
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         cout << " - " << COLOR_ERROR "ERROR: Insert to " << tableName << " table failed.\n" NO_COLOR;
@@ -640,7 +648,6 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     const std::string stime = boost::posix_time::to_iso_extended_string(startTime).substr(11, 8);
     const std::string etime = boost::posix_time::to_iso_extended_string(endTime).substr(11, 8);
     const std::string table_name = ::createTableName(symbol, boost::posix_time::to_iso_string(startTime).substr(0, 8)); /*YYYYMMDD*/
-
     auto lock{ lockPSQL() };
 
     PGresult* res = PQexec(m_conn, "BEGIN");
@@ -747,12 +754,15 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
 long PSQL::checkEmpty(std::string tableName)
 {
     std::string pqQuery = "SELECT count(*) FROM " + tableName;
+    auto lock{ lockPSQL() };
+
     PGresult* res = PQexec(m_conn, pqQuery.c_str());
     if ('0' == *PQgetvalue(res, 0, 0)) {
         PQclear(res);
         return 0;
     }
     PQclear(res);
+
     return 1;
 }
 
@@ -795,6 +805,8 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
          << trade.destination << "');";
 
     const std::string& pqQuery = temp.str();
+    auto lock{ lockPSQL() };
+
     PGresult* res = PQexec(m_conn, pqQuery.c_str());
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         cout << COLOR_WARNING "Insert to trading_records failed\n" NO_COLOR;
@@ -802,6 +814,7 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
         return false;
     }
     PQclear(res);
+
     return true;
 }
 
@@ -839,9 +852,9 @@ bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string da
 //-----------------------------------------------------------------------------------------
 
 /**
- * 
+ *
  * class PSQLManager
- * 
+ *
  */
 
 /*static*/ std::unique_ptr<PSQLManager> PSQLManager::s_pInst;
