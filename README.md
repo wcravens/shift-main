@@ -231,7 +231,9 @@ Regardless of the location chosen by the user to install SHIFT, symlinks will al
 
 ## Adding Users to the System
 
-To add users to the system:
+A `user_entries.sh` script contained in the `Scripts` folder is provided to create the required clients for the system to work.
+
+To add more users to the system:
 
 - In the Terminal: `BrokerageCenter -u [username] -p [password] -i [firstName] [lastName] [email]`
 
@@ -240,8 +242,6 @@ These can only connect to the platform using the WebClient, and can also be adde
 If one wants to connect directly to the BrokerageCenter (e.g. with the PythonClient), the `-s` parameter is also required:
 
 - In the Terminal: `BrokerageCenter -u [username] -p [password] -i [firstName] [lastName] [email] -s`
-
-A `user_entries.sh` script contained in the `Scripts` folder is provided to create the required clients for the system to work.
 
 ---
 
