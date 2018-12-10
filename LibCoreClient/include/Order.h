@@ -2,6 +2,7 @@
 
 #include "CoreClient_EXPORTS.h"
 
+#include <chrono>
 #include <string>
 
 #ifdef _WIN32
