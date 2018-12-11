@@ -403,12 +403,15 @@ void shift::FIXInitiator::toApp(FIX::Message& message, const FIX::SessionID& ses
 void shift::FIXInitiator::fromAdmin(const FIX::Message& message, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override
 // void shift::FIXInitiator::fromAdmin(const FIX::Message& message)
 {
-    if (FIX::MsgType_Logout == message.getHeader().getField(FIX::FIELD::MsgType)) {
-        FIX::Text text = message.getField(FIX::FIELD::Text);
-        if (text == "Rejected Logon Attempt") {
-            m_logonSuccess = false;
-            m_cv_logon.notify_one();
+    try {
+        if (FIX::MsgType_Logout == message.getHeader().getField(FIX::FIELD::MsgType)) {
+            FIX::Text text = message.getField(FIX::FIELD::Text);
+            if (text == "Rejected Logon Attempt") {
+                m_logonSuccess = false;
+                m_cv_logon.notify_one();
+            }
         }
+    } catch (FIX::FieldNotFound&) { // Required since FIX::Text is not a mandatory field in FIX::MsgType_Logout
     }
 }
 
