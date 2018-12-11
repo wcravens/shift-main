@@ -25,7 +25,7 @@ class DBConnector {
 public:
     ~DBConnector();
 
-    static DBConnector* instance();
+    static DBConnector* getInstance();
     bool init(const std::string& cryptoKey, const std::string& fileName);
     PGconn* getConn() { return m_pConn; } // establish connection to database
     bool connectDB();
@@ -46,11 +46,12 @@ public:
     TABLE_STATUS checkTableExist(std::string tableName);
 
     /*@brief Check if specific table already exists; if not, create it */
-    template<typename _WhichTable>
+    template <typename _WhichTable>
     bool checkCreateTable();
 
     static std::vector<std::string> s_readRowsOfField(const std::string& query, int fieldIndex = 0);
     static std::vector<std::string> s_readFieldsOfRow(const std::string& query, int numFields, int rowIndex = 0);
+
 private:
     DBConnector(); /* singleton pattern */
     std::unordered_map<std::string, std::string> m_loginInfo;
@@ -58,4 +59,3 @@ private:
 protected:
     PGconn* m_pConn;
 };
-

@@ -49,7 +49,7 @@ public:
 
     ~FIXAcceptor() override;
 
-    static FIXAcceptor* instance();
+    static FIXAcceptor* getInstance();
 
     void connectClientComputers(const std::string& configFile, bool verbose = false);
     void disconnectClientComputers();
@@ -92,5 +92,5 @@ private:
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
-    std::unique_ptr<FIX::SocketAcceptor> m_socketAcceptorPtr;
+    std::unique_ptr<FIX::Acceptor> m_acceptorPtr;
 };

@@ -49,7 +49,7 @@ class BCDocuments {
     auto addRiskManagementToUserNoLock(const std::string& userName) -> decltype(m_riskManagementByName)::iterator;
 
 public:
-    static BCDocuments* instance();
+    static BCDocuments* getInstance();
 
     double getStockOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const;
     bool manageStockOrderBookUser(bool isRegister, const std::string& symbol, const std::string& userName) const;

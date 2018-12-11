@@ -8,6 +8,7 @@
 #include "DBConnector.h"
 
 #include <shift/miscutils/crossguid/Guid.h>
+#include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 
 #define SHOW_INPUT_MSG false
@@ -36,7 +37,7 @@ FIXAcceptor::~FIXAcceptor() // override
     disconnectClientComputers();
 }
 
-/*static*/ FIXAcceptor* FIXAcceptor::instance()
+/*static*/ FIXAcceptor* FIXAcceptor::getInstance()
 {
     static FIXAcceptor s_FIXAccInst;
     return &s_FIXAccInst;
@@ -46,14 +47,14 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
 {
     disconnectClientComputers();
 
-    FIX::SessionSettings settings(configFile);
-    auto targetIDs = DBConnector::s_readRowsOfField("SELECT target_id FROM traders;");
+    const auto targetIDs = DBConnector::s_readRowsOfField("SELECT username FROM traders WHERE super = TRUE;");
     if (targetIDs.empty()) {
         cout << COLOR_WARNING "WARNING: No target is present in the database. The system terminates." NO_COLOR << endl;
         std::terminate();
     }
 
-    const FIX::Dictionary commonDict = settings.get();
+    FIX::SessionSettings settings(configFile);
+    const FIX::Dictionary& commonDict = settings.get();
 
     for (const auto& tarID : targetIDs) {
         FIX::SessionID sid(commonDict.getString("BeginString"), commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER
@@ -77,14 +78,14 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
         m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
     }
 
-    m_socketAcceptorPtr.reset(new FIX::SocketAcceptor(*instance(), *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
+    m_acceptorPtr.reset(new FIX::SocketAcceptor(*getInstance(), *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
 
     cout << '\n'
          << COLOR "Acceptor is starting..." NO_COLOR << '\n'
          << endl;
 
     try {
-        m_socketAcceptorPtr->start();
+        m_acceptorPtr->start();
     } catch (const FIX::RuntimeError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
     }
@@ -92,15 +93,15 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
 
 void FIXAcceptor::disconnectClientComputers()
 {
-    if (!m_socketAcceptorPtr)
+    if (!m_acceptorPtr)
         return;
 
     cout << '\n'
          << COLOR "Acceptor is stopping..." NO_COLOR << '\n'
          << flush;
 
-    m_socketAcceptorPtr->stop();
-    m_socketAcceptorPtr = nullptr;
+    m_acceptorPtr->stop();
+    m_acceptorPtr = nullptr;
     m_messageStoreFactoryPtr = nullptr;
     m_logFactoryPtr = nullptr;
 }
@@ -182,7 +183,7 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& userName, const std::s
  */
 void FIXAcceptor::sendQuoteHistory(const std::string& userName, const std::unordered_map<std::string, Quote>& quotes)
 {
-    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -222,7 +223,7 @@ void FIXAcceptor::sendQuoteHistory(const std::string& userName, const std::unord
  */
 void FIXAcceptor::sendOrderbookUpdate(const std::string& userName, const OrderBookEntry& update)
 {
-    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -283,7 +284,7 @@ void FIXAcceptor::sendNewBook2all(const std::unordered_set<std::string>& userLis
  */
 void FIXAcceptor::sendConfirmationReport(const Report& report)
 {
-    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(report.userName);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(report.userName);
     if (CSTR_NULL == targetID) {
         cout << report.userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -336,7 +337,7 @@ static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MassQu
  */
 void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
 {
-    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -376,7 +377,7 @@ void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<doub
 
 void FIXAcceptor::sendTempCandlestickData(const std::string& userName, const TempCandlestickData& tmpCandle)
 { //for candlestick data
-    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -409,7 +410,7 @@ void FIXAcceptor::sendTempCandlestickData(const std::string& userName, const Tem
  */
 void FIXAcceptor::sendLatestStockPrice(const std::string& userName, const Transaction& transac)
 {
-    const auto& targetID = BCDocuments::instance()->getTargetIDByUserName(userName);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -451,29 +452,29 @@ void FIXAcceptor::sendLatestStockPrice(const std::string& userName, const Transa
 
 void FIXAcceptor::sendLatestStockPrice2All(const Transaction& transac)
 {
-    for (const auto& i : BCDocuments::instance()->getUserList()) {
+    for (const auto& i : BCDocuments::getInstance()->getUserList()) {
         sendLatestStockPrice(i.first, transac);
     }
 }
 
 inline bool FIXAcceptor::subscribeOrderBook(const std::string& userName, const std::string& symbol)
 {
-    return BCDocuments::instance()->manageStockOrderBookUser(true, symbol, userName);
+    return BCDocuments::getInstance()->manageStockOrderBookUser(true, symbol, userName);
 }
 
 inline bool FIXAcceptor::unsubscribeOrderBook(const std::string& userName, const std::string& symbol)
 {
-    return BCDocuments::instance()->manageStockOrderBookUser(false, symbol, userName);
+    return BCDocuments::getInstance()->manageStockOrderBookUser(false, symbol, userName);
 }
 
 inline bool FIXAcceptor::subscribeCandleData(const std::string& userName, const std::string& symbol)
 {
-    return BCDocuments::instance()->manageCandleStickDataUser(true, userName, symbol);
+    return BCDocuments::getInstance()->manageCandleStickDataUser(true, userName, symbol);
 }
 
 inline bool FIXAcceptor::unsubscribeCandleData(const std::string& userName, const std::string& symbol)
 {
-    return BCDocuments::instance()->manageCandleStickDataUser(false, userName, symbol);
+    return BCDocuments::getInstance()->manageCandleStickDataUser(false, userName, symbol);
 }
 
 /**
@@ -489,7 +490,7 @@ void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
 void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 {
     auto& targetID = sessionID.getTargetCompID();
-    const auto& userName = BCDocuments::instance()->getUserNameByTargetID(targetID); // TODO
+    const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(targetID); // TODO
     cout << "Logon: " << targetID << endl;
     if (CSTR_NULL == targetID) {
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
@@ -497,9 +498,9 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     }
 
     // send security list of all stocks to user when he login
-    sendSecurityList(targetID, BCDocuments::instance()->getSymbols());
+    sendSecurityList(targetID, BCDocuments::getInstance()->getSymbols());
 
-    BCDocuments::instance()->sendHistoryToUser(userName);
+    BCDocuments::getInstance()->sendHistoryToUser(userName);
 }
 
 void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
@@ -509,15 +510,15 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
     if (::toUpper(targetID) == "WEBCLIENTID")
         return;
 
-    const auto& userName = BCDocuments::instance()->getUserNameByTargetID(targetID);
+    const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(targetID);
     if (CSTR_NULL == targetID) {
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
     cout << "Logon userName: " << userName << endl;
-    BCDocuments::instance()->unregisterUserInDoc(userName);
-    BCDocuments::instance()->removeUserFromStocks(userName);
-    BCDocuments::instance()->removeUserFromCandles(userName);
+    BCDocuments::getInstance()->unregisterUserInDoc(userName);
+    BCDocuments::getInstance()->removeUserFromStocks(userName);
+    BCDocuments::getInstance()->removeUserFromCandles(userName);
     cout << endl
          << "Logout - " << sessionID << endl;
 }
@@ -557,19 +558,16 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
     std::string adminName, adminPsw;
     const auto& targetID = static_cast<std::string>(sessionID.getTargetCompID());
 
-    cout << COLOR_PROMPT "DEBUG: 1" << NO_COLOR << endl;
-
     FIXT11::Logon::NoMsgTypes msgTypeGroup;
     message.getGroup(1, msgTypeGroup);
     adminName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
     message.getGroup(2, msgTypeGroup);
-    cout << COLOR_PROMPT "DEBUG: 2" << NO_COLOR << endl;
     adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
-    auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE target_id = '" + adminName + "';");
+    const auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE username = '" + adminName + "';");
     if (pswCol.size() && pswCol.front() == adminPsw) {
-        BCDocuments::instance()->registerUserInDoc(targetID, adminName);
+        BCDocuments::getInstance()->registerUserInDoc(targetID, adminName);
         cout << COLOR_PROMPT "Authentication successful for " << targetID << ':' << adminName << NO_COLOR << endl;
     } else {
         // TODO, send message
@@ -616,7 +614,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
     FIX::Symbol symbol;
     relatedSymGroup.get(symbol);
 
-    const auto& userName = BCDocuments::instance()->getUserNameByTargetID(sessionID.getTargetCompID());
+    const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(sessionID.getTargetCompID());
     if ('1' == isSubscribed) {
         subscribeOrderBook(userName, symbol);
     } else {
@@ -672,7 +670,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     if (userName.getLength() == 0) {
         cout << "userName is empty" << endl;
         return;
-    } else if (CSTR_NULL == BCDocuments::instance()->getTargetID(userName)) {
+    } else if (CSTR_NULL == BCDocuments::getInstance()->getTargetID(userName)) {
         cout << COLOR_ERROR "This userName is not register in the Brokerage Center" NO_COLOR << endl;
         return;
     }
@@ -680,7 +678,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     if (symbol.getLength() == 0) {
         cout << "symbol is empty" << endl;
         return;
-    } else if (!BCDocuments::instance()->hasSymbol(symbol)) {
+    } else if (!BCDocuments::getInstance()->hasSymbol(symbol)) {
         cout << COLOR_ERROR "This symbol is not register in the Brokerage Center" NO_COLOR << endl;
         return;
     }
@@ -705,7 +703,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    BCDocuments::instance()->addQuoteToUserRiskManagement(userName, Quote{ symbol, userName, orderID, price, int(shareSize), qot });
+    BCDocuments::getInstance()->addQuoteToUserRiskManagement(userName, Quote{ symbol, userName, orderID, price, int(shareSize), qot });
 }
 
 /*
@@ -730,7 +728,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
     FIX::SubscriptionRequestType isSubscribed;
     message.get(isSubscribed);
 
-    const auto& userName = BCDocuments::instance()->getUserNameByTargetID(sessionID.getTargetCompID());
+    const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(sessionID.getTargetCompID());
     if ('1' == isSubscribed) {
         subscribeCandleData(userName, symbol);
     } else {
@@ -742,8 +740,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
 {
     FIX::Username userName; // WebClient userName
     message.get(userName);
-    BCDocuments::instance()->registerUserInDoc(sessionID.getTargetCompID(), userName);
-    BCDocuments::instance()->sendHistoryToUser(userName.getString());
+    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID(), userName);
+    BCDocuments::getInstance()->sendHistoryToUser(userName.getString());
     cout << COLOR_PROMPT "Web User [ " << userName << " ] was registered." NO_COLOR << endl;
 }
 
@@ -762,10 +760,13 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID, const std::unord
 
     message.setField(FIX::SecurityResponseID(shift::crossguid::newGuid().str()));
 
-    const std::set<std::string> stocks(symbols.begin(), symbols.end()); // ordered stock symbols
+    // make acscending ordered stock symbols
+    std::vector<std::string> ascStocks(symbols.begin(), symbols.end());
+    std::sort(ascStocks.begin(), ascStocks.end());
+
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
 
-    for (const auto& stock : stocks) {
+    for (const auto& stock : ascStocks) {
         relatedSymGroup.setField(FIX::Symbol(stock));
         message.addGroup(relatedSymGroup);
     }

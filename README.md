@@ -142,10 +142,10 @@ CREATE ROLE "<user>" WITH NOSUPERUSER CREATEDB INHERIT LOGIN ENCRYPTED PASSWORD 
 
 These are the database instances that are required per project:
 
-| Project         | Database Name         | Database Owner  | Creation Script    | Extra Script       |
-| --------------- | --------------------- | --------------- | ------------------ | ------------------ |
-| DatafeedEngine  | HFSL_dbhft            | hanlonpgsql4    | `de_instances.sql` | *none*             |
-| BrokerageCenter | shift_brokeragecenter | hanlonpgsql4    | `bc_instances.sql` | `user_entries.sql` |
+| Project         | Database Name         | Database Owner  | Creation Script    |
+| --------------- | --------------------- | --------------- | ------------------ |
+| DatafeedEngine  | HFSL_dbhft            | hanlonpgsql4    | `de_instances.sql` |
+| BrokerageCenter | shift_brokeragecenter | hanlonpgsql4    | `bc_instances.sql` |
 
 If you correctly created the "hanlonpgsql4" user in the previous step, use the scripts contained in the table above (located in the `Scripts` folder) with the following commands:
 
@@ -166,15 +166,18 @@ If you correctly created the "hanlonpgsql4" user in the previous step, use the s
 - Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a "C++" folder in your home directory, and then:
 
 ``` bash
-curl -LO http://prdownloads.sourceforge.net/quickfix/quickfix-1.15.1.tar.gz
-tar -zxf quickfix-1.15.1.tar.gz
+git clone https://github.com/quickfix/quickfix.git
 cd quickfix
-./bootstrap
-./configure --prefix=/usr/local/
+mkdir build
+cd build
+
+# Ubuntu:
+cmake .. -DHAVE_SSL=ON
+# macOS:
+cmake .. -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+
 make
 sudo make install
-cd ..
-rm quickfix-1.15.1.tar.gz
 ```
 
 - Further Documentation: <http://www.quickfixengine.org/quickfix/doc/html/> 
@@ -207,7 +210,7 @@ A list of the aliases used by the installer is provided below.
 | ----- | --------------- | --------------- | ---------------------------- | ------- |
 | LM    | LibMiscUtils    | Shared Library  | `libshift_miscutils` **\***  | *none*  |
 | DE    | DatafeedEngine  | Server (Binary) | `DatafeedEngine`             | LM      |
-| ME    | MatchingEngine  | Server (Binary) | `MatchingEngine`             | *none*  |
+| ME    | MatchingEngine  | Server (Binary) | `MatchingEngine`             | LM      |
 | BC    | BrokerageCenter | Server (Binary) | `BrokerageCenter`            | LM      |
 | LC    | LibCoreClient   | Shared Library  | `libshift_coreclient` **\*** | LM      |
 
@@ -223,6 +226,22 @@ Regardless of the location chosen by the user to install SHIFT, symlinks will al
 | Library Header Files | /usr/local/include/shift/*libraryname* |
 
 **\*** Library files with enabled debug symbols are also provided with the `-d` postfix.
+
+---
+
+## Adding Users to the System
+
+A `user_entries.sh` script contained in the `Scripts` folder is provided to create the required clients for the system to work.
+
+To add more users to the system:
+
+- In the Terminal: `BrokerageCenter -u [username] -p [password] -i [firstName] [lastName] [email]`
+
+These can only connect to the platform using the WebClient, and can also be added via the WebClient interface.
+
+If one wants to connect directly to the BrokerageCenter (e.g. with the PythonClient), the `-s` parameter is also required:
+
+- In the Terminal: `BrokerageCenter -u [username] -p [password] -i [firstName] [lastName] [email] -s`
 
 ---
 

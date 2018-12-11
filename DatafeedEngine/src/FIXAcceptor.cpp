@@ -267,27 +267,28 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     message.getGroup(2, timeGroup);
     timeGroup.get(utc_time2);
 
-    // Insert to trading_records failed
-    if (decision != '4') { // decision == 4, means this is a trade update from TRTH, no need to save this.
-        TradingRecord trade{
-            serverTime.getValue(),
-            utc_exetime.getValue(),
-            std::string(symbol),
-            double(price),
-            int(size),
-            std::string(traderID1),
-            std::string(traderID2),
-            std::string(orderID1),
-            std::string(orderID2),
-            char(orderType1),
-            char(orderType2),
-            char(decision),
-            std::string(destination),
-            utc_time1.getValue(),
-            utc_time2.getValue()
-        };
-        PSQLManager::getInstance().insertTradingRecord(trade);
-    }
+    // (this test is being done in the MatchingEngine now)
+    // decision == 4 means this is a trade update from TRTH -> no need to store it
+    // if (decision != '4') {
+    TradingRecord trade{
+        serverTime.getValue(),
+        utc_exetime.getValue(),
+        std::string(symbol),
+        double(price),
+        int(size),
+        std::string(traderID1),
+        std::string(traderID2),
+        std::string(orderID1),
+        std::string(orderID2),
+        char(orderType1),
+        char(orderType2),
+        char(decision),
+        std::string(destination),
+        utc_time1.getValue(),
+        utc_time2.getValue()
+    };
+    PSQLManager::getInstance().insertTradingRecord(trade);
+    // }
 }
 
 /** 

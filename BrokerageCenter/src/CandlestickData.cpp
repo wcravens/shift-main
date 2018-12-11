@@ -117,10 +117,10 @@ void CandlestickData::process()
                 // second-wise-send the data between the gap time range
                 for (int cnt = 1; cnt < execTimeGap; cnt++) {
                     m_currPrice
-                    = m_currOpenPrice
-                    = m_currHighPrice
-                    = m_currLowPrice
-                    = m_currClosePrice;
+                        = m_currOpenPrice
+                        = m_currHighPrice
+                        = m_currLowPrice
+                        = m_currClosePrice;
 
                     m_currOpenTime++;
 
@@ -131,11 +131,11 @@ void CandlestickData::process()
             }
 
             m_currPrice
-            = m_currOpenPrice
-            = m_currClosePrice
-            = m_currHighPrice
-            = m_currLowPrice
-            = transac.price;
+                = m_currOpenPrice
+                = m_currClosePrice
+                = m_currHighPrice
+                = m_currLowPrice
+                = transac.price;
 
             m_currOpenTime = currExecTime;
             m_lastTransacSent = false; // reset to the state of current transaction
@@ -185,7 +185,7 @@ void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpC
 {
     std::lock_guard<std::mutex> guard(m_mtxCDUserList);
     for (const auto& userName : m_userList)
-        FIXAcceptor::instance()->sendTempCandlestickData(userName, tmpCandle);
+        FIXAcceptor::getInstance()->sendTempCandlestickData(userName, tmpCandle);
 }
 
 void CandlestickData::sendHistory(const std::string userName)
@@ -196,7 +196,7 @@ void CandlestickData::sendHistory(const std::string userName)
         history = m_history;
     }
     for (const auto& i : history) {
-        FIXAcceptor::instance()->sendTempCandlestickData(userName, i.second);
+        FIXAcceptor::getInstance()->sendTempCandlestickData(userName, i.second);
     }
 }
 
@@ -207,7 +207,7 @@ void CandlestickData::registerUserInCD(const std::string& userName)
         std::lock_guard<std::mutex> guard(m_mtxCDUserList);
         m_userList.insert(userName);
     }
-    BCDocuments::instance()->addCandleSymbolToUser(userName, m_symbol);
+    BCDocuments::getInstance()->addCandleSymbolToUser(userName, m_symbol);
 }
 
 void CandlestickData::unregisterUserInCD(const std::string& userName)

@@ -109,7 +109,7 @@ void Stock::registerUserInStock(const std::string& userName)
         std::lock_guard<std::mutex> guard(m_mtxStockUserList);
         m_userList.insert(userName);
     }
-    BCDocuments::instance()->addOrderbookSymbolToUser(userName, m_symbol);
+    BCDocuments::getInstance()->addOrderbookSymbolToUser(userName, m_symbol);
 }
 
 /**
@@ -130,7 +130,7 @@ void Stock::unregisterUserInStock(const std::string& userName)
 */
 void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& record)
 {
-    FIXAcceptor* toWCPtr = FIXAcceptor::instance();
+    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
 
     using ulock_t = std::unique_lock<std::mutex>;
@@ -172,7 +172,7 @@ void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
     std::lock_guard<std::mutex> guard_B(m_mtxOdrBkGlobalBid);
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
-    FIXAcceptor* toWCPtr = FIXAcceptor::instance();
+    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     if (!m_odrBkGlobalAsk.empty())
         toWCPtr->sendOrderBook(userName, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
@@ -198,7 +198,7 @@ void Stock::broadcastWholeOrderBookToAll()
     std::lock_guard<std::mutex> guard_B(m_mtxOdrBkGlobalBid);
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
-    FIXAcceptor* toWCPtr = FIXAcceptor::instance();
+    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     if (!m_odrBkGlobalAsk.empty())
         toWCPtr->sendNewBook2all(m_userList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())

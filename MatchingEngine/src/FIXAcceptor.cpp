@@ -49,14 +49,14 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile)
         m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
     }
 
-    m_socketAcceptorPtr.reset(new FIX::SocketAcceptor(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
+    m_acceptorPtr.reset(new FIX::SocketAcceptor(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
 
     cout << '\n'
          << COLOR "Acceptor is starting..." NO_COLOR << '\n'
          << endl;
 
     try {
-        m_socketAcceptorPtr->start();
+        m_acceptorPtr->start();
     } catch (const FIX::RuntimeError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
     }
@@ -64,15 +64,15 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile)
 
 void FIXAcceptor::disconnectBrokerageCenter()
 {
-    if (!m_socketAcceptorPtr)
+    if (!m_acceptorPtr)
         return;
 
     cout << '\n'
          << COLOR "Acceptor is stopping..." NO_COLOR << '\n'
          << flush;
 
-    m_socketAcceptorPtr->stop();
-    m_socketAcceptorPtr = nullptr;
+    m_acceptorPtr->stop();
+    m_acceptorPtr = nullptr;
     m_messageStoreFactoryPtr = nullptr;
     m_logFactoryPtr = nullptr;
 }
@@ -255,12 +255,12 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 
     // If order size is less than 0, reject the quote
     if (orderQty <= 0) {
-        QuoteConfirm rejection = { 
+        QuoteConfirm rejection = {
             clientID,
-            orderID, 
-            symbol, 
-            price, 
-            0, 
+            orderID,
+            symbol,
+            price,
+            0,
             ordType,
             timepara.utc_now()
         };
@@ -300,7 +300,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
             break;
         }
         }
-        
+
         double milli = timepara.past_milli();
         FIX::UtcTimeStamp utc_now = timepara.milli2utc(milli);
 
@@ -317,7 +317,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         }
 
         // Send confirmation to client
-        QuoteConfirm confirmation = {clientID, orderID, symbol, price, (int)orderQty, ordType, utc_now};
+        QuoteConfirm confirmation = { clientID, orderID, symbol, price, (int)orderQty, ordType, utc_now };
         sendQuoteConfirmation(confirmation);
 
         cout << "Sending the confirmation:  " << orderID << endl;

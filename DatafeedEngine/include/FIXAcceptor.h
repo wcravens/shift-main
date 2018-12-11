@@ -63,7 +63,7 @@ private:
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
-    std::unique_ptr<FIX::SocketAcceptor> m_acceptorPtr; ///> Underlying FIX protocal acceptor instance
+    std::unique_ptr<FIX::Acceptor> m_acceptorPtr; ///> Underlying FIX protocal acceptor instance
 
     std::unordered_map<std::string /*Target ID*/, std::unique_ptr<RequestsProcessorPerTarget>> m_requestsProcessors; ///> Collection of currently running Requests Processors for their targets. Each unique target (distinguished by Target ID) has its own independant processor.
 };

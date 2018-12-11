@@ -1,18 +1,11 @@
 #include "PortfolioItem.h"
 
-shift::PortfolioItem::PortfolioItem(const std::string& symbol)
-    : m_symbol(symbol)
-    , m_shares(0.0)
-    , m_price(0.0)
-    , m_realizedPL(0.0)
-{
-}
-
 shift::PortfolioItem::PortfolioItem(const std::string& symbol, int shares, double price, double realizedPL)
     : m_symbol(symbol)
     , m_shares(shares)
     , m_price(price)
     , m_realizedPL(realizedPL)
+    , m_timestamp(std::chrono::system_clock::now())
 {
 }
 
@@ -34,4 +27,9 @@ double shift::PortfolioItem::getPrice() const
 double shift::PortfolioItem::getRealizedPL() const
 {
     return m_realizedPL;
+}
+
+const std::chrono::system_clock::time_point& shift::PortfolioItem::getTimestamp() const
+{
+    return m_timestamp;
 }

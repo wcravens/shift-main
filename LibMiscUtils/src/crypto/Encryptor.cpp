@@ -4,14 +4,24 @@
 
 struct shift::crypto::Encryptor::Impl : shift::crypto::Cryptor {
     //using shift::crypto::Cryptor::Cryptor;
-    Impl(const std::string& str)
-        : Cryptor(str)
+    Impl(const std::string& cryptoKey)
+        : Cryptor(cryptoKey)
+        , m_useSHA1(false)
     {
     }
+
+    Impl() = default;
+
+    bool m_useSHA1 = true;
 };
 
-shift::crypto::Encryptor::Encryptor(const std::string& key)
-    : m_impl(new Encryptor::Impl(key))
+shift::crypto::Encryptor::Encryptor(const std::string& cryptoKey)
+    : m_impl(new Encryptor::Impl(cryptoKey))
+{
+}
+
+shift::crypto::Encryptor::Encryptor()
+    : m_impl(new Encryptor::Impl)
 {
 }
 
@@ -28,6 +38,8 @@ namespace crypto {
 
     std::istream& operator>>(std::istream& is, Encryptor& enc)
     {
+        if (enc.m_impl->m_useSHA1)
+            return enc.m_impl->apply(is);
         return enc.m_impl->apply(is, true);
     }
 

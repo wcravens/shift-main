@@ -100,9 +100,9 @@ int main(int argc, char* argv[])
             strJsonDir.push_back('/');
     }
 
-    std::string strPsw = "SHIFT123";
+    std::string cryptoKey = "SHIFT123";
     if (vm.count(CSTR_KEY)) {
-        strPsw = vm[CSTR_KEY].as<std::string>();
+        cryptoKey = vm[CSTR_KEY].as<std::string>();
     } else {
         cout << COLOR "The built-in initial key 'SHIFT123' is used for reading encrypted json file." NO_COLOR << endl;
         cout << endl;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    shift::crypto::Decryptor dec{ strPsw };
+    shift::crypto::Decryptor dec{ cryptoKey };
     infCred >> dec >> cred;
     infCred.close();
 
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     auto extrRawJobID = utility::string_t("");
     try {
         client.request(req).then([&extrRawJobID](web::http::http_response resp) {
-	                           cout << std::setw(20) << std::right << "Status:  " << resp.to_string() << endl;
+                               cout << std::setw(20) << std::right << "Status:  " << resp.to_string() << endl;
                                cout << std::setw(20) << std::right << "Reason:  " << resp.reason_phrase() << endl;
 
                                // utility::ofstream_t outf("extracted.html");

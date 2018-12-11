@@ -15,8 +15,10 @@
 #include <curl/curl.h>
 
 #ifdef _WIN32
+#include <crypto/Encryptor.h>
 #include <terminal/Common.h>
 #else
+#include <shift/miscutils/crypto/Encryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 #endif
 
@@ -75,14 +77,18 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     disconnectBrokerageCenter();
 
     m_username = pmc->getUsername();
-    m_password = password;
+
+    std::istringstream iss{ password };
+    shift::crypto::Encryptor enc;
+    iss >> enc >> m_password;
+
     m_verbose = verbose;
 
     std::string senderCompID = m_username;
     std::transform(senderCompID.begin(), senderCompID.end(), senderCompID.begin(), ::toupper);
 
     FIX::SessionSettings settings(cfgFile);
-    FIX::Dictionary commonDict = settings.get();
+    const FIX::Dictionary& commonDict = settings.get();
     FIX::SessionID sessionID(commonDict.getString("BeginString"),
         FIX::SenderCompID(senderCompID),
         commonDict.getString("TargetCompID"));
@@ -200,9 +206,9 @@ void shift::FIXInitiator::attach(shift::CoreClient* pCC, const std::string& pass
 }
 
 /**
- * @brief Method used by WebClient to send username 
+ * @brief Method used by WebClient to send username
  * (since webclient use one client ID for all users)
- * 
+ *
  * @param username as the name for the newly login user.
  */
 void shift::FIXInitiator::webClientSendUsername(const std::string& username)
@@ -240,7 +246,7 @@ shift::CoreClient* shift::FIXInitiator::getMainClient()
 
 /**
  * @brief get CoreClient by client name.
- * 
+ *
  * @param name as a string to provide the client name.
  */
 shift::CoreClient* shift::FIXInitiator::getClient(const std::string& name)
@@ -261,7 +267,7 @@ bool shift::FIXInitiator::isConnected()
 
 /**
  * @brief Method to print log messages.
- * 
+ *
  * @param message: a string to be print.
  */
 inline void shift::FIXInitiator::debugDump(const std::string& message)
@@ -287,7 +293,7 @@ inline void shift::FIXInitiator::createSymbolMap()
 }
 
 /**
- * @brief Method to initialize prices for every symbol 
+ * @brief Method to initialize prices for every symbol
  * from the stock list
  */
 inline void shift::FIXInitiator::initializePrices()
@@ -301,7 +307,7 @@ inline void shift::FIXInitiator::initializePrices()
 }
 
 /**
- * @brief Method to initialize order books for every symbol 
+ * @brief Method to initialize order books for every symbol
  * from the stock list
  */
 inline void shift::FIXInitiator::initializeOrderBooks()
@@ -330,8 +336,8 @@ inline void shift::FIXInitiator::initializeOrderBooks()
 }
 
 /**
- * @brief Method called when a new Session was created. 
- * Set Sender and Target Comp ID. 
+ * @brief Method called when a new Session was created.
+ * Set Sender and Target Comp ID.
  */
 void shift::FIXInitiator::onCreate(const FIX::SessionID& sessionID) // override
 {
@@ -340,8 +346,8 @@ void shift::FIXInitiator::onCreate(const FIX::SessionID& sessionID) // override
     debugDump("SenderID: " + s_senderID + "\nTargetID: " + s_targetID);
 }
 
-/** 
- * @brief Method called when user logon to the system through 
+/**
+ * @brief Method called when user logon to the system through
  * FIX session. Create a Logon record in the execution log.
  */
 void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
@@ -352,7 +358,7 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
     m_cv_logon.notify_one();
 }
 
-/** 
+/**
  * @brief Method called when user log out from the system.
  * Create a Logon record in the execution log.
  */
@@ -361,7 +367,7 @@ void shift::FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
     debugDump("\nLogout - " + sessionID.toString());
 }
 
-/** 
+/**
  * @brief This Method was called when user is trying to login.
  * It sends the username and password information to Admin for verification.
  */
@@ -414,15 +420,15 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
     crack(message, sessionID);
 }
 
-/** 
- * @brief Method to receive LatestStockPrice from 
+/**
+ * @brief Method to receive LatestStockPrice from
  * Brokerage Center.
- * 
- * @param message as a ExecutionReport type object 
+ *
+ * @param message as a ExecutionReport type object
  * contains the last price information.
- * 
+ *
  * @param sessionID as the SessionID for the current
- * communication. 
+ * communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) // override
 {
@@ -599,10 +605,10 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 
 /**
  * @brief Method to receive Global/Local orders OR portfolio update from Brokerage Center.
- * 
+ *
  * @param message as a QuoteAcknowledgement type object contains the current accepting order information.
- * 
- * @param sessionID as the SessionID for the current communication. 
+ *
+ * @param sessionID as the SessionID for the current communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID& sessionID) // override
 {
@@ -703,11 +709,11 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 }
 
 /**
- * @brief   Method to update already saved order book 
+ * @brief   Method to update already saved order book
  *          when receiving order book updates from Brokerage Center
- * @param   Message as an MarketDataIncrementalRefresh type object 
+ * @param   Message as an MarketDataIncrementalRefresh type object
  *          contains updated order book information.
- * @param   sessionID as the SessionID for the current communication.  
+ * @param   sessionID as the SessionID for the current communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) // override
 {
@@ -744,9 +750,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
 
 /**
  * @brief Receive the security list of all stock from BrokerageCenter.
- * 
+ *
  * @param The list of names for the receiving stock list.
- * 
+ *
  * @param SessionID for the current communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
@@ -791,10 +797,10 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
 
 /**
  * @brief Method to receive open/close/high/low for a specific ticker at a specific time (Data for candlestick chart).
- * 
+ *
  * @param message as a SecurityStatus type object contains symbol, open, close, high, low, timestamp information.
- * 
- * @param sessionID as the SessionID for the current communication. 
+ *
+ * @param sessionID as the SessionID for the current communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID& sessionID) // override
 {
@@ -842,7 +848,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
 }
 
 /*
- * @brief Send candle data request to BC 
+ * @brief Send candle data request to BC
  */
 void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool isSubscribed)
 {
@@ -907,7 +913,7 @@ void shift::FIXInitiator::sendOrderBookRequest(const std::string& symbol, bool i
 
 /**
  * @brief Method to submit Order From FIXInitiator to Brokerage Center.
- * 
+ *
  * @param order as a shift::Order object contains all required information.
  * @param username as name for the user/client who is submitting the order.
  */
@@ -942,7 +948,7 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
 
 /**
  * @brief Method to get the open price of a certain symbol. Return the value from the open price book map.
- * 
+ *
  * @param symbol The name of the symbol to be searched as a string.
  * @return The result open price as a double.
  */
@@ -958,7 +964,7 @@ double shift::FIXInitiator::getOpenPrice(const std::string& symbol)
 
 /**
  * @brief Method to get the last price of a certain symbol. Return the value from the last price book map.
- * 
+ *
  * @param symbol The name of the symbol to be searched as a string.
  * @return The result last price as a double.
  */
@@ -969,9 +975,9 @@ double shift::FIXInitiator::getLastPrice(const std::string& symbol)
 
 /**
  * @brief Method to get the BestPrice object for the target symbol.
- * 
+ *
  * @param symbol The name of the symbol to be searched.
- * 
+ *
  * @return shift::BestPrice for the target symbol.
  */
 shift::BestPrice shift::FIXInitiator::getBestPrice(const std::string& symbol)
@@ -990,9 +996,9 @@ shift::BestPrice shift::FIXInitiator::getBestPrice(const std::string& symbol)
 
 /**
  * @brief Method to get the corresponding order book by symbol name and entry type.
- * 
+ *
  * @param symbol The target symbol to find from the order book map.
- * 
+ *
  * @param type The target entry type (Global bid "B"/ask "A", local bid "b"/ask "a")
  */
 std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel)
@@ -1010,9 +1016,9 @@ std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBook(const std::
 
 /**
  * @brief Method to get the corresponding order book with destination by symbol name and entry type.
- * 
+ *
  * @param symbol The target symbol to find from the order book map.
- * 
+ *
  * @param type The target entry type (Global bid "B"/ask "A", local bid "b"/ask "a")
  */
 std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type)
@@ -1029,7 +1035,7 @@ std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBookWithDestinat
 
 /**
  * @brief Method to get the current stock list.
- * 
+ *
  * @return A vector contains all symbols for this session.
  */
 std::vector<std::string> shift::FIXInitiator::getStockList()
@@ -1173,9 +1179,9 @@ bool shift::FIXInitiator::unsubAllOrderBook()
 }
 
 /**
- * @brief Method to get the list of symbols who currently 
+ * @brief Method to get the list of symbols who currently
  * subscribed their order book.
- * 
+ *
  * @return  A vector of symbols who subscribed their order book.
  */
 std::vector<std::string> shift::FIXInitiator::getSubscribedOrderBookList()
@@ -1246,9 +1252,9 @@ bool shift::FIXInitiator::unsubAllCandleData()
 }
 
 /**
- * @brief Method to get the list of symbols who currently 
+ * @brief Method to get the list of symbols who currently
  * subscribed their candle data.
- * 
+ *
  * @return A vector of symbols who subscribed their candle data.
  */
 std::vector<std::string> shift::FIXInitiator::getSubscribedCandlestickList()

@@ -27,7 +27,7 @@ FIXInitiator::~FIXInitiator() // override
     disconnectMatchingEngine();
 }
 
-/*static*/ FIXInitiator* FIXInitiator::instance()
+/*static*/ FIXInitiator* FIXInitiator::getInstance()
 {
     static FIXInitiator s_FIXInitInst;
     return &s_FIXInitInst;
@@ -38,7 +38,7 @@ void FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
     disconnectMatchingEngine();
 
     FIX::SessionSettings settings(configFile);
-    FIX::Dictionary commonDict = settings.get();
+    const FIX::Dictionary& commonDict = settings.get();
 
     if (commonDict.has("FileLogPath")) {
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
@@ -52,14 +52,14 @@ void FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
         m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
     }
 
-    m_socketInitiatorPtr.reset(new FIX::SocketInitiator(*instance(), *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
+    m_initiatorPtr.reset(new FIX::SocketInitiator(*getInstance(), *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
 
     cout << '\n'
          << COLOR "Initiator is starting..." NO_COLOR << '\n'
          << endl;
 
     try {
-        m_socketInitiatorPtr->start();
+        m_initiatorPtr->start();
     } catch (const FIX::RuntimeError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
     }
@@ -67,15 +67,15 @@ void FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
 
 void FIXInitiator::disconnectMatchingEngine()
 {
-    if (!m_socketInitiatorPtr)
+    if (!m_initiatorPtr)
         return;
 
     cout << '\n'
          << COLOR "Initiator is stopping..." NO_COLOR << '\n'
          << flush;
 
-    m_socketInitiatorPtr->stop();
-    m_socketInitiatorPtr = nullptr;
+    m_initiatorPtr->stop();
+    m_initiatorPtr = nullptr;
     m_messageStoreFactoryPtr = nullptr;
     m_logFactoryPtr = nullptr;
 }
@@ -210,16 +210,16 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         };
 
         cout << "ConfirmRepo: "
-            << userName << "\t"
-            << orderID << "\t"
-            << orderStatus << "\t"
-            << serverTime.getString() << "\t"
-            << confirmTime.getString() << "\t"
-            << symbol << "\t"
-            << orderType << "\t"
-            << price << "\t"
-            << shareSize << endl;
-        BCDocuments::instance()->addReportToUserRiskManagement(userName, report);
+             << userName << "\t"
+             << orderID << "\t"
+             << orderStatus << "\t"
+             << serverTime.getString() << "\t"
+             << confirmTime.getString() << "\t"
+             << symbol << "\t"
+             << orderType << "\t"
+             << price << "\t"
+             << shareSize << endl;
+        BCDocuments::getInstance()->addReportToUserRiskManagement(userName, report);
 
     } else { // For execution report
         static FIX::OrderID orderID1;
@@ -323,15 +323,15 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
         auto printRpts = [](bool rpt1or2, auto pUserName, auto pOrderID, auto orderStatus, auto pServerTime, auto pExecTime, auto pSymbol, auto pOrderType, auto pPrice, auto pShareSize) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
-            << *pUserName << "\t"
-            << *pOrderID << "\t"
-            << orderStatus << "\t"
-            << pServerTime->getString() << "\t"
-            << pExecTime->getString() << "\t"
-            << *pSymbol << "\t"
-            << *pOrderType << "\t"
-            << *pPrice << "\t"
-            << *pShareSize << endl;
+                 << *pUserName << "\t"
+                 << *pOrderID << "\t"
+                 << orderStatus << "\t"
+                 << pServerTime->getString() << "\t"
+                 << pExecTime->getString() << "\t"
+                 << *pSymbol << "\t"
+                 << *pOrderType << "\t"
+                 << *pPrice << "\t"
+                 << *pShareSize << endl;
         };
 
         switch (orderStatus) {
@@ -379,15 +379,15 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 printRpts(true, pUserName1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
                 printRpts(false, pUserName2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
 
-                BCDocuments* docs = BCDocuments::instance();
+                BCDocuments* docs = BCDocuments::getInstance();
                 docs->addCandleToSymbol(*pSymbol, transac);
                 docs->addReportToUserRiskManagement(*pUserName1, report1);
                 docs->addReportToUserRiskManagement(*pUserName2, report2);
             } else { // TRTH TRADE
-                BCDocuments::instance()->addCandleToSymbol(*pSymbol, transac);
+                BCDocuments::getInstance()->addCandleToSymbol(*pSymbol, transac);
             }
 
-            FIXAcceptor::instance()->sendLatestStockPrice2All(transac);
+            FIXAcceptor::getInstance()->sendLatestStockPrice2All(transac);
         } break;
         case FIX::ExecType_EXPIRED: { // CANCEL
             Report report2{
@@ -402,7 +402,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pExecTime->getValue()
             };
 
-            BCDocuments::instance()->addReportToUserRiskManagement(*pUserName2, report2);
+            BCDocuments::getInstance()->addReportToUserRiskManagement(*pUserName2, report2);
             printRpts(true, pUserName1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
             printRpts(false, pUserName2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
         } break;
@@ -523,12 +523,12 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     OrderBookEntry update{
         OrderBookEntry::s_toOrderBookType(*pBookType),
         pSymbol->getString(),
-        double{*pPrice},
-        double{*pSize},
-        double{std::stod(pTime->getString())},
+        double{ *pPrice },
+        double{ *pSize },
+        double{ std::stod(pTime->getString()) },
         pDestination->getString()
     };
-    BCDocuments::instance()->addStockToSymbol(*pSymbol, update);
+    BCDocuments::getInstance()->addStockToSymbol(*pSymbol, update);
 
     if (prevCnt) { // > 1 threads
         delete pEntryGroup;
@@ -562,8 +562,8 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
     for (int i = 1; i <= numOfGroup; i++) {
         message.getGroup(i, relatedSymGroup);
         relatedSymGroup.get(symbol);
-        BCDocuments::instance()->addSymbol(symbol);
+        BCDocuments::getInstance()->addSymbol(symbol);
         OrderBookEntry update(OrderBookEntry::s_toOrderBookType('e'), "initial", 0.0, 0.0, 0.0, "initial");
-        BCDocuments::instance()->addStockToSymbol(symbol, update);
+        BCDocuments::getInstance()->addStockToSymbol(symbol, update);
     }
 }

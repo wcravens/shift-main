@@ -50,14 +50,14 @@ void FIXInitiator::connectDatafeedEngine(const std::string& configFile)
         m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
     }
 
-    m_socketInitiatorPtr.reset(new FIX::SocketInitiator(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
+    m_initiatorPtr.reset(new FIX::SocketInitiator(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
 
     cout << '\n'
          << COLOR "Initiator is starting..." NO_COLOR << '\n'
          << endl;
 
     try {
-        m_socketInitiatorPtr->start();
+        m_initiatorPtr->start();
     } catch (const FIX::RuntimeError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
     }
@@ -65,15 +65,15 @@ void FIXInitiator::connectDatafeedEngine(const std::string& configFile)
 
 void FIXInitiator::disconnectDatafeedEngine()
 {
-    if (!m_socketInitiatorPtr)
+    if (!m_initiatorPtr)
         return;
 
     cout << '\n'
          << COLOR "Initiator is stopping..." NO_COLOR << '\n'
          << flush;
 
-    m_socketInitiatorPtr->stop();
-    m_socketInitiatorPtr = nullptr;
+    m_initiatorPtr->stop();
+    m_initiatorPtr = nullptr;
     m_messageStoreFactoryPtr = nullptr;
     m_logFactoryPtr = nullptr;
 }

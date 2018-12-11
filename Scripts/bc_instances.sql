@@ -49,11 +49,11 @@ ALTER TABLE PUBLIC.holdings_xyz
 
 ---------------------------------------------------------------
 
--- Table: public.new_traders
+-- Table: public.traders
 
--- DROP TABLE public.new_traders;
+-- DROP TABLE public.traders;
 
-CREATE TABLE public.new_traders
+CREATE TABLE public.traders
 (
   id UUID DEFAULT uuid_generate_v4(),
   username VARCHAR(40) NOT NULL,
@@ -65,12 +65,12 @@ CREATE TABLE public.new_traders
   sessionid VARCHAR(40),
   super BOOLEAN NOT NULL DEFAULT FALSE,
 
-  CONSTRAINT new_traders_pkey PRIMARY KEY (id)
+  CONSTRAINT traders_pkey PRIMARY KEY (id)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE public.new_traders
+ALTER TABLE public.traders
   OWNER TO hanlonpgsql4;
 
 ---------------------------------------------------------------
