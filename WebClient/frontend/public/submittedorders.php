@@ -44,8 +44,9 @@ $redirect_url = '/submittedorders.php';
                                 <th class="text-right notwrap" width="9.5%">Size</th>
                                 <th width="5%"></th>
                                 <th class="notwrap notimpcol2" width="35%">Order ID</th>
-                                <th class="text-right notwrap notimpcol" width="35%">Accepted</th>
-                                <th class="text-right notwrap notimpcol" width="35%">Cancelled</th>
+                                <th class="notwrap notimpcol2" width="35%">Timestamp</th>
+                                <th class="text-right notwrap notimpcol" width="20%">Accepted</th>
+                                <th class="text-right notwrap notimpcol" width="20%">Cancelled</th>
                             </tr>
                         </table>
                     </div>

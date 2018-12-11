@@ -9,12 +9,12 @@ $(document).ready(function () {
         function () {
             conn.subscribe('submittedOrders_' + php_username, function (topic, data) {
                 var stock_list_table = document.getElementById("stock_list");
-                var tableCells = 8; // cell count
+                var tableCells = 9; // cell count
                 if (data.data.length != 0 && document.getElementById("emptyList"))
                     stock_list_table.deleteRow(1);
-                        
+                
                 for (var i = 0; i < data.data.length; i++) {
-                    var index = i + 1;                    
+                    var index = i + 1;
                     var cNum = 0;
                     if (stock_list_table.rows[index]) {
                         stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].symbol;
@@ -28,6 +28,8 @@ $(document).ready(function () {
                         cNum++; // order id
                         stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].orderId;
                         stock_list_table.rows[index].cells[cNum].className += " notimpcol2";
+                        cNum++; // timestamp
+                        stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].timestamp;
                         cNum++; // accepted flag
                         stock_list_table.rows[index].cells[cNum].className += " notimpcol";
                         cNum++; // cancelled flag
@@ -52,6 +54,8 @@ $(document).ready(function () {
                         cNum++; // order id
                         row.cells[cNum].innerHTML = data.data[i].orderId;
                         row.cells[cNum].className = " notimpcol2";
+                        cNum++; // timestamp
+                        stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].timestamp;
                         cNum++; // accepted flag
                         row.cells[cNum].className = " notimpcol";
                         cNum++; // cancelled flag
