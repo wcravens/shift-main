@@ -18,14 +18,14 @@ use Thrift\Exception\TApplicationException;
 
 interface SHIFTServiceIf {
   /**
-   * @param string $stockName
-   * @param string $orderID
-   * @param double $price
-   * @param int $shareSize
-   * @param string $orderType
    * @param string $username
+   * @param string $orderType
+   * @param string $orderSymbol
+   * @param int $orderSize
+   * @param double $orderPrice
+   * @param string $orderID
    */
-  public function submitOrder($stockName, $orderID, $price, $shareSize, $orderType, $username);
+  public function submitOrder($username, $orderType, $orderSymbol, $orderSize, $orderPrice, $orderID);
   /**
    * @param string $username
    */
@@ -34,15 +34,6 @@ interface SHIFTServiceIf {
    * @param string $username
    */
   public function webUserLogin($username);
-  /**
-   * @param string $stockName
-   * @param double $price
-   * @param int $shareSize
-   * @param string $orderType
-   * @param string $username
-   * @param int $interval
-   */
-  public function startStrategy($stockName, $price, $shareSize, $orderType, $username, $interval);
 }
 
 
@@ -57,21 +48,21 @@ class SHIFTServiceClient implements \client\SHIFTServiceIf {
     $this->output_ = $output ? $output : $input;
   }
 
-  public function submitOrder($stockName, $orderID, $price, $shareSize, $orderType, $username)
+  public function submitOrder($username, $orderType, $orderSymbol, $orderSize, $orderPrice, $orderID)
   {
-    $this->send_submitOrder($stockName, $orderID, $price, $shareSize, $orderType, $username);
+    $this->send_submitOrder($username, $orderType, $orderSymbol, $orderSize, $orderPrice, $orderID);
     $this->recv_submitOrder();
   }
 
-  public function send_submitOrder($stockName, $orderID, $price, $shareSize, $orderType, $username)
+  public function send_submitOrder($username, $orderType, $orderSymbol, $orderSize, $orderPrice, $orderID)
   {
     $args = new \client\SHIFTService_submitOrder_args();
-    $args->stockName = $stockName;
-    $args->orderID = $orderID;
-    $args->price = $price;
-    $args->shareSize = $shareSize;
-    $args->orderType = $orderType;
     $args->username = $username;
+    $args->orderType = $orderType;
+    $args->orderSymbol = $orderSymbol;
+    $args->orderSize = $orderSize;
+    $args->orderPrice = $orderPrice;
+    $args->orderID = $orderID;
     $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
@@ -206,59 +197,6 @@ class SHIFTServiceClient implements \client\SHIFTServiceIf {
     return;
   }
 
-  public function startStrategy($stockName, $price, $shareSize, $orderType, $username, $interval)
-  {
-    $this->send_startStrategy($stockName, $price, $shareSize, $orderType, $username, $interval);
-    $this->recv_startStrategy();
-  }
-
-  public function send_startStrategy($stockName, $price, $shareSize, $orderType, $username, $interval)
-  {
-    $args = new \client\SHIFTService_startStrategy_args();
-    $args->stockName = $stockName;
-    $args->price = $price;
-    $args->shareSize = $shareSize;
-    $args->orderType = $orderType;
-    $args->username = $username;
-    $args->interval = $interval;
-    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
-    if ($bin_accel)
-    {
-      thrift_protocol_write_binary($this->output_, 'startStrategy', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
-    }
-    else
-    {
-      $this->output_->writeMessageBegin('startStrategy', TMessageType::CALL, $this->seqid_);
-      $args->write($this->output_);
-      $this->output_->writeMessageEnd();
-      $this->output_->getTransport()->flush();
-    }
-  }
-
-  public function recv_startStrategy()
-  {
-    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
-    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\client\SHIFTService_startStrategy_result', $this->input_->isStrictRead());
-    else
-    {
-      $rseqid = 0;
-      $fname = null;
-      $mtype = 0;
-
-      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
-      if ($mtype == TMessageType::EXCEPTION) {
-        $x = new TApplicationException();
-        $x->read($this->input_);
-        $this->input_->readMessageEnd();
-        throw $x;
-      }
-      $result = new \client\SHIFTService_startStrategy_result();
-      $result->read($this->input_);
-      $this->input_->readMessageEnd();
-    }
-    return;
-  }
-
 }
 
 
@@ -269,32 +207,32 @@ class SHIFTService_submitOrder_args {
 
   static $_TSPEC = array(
     1 => array(
-      'var' => 'stockName',
+      'var' => 'username',
       'isRequired' => false,
       'type' => TType::STRING,
       ),
     2 => array(
-      'var' => 'orderID',
-      'isRequired' => false,
-      'type' => TType::STRING,
-      ),
-    3 => array(
-      'var' => 'price',
-      'isRequired' => false,
-      'type' => TType::DOUBLE,
-      ),
-    4 => array(
-      'var' => 'shareSize',
-      'isRequired' => false,
-      'type' => TType::I32,
-      ),
-    5 => array(
       'var' => 'orderType',
       'isRequired' => false,
       'type' => TType::STRING,
       ),
+    3 => array(
+      'var' => 'orderSymbol',
+      'isRequired' => false,
+      'type' => TType::STRING,
+      ),
+    4 => array(
+      'var' => 'orderSize',
+      'isRequired' => false,
+      'type' => TType::I32,
+      ),
+    5 => array(
+      'var' => 'orderPrice',
+      'isRequired' => false,
+      'type' => TType::DOUBLE,
+      ),
     6 => array(
-      'var' => 'username',
+      'var' => 'orderID',
       'isRequired' => false,
       'type' => TType::STRING,
       ),
@@ -303,19 +241,7 @@ class SHIFTService_submitOrder_args {
   /**
    * @var string
    */
-  public $stockName = null;
-  /**
-   * @var string
-   */
-  public $orderID = null;
-  /**
-   * @var double
-   */
-  public $price = null;
-  /**
-   * @var int
-   */
-  public $shareSize = null;
+  public $username = null;
   /**
    * @var string
    */
@@ -323,27 +249,39 @@ class SHIFTService_submitOrder_args {
   /**
    * @var string
    */
-  public $username = null;
+  public $orderSymbol = null;
+  /**
+   * @var int
+   */
+  public $orderSize = null;
+  /**
+   * @var double
+   */
+  public $orderPrice = null;
+  /**
+   * @var string
+   */
+  public $orderID = null;
 
   public function __construct($vals=null) {
     if (is_array($vals)) {
-      if (isset($vals['stockName'])) {
-        $this->stockName = $vals['stockName'];
-      }
-      if (isset($vals['orderID'])) {
-        $this->orderID = $vals['orderID'];
-      }
-      if (isset($vals['price'])) {
-        $this->price = $vals['price'];
-      }
-      if (isset($vals['shareSize'])) {
-        $this->shareSize = $vals['shareSize'];
+      if (isset($vals['username'])) {
+        $this->username = $vals['username'];
       }
       if (isset($vals['orderType'])) {
         $this->orderType = $vals['orderType'];
       }
-      if (isset($vals['username'])) {
-        $this->username = $vals['username'];
+      if (isset($vals['orderSymbol'])) {
+        $this->orderSymbol = $vals['orderSymbol'];
+      }
+      if (isset($vals['orderSize'])) {
+        $this->orderSize = $vals['orderSize'];
+      }
+      if (isset($vals['orderPrice'])) {
+        $this->orderPrice = $vals['orderPrice'];
+      }
+      if (isset($vals['orderID'])) {
+        $this->orderID = $vals['orderID'];
       }
     }
   }
@@ -369,42 +307,42 @@ class SHIFTService_submitOrder_args {
       {
         case 1:
           if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->stockName);
+            $xfer += $input->readString($this->username);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
         case 2:
           if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->orderID);
+            $xfer += $input->readString($this->orderType);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
         case 3:
-          if ($ftype == TType::DOUBLE) {
-            $xfer += $input->readDouble($this->price);
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->orderSymbol);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
         case 4:
           if ($ftype == TType::I32) {
-            $xfer += $input->readI32($this->shareSize);
+            $xfer += $input->readI32($this->orderSize);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
         case 5:
-          if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->orderType);
+          if ($ftype == TType::DOUBLE) {
+            $xfer += $input->readDouble($this->orderPrice);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
         case 6:
           if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->username);
+            $xfer += $input->readString($this->orderID);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -422,34 +360,34 @@ class SHIFTService_submitOrder_args {
   public function write($output) {
     $xfer = 0;
     $xfer += $output->writeStructBegin('SHIFTService_submitOrder_args');
-    if ($this->stockName !== null) {
-      $xfer += $output->writeFieldBegin('stockName', TType::STRING, 1);
-      $xfer += $output->writeString($this->stockName);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->orderID !== null) {
-      $xfer += $output->writeFieldBegin('orderID', TType::STRING, 2);
-      $xfer += $output->writeString($this->orderID);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->price !== null) {
-      $xfer += $output->writeFieldBegin('price', TType::DOUBLE, 3);
-      $xfer += $output->writeDouble($this->price);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->shareSize !== null) {
-      $xfer += $output->writeFieldBegin('shareSize', TType::I32, 4);
-      $xfer += $output->writeI32($this->shareSize);
+    if ($this->username !== null) {
+      $xfer += $output->writeFieldBegin('username', TType::STRING, 1);
+      $xfer += $output->writeString($this->username);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->orderType !== null) {
-      $xfer += $output->writeFieldBegin('orderType', TType::STRING, 5);
+      $xfer += $output->writeFieldBegin('orderType', TType::STRING, 2);
       $xfer += $output->writeString($this->orderType);
       $xfer += $output->writeFieldEnd();
     }
-    if ($this->username !== null) {
-      $xfer += $output->writeFieldBegin('username', TType::STRING, 6);
-      $xfer += $output->writeString($this->username);
+    if ($this->orderSymbol !== null) {
+      $xfer += $output->writeFieldBegin('orderSymbol', TType::STRING, 3);
+      $xfer += $output->writeString($this->orderSymbol);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->orderSize !== null) {
+      $xfer += $output->writeFieldBegin('orderSize', TType::I32, 4);
+      $xfer += $output->writeI32($this->orderSize);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->orderPrice !== null) {
+      $xfer += $output->writeFieldBegin('orderPrice', TType::DOUBLE, 5);
+      $xfer += $output->writeDouble($this->orderPrice);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->orderID !== null) {
+      $xfer += $output->writeFieldBegin('orderID', TType::STRING, 6);
+      $xfer += $output->writeString($this->orderID);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -749,250 +687,6 @@ class SHIFTService_webUserLogin_result {
   public function write($output) {
     $xfer = 0;
     $xfer += $output->writeStructBegin('SHIFTService_webUserLogin_result');
-    $xfer += $output->writeFieldStop();
-    $xfer += $output->writeStructEnd();
-    return $xfer;
-  }
-
-}
-
-class SHIFTService_startStrategy_args {
-  static $isValidate = false;
-
-  static $_TSPEC = array(
-    1 => array(
-      'var' => 'stockName',
-      'isRequired' => false,
-      'type' => TType::STRING,
-      ),
-    2 => array(
-      'var' => 'price',
-      'isRequired' => false,
-      'type' => TType::DOUBLE,
-      ),
-    3 => array(
-      'var' => 'shareSize',
-      'isRequired' => false,
-      'type' => TType::I32,
-      ),
-    4 => array(
-      'var' => 'orderType',
-      'isRequired' => false,
-      'type' => TType::STRING,
-      ),
-    5 => array(
-      'var' => 'username',
-      'isRequired' => false,
-      'type' => TType::STRING,
-      ),
-    6 => array(
-      'var' => 'interval',
-      'isRequired' => false,
-      'type' => TType::I32,
-      ),
-    );
-
-  /**
-   * @var string
-   */
-  public $stockName = null;
-  /**
-   * @var double
-   */
-  public $price = null;
-  /**
-   * @var int
-   */
-  public $shareSize = null;
-  /**
-   * @var string
-   */
-  public $orderType = null;
-  /**
-   * @var string
-   */
-  public $username = null;
-  /**
-   * @var int
-   */
-  public $interval = null;
-
-  public function __construct($vals=null) {
-    if (is_array($vals)) {
-      if (isset($vals['stockName'])) {
-        $this->stockName = $vals['stockName'];
-      }
-      if (isset($vals['price'])) {
-        $this->price = $vals['price'];
-      }
-      if (isset($vals['shareSize'])) {
-        $this->shareSize = $vals['shareSize'];
-      }
-      if (isset($vals['orderType'])) {
-        $this->orderType = $vals['orderType'];
-      }
-      if (isset($vals['username'])) {
-        $this->username = $vals['username'];
-      }
-      if (isset($vals['interval'])) {
-        $this->interval = $vals['interval'];
-      }
-    }
-  }
-
-  public function getName() {
-    return 'SHIFTService_startStrategy_args';
-  }
-
-  public function read($input)
-  {
-    $xfer = 0;
-    $fname = null;
-    $ftype = 0;
-    $fid = 0;
-    $xfer += $input->readStructBegin($fname);
-    while (true)
-    {
-      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
-      if ($ftype == TType::STOP) {
-        break;
-      }
-      switch ($fid)
-      {
-        case 1:
-          if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->stockName);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        case 2:
-          if ($ftype == TType::DOUBLE) {
-            $xfer += $input->readDouble($this->price);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        case 3:
-          if ($ftype == TType::I32) {
-            $xfer += $input->readI32($this->shareSize);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        case 4:
-          if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->orderType);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        case 5:
-          if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->username);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        case 6:
-          if ($ftype == TType::I32) {
-            $xfer += $input->readI32($this->interval);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        default:
-          $xfer += $input->skip($ftype);
-          break;
-      }
-      $xfer += $input->readFieldEnd();
-    }
-    $xfer += $input->readStructEnd();
-    return $xfer;
-  }
-
-  public function write($output) {
-    $xfer = 0;
-    $xfer += $output->writeStructBegin('SHIFTService_startStrategy_args');
-    if ($this->stockName !== null) {
-      $xfer += $output->writeFieldBegin('stockName', TType::STRING, 1);
-      $xfer += $output->writeString($this->stockName);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->price !== null) {
-      $xfer += $output->writeFieldBegin('price', TType::DOUBLE, 2);
-      $xfer += $output->writeDouble($this->price);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->shareSize !== null) {
-      $xfer += $output->writeFieldBegin('shareSize', TType::I32, 3);
-      $xfer += $output->writeI32($this->shareSize);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->orderType !== null) {
-      $xfer += $output->writeFieldBegin('orderType', TType::STRING, 4);
-      $xfer += $output->writeString($this->orderType);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->username !== null) {
-      $xfer += $output->writeFieldBegin('username', TType::STRING, 5);
-      $xfer += $output->writeString($this->username);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->interval !== null) {
-      $xfer += $output->writeFieldBegin('interval', TType::I32, 6);
-      $xfer += $output->writeI32($this->interval);
-      $xfer += $output->writeFieldEnd();
-    }
-    $xfer += $output->writeFieldStop();
-    $xfer += $output->writeStructEnd();
-    return $xfer;
-  }
-
-}
-
-class SHIFTService_startStrategy_result {
-  static $isValidate = false;
-
-  static $_TSPEC = array(
-    );
-
-
-  public function __construct() {
-  }
-
-  public function getName() {
-    return 'SHIFTService_startStrategy_result';
-  }
-
-  public function read($input)
-  {
-    $xfer = 0;
-    $fname = null;
-    $ftype = 0;
-    $fid = 0;
-    $xfer += $input->readStructBegin($fname);
-    while (true)
-    {
-      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
-      if ($ftype == TType::STOP) {
-        break;
-      }
-      switch ($fid)
-      {
-        default:
-          $xfer += $input->skip($ftype);
-          break;
-      }
-      $xfer += $input->readFieldEnd();
-    }
-    $xfer += $input->readStructEnd();
-    return $xfer;
-  }
-
-  public function write($output) {
-    $xfer = 0;
-    $xfer += $output->writeStructBegin('SHIFTService_startStrategy_result');
     $xfer += $output->writeFieldStop();
     $xfer += $output->writeStructEnd();
     return $xfer;

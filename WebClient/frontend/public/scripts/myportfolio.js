@@ -52,7 +52,7 @@ function createCloseForm(symbol, size, mysubmit) {
     return f;
 }
 
-function createCancelOrderForm(symbol, orderId, size, price, orderType) {
+function createCancelOrderForm(orderType, symbol, size, price, orderId) {
     var f = document.createElement("form");
     f.setAttribute('class', 'form-inline alignright notwrap');
     f.setAttribute('method', 'post');
@@ -66,13 +66,13 @@ function createCancelOrderForm(symbol, orderId, size, price, orderType) {
 
     var i1 = document.createElement("input");
     i1.setAttribute('type', "hidden");
-    i1.setAttribute('name', "symbol");
-    i1.setAttribute('value', symbol);
+    i1.setAttribute('name', "orderType");
+    i1.setAttribute('value', orderType);
 
     var i2 = document.createElement("input");
     i2.setAttribute('type', "hidden");
-    i2.setAttribute('name', "orderType");
-    i2.setAttribute('value', orderType);
+    i2.setAttribute('name', "symbol");
+    i2.setAttribute('value', symbol);
 
     var i3 = document.createElement("input");
     i3.setAttribute('id', "input_size"+orderId);
@@ -256,7 +256,7 @@ $(document).ready(function () {
                         stock_list_table.rows[index].cells[cNum].className += " notimpcol2";
                         cNum++; // cancle order form
                         stock_list_table.rows[index].cells[cNum].removeChild(stock_list_table.rows[index].cells[6].childNodes[0]);
-                        stock_list_table.rows[index].cells[cNum].appendChild(createCancelOrderForm(data.data[i].symbol, data.data[i].orderId, data.data[i].shares, data.data[i].price, data.data[i].orderType == "1" ? "5" : "6"));
+                        stock_list_table.rows[index].cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].shares, data.data[i].price, data.data[i].orderId));
                     } else {
                         var row = stock_list_table.insertRow(index);
                         for (var j = 0; j < tableCells; j++){
@@ -280,7 +280,7 @@ $(document).ready(function () {
                         cNum++; // cancle order form
                         row.cells[cNum].className = " notimpcol";
                         row.cells[cNum].setAttribute("nowrap", "nowrap");
-                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].symbol, data.data[i].orderId, data.data[i].shares, data.data[i].price, data.data[i].orderType == "1" ? "5" : "6"));
+                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].shares, data.data[i].price, data.data[i].orderId));
                     }
                 }
 

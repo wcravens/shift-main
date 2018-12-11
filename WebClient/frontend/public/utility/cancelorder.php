@@ -14,10 +14,10 @@ if (!isset($_POST['symbol']) || !isset($_POST['orderType']) || !isset($_POST['si
     exit('invalid submit');
 }
 
-$symbol = $_POST['symbol'];
-$price = $_POST['price'] + 0.0;
-$size = $_POST['size'] + 0;
 $orderType = '';
+$orderSymbol = $_POST['symbol'];
+$orderSize = $_POST['size'] + 0;
+$orderPrice = $_POST['price'] + 0.0;
 $orderId = $_POST['orderId'];
 
 //1:LimitBuy 2:LimitSell 3:MarketBuy 4:MarketSell 5:CancelBid 6:CancelAsk
@@ -29,7 +29,7 @@ if ($_POST['orderType'] == "6") {
     $orderType = '6';
 }
 
-ThriftClient::exec('\client\SHIFTServiceClient', 'submitOrder', array($symbol, $orderId, $price, $size, $orderType, $user['username']));
+ThriftClient::exec('\client\SHIFTServiceClient', 'submitOrder', array($user['username'], $orderType, $orderSymbol, $orderSize, $orderPrice, $orderId));
 if (!empty($_POST['redirect_url'])) {
     header("Location: {$_POST['redirect_url']}");
 } else {
