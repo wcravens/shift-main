@@ -523,22 +523,6 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
          << "Logout - " << sessionID << endl;
 }
 
-void FIXAcceptor::toAdmin(FIX::Message& message, const FIX::SessionID&) // override
-{
-    if (FIX::MsgType_Logout != message.getHeader().getField(FIX::FIELD::MsgType))
-        return;
-    cout << COLOR_PROMPT "DEBUG: 4 toAdmin() with msg type: " << message.getHeader().getField(FIX::FIELD::MsgType) << NO_COLOR << endl;
-    cout << COLOR_PROMPT "DEBUG: 5 toAdmin() with msg: " << message << NO_COLOR << endl;
-
-    FIXT11::Logon::NoMsgTypes msgTypeGroup;
-    msgTypeGroup.set(FIX::RefMsgType());
-    message.addGroup(msgTypeGroup);
-
-#if SHOW_INPUT_MSG
-    cout << "BC toAdmin: " << message.toString() << endl;
-#endif
-}
-
 void FIXAcceptor::toApp(FIX::Message& message, const FIX::SessionID&) throw(FIX::DoNotSend) // override
 {
     try {
