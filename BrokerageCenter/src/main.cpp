@@ -97,7 +97,7 @@ int main(int ac, char* av[])
         false,
     };
 
-    po::options_description desc("\nUSAGE: ./BrokerageCenter [options] <args>\n\n\tThis is the brokerage application.\n\tThe server connects with MatchingEngine and the WebClient instances and runs in background.\n\nOPTIONS");
+    po::options_description desc("\nUSAGE: ./BrokerageCenter [options] <args>\n\n\tThis is the BrokerageCenter.\n\tThe server connects with MatchingEngine and client instances and runs in background.\n\nOPTIONS");
     desc.add_options() // <--- every line-end from here needs a comment mark so that to prevent auto formating into single line
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
