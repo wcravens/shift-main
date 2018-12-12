@@ -13,70 +13,98 @@
 
 using namespace std::chrono_literals;
 
+/* PROGRAM OPTIONS */
+#define CSTR_HELP \
+    "help"
+#define CSTR_MANUAL \
+    "manual"
+#define CSTR_CONFIG \
+    "config"
+#define CSTR_DATE \
+    "date"
+
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
 
 std::atomic<bool> timeout(false);
 std::map<std::string, Stock> stocklist;
-std::string CONFIG_FOLDER = "/usr/local/share/SHIFT/MatchingEngine/";
 
 int main(int ac, char* av[])
 {
+    /**
+     * @brief Centralizes and classifies all necessary parameters and
+     * hides them behind one variable to ease understanding and debugging.
+     */
+    struct {
+        bool isManualInput;
+        std::string configDir;
+        std::string simulationDate;
+    } params = {
+        false,
+        "/usr/local/share/SHIFT/MatchingEngine/", // default installation folder for configuration
+    };
+
+    po::options_description desc("\nUSAGE: ./MatchingEngine [options] <args>\n\n\tThis is the MatchingEngine.\n\tThe server connects with DatafeedEngine and BrokerageCenter instances and runs in background.\n\nOPTIONS");
+    desc.add_options() // <--- every line-end from here needs a comment mark so that to prevent auto formating into single line
+        (CSTR_HELP ",h", "produce help message") //
+        (CSTR_MANUAL ",m", "set manual input of all parameters") //
+        (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
+        (CSTR_DATE ",d", po::value<std::string>(), "simulation date") //
+        ; // add_options
+
+    po::variables_map vm;
     try {
-
-        po::options_description desc("Allowed options");
-        desc.add_options()("help", "produce help message")("config", po::value<std::string>(), "set config directory");
-
-        po::variables_map vm;
         po::store(po::parse_command_line(ac, av, desc), vm);
         po::notify(vm);
-
-        if (vm.count("help")) {
-            cout << desc << "\n";
-            return 1;
-        }
-
-        if (vm.count("config")) {
-            CONFIG_FOLDER = vm["config"].as<std::string>();
-            cout << "config directory was set to "
-                 << vm["config"].as<std::string>() << ".\n";
-        } else {
-            cout << "config directory was not set. Using default config dir: " << CONFIG_FOLDER << endl;
-        }
     } catch (const boost::program_options::error& e) {
-        cerr << "error: " << e.what() << "\n";
+        cerr << COLOR_ERROR "ERROR: " << e.what() << NO_COLOR << endl;
         return 1;
     } catch (...) {
-        cerr << "Exception of unknown type!\n";
+        cerr << COLOR_ERROR "ERROR: Exception of unknown type!" NO_COLOR << endl;
+        return 2;
     }
 
-    std::string configfile = CONFIG_FOLDER + "config.txt";
-    std::string date = "2014-10-08"; //2014-03-11
+    if (vm.count(CSTR_HELP)) {
+        cout << '\n'
+             << desc << '\n'
+             << endl;
+        return 1;
+    }
+
+    if (vm.count(CSTR_MANUAL)) {
+        params.isManualInput = true;
+    }
+
+    if (vm.count(CSTR_CONFIG)) {
+        params.configDir = vm[CSTR_CONFIG].as<std::string>();
+        cout << COLOR "'config' directory was set to "
+             << params.configDir << ".\n" NO_COLOR << endl;
+    } else {
+        cout << COLOR "'config' directory was not set. Using default config dir: " << params.configDir << NO_COLOR << '\n'
+             << endl;
+    }
+
+    if (vm.count(CSTR_DATE)) {
+        params.simulationDate = vm[CSTR_DATE].as<std::string>();
+    }
+
+    std::string configfile = params.configDir + "config.txt";
+    std::string date = "2018-03-15";
     std::string stime = "09:30:00";
     std::string etime = "16:00:00";
-    double experiment_speed = 1;
-    cout << "FE800 Project: Test Bed For High Frequency Trading" << endl;
-    cout << "The Machine Engine" << endl;
-    cout << "If want a debug mode, please type 0: " << endl;
-    cout << "Or complete the 'config.txt' and type '1' to start the program..." << endl;
-    int config_mode = 1;
-    //cin>>config_mode;
-    //if(!cin){
-    //    cin.clear();
-    //    cin.ignore(255);
-    //    return -1;
-    //}
+    int experiment_speed = 1;
+
     std::vector<std::string> symbols;
-    switch (config_mode) {
-    case 0:
-        debug_mode(symbols, date, stime, etime, experiment_speed);
-        break;
-    case 1:
-        if (!fileConfig_mode(configfile, symbols, date, stime, etime, experiment_speed))
-            return -1; //system stop
-        break;
-    default:
-        inputConfig_mode(symbols, date, stime, etime, experiment_speed);
+
+    if (!params.isManualInput) {
+        if (!fileConfig_mode(configfile, date, stime, etime, experiment_speed, symbols))
+            return -1; // system stop
+    } else {
+        inputConfig_mode(date, stime, etime, experiment_speed, symbols);
+    }
+
+    if (!params.simulationDate.empty()) {
+        date = params.simulationDate;
     }
 
     timepara.initiate(date, stime, etime, experiment_speed);
@@ -87,7 +115,7 @@ int main(int ac, char* av[])
     FIXAcceptor fixtoclient;
     //initiate connection to DB
     FIXInitiator fixtoDB;
-    fixtoDB.connectDatafeedEngine(CONFIG_FOLDER + "initiator.cfg");
+    fixtoDB.connectDatafeedEngine(params.configDir + "initiator.cfg");
     cout << "Please wait for ready" << endl;
     sleep(3);
     getchar();
@@ -160,7 +188,7 @@ int main(int ac, char* av[])
         }
     }
 
-    fixtoclient.connectBrokerageCenter(CONFIG_FOLDER + "acceptor.cfg");
+    fixtoclient.connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
     //sleep the main thread for set of time until exchange close time
     pt_start += boost::posix_time::minutes(15);

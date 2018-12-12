@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# default loading time for each service
+declare -a LOADING_TIME
+LOADING_TIME[1]=1   # DatafeedEngine
+LOADING_TIME[2]=5   # MatchingEngine
+LOADING_TIME[3]=5   # BrokerageCenter
+LOADING_TIME[4]=1   # WebClient backend  (WebClient)
+LOADING_TIME[5]=1   # WebClient frontend (pushServer)
+
 # different output colors
 COLOR='\033[1;36m'          # bold;cyan
 COLOR_WARNING='\033[1;33m'  # bold;yellow
@@ -16,19 +24,11 @@ SHIFT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # directory from which the script is being run from
 CURRENT_DIR="$( pwd )"
 
-# whether to keep log of the execution or not
-KEEP_LOG=0
-
 # default time-out parameter for the servers
 TIME_OUT=400
 
-# default loading time for each service
-declare -a LOADING_TIME
-LOADING_TIME[1]=1   # DatafeedEngine
-LOADING_TIME[2]=5   # MatchingEngine
-LOADING_TIME[3]=5   # BrokerageCenter
-LOADING_TIME[4]=1   # WebClient backend  (WebClient)
-LOADING_TIME[5]=1   # WebClient frontend (pushServer)
+# whether to keep log of the execution or not
+KEEP_LOG=0
 
 function usage
 {
@@ -39,12 +39,13 @@ function usage
     echo
     echo "OPTIONS:";
     echo "  -h [ --help ]                      Display available options"
-    echo "  -k [ --kill ]                      Kill all running services"
-    echo "  -l [ --log ]                       Create a log of the execution"
     echo "  -m [ --modules ] DE|ME|BC|WC|PS    List of modules to start up or terminate"
-    echo "  -s [ --status ]                    Status of the running services"
+    echo "  -d [ --date ]                      Simulation date (format: YYYY-MM-DD)"
     echo "  -t [ --timeout ]                   Time-out duration counted in minutes"
     echo "                                     (default: 400)"
+    echo "  -l [ --log ]                       Create a log of the execution"
+    echo "  -s [ --status ]                    Status of the running services"
+    echo "  -k [ --kill ]                      Kill all running services"
     echo -e ${NO_COLOR}
 }
 
@@ -61,9 +62,9 @@ function startService
     echo -ne "Starting ${1}...\r"
     if [ ${KEEP_LOG} -ne 0 ]
     then
-        nohup /usr/local/bin/${1} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
+        nohup /usr/local/bin/${1} ${3} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
     else
-        nohup /usr/local/bin/${1} </dev/null >/dev/null 2>&1 &
+        nohup /usr/local/bin/${1} ${3} </dev/null >/dev/null 2>&1 &
     fi
 
     # loading time
@@ -214,23 +215,16 @@ function killPushServer
     fi
 }
 
-KILL_FLAG=0
 declare -a MODULES
+SIMULATION_DATE=""
 STATUS_FLAG=0
+KILL_FLAG=0
 
 while [ "${1}" != "" ]; do
     case ${1} in
         -h | --help )
             usage
             exit 0
-            ;;
-        -k | --kill )
-            KILL_FLAG=1
-            shift
-            ;;
-        -l | --log )
-            KEEP_LOG=1
-            shift
             ;;
         -m | --modules )
             while true
@@ -268,8 +262,9 @@ while [ "${1}" != "" ]; do
                 esac
             done
             ;;
-        -s | --status )
-            STATUS_FLAG=1
+        -d | --date )
+            shift
+            SIMULATION_DATE=${1}
             shift
             ;;
         -t | --timeout )
@@ -278,6 +273,18 @@ while [ "${1}" != "" ]; do
             then
                 TIME_OUT=${1}
             fi
+            shift
+            ;;
+        -l | --log )
+            KEEP_LOG=1
+            shift
+            ;;
+        -s | --status )
+            STATUS_FLAG=1
+            shift
+            ;;
+        -k | --kill )
+            KILL_FLAG=1
             shift
             ;;
         *)
@@ -397,7 +404,8 @@ then
                 startVerboseCapableService "DatafeedEngine" ${LOADING_TIME[1]}
                 ;;
             2_ME )
-                startService "MatchingEngine" ${LOADING_TIME[2]}
+                [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-d ${SIMULATION_DATE}"
+                [ ${SIMULATION_DATE} ] || startService "MatchingEngine" ${LOADING_TIME[2]}
                 ;;
             3_BC )
                 startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]}

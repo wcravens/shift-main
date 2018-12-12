@@ -19,8 +19,9 @@ void timesetting::initiate(std::string date, std::string stime, std::string etim
     Innerstarttime = stime;
     Innerendtime = etime;
     std::string timestring = date + " " + stime;
+    cout << endl;
     date_time = boost::posix_time::ptime(boost::posix_time::time_from_string(timestring));
-    cout << "Date_time: " << boost::posix_time::to_iso_extended_string(date_time) << endl;
+    cout << "date_time: " << boost::posix_time::to_iso_extended_string(date_time) << endl;
     hhmmss = date_time.time_of_day().total_seconds();
     cout << "hhmmss: " << hhmmss << endl;
     speed = _speed;
@@ -35,10 +36,10 @@ void timesetting::set_start_time()
 /**
  * @ brief Get total millisecond from FIX::UtcTimeStamp 
  */
-double timesetting::past_milli(const FIX::UtcTimeStamp& utc) 
+double timesetting::past_milli(const FIX::UtcTimeStamp& utc)
 {
-    double milli = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - hhmmss) * 1000 + utc.getMillisecond(); 
-    return milli * speed; 
+    double milli = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - hhmmss) * 1000 + utc.getMillisecond();
+    return milli * speed;
 }
 
 /**
@@ -55,13 +56,13 @@ double timesetting::past_milli() // FIXME: can be replaced by microsecond
 /**
  * @brief Get FIX::UtcTimeStamp from millisecond since server starts 
  */
-FIX::UtcTimeStamp timesetting::milli2utc(double milli) 
+FIX::UtcTimeStamp timesetting::milli2utc(double milli)
 {
     boost::posix_time::ptime now = date_time + boost::posix_time::milliseconds(milli);
     auto tm_now = boost::posix_time::to_tm(now);
     auto utc_now = FIX::UtcTimeStamp(&tm_now, ((int)milli % 1000) * 1000, 6);
     return utc_now;
-} 
+}
 
 /**
  * @brief Get FIX::UtcTimeStamp from now
