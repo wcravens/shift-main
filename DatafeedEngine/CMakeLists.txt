@@ -60,8 +60,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Common Flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fexceptions -pedantic-errors -pthread")
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fexceptions -pedantic-errors")
 
 # Debug Flags
 set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
@@ -103,7 +102,7 @@ find_package(OpenSSL REQUIRED)
 
 find_package(PostgreSQL REQUIRED)
 
-#find_package(Threads REQUIRED)
+find_package(Threads REQUIRED)
 
 find_package(ZLIB REQUIRED)
 
@@ -140,7 +139,7 @@ target_link_libraries(${PROJECT_NAME}
                       ${Boost_LIBRARIES}
                       ${OPENSSL_LIBRARIES}
                       ${PostgreSQL_LIBRARIES}
-                      #${CMAKE_THREAD_LIBS_INIT}
+                      ${CMAKE_THREAD_LIBS_INIT}
                       ${ZLIB_LIBRARIES}
                       ${CPPREST}
                       ${QUICKFIX}
