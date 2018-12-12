@@ -152,6 +152,7 @@ private:
     R_FIXINIT std::condition_variable m_cv_logon;
 
     // FIXInitiator - Subscriber management
+    R_FIXINIT std::mutex m_mutex_username_client;
     R_FIXINIT std::unordered_map<std::string, CoreClient*> m_username_client;
 
     R_TODO std::atomic<bool> m_openPricesReady;

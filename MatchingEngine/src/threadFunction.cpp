@@ -16,14 +16,7 @@ using namespace std::chrono_literals;
 extern std::atomic<bool> timeout;
 extern std::map<std::string, Stock> stocklist;
 
-void debug_mode(std::vector<std::string>& symbols, std::string& date, std::string& stime, std::string& etime, double& experiment_speed)
-{
-    cout << "Debug mode selected..." << endl;
-    symbols.push_back("JPM");
-    symbols.push_back("IBM");
-}
-
-bool fileConfig_mode(std::string file_address, std::vector<std::string>& symbols, std::string& date, std::string& stime, std::string& etime, double& experiment_speed)
+bool fileConfig_mode(std::string file_address, std::string& date, std::string& stime, std::string& etime, int& experiment_speed, std::vector<std::string>& symbols)
 {
     std::ifstream fin(file_address, std::ios_base::in);
     if (fin.is_open()) {
@@ -45,47 +38,50 @@ bool fileConfig_mode(std::string file_address, std::vector<std::string>& symbols
                     else if (key == "endtime")
                         etime = value;
                     else if (key == "speed")
-                        experiment_speed = stod(value);
+                        experiment_speed = stoi(value);
                     cout << value << endl;
                 }
             }
         }
         fin.close();
     } else {
-        cout << "Cannot open config.txt." << endl;
+        cout << "Cannot open " << file_address << '.' << endl;
         return false;
     }
     return true;
 }
 
-void inputConfig_mode(std::vector<std::string>& symbols, std::string& date, std::string& stime, std::string& etime, double& experiment_speed)
+void inputConfig_mode(std::string& date, std::string& stime, std::string& etime, int& experiment_speed, std::vector<std::string>& symbols)
 {
-    cout << "Please Input experiment speed (0.5 is half speed, 1 is real time speed, 2 is double speed): " << endl;
-    cin >> experiment_speed;
-
-    cout << "Please Input Trading Date(format:yyyy-mm-dd, e.g 2014-10-08) :" << endl;
+    cout << "Please input simulation date (format: yyyy-mm-dd, e.g 2014-10-08):" << endl;
     cin >> date;
+    cout << endl;
 
-    cout << "Please Input Trading Start Time(format:hh:mm:ss, from 09:30:00 to 15:59:00):" << endl;
+    cout << "Please input start time (format: hh:mm:ss, from 09:30:00 to 15:59:00):" << endl;
     cin >> stime;
+    cout << endl;
 
-    cout << "Please Input Trading End Time(format:hh:mm:ss, from 15:59:00 to 16:00:00) :" << endl;
+    cout << "Please input end time (format:hh:mm:ss, from 15:59:00 to 16:00:00):" << endl;
     cin >> etime;
+    cout << endl;
 
-    int stocknums = 1; //record how many stock input
+    cout << "Please input experiment speed (1 is real time speed, 2 is double speed):" << endl;
+    cin >> experiment_speed;
+    cout << endl;
+
+    cout << "Please refer to http://www.reuters.com/finance/stocks/lookup for stock tickers." << endl;
+
+    int numstocks = 1; // record the number of inputted stocks
     while (1) {
         cout << endl
-             << "Please Input No." << stocknums << " Stockname:" << endl;
-        cout << "Refer stockname to wesite: http://www.reuters.com/finance/stocks/lookup.";
-        cout << endl
-             << "(To stop input, please type '0') :" << endl;
+             << "Please input stock number " << numstocks << " (to stop input, please type '0'):" << endl;
         std::string symbol;
         cin >> symbol;
-        //exit the stock name input by entering 0;
+        // exit when input is "0":
         if (symbol == "0")
             break;
         symbols.push_back(symbol);
-        ++stocknums;
+        ++numstocks;
     }
 }
 

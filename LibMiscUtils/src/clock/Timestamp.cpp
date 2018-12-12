@@ -1,7 +1,7 @@
 #include "clock/Timestamp.h"
 
 #include <iomanip>
-#include <iostream>
+#include <sstream>
 
 shift::clock::Timestamp::Timestamp()
     : m_sec{ time(nullptr) }
@@ -18,13 +18,11 @@ shift::clock::Timestamp::Timestamp(const std::time_t& sec, int usec)
 shift::clock::Timestamp::Timestamp(const std::string& dateTime, const std::string& format)
     : m_usec{ 0 }
 {
-    struct std::tm tm;
-    std::istringstream ss(dateTime);
+    struct std::tm tm = { 0 };
+    tm.tm_isdst = -1; // required for correct initialization
 
+    std::istringstream ss(dateTime);
     ss >> std::get_time(&tm, format.c_str());
-    mktime(&tm);
-    if (tm.tm_isdst > 0) // fix the hour when in daylight savings time
-        --tm.tm_hour;
 
     m_sec = mktime(&tm);
 }

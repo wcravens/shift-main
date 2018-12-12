@@ -60,6 +60,11 @@ shift::FIXInitiator::~FIXInitiator() // override
             if (pair_type_orderBook.second)
                 delete pair_type_orderBook.second;
 
+    {
+        std::lock_guard<std::mutex> ucGuard(m_mutex_username_client);
+        m_username_client.clear();
+    }
+
     disconnectBrokerageCenter();
 }
 
@@ -197,11 +202,14 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
  */
 void shift::FIXInitiator::attach(shift::CoreClient* pCC, const std::string& password, int timeout)
 {
-    // Will attach both ways
-    webClientSendUsername(pCC->getUsername());
     // TODO: add auth in BC and add lock after successful logon; use password to auth
+    webClientSendUsername(pCC->getUsername());
 
-    m_username_client[pCC->getUsername()] = pCC;
+    {
+        std::lock_guard<std::mutex> ucGuard(m_mutex_username_client);
+        m_username_client[pCC->getUsername()] = pCC;
+    }
+
     pCC->attach(*this);
 }
 
@@ -231,11 +239,15 @@ void shift::FIXInitiator::webClientSendUsername(const std::string& username)
 std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
 {
     std::vector<shift::CoreClient*> clientsVector;
+
+    std::lock_guard<std::mutex> ucGuard(m_mutex_username_client);
+
     for (auto it = m_username_client.begin(); it != m_username_client.end(); ++it) {
-        if (it->first != m_username) {
+        if (it->first != m_username) { // skip MainClient
             clientsVector.push_back(it->second);
         }
     }
+
     return clientsVector;
 }
 
@@ -251,12 +263,14 @@ shift::CoreClient* shift::FIXInitiator::getMainClient()
  */
 shift::CoreClient* shift::FIXInitiator::getClient(const std::string& name)
 {
+    std::lock_guard<std::mutex> ucGuard(m_mutex_username_client);
+
     if (m_username_client.find(name) != m_username_client.end()) {
         return m_username_client[name];
     } else {
-        // debugDump("Name not found: " + name);
         throw std::range_error("Name not found: " + name);
     }
+
     return nullptr;
 }
 
