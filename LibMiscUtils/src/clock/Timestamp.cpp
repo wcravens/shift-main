@@ -1,7 +1,7 @@
 #include "clock/Timestamp.h"
 
 #include <iomanip>
-#include <iostream>
+#include <sstream>
 
 shift::clock::Timestamp::Timestamp()
     : m_sec{ time(nullptr) }
