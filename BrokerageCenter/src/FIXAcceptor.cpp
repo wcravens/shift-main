@@ -491,7 +491,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 {
     auto& targetID = sessionID.getTargetCompID();
     const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(targetID); // TODO
-    cout << "Logon: " << targetID << endl;
+    cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
     if (CSTR_NULL == targetID) {
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -506,7 +506,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 {
     auto& targetID = sessionID.getTargetCompID();
-    cout << "Logout targetID: " << targetID << endl;
+    cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
     if (::toUpper(targetID) == "WEBCLIENTID")
         return;
 
@@ -515,12 +515,12 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
-    cout << "Logon userName: " << userName << endl;
+    cout << COLOR_WARNING "[User] " NO_COLOR << userName << endl;
     BCDocuments::getInstance()->unregisterUserInDoc(userName);
     BCDocuments::getInstance()->removeUserFromStocks(userName);
     BCDocuments::getInstance()->removeUserFromCandles(userName);
-    cout << endl
-         << "Logout - " << sessionID << endl;
+    cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
+         << endl;
 }
 
 void FIXAcceptor::toApp(FIX::Message& message, const FIX::SessionID&) throw(FIX::DoNotSend) // override
@@ -726,7 +726,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
     message.get(userName);
     BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID(), userName);
     BCDocuments::getInstance()->sendHistoryToUser(userName.getString());
-    cout << COLOR_PROMPT "Web User [ " << userName << " ] was registered." NO_COLOR << endl;
+    cout << COLOR_PROMPT "Web user [ " NO_COLOR << userName << COLOR_PROMPT " ] was registered.\n" NO_COLOR << endl;
 }
 
 /*
