@@ -21,7 +21,7 @@ set(CMAKE
 )
 
 set(INCLUDE
-    ${PROJECT_SOURCE_DIR}/include/clock/BasicTime.h
+    ${PROJECT_SOURCE_DIR}/include/clock/Timestamp.h
     ${PROJECT_SOURCE_DIR}/include/concurrency/Consumer.h
     ${PROJECT_SOURCE_DIR}/include/crossguid/Guid.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Decryptor.h
@@ -39,7 +39,7 @@ set(PKGCONFIG
 )
 
 set(SRC
-    ${PROJECT_SOURCE_DIR}/src/clock/BasicTime.cpp
+    ${PROJECT_SOURCE_DIR}/src/clock/Timestamp.cpp
     ${PROJECT_SOURCE_DIR}/src/crossguid/Guid.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Cryptor.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Cryptor.h
