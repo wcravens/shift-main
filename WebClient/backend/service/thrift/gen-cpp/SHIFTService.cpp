@@ -36,37 +36,13 @@ uint32_t SHIFTService_submitOrder_args::read(::apache::thrift::protocol::TProtoc
     {
       case 1:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->stockName);
-          this->__isset.stockName = true;
+          xfer += iprot->readString(this->username);
+          this->__isset.username = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
       case 2:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->orderID);
-          this->__isset.orderID = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 3:
-        if (ftype == ::apache::thrift::protocol::T_DOUBLE) {
-          xfer += iprot->readDouble(this->price);
-          this->__isset.price = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 4:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->shareSize);
-          this->__isset.shareSize = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 5:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->orderType);
           this->__isset.orderType = true;
@@ -74,10 +50,34 @@ uint32_t SHIFTService_submitOrder_args::read(::apache::thrift::protocol::TProtoc
           xfer += iprot->skip(ftype);
         }
         break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->orderSymbol);
+          this->__isset.orderSymbol = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->orderSize);
+          this->__isset.orderSize = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 5:
+        if (ftype == ::apache::thrift::protocol::T_DOUBLE) {
+          xfer += iprot->readDouble(this->orderPrice);
+          this->__isset.orderPrice = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       case 6:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->username);
-          this->__isset.username = true;
+          xfer += iprot->readString(this->orderID);
+          this->__isset.orderID = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -99,28 +99,28 @@ uint32_t SHIFTService_submitOrder_args::write(::apache::thrift::protocol::TProto
   ::apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
   xfer += oprot->writeStructBegin("SHIFTService_submitOrder_args");
 
-  xfer += oprot->writeFieldBegin("stockName", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString(this->stockName);
+  xfer += oprot->writeFieldBegin("username", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->username);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("orderID", ::apache::thrift::protocol::T_STRING, 2);
-  xfer += oprot->writeString(this->orderID);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("price", ::apache::thrift::protocol::T_DOUBLE, 3);
-  xfer += oprot->writeDouble(this->price);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("shareSize", ::apache::thrift::protocol::T_I32, 4);
-  xfer += oprot->writeI32(this->shareSize);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("orderType", ::apache::thrift::protocol::T_STRING, 5);
+  xfer += oprot->writeFieldBegin("orderType", ::apache::thrift::protocol::T_STRING, 2);
   xfer += oprot->writeString(this->orderType);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("username", ::apache::thrift::protocol::T_STRING, 6);
-  xfer += oprot->writeString(this->username);
+  xfer += oprot->writeFieldBegin("orderSymbol", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeString(this->orderSymbol);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("orderSize", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32(this->orderSize);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("orderPrice", ::apache::thrift::protocol::T_DOUBLE, 5);
+  xfer += oprot->writeDouble(this->orderPrice);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("orderID", ::apache::thrift::protocol::T_STRING, 6);
+  xfer += oprot->writeString(this->orderID);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -138,28 +138,28 @@ uint32_t SHIFTService_submitOrder_pargs::write(::apache::thrift::protocol::TProt
   ::apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
   xfer += oprot->writeStructBegin("SHIFTService_submitOrder_pargs");
 
-  xfer += oprot->writeFieldBegin("stockName", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString((*(this->stockName)));
+  xfer += oprot->writeFieldBegin("username", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString((*(this->username)));
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("orderID", ::apache::thrift::protocol::T_STRING, 2);
-  xfer += oprot->writeString((*(this->orderID)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("price", ::apache::thrift::protocol::T_DOUBLE, 3);
-  xfer += oprot->writeDouble((*(this->price)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("shareSize", ::apache::thrift::protocol::T_I32, 4);
-  xfer += oprot->writeI32((*(this->shareSize)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("orderType", ::apache::thrift::protocol::T_STRING, 5);
+  xfer += oprot->writeFieldBegin("orderType", ::apache::thrift::protocol::T_STRING, 2);
   xfer += oprot->writeString((*(this->orderType)));
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("username", ::apache::thrift::protocol::T_STRING, 6);
-  xfer += oprot->writeString((*(this->username)));
+  xfer += oprot->writeFieldBegin("orderSymbol", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeString((*(this->orderSymbol)));
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("orderSize", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32((*(this->orderSize)));
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("orderPrice", ::apache::thrift::protocol::T_DOUBLE, 5);
+  xfer += oprot->writeDouble((*(this->orderPrice)));
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("orderID", ::apache::thrift::protocol::T_STRING, 6);
+  xfer += oprot->writeString((*(this->orderID)));
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -556,260 +556,24 @@ uint32_t SHIFTService_webUserLogin_presult::read(::apache::thrift::protocol::TPr
   return xfer;
 }
 
-
-SHIFTService_startStrategy_args::~SHIFTService_startStrategy_args() throw() {
-}
-
-
-uint32_t SHIFTService_startStrategy_args::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  ::apache::thrift::protocol::TInputRecursionTracker tracker(*iprot);
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->stockName);
-          this->__isset.stockName = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 2:
-        if (ftype == ::apache::thrift::protocol::T_DOUBLE) {
-          xfer += iprot->readDouble(this->price);
-          this->__isset.price = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 3:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->shareSize);
-          this->__isset.shareSize = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 4:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->orderType);
-          this->__isset.orderType = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 5:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->username);
-          this->__isset.username = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 6:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->interval);
-          this->__isset.interval = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-uint32_t SHIFTService_startStrategy_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
-  uint32_t xfer = 0;
-  ::apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
-  xfer += oprot->writeStructBegin("SHIFTService_startStrategy_args");
-
-  xfer += oprot->writeFieldBegin("stockName", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString(this->stockName);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("price", ::apache::thrift::protocol::T_DOUBLE, 2);
-  xfer += oprot->writeDouble(this->price);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("shareSize", ::apache::thrift::protocol::T_I32, 3);
-  xfer += oprot->writeI32(this->shareSize);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("orderType", ::apache::thrift::protocol::T_STRING, 4);
-  xfer += oprot->writeString(this->orderType);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("username", ::apache::thrift::protocol::T_STRING, 5);
-  xfer += oprot->writeString(this->username);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("interval", ::apache::thrift::protocol::T_I32, 6);
-  xfer += oprot->writeI32(this->interval);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-
-SHIFTService_startStrategy_pargs::~SHIFTService_startStrategy_pargs() throw() {
-}
-
-
-uint32_t SHIFTService_startStrategy_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
-  uint32_t xfer = 0;
-  ::apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
-  xfer += oprot->writeStructBegin("SHIFTService_startStrategy_pargs");
-
-  xfer += oprot->writeFieldBegin("stockName", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString((*(this->stockName)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("price", ::apache::thrift::protocol::T_DOUBLE, 2);
-  xfer += oprot->writeDouble((*(this->price)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("shareSize", ::apache::thrift::protocol::T_I32, 3);
-  xfer += oprot->writeI32((*(this->shareSize)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("orderType", ::apache::thrift::protocol::T_STRING, 4);
-  xfer += oprot->writeString((*(this->orderType)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("username", ::apache::thrift::protocol::T_STRING, 5);
-  xfer += oprot->writeString((*(this->username)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("interval", ::apache::thrift::protocol::T_I32, 6);
-  xfer += oprot->writeI32((*(this->interval)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-
-SHIFTService_startStrategy_result::~SHIFTService_startStrategy_result() throw() {
-}
-
-
-uint32_t SHIFTService_startStrategy_result::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  ::apache::thrift::protocol::TInputRecursionTracker tracker(*iprot);
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    xfer += iprot->skip(ftype);
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-uint32_t SHIFTService_startStrategy_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
-
-  uint32_t xfer = 0;
-
-  xfer += oprot->writeStructBegin("SHIFTService_startStrategy_result");
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-
-SHIFTService_startStrategy_presult::~SHIFTService_startStrategy_presult() throw() {
-}
-
-
-uint32_t SHIFTService_startStrategy_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  ::apache::thrift::protocol::TInputRecursionTracker tracker(*iprot);
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    xfer += iprot->skip(ftype);
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-void SHIFTServiceClient::submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username)
+void SHIFTServiceClient::submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID)
 {
-  send_submitOrder(stockName, orderID, price, shareSize, orderType, username);
+  send_submitOrder(username, orderType, orderSymbol, orderSize, orderPrice, orderID);
   recv_submitOrder();
 }
 
-void SHIFTServiceClient::send_submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username)
+void SHIFTServiceClient::send_submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("submitOrder", ::apache::thrift::protocol::T_CALL, cseqid);
 
   SHIFTService_submitOrder_pargs args;
-  args.stockName = &stockName;
-  args.orderID = &orderID;
-  args.price = &price;
-  args.shareSize = &shareSize;
-  args.orderType = &orderType;
   args.username = &username;
+  args.orderType = &orderType;
+  args.orderSymbol = &orderSymbol;
+  args.orderSize = &orderSize;
+  args.orderPrice = &orderPrice;
+  args.orderID = &orderID;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -956,64 +720,6 @@ void SHIFTServiceClient::recv_webUserLogin()
   return;
 }
 
-void SHIFTServiceClient::startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval)
-{
-  send_startStrategy(stockName, price, shareSize, orderType, username, interval);
-  recv_startStrategy();
-}
-
-void SHIFTServiceClient::send_startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval)
-{
-  int32_t cseqid = 0;
-  oprot_->writeMessageBegin("startStrategy", ::apache::thrift::protocol::T_CALL, cseqid);
-
-  SHIFTService_startStrategy_pargs args;
-  args.stockName = &stockName;
-  args.price = &price;
-  args.shareSize = &shareSize;
-  args.orderType = &orderType;
-  args.username = &username;
-  args.interval = &interval;
-  args.write(oprot_);
-
-  oprot_->writeMessageEnd();
-  oprot_->getTransport()->writeEnd();
-  oprot_->getTransport()->flush();
-}
-
-void SHIFTServiceClient::recv_startStrategy()
-{
-
-  int32_t rseqid = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TMessageType mtype;
-
-  iprot_->readMessageBegin(fname, mtype, rseqid);
-  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
-    ::apache::thrift::TApplicationException x;
-    x.read(iprot_);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-    throw x;
-  }
-  if (mtype != ::apache::thrift::protocol::T_REPLY) {
-    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-  }
-  if (fname.compare("startStrategy") != 0) {
-    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-  }
-  SHIFTService_startStrategy_presult result;
-  result.read(iprot_);
-  iprot_->readMessageEnd();
-  iprot_->getTransport()->readEnd();
-
-  return;
-}
-
 bool SHIFTServiceProcessor::dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext) {
   ProcessMap::iterator pfn;
   pfn = processMap_.find(fname);
@@ -1056,7 +762,7 @@ void SHIFTServiceProcessor::process_submitOrder(int32_t seqid, ::apache::thrift:
 
   SHIFTService_submitOrder_result result;
   try {
-    iface_->submitOrder(args.stockName, args.orderID, args.price, args.shareSize, args.orderType, args.username);
+    iface_->submitOrder(args.username, args.orderType, args.orderSymbol, args.orderSize, args.orderPrice, args.orderID);
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "SHIFTService.submitOrder");
@@ -1192,59 +898,6 @@ void SHIFTServiceProcessor::process_webUserLogin(int32_t seqid, ::apache::thrift
   }
 }
 
-void SHIFTServiceProcessor::process_startStrategy(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
-{
-  void* ctx = NULL;
-  if (this->eventHandler_.get() != NULL) {
-    ctx = this->eventHandler_->getContext("SHIFTService.startStrategy", callContext);
-  }
-  ::apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "SHIFTService.startStrategy");
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preRead(ctx, "SHIFTService.startStrategy");
-  }
-
-  SHIFTService_startStrategy_args args;
-  args.read(iprot);
-  iprot->readMessageEnd();
-  uint32_t bytes = iprot->getTransport()->readEnd();
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postRead(ctx, "SHIFTService.startStrategy", bytes);
-  }
-
-  SHIFTService_startStrategy_result result;
-  try {
-    iface_->startStrategy(args.stockName, args.price, args.shareSize, args.orderType, args.username, args.interval);
-  } catch (const std::exception& e) {
-    if (this->eventHandler_.get() != NULL) {
-      this->eventHandler_->handlerError(ctx, "SHIFTService.startStrategy");
-    }
-
-    ::apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("startStrategy", ::apache::thrift::protocol::T_EXCEPTION, seqid);
-    x.write(oprot);
-    oprot->writeMessageEnd();
-    oprot->getTransport()->writeEnd();
-    oprot->getTransport()->flush();
-    return;
-  }
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "SHIFTService.startStrategy");
-  }
-
-  oprot->writeMessageBegin("startStrategy", ::apache::thrift::protocol::T_REPLY, seqid);
-  result.write(oprot);
-  oprot->writeMessageEnd();
-  bytes = oprot->getTransport()->writeEnd();
-  oprot->getTransport()->flush();
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "SHIFTService.startStrategy", bytes);
-  }
-}
-
 ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > SHIFTServiceProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {
   ::apache::thrift::ReleaseHandler< SHIFTServiceIfFactory > cleanup(handlerFactory_);
   ::apache::thrift::stdcxx::shared_ptr< SHIFTServiceIf > handler(handlerFactory_->getHandler(connInfo), cleanup);
@@ -1252,25 +905,25 @@ void SHIFTServiceProcessor::process_startStrategy(int32_t seqid, ::apache::thrif
   return processor;
 }
 
-void SHIFTServiceConcurrentClient::submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username)
+void SHIFTServiceConcurrentClient::submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID)
 {
-  int32_t seqid = send_submitOrder(stockName, orderID, price, shareSize, orderType, username);
+  int32_t seqid = send_submitOrder(username, orderType, orderSymbol, orderSize, orderPrice, orderID);
   recv_submitOrder(seqid);
 }
 
-int32_t SHIFTServiceConcurrentClient::send_submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username)
+int32_t SHIFTServiceConcurrentClient::send_submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID)
 {
   int32_t cseqid = this->sync_.generateSeqId();
   ::apache::thrift::async::TConcurrentSendSentry sentry(&this->sync_);
   oprot_->writeMessageBegin("submitOrder", ::apache::thrift::protocol::T_CALL, cseqid);
 
   SHIFTService_submitOrder_pargs args;
-  args.stockName = &stockName;
-  args.orderID = &orderID;
-  args.price = &price;
-  args.shareSize = &shareSize;
-  args.orderType = &orderType;
   args.username = &username;
+  args.orderType = &orderType;
+  args.orderSymbol = &orderSymbol;
+  args.orderSize = &orderSize;
+  args.orderPrice = &orderPrice;
+  args.orderID = &orderID;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1476,89 +1129,6 @@ void SHIFTServiceConcurrentClient::recv_webUserLogin(const int32_t seqid)
         throw TProtocolException(TProtocolException::INVALID_DATA);
       }
       SHIFTService_webUserLogin_presult result;
-      result.read(iprot_);
-      iprot_->readMessageEnd();
-      iprot_->getTransport()->readEnd();
-
-      sentry.commit();
-      return;
-    }
-    // seqid != rseqid
-    this->sync_.updatePending(fname, mtype, rseqid);
-
-    // this will temporarily unlock the readMutex, and let other clients get work done
-    this->sync_.waitForWork(seqid);
-  } // end while(true)
-}
-
-void SHIFTServiceConcurrentClient::startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval)
-{
-  int32_t seqid = send_startStrategy(stockName, price, shareSize, orderType, username, interval);
-  recv_startStrategy(seqid);
-}
-
-int32_t SHIFTServiceConcurrentClient::send_startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval)
-{
-  int32_t cseqid = this->sync_.generateSeqId();
-  ::apache::thrift::async::TConcurrentSendSentry sentry(&this->sync_);
-  oprot_->writeMessageBegin("startStrategy", ::apache::thrift::protocol::T_CALL, cseqid);
-
-  SHIFTService_startStrategy_pargs args;
-  args.stockName = &stockName;
-  args.price = &price;
-  args.shareSize = &shareSize;
-  args.orderType = &orderType;
-  args.username = &username;
-  args.interval = &interval;
-  args.write(oprot_);
-
-  oprot_->writeMessageEnd();
-  oprot_->getTransport()->writeEnd();
-  oprot_->getTransport()->flush();
-
-  sentry.commit();
-  return cseqid;
-}
-
-void SHIFTServiceConcurrentClient::recv_startStrategy(const int32_t seqid)
-{
-
-  int32_t rseqid = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TMessageType mtype;
-
-  // the read mutex gets dropped and reacquired as part of waitForWork()
-  // The destructor of this sentry wakes up other clients
-  ::apache::thrift::async::TConcurrentRecvSentry sentry(&this->sync_, seqid);
-
-  while(true) {
-    if(!this->sync_.getPending(fname, mtype, rseqid)) {
-      iprot_->readMessageBegin(fname, mtype, rseqid);
-    }
-    if(seqid == rseqid) {
-      if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
-        ::apache::thrift::TApplicationException x;
-        x.read(iprot_);
-        iprot_->readMessageEnd();
-        iprot_->getTransport()->readEnd();
-        sentry.commit();
-        throw x;
-      }
-      if (mtype != ::apache::thrift::protocol::T_REPLY) {
-        iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-        iprot_->readMessageEnd();
-        iprot_->getTransport()->readEnd();
-      }
-      if (fname.compare("startStrategy") != 0) {
-        iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-        iprot_->readMessageEnd();
-        iprot_->getTransport()->readEnd();
-
-        // in a bad state, don't commit
-        using ::apache::thrift::protocol::TProtocolException;
-        throw TProtocolException(TProtocolException::INVALID_DATA);
-      }
-      SHIFTService_startStrategy_presult result;
       result.read(iprot_);
       iprot_->readMessageEnd();
       iprot_->getTransport()->readEnd();

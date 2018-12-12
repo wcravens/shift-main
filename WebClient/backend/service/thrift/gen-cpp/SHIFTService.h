@@ -21,10 +21,9 @@
 class SHIFTServiceIf {
  public:
   virtual ~SHIFTServiceIf() {}
-  virtual void submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username) = 0;
+  virtual void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) = 0;
   virtual void webClientSendUsername(const std::string& username) = 0;
   virtual void webUserLogin(const std::string& username) = 0;
-  virtual void startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval) = 0;
 };
 
 class SHIFTServiceIfFactory {
@@ -54,7 +53,7 @@ class SHIFTServiceIfSingletonFactory : virtual public SHIFTServiceIfFactory {
 class SHIFTServiceNull : virtual public SHIFTServiceIf {
  public:
   virtual ~SHIFTServiceNull() {}
-  void submitOrder(const std::string& /* stockName */, const std::string& /* orderID */, const double /* price */, const int32_t /* shareSize */, const std::string& /* orderType */, const std::string& /* username */) {
+  void submitOrder(const std::string& /* username */, const std::string& /* orderType */, const std::string& /* orderSymbol */, const int32_t /* orderSize */, const double /* orderPrice */, const std::string& /* orderID */) {
     return;
   }
   void webClientSendUsername(const std::string& /* username */) {
@@ -63,19 +62,16 @@ class SHIFTServiceNull : virtual public SHIFTServiceIf {
   void webUserLogin(const std::string& /* username */) {
     return;
   }
-  void startStrategy(const std::string& /* stockName */, const double /* price */, const int32_t /* shareSize */, const std::string& /* orderType */, const std::string& /* username */, const int32_t /* interval */) {
-    return;
-  }
 };
 
 typedef struct _SHIFTService_submitOrder_args__isset {
-  _SHIFTService_submitOrder_args__isset() : stockName(false), orderID(false), price(false), shareSize(false), orderType(false), username(false) {}
-  bool stockName :1;
-  bool orderID :1;
-  bool price :1;
-  bool shareSize :1;
-  bool orderType :1;
+  _SHIFTService_submitOrder_args__isset() : username(false), orderType(false), orderSymbol(false), orderSize(false), orderPrice(false), orderID(false) {}
   bool username :1;
+  bool orderType :1;
+  bool orderSymbol :1;
+  bool orderSize :1;
+  bool orderPrice :1;
+  bool orderID :1;
 } _SHIFTService_submitOrder_args__isset;
 
 class SHIFTService_submitOrder_args {
@@ -83,44 +79,44 @@ class SHIFTService_submitOrder_args {
 
   SHIFTService_submitOrder_args(const SHIFTService_submitOrder_args&);
   SHIFTService_submitOrder_args& operator=(const SHIFTService_submitOrder_args&);
-  SHIFTService_submitOrder_args() : stockName(), orderID(), price(0), shareSize(0), orderType(), username() {
+  SHIFTService_submitOrder_args() : username(), orderType(), orderSymbol(), orderSize(0), orderPrice(0), orderID() {
   }
 
   virtual ~SHIFTService_submitOrder_args() throw();
-  std::string stockName;
-  std::string orderID;
-  double price;
-  int32_t shareSize;
-  std::string orderType;
   std::string username;
+  std::string orderType;
+  std::string orderSymbol;
+  int32_t orderSize;
+  double orderPrice;
+  std::string orderID;
 
   _SHIFTService_submitOrder_args__isset __isset;
 
-  void __set_stockName(const std::string& val);
-
-  void __set_orderID(const std::string& val);
-
-  void __set_price(const double val);
-
-  void __set_shareSize(const int32_t val);
+  void __set_username(const std::string& val);
 
   void __set_orderType(const std::string& val);
 
-  void __set_username(const std::string& val);
+  void __set_orderSymbol(const std::string& val);
+
+  void __set_orderSize(const int32_t val);
+
+  void __set_orderPrice(const double val);
+
+  void __set_orderID(const std::string& val);
 
   bool operator == (const SHIFTService_submitOrder_args & rhs) const
   {
-    if (!(stockName == rhs.stockName))
-      return false;
-    if (!(orderID == rhs.orderID))
-      return false;
-    if (!(price == rhs.price))
-      return false;
-    if (!(shareSize == rhs.shareSize))
+    if (!(username == rhs.username))
       return false;
     if (!(orderType == rhs.orderType))
       return false;
-    if (!(username == rhs.username))
+    if (!(orderSymbol == rhs.orderSymbol))
+      return false;
+    if (!(orderSize == rhs.orderSize))
+      return false;
+    if (!(orderPrice == rhs.orderPrice))
+      return false;
+    if (!(orderID == rhs.orderID))
       return false;
     return true;
   }
@@ -141,12 +137,12 @@ class SHIFTService_submitOrder_pargs {
 
 
   virtual ~SHIFTService_submitOrder_pargs() throw();
-  const std::string* stockName;
-  const std::string* orderID;
-  const double* price;
-  const int32_t* shareSize;
-  const std::string* orderType;
   const std::string* username;
+  const std::string* orderType;
+  const std::string* orderSymbol;
+  const int32_t* orderSize;
+  const double* orderPrice;
+  const std::string* orderID;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -361,127 +357,6 @@ class SHIFTService_webUserLogin_presult {
 
 };
 
-typedef struct _SHIFTService_startStrategy_args__isset {
-  _SHIFTService_startStrategy_args__isset() : stockName(false), price(false), shareSize(false), orderType(false), username(false), interval(false) {}
-  bool stockName :1;
-  bool price :1;
-  bool shareSize :1;
-  bool orderType :1;
-  bool username :1;
-  bool interval :1;
-} _SHIFTService_startStrategy_args__isset;
-
-class SHIFTService_startStrategy_args {
- public:
-
-  SHIFTService_startStrategy_args(const SHIFTService_startStrategy_args&);
-  SHIFTService_startStrategy_args& operator=(const SHIFTService_startStrategy_args&);
-  SHIFTService_startStrategy_args() : stockName(), price(0), shareSize(0), orderType(), username(), interval(0) {
-  }
-
-  virtual ~SHIFTService_startStrategy_args() throw();
-  std::string stockName;
-  double price;
-  int32_t shareSize;
-  std::string orderType;
-  std::string username;
-  int32_t interval;
-
-  _SHIFTService_startStrategy_args__isset __isset;
-
-  void __set_stockName(const std::string& val);
-
-  void __set_price(const double val);
-
-  void __set_shareSize(const int32_t val);
-
-  void __set_orderType(const std::string& val);
-
-  void __set_username(const std::string& val);
-
-  void __set_interval(const int32_t val);
-
-  bool operator == (const SHIFTService_startStrategy_args & rhs) const
-  {
-    if (!(stockName == rhs.stockName))
-      return false;
-    if (!(price == rhs.price))
-      return false;
-    if (!(shareSize == rhs.shareSize))
-      return false;
-    if (!(orderType == rhs.orderType))
-      return false;
-    if (!(username == rhs.username))
-      return false;
-    if (!(interval == rhs.interval))
-      return false;
-    return true;
-  }
-  bool operator != (const SHIFTService_startStrategy_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const SHIFTService_startStrategy_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class SHIFTService_startStrategy_pargs {
- public:
-
-
-  virtual ~SHIFTService_startStrategy_pargs() throw();
-  const std::string* stockName;
-  const double* price;
-  const int32_t* shareSize;
-  const std::string* orderType;
-  const std::string* username;
-  const int32_t* interval;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class SHIFTService_startStrategy_result {
- public:
-
-  SHIFTService_startStrategy_result(const SHIFTService_startStrategy_result&);
-  SHIFTService_startStrategy_result& operator=(const SHIFTService_startStrategy_result&);
-  SHIFTService_startStrategy_result() {
-  }
-
-  virtual ~SHIFTService_startStrategy_result() throw();
-
-  bool operator == (const SHIFTService_startStrategy_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const SHIFTService_startStrategy_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const SHIFTService_startStrategy_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class SHIFTService_startStrategy_presult {
- public:
-
-
-  virtual ~SHIFTService_startStrategy_presult() throw();
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
-};
-
 class SHIFTServiceClient : virtual public SHIFTServiceIf {
  public:
   SHIFTServiceClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
@@ -507,8 +382,8 @@ class SHIFTServiceClient : virtual public SHIFTServiceIf {
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
-  void submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username);
-  void send_submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username);
+  void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
+  void send_submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
   void recv_submitOrder();
   void webClientSendUsername(const std::string& username);
   void send_webClientSendUsername(const std::string& username);
@@ -516,9 +391,6 @@ class SHIFTServiceClient : virtual public SHIFTServiceIf {
   void webUserLogin(const std::string& username);
   void send_webUserLogin(const std::string& username);
   void recv_webUserLogin();
-  void startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval);
-  void send_startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval);
-  void recv_startStrategy();
  protected:
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -537,14 +409,12 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_submitOrder(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_webClientSendUsername(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_webUserLogin(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_startStrategy(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   SHIFTServiceProcessor(::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface) :
     iface_(iface) {
     processMap_["submitOrder"] = &SHIFTServiceProcessor::process_submitOrder;
     processMap_["webClientSendUsername"] = &SHIFTServiceProcessor::process_webClientSendUsername;
     processMap_["webUserLogin"] = &SHIFTServiceProcessor::process_webUserLogin;
-    processMap_["startStrategy"] = &SHIFTServiceProcessor::process_startStrategy;
   }
 
   virtual ~SHIFTServiceProcessor() {}
@@ -573,13 +443,13 @@ class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
     ifaces_.push_back(iface);
   }
  public:
-  void submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username) {
+  void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->submitOrder(stockName, orderID, price, shareSize, orderType, username);
+      ifaces_[i]->submitOrder(username, orderType, orderSymbol, orderSize, orderPrice, orderID);
     }
-    ifaces_[i]->submitOrder(stockName, orderID, price, shareSize, orderType, username);
+    ifaces_[i]->submitOrder(username, orderType, orderSymbol, orderSize, orderPrice, orderID);
   }
 
   void webClientSendUsername(const std::string& username) {
@@ -598,15 +468,6 @@ class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
       ifaces_[i]->webUserLogin(username);
     }
     ifaces_[i]->webUserLogin(username);
-  }
-
-  void startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->startStrategy(stockName, price, shareSize, orderType, username, interval);
-    }
-    ifaces_[i]->startStrategy(stockName, price, shareSize, orderType, username, interval);
   }
 
 };
@@ -639,8 +500,8 @@ class SHIFTServiceConcurrentClient : virtual public SHIFTServiceIf {
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
-  void submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username);
-  int32_t send_submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username);
+  void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
+  int32_t send_submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
   void recv_submitOrder(const int32_t seqid);
   void webClientSendUsername(const std::string& username);
   int32_t send_webClientSendUsername(const std::string& username);
@@ -648,9 +509,6 @@ class SHIFTServiceConcurrentClient : virtual public SHIFTServiceIf {
   void webUserLogin(const std::string& username);
   int32_t send_webUserLogin(const std::string& username);
   void recv_webUserLogin(const int32_t seqid);
-  void startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval);
-  int32_t send_startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval);
-  void recv_startStrategy(const int32_t seqid);
  protected:
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;

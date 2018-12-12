@@ -1,6 +1,4 @@
-// get local timezone offset & local time zone name
-var d = new Date();
-var n = d.getTimezoneOffset();
+// get local time zone name
 var tz = jstz.determine();
 
 $(document).ready(function () {
@@ -419,10 +417,6 @@ $(document).ready(function () {
         },
         { 'skipSubprotocolCheck': true }
     );
-
-    // console.log(php_symbol_companyName_map_json);
-    // console.log($("#candle_data_container").width(100));
-    // console.log(document.getElementById("candle_data_container"));
 
     // fix hichart over flow bug
     setTimeout(function () { chart.reflow(); }, 30);

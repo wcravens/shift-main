@@ -21,11 +21,12 @@ set(CMAKE
 )
 
 set(INCLUDE
+    ${PROJECT_SOURCE_DIR}/include/clock/Timestamp.h
     ${PROJECT_SOURCE_DIR}/include/concurrency/Consumer.h
     ${PROJECT_SOURCE_DIR}/include/crossguid/Guid.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Decryptor.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Encryptor.h
-    ${PROJECT_SOURCE_DIR}/include/statistics/Basic.h
+    ${PROJECT_SOURCE_DIR}/include/statistics/BasicStatistics.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Common.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Functions.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Options.h
@@ -38,6 +39,7 @@ set(PKGCONFIG
 )
 
 set(SRC
+    ${PROJECT_SOURCE_DIR}/src/clock/Timestamp.cpp
     ${PROJECT_SOURCE_DIR}/src/crossguid/Guid.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Cryptor.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Cryptor.h

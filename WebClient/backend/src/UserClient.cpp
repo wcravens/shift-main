@@ -62,6 +62,11 @@ void UserClient::sendSubmittedOrders()
 
     for (const auto& order : submittedOrders) {
         std::ostringstream out;
+
+        std::time_t timestamp = std::chrono::system_clock::to_time_t(order.getTimestamp());
+        std::string timestampStr = std::ctime(&timestamp);
+        timestampStr.pop_back();
+        
         out << "{ "
             << "\"orderId\": "
             << "\"" << order.getID() << "\","
@@ -72,7 +77,9 @@ void UserClient::sendSubmittedOrders()
             << "\"shares\": "
             << "\"" << order.getSize() << "\","
             << "\"orderType\": "
-            << "\"" << char(order.getType()) << "\""
+            << "\"" << char(order.getType()) << "\","
+            << "\"timestamp\": "
+            << "\"" << timestampStr << "\""
             << "}";
         if (res == "") {
             res += out.str();

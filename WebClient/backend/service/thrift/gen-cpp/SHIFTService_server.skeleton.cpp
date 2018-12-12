@@ -18,7 +18,7 @@ class SHIFTServiceHandler : virtual public SHIFTServiceIf {
     // Your initialization goes here
   }
 
-  void submitOrder(const std::string& stockName, const std::string& orderID, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username) {
+  void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) {
     // Your implementation goes here
     printf("submitOrder\n");
   }
@@ -31,11 +31,6 @@ class SHIFTServiceHandler : virtual public SHIFTServiceIf {
   void webUserLogin(const std::string& username) {
     // Your implementation goes here
     printf("webUserLogin\n");
-  }
-
-  void startStrategy(const std::string& stockName, const double price, const int32_t shareSize, const std::string& orderType, const std::string& username, const int32_t interval) {
-    // Your implementation goes here
-    printf("startStrategy\n");
   }
 
 };
