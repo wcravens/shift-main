@@ -163,7 +163,7 @@ int main(int ac, char* av[])
     }
 
     const auto optsUPI = { CSTR_USERNAME, CSTR_PASSWORD, CSTR_INFO };
-    auto isIncluded = [&vm, &optsUPI](auto* opt) { return vm.count(opt); };
+    auto isIncluded = [&vm](auto* opt) { return vm.count(opt); };
 
     if (std::any_of(optsUPI.begin(), optsUPI.end(), isIncluded) || vm.count(CSTR_SUPER)) {
         if (!std::all_of(optsUPI.begin(), optsUPI.end(), isIncluded)) {
