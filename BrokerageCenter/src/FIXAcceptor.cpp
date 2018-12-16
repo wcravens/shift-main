@@ -123,7 +123,8 @@ void FIXAcceptor::sendPortfolioItem(const std::string& userName, const std::stri
     message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
     message.setField(FIX::Symbol(item.getSymbol()));
     message.setField(FIX::SecurityType("CS"));
-    message.setField(FIX::SettlPrice(item.getSummaryPrice()));
+    message.setField(FIX::SettlPrice(item.getLongPrice()));
+    message.setField(FIX::PriorSettlPrice(item.getShortPrice()));
     message.setField(FIX::PriceDelta(item.getPL()));
 
     FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
