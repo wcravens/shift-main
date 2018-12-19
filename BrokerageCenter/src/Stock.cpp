@@ -5,8 +5,6 @@
 
 #include <shift/miscutils/concurrency/Consumer.h>
 
-#include <shift/miscutils/terminal/Common.h>
-
 /**
 *   @brief  Default constructs an Stock instance.
 */
