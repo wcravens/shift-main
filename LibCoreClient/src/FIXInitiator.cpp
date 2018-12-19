@@ -576,12 +576,14 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 
         symbol = m_originalName_symbol[symbol];
 
-        FIX::SettlPrice price;
+        FIX::SettlPrice longPrice;
+        FIX::PriorSettlPrice shortPrice;
         FIX::PriceDelta realizedPL;
         FIX::LongQty longQty;
         FIX::ShortQty shortQty;
 
-        message.get(price);
+        message.get(longPrice);
+        message.get(shortPrice);
         message.get(realizedPL);
 
         FIX50SP2::PositionReport::NoPositions qtyGroup;
@@ -590,7 +592,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         qtyGroup.get(shortQty);
 
         try {
-            getClient(userName)->storePortfolioItem(symbol, longQty - shortQty, price, realizedPL);
+            getClient(userName)->storePortfolioItem(symbol, longQty, shortQty, longPrice, shortPrice, realizedPL);
             getClient(userName)->receivePortfolioItem(symbol);
         } catch (...) {
             return;

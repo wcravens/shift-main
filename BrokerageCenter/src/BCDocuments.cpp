@@ -63,7 +63,7 @@ void BCDocuments::addRiskManagementToUser(const std::string& userName, double bu
     if (res.second) {
         auto& rmPtr = res.first->second;
         rmPtr.reset(new RiskManagement(userName, buyingPower, shares));
-        rmPtr->insertPortfolioItem(symbol, { symbol, price, shares });
+        rmPtr->insertPortfolioItem(symbol, { symbol, shares, price });
         rmPtr->spawn();
     }
 }

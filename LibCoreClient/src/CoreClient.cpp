@@ -551,10 +551,10 @@ bool shift::CoreClient::attach(FIXInitiator& initiator)
     return true;
 }
 
-void shift::CoreClient::storePortfolioItem(const std::string& symbol, int shares, double price, double realizedPL)
+void shift::CoreClient::storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL)
 {
     std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
-    m_symbol_portfolioItem[symbol] = PortfolioItem{ symbol, shares, price, realizedPL };
+    m_symbol_portfolioItem[symbol] = PortfolioItem{ symbol, longShares, shortShares, longPrice, shortPrice, realizedPL };
 }
 
 void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)

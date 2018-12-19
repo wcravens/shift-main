@@ -99,7 +99,7 @@ protected:
 
     // FIXInitiator interface
     bool attach(FIXInitiator& initiator);
-    void storePortfolioItem(const std::string& symbol, int shares, double price, double realizedPL);
+    void storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);
     void storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
     void storeWaitingList(const std::vector<shift::Order>& waitingList);
 
