@@ -97,9 +97,7 @@ public:
  * @brief The organizer for PSQL singleton object. Users accessing to PostgreSQL shall always use it instead of bare PSQL.
  */
 class PSQLManager final : public PSQL {
-    static std::unique_ptr<PSQLManager> s_pInst;
-    static std::once_flag s_instFlag;
-
+    static PSQLManager* s_pInst;
     PSQLManager(std::unordered_map<std::string, std::string>&& loginInfo);
 
 public:

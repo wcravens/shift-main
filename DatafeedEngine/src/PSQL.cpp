@@ -819,8 +819,7 @@ bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string da
  *
  */
 
-/*static*/ std::unique_ptr<PSQLManager> PSQLManager::s_pInst;
-/*static*/ std::once_flag PSQLManager::s_instFlag;
+/*static*/ PSQLManager* PSQLManager::s_pInst = nullptr;
 
 PSQLManager::PSQLManager(std::unordered_map<std::string, std::string>&& dbInfo)
     : PSQL(std::move(dbInfo))
@@ -829,8 +828,9 @@ PSQLManager::PSQLManager(std::unordered_map<std::string, std::string>&& dbInfo)
 
 /*static*/ PSQLManager& PSQLManager::createInstance(std::unordered_map<std::string, std::string> dbLoginInfo)
 {
-    std::call_once(s_instFlag, [&] { s_pInst.reset(new PSQLManager(std::move(dbLoginInfo))); });
-    return *s_pInst;
+    static PSQLManager s_inst(std::move(dbLoginInfo));
+    s_pInst = &s_inst;
+    return s_inst;
 }
 
 #undef CSTR_TBLNAME_LIST_OF_TAQ_TABLES
