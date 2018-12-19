@@ -70,8 +70,7 @@ static auto operator>>(utility::ifstream_t&& istrm, _Sink&& s) -> decltype(istrm
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*static*/ std::unique_ptr<TRTHAPI> TRTHAPI::s_pInst;
-/*static*/ std::once_flag TRTHAPI::s_instFlag;
+/*static*/ TRTHAPI* TRTHAPI::s_pInst = nullptr;
 
 TRTHAPI::TRTHAPI(const std::string& cryptoKey, const std::string& configDir)
     : m_key(cryptoKey)
@@ -82,17 +81,19 @@ TRTHAPI::TRTHAPI(const std::string& cryptoKey, const std::string& configDir)
 TRTHAPI::~TRTHAPI()
 {
     stop();
+    s_pInst = nullptr;
 }
 
 TRTHAPI* TRTHAPI::getInstance()
 {
-    return s_pInst.get();
+    return s_pInst;
 }
 
 TRTHAPI* TRTHAPI::createInstance(const std::string& cryptoKey, const std::string& configDir)
 {
-    std::call_once(s_instFlag, [&] { s_pInst.reset(new TRTHAPI(cryptoKey, configDir)); });
-    return s_pInst.get();
+    static TRTHAPI s_inst(cryptoKey, configDir);
+    s_pInst = &s_inst;
+    return s_pInst;
 }
 
 /**@brief The unique Requests Processor thread for all requests */

@@ -18,8 +18,7 @@
  */
 class TRTHAPI {
 private:
-    static std::unique_ptr<TRTHAPI> s_pInst;
-    static std::once_flag s_instFlag;
+    static TRTHAPI* s_pInst;
 
     // TRTHApiBindingProxy m_apiProxy; ///> A proxy used for accessing SOAP APIs
     // ns2__CredentialsHeader m_soapCredHeader;
