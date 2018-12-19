@@ -185,6 +185,7 @@ void FIXAcceptor::sendQuoteHistory(const std::string& userName, const std::unord
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
+        cout << "sendQuoteHistory(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
@@ -225,6 +226,7 @@ void FIXAcceptor::sendOrderbookUpdate(const std::string& userName, const OrderBo
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
+        cout << "sendOrderbookUpdate(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
@@ -286,6 +288,7 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(report.userName);
     if (CSTR_NULL == targetID) {
+        cout << "sendConfirmationReport(): ";
         cout << report.userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
@@ -339,6 +342,7 @@ void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<doub
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
+        cout << "sendOrderBook(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
@@ -379,6 +383,7 @@ void FIXAcceptor::sendTempCandlestickData(const std::string& userName, const Tem
 { //for candlestick data
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
+        cout << "sendTempCandlestickData(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
@@ -412,6 +417,7 @@ void FIXAcceptor::sendLatestStockPrice(const std::string& userName, const Transa
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
+        cout << "sendLatestStockPrice(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
@@ -493,6 +499,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(targetID); // TODO
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
     if (CSTR_NULL == targetID) {
+        cout << "onLogon(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
@@ -512,13 +519,18 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 
     const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(targetID);
     if (CSTR_NULL == targetID) {
+        cout << "onLogout(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
     cout << COLOR_WARNING "[User] " NO_COLOR << userName << endl;
-    BCDocuments::getInstance()->unregisterUserInDoc(userName);
-    BCDocuments::getInstance()->removeUserFromStocks(userName);
+    // TODO
     BCDocuments::getInstance()->removeUserFromCandles(userName);
+    // cout << "DEBUG MUTEX: removeUserFromCandles" << endl;
+    BCDocuments::getInstance()->unregisterUserInDoc(userName);
+    // cout << "DEBUG MUTEX: unregisterUserInDoc" << endl;
+    BCDocuments::getInstance()->removeUserFromStocks(userName);
+    // cout << "DEBUG MUTEX: removeUserFromStocks" << endl;
     cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
          << endl;
 }
