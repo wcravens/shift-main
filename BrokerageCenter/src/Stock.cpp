@@ -5,6 +5,8 @@
 
 #include <shift/miscutils/concurrency/Consumer.h>
 
+#include <shift/miscutils/terminal/Common.h>
+
 /**
 *   @brief  Default constructs an Stock instance.
 */
@@ -132,6 +134,8 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& record)
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
+
+    std::lock_guard<std::mutex> guard(m_mtxStockUserList);
 
     using ulock_t = std::unique_lock<std::mutex>;
     ulock_t lock;
