@@ -82,7 +82,7 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
             5);
 
         if (summary.empty())
-            rmPtr.reset(new RiskManagement(userName, 1e5));
+            rmPtr.reset(new RiskManagement(userName, 1e6));
         else
             rmPtr.reset(new RiskManagement(userName, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
 
@@ -262,7 +262,7 @@ void BCDocuments::addCandleSymbolToUser(const std::string& userName, const std::
 
 void BCDocuments::removeUserFromStocks(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardSBS(m_mtxStockBySymbol);
+    std::lock_guard<std::mutex> guardSBS(m_mtxStockBySymbol); // Issue #3 TODO
     std::lock_guard<std::mutex> guardOSBN(m_mtxOrderbookSymbolsByName);
 
     auto pos = m_orderbookSymbolsByName.find(userName);
