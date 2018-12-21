@@ -8,7 +8,7 @@ $page = 'overview';
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title>Overview - SHIFT Alpha</title>
+        <title>Overview - SHIFT Beta</title>
         <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
         <script src="/static/jquery-3.1.1.min.js"></script>
         <script src="/static/autobahn.min.js"></script>

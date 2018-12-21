@@ -33,7 +33,7 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
 <!DOCTYPE html>
 <html>
     <head>
-        <title>SHIFT Alpha</title>
+        <title>SHIFT Beta</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css"> -->
         <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">

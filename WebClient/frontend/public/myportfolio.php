@@ -9,7 +9,7 @@ $redirect_url = '/myportfolio.php';
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title>My Portfolio - SHIFT Alpha</title>
+        <title>My Portfolio - SHIFT Beta</title>
         <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
         <script src="/static/jquery-3.1.1.min.js"></script>  
         <script src="/static/autobahn.min.js"></script>

@@ -9,7 +9,7 @@ $redirect_url = '/leaderboard.php';
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title>Leaderboard - SHIFT Alpha</title>
+        <title>Leaderboard - SHIFT Beta</title>
         <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
         <script src="/static/jquery-3.1.1.min.js"></script>  
         <script src="/static/autobahn.min.js"></script>

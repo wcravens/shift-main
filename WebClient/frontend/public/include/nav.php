@@ -79,7 +79,7 @@ if (isset($_GET['username'])) {
                         <td style="padding:0 15px 0 15px;">Limit Sell</td>
                         <td style="padding:0 15px 0 15px;" align="center">F</td>
                       </tr>
-                    </table>'>SHIFT Alpha</div>
+                    </table>'>SHIFT Beta</div>
     </div>
     <div class="collapse navbar-collapse" id="myNavbar" >
       <ul class="nav navbar-nav">

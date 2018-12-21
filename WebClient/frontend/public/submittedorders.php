@@ -8,7 +8,7 @@ $redirect_url = '/submittedorders.php';
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title>Submitted Orders - SHIFT Alpha</title>
+        <title>Submitted Orders - SHIFT Beta</title>
         <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
         <script src="/static/jquery-3.1.1.min.js"></script>  
         <script src="/static/autobahn.min.js"></script>
