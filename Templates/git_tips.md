@@ -16,7 +16,7 @@ git config --global push.default simple
 ## SSH-Key
 
 ```
-ssh-keygen -t rsa -C "johndoe@example.com"
+ssh-keygen -t rsa -b 4096 -C "johndoe@example.com"
 ```
 
 ---
