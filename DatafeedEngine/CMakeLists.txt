@@ -80,6 +80,7 @@ endif(UNIX AND NOT APPLE)
 # -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
+    include_directories(/usr/local/include)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
     include_directories(/usr/local/opt/openssl/include)
 endif(APPLE)

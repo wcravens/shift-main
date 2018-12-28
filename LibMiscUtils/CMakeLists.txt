@@ -83,6 +83,7 @@ endif(UNIX AND NOT APPLE)
 # Clang (macOS Mojave 10.14)
 if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    include_directories(/usr/local/include)
 endif(APPLE)
 
 endif(NOT WIN32)
