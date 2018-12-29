@@ -1,17 +1,15 @@
-// Place your settings in this file to overwrite the default settings
 {
-  "diffEditor.renderSideBySide": false,
-  "editor.formatOnSave": true,
-  "editor.renderIndentGuides": false,
-  "workbench.iconTheme": "vscode-icons",
-  "window.restoreWindows": "none",
-  "extensions.ignoreRecommendations": true,
-  "telemetry.enableTelemetry": false,
-  "telemetry.enableCrashReporter": false,
-  "C_Cpp.clang_format_fallbackStyle": "WebKit",
-  "C_Cpp.configurationWarnings": "Disabled",
-  "cmake.configureOnOpen": true,
-  "cmake.debugConfig": {
-    "externalConsole": true
-  }
+    "editor.formatOnSave": true,
+    "editor.renderIndentGuides": false,
+    "workbench.iconTheme": "vscode-icons",
+    "window.restoreWindows": "none",
+    "extensions.ignoreRecommendations": true,
+    "telemetry.enableCrashReporter": false,
+    "telemetry.enableTelemetry": false,
+    "C_Cpp.clang_format_fallbackStyle": "WebKit",
+    "C_Cpp.configurationWarnings": "Disabled",
+    "cmake.configureOnOpen": true,
+    "cmake.debugConfig": {
+        "externalConsole": true
+    }
 }
