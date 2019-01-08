@@ -641,20 +641,23 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
     FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
 
-    FIX::TradingSessionID symbol;
+    FIX::Symbol symbol;
     FIX::MDEntryType type;
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
     FIX::Text time;
-    FIX::PartyID destination;
-    
-    std::list<shift::OrderBookEntry> orderBook;
 
     FIX::NoPartyIDs numOfParty;
+    FIX::PartyID destination;
+
+    std::list<shift::OrderBookEntry> orderBook;
+
+    message.getField(symbol);
+    symbol = m_originalName_symbol[symbol];
+
     for (int i = 1; i <= numOfEntry; i++) {
         message.getGroup(i, entryGroup);
 
-        entryGroup.getField(symbol);
         entryGroup.getField(type);
         entryGroup.getField(price);
         entryGroup.getField(size);
@@ -669,8 +672,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         entryGroup.getGroup(1, partyGroup);
         partyGroup.getField(destination);
 
-        symbol = m_originalName_symbol[symbol];
-        cout << "Test Use: " << (double)price << " " << (int)size << " " << std::stod(time) << " " << destination << endl;
         orderBook.push_back({ (double)price, (int)size, std::stod(time), destination });
     }
 
