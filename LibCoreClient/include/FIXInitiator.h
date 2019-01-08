@@ -36,6 +36,7 @@
 
 // Sending Message Types
 #include <quickfix/fix50sp2/MarketDataRequest.h>
+#include <quickfix/fix50sp2/MarketDataSnapshotFullRefresh.h>
 #include <quickfix/fix50sp2/NewOrderSingle.h>
 #include <quickfix/fix50sp2/RFQRequest.h>
 #include <quickfix/fixt11/Logon.h>
@@ -102,6 +103,7 @@ protected:
     R_FIXINIT void onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) override;
     R_FIXINIT void onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) override;
     R_FIXINIT void onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID& sessionID) override;
+    R_FIXINIT void onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID& sessionID) override;
 
     R_FIXINIT void sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
     R_FIXINIT void sendOrderBookRequest(const std::string& symbol, bool isSubscribed);

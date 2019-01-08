@@ -26,8 +26,6 @@ static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New
 static const auto& FIXFIELD_SIDE_BUY = FIX::Side('1'); // 1 = Buy
 static const auto& FIXFIELD_LEAVQTY_100 = FIX::LeavesQty(100); // Quantity open for further execution
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
-static const auto& FIXFIELD_QUOTESETID = FIX::QuoteSetID("");
-static const auto& FIXFIELD_TXT_OB = FIX::Text("orderbook");
 static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
 static const auto& FIXFIELD_MSGTY_POSIREPORT = FIX::MsgType(FIX::MsgType_PositionReport);
@@ -324,16 +322,21 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     FIX::Session::sendToTarget(message);
 }
 
-static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets& quoteSetGroup, const OrderBookEntry& odrBk)
+static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& odrBk)
 {
-    quoteSetGroup.setField(::FIXFIELD_QUOTESETID);
-    quoteSetGroup.setField(FIX::UnderlyingSymbol(odrBk.getSymbol()));
-    quoteSetGroup.setField(FIX::UnderlyingSecurityID(odrBk.getDestination()));
-    quoteSetGroup.setField(FIX::UnderlyingStrikePrice(odrBk.getPrice()));
-    quoteSetGroup.setField(FIX::UnderlyingOptAttribute(char(odrBk.getType())));
-    quoteSetGroup.setField(FIX::UnderlyingContractMultiplier(odrBk.getSize()));
-    quoteSetGroup.setField(FIX::UnderlyingCouponRate(odrBk.getTime()));
-    message.addGroup(quoteSetGroup);
+    message.setField(FIX::Symbol(odrBk.getSymbol())); // FIX Required
+    entryGroup.setField(FIX::TradingSessionID(odrBk.getSymbol()));
+    entryGroup.setField(FIX::MDEntryType((char)odrBk.getType()));
+    entryGroup.setField(FIX::MDEntryPx(odrBk.getPrice()));
+    entryGroup.setField(FIX::MDEntrySize(odrBk.getSize()));
+    entryGroup.setField(FIX::Text(std::to_string(odrBk.getTime())));
+
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
+    partyGroup.setField(FIXFIELD_EXECBROKER);
+    partyGroup.setField(FIX::PartyID(odrBk.getDestination()));
+    entryGroup.addGroup(partyGroup);
+
+    message.addGroup(entryGroup);
 }
 
 /**
@@ -354,26 +357,22 @@ void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<doub
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
-    header.setField(::FIXFIELD_MSGTY_MASSQUOTEACK);
-
-    message.setField(::FIXFIELD_QUOTESTAT); // Required by FIX
-    message.setField(FIX::Account(userName));
-    message.setField(::FIXFIELD_TXT_OB);
+    header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
 
     using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
 
-    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
     const auto obt = orderBookName.begin()->second.begin()->second.getType();
 
     if (obt == OBT::GLB_BID || obt == OBT::LOC_BID) { //reverse the Bid/bid orderbook order
         for (auto ri = orderBookName.crbegin(); ri != orderBookName.crend(); ++ri) {
             for (const auto& j : ri->second)
-                ::s_setAddGroupIntoQuoteAckMsg(message, quoteSetGroup, j.second);
+                ::s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
         }
     } else { // *_ASK
         for (const auto& i : orderBookName) {
             for (const auto& j : i.second)
-                ::s_setAddGroupIntoQuoteAckMsg(message, quoteSetGroup, j.second);
+                ::s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
         }
     }
 

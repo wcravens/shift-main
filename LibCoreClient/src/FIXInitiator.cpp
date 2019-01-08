@@ -623,7 +623,66 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 }
 
 /**
- * @brief Method to receive Global/Local orders OR portfolio update from Brokerage Center.
+ * @brief Method to receive Global/Local orders from Brokerage Center.
+ *
+ * @param message as a MarketDataSnapshotFullRefresh type object contains the current accepting order information.
+ *
+ * @param sessionID as the SessionID for the current communication.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID& sessionID) // override
+{
+    FIX::NoMDEntries numOfEntry;
+    message.getField(numOfEntry);
+    if (!numOfEntry) {
+        cout << "Cannot find MDEntry in MarketDataSnapshotFullRefresh!" << endl;
+        return;
+    }
+
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
+
+    FIX::TradingSessionID symbol;
+    FIX::MDEntryType type;
+    FIX::MDEntryPx price;
+    FIX::MDEntrySize size;
+    FIX::Text time;
+    FIX::PartyID destination;
+    
+    std::list<shift::OrderBookEntry> orderBook;
+
+    FIX::NoPartyIDs numOfParty;
+    for (int i = 1; i <= numOfEntry; i++) {
+        message.getGroup(i, entryGroup);
+
+        entryGroup.getField(symbol);
+        entryGroup.getField(type);
+        entryGroup.getField(price);
+        entryGroup.getField(size);
+        entryGroup.getField(time);
+
+        entryGroup.getField(numOfParty);
+        if (!numOfParty) {
+            cout << "Cannot find PartyID in NoMDEntries!" << endl;
+            return;
+        }
+
+        entryGroup.getGroup(1, partyGroup);
+        partyGroup.getField(destination);
+
+        symbol = m_originalName_symbol[symbol];
+        cout << "Test Use: " << (double)price << " " << (int)size << " " << std::stod(time) << " " << destination << endl;
+        orderBook.push_back({ (double)price, (int)size, std::stod(time), destination });
+    }
+
+    try {
+        m_orderBooks[symbol][(OrderBook::Type)(char)type]->setOrderBook(orderBook);
+    } catch (std::exception e) {
+        debugDump(symbol.getString() + " doesn't work");
+    }
+}
+
+/**
+ * @brief Method to receive portfolio update from Brokerage Center.
  *
  * @param message as a QuoteAcknowledgement type object contains the current accepting order information.
  *
@@ -632,98 +691,53 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID& sessionID) // override
 {
     FIX::Account username;
-    FIX::Text headline;
-
     message.get(username);
-    message.get(headline);
 
-    if (headline == "orderbook") {
-        FIX::NoQuoteSets n;
-        message.get(n);
-        if (!n)
-            return;
+    while (!m_connected)
+        ;
 
-        FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
-        /***************** The following QuoteSetID is not in any use ******************/
-        FIX::QuoteSetID quoteSetID;
+    FIX::NoQuoteSets n;
+    message.get(n);
 
-        // Accepting type with their underlying type as followed comments
-        FIX::UnderlyingSymbol symbol; //string
-        FIX::UnderlyingSecurityID destination; //string
-        FIX::UnderlyingStrikePrice price; //double
-        FIX::UnderlyingOptAttribute type; //char
-        FIX::UnderlyingContractMultiplier size; //double
-        FIX::UnderlyingCouponRate time; //double
+    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
 
-        std::list<shift::OrderBookEntry> orderBook;
+    FIX::QuoteSetID userID;
+    FIX::UnderlyingSymbol symbol;
+    FIX::UnderlyingSymbolSfx orderSize;
+    FIX::UnderlyingSecurityID orderID;
+    FIX::UnderlyingStrikePrice price;
+    FIX::UnderlyingIssuer orderType;
+    // FIX::ExecType orderType;
 
-        for (int i = 1; i <= n; i++) {
-            message.getGroup(i, quoteSetGroup);
+    std::vector<shift::Order> waitingList;
 
-            quoteSetGroup.get(quoteSetID);
-            quoteSetGroup.get(symbol);
-            quoteSetGroup.get(destination);
-            quoteSetGroup.get(price);
-            quoteSetGroup.get(type);
-            quoteSetGroup.get(size);
-            quoteSetGroup.get(time);
+    for (int i = 1; i <= n; i++) {
+        message.getGroup(i, quoteSetGroup);
 
-            symbol = m_originalName_symbol[symbol];
-            orderBook.push_back({ price, (int)size, time, destination });
+        quoteSetGroup.get(userID);
+        quoteSetGroup.get(symbol);
+        quoteSetGroup.get(orderSize);
+        quoteSetGroup.get(orderID);
+        quoteSetGroup.get(price);
+        quoteSetGroup.get(orderType);
+
+        symbol = m_originalName_symbol[symbol];
+        int size = atoi((std::string(orderSize)).c_str());
+        shift::Order::Type type = shift::Order::Type(
+            char(atoi(((std::string)orderType).c_str())));
+
+        if (size != 0) {
+            waitingList.push_back({ type, symbol, size, price, orderID });
         }
+    }
 
-        try {
-            m_orderBooks[symbol][(OrderBook::Type)(char)type]->setOrderBook(orderBook);
-        } catch (std::exception e) {
-            debugDump(symbol.getString() + " doesn't work");
-        }
-    } else if (headline == "quoteHistory") {
-        while (!m_connected)
-            ;
-
-        FIX::NoQuoteSets n;
-        message.get(n);
-
-        FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
-
-        FIX::QuoteSetID userID;
-        FIX::UnderlyingSymbol symbol;
-        FIX::UnderlyingSymbolSfx orderSize;
-        FIX::UnderlyingSecurityID orderID;
-        FIX::UnderlyingStrikePrice price;
-        FIX::UnderlyingIssuer orderType;
-        // FIX::ExecType orderType;
-
-        std::vector<shift::Order> waitingList;
-
-        for (int i = 1; i <= n; i++) {
-            message.getGroup(i, quoteSetGroup);
-
-            quoteSetGroup.get(userID);
-            quoteSetGroup.get(symbol);
-            quoteSetGroup.get(orderSize);
-            quoteSetGroup.get(orderID);
-            quoteSetGroup.get(price);
-            quoteSetGroup.get(orderType);
-
-            symbol = m_originalName_symbol[symbol];
-            int size = atoi((std::string(orderSize)).c_str());
-            shift::Order::Type type = shift::Order::Type(
-                char(atoi(((std::string)orderType).c_str())));
-
-            if (size != 0) {
-                waitingList.push_back({ type, symbol, size, price, orderID });
-            }
-        }
-
-        try {
-            // store the data in target client
-            getClient(username)->storeWaitingList(waitingList);
-            // notify target client
-            getClient(username)->receiveWaitingList();
-        } catch (...) {
-            return;
-        }
+    try {
+        // store the data in target client
+        getClient(username)->storeWaitingList(waitingList);
+        // notify target client
+        getClient(username)->receiveWaitingList();
+    } catch (...) {
+        return;
     }
 }
 
