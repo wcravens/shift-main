@@ -324,8 +324,6 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
 
 static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& odrBk)
 {
-    message.setField(FIX::Symbol(odrBk.getSymbol())); // FIX Required
-    entryGroup.setField(FIX::TradingSessionID(odrBk.getSymbol()));
     entryGroup.setField(FIX::MDEntryType((char)odrBk.getType()));
     entryGroup.setField(FIX::MDEntryPx(odrBk.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(odrBk.getSize()));
@@ -358,6 +356,8 @@ void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<doub
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
+
+    message.setField(FIX::Symbol(orderBookName.begin()->second.begin()->second.getSymbol()));
 
     using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
 
