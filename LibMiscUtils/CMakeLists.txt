@@ -132,11 +132,11 @@ else()
     target_compile_definitions(shift_${LIB_NAME} PRIVATE __linux__)
 endif()
 
-if(NOT WIN32) # UNIX
+if(ADDONS)
     add_subdirectory(${PROJECT_SOURCE_DIR}/filecryptor)
     add_subdirectory(${PROJECT_SOURCE_DIR}/guidtester)
     add_subdirectory(${PROJECT_SOURCE_DIR}/trthrestdownloader)
-endif(NOT WIN32)
+endif(ADDONS)
 
 ### Install Configuration #####################################################
 
@@ -158,9 +158,9 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/include
 
 # install pkg-config script
 install(FILES pkg-config/libshift_miscutils.pc
-        DESTINATION /usr/local/lib/pkgconfig/)
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/)
 install(FILES pkg-config/libshift_miscutils-d.pc
-        DESTINATION /usr/local/lib/pkgconfig/)
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/)
 
 endif(NOT WIN32)
 
