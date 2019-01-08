@@ -46,7 +46,7 @@ int main(int ac, char* av[])
         } timer;
         bool isVerbose;
     } params = {
-        "/usr/local/share/SHIFT/DatafeedEngine/", // default installation folder for configuration
+        "/usr/local/share/shift/DatafeedEngine/", // default installation folder for configuration
         "SHIFT123", // built-in initial crypto key used for encrypting dbLogin.txt
         {
             false,

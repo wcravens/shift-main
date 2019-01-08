@@ -90,7 +90,7 @@ endif(NOT WIN32)
 
 ### Build Types ###############################################################
 
-# if no build type is set, the default is Debug
+# If no build type is set, the default is Debug
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif(NOT CMAKE_BUILD_TYPE)
@@ -143,24 +143,28 @@ endif(ADDONS)
 # UNIX only
 if(NOT WIN32)
 
-# if no installation path is set, the default is /usr/local
+# If no installation path is set, the default is /usr/local
 if(NOT CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX /usr/local)
 endif(NOT CMAKE_INSTALL_PREFIX)
 
-# install library and header files
+# Add installation path to list of include directories
+# (required to use other project libraries during compilation)
+include_directories(${CMAKE_INSTALL_PREFIX}/include)
+
+# Install library and header files
 install(TARGETS shift_${LIB_NAME}
-        LIBRARY DESTINATION SHIFT/${PROJECT_NAME}
+        LIBRARY DESTINATION lib
         CONFIGURATIONS Debug Release)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include
-        DESTINATION SHIFT/${PROJECT_NAME}
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+        DESTINATION include/shift/miscutils
         CONFIGURATIONS Debug Release)
 
-# install pkg-config script
+# Install pkg-config script
 install(FILES pkg-config/libshift_miscutils.pc
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/)
+        DESTINATION lib/pkgconfig)
 install(FILES pkg-config/libshift_miscutils-d.pc
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/)
+        DESTINATION lib/pkgconfig)
 
 endif(NOT WIN32)
 

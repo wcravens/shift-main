@@ -41,7 +41,7 @@ int main(int ac, char* av[])
         std::string simulationDate;
     } params = {
         false,
-        "/usr/local/share/SHIFT/MatchingEngine/", // default installation folder for configuration
+        "/usr/local/share/shift/MatchingEngine/", // default installation folder for configuration
     };
 
     po::options_description desc("\nUSAGE: ./MatchingEngine [options] <args>\n\n\tThis is the MatchingEngine.\n\tThe server connects with DatafeedEngine and BrokerageCenter instances and runs in background.\n\nOPTIONS");

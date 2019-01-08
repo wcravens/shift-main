@@ -100,7 +100,7 @@ endif(APPLE)
 
 ### Build Types ###############################################################
 
-# if no build type is set, the default is Debug
+# If no build type is set, the default is Debug
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif(NOT CMAKE_BUILD_TYPE)
@@ -149,17 +149,21 @@ target_link_libraries(${PROJECT_NAME}
 
 ### Install Configuration #####################################################
 
-# if no installation path is set, the default is /usr/local
+# If no installation path is set, the default is /usr/local
 if(NOT CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX /usr/local)
 endif(NOT CMAKE_INSTALL_PREFIX)
 
-# install only if build type is set to Release
+# Add installation path to list of include directories
+# (required to use other project libraries during compilation)
+include_directories(${CMAKE_INSTALL_PREFIX}/include)
+
+# Install only if build type is set to Release
 install(TARGETS ${PROJECT_NAME}
-        RUNTIME DESTINATION SHIFT/${PROJECT_NAME}
+        RUNTIME DESTINATION bin
         CONFIGURATIONS Release)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/config
-        DESTINATION SHIFT/${PROJECT_NAME}
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/config/
+        DESTINATION share/shift/${PROJECT_NAME}
         CONFIGURATIONS Release)
 
 ###############################################################################

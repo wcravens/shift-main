@@ -25,8 +25,6 @@ namespace po = boost::program_options;
 /* 'using' is the same as 'typedef' */
 using voh_t = shift::terminal::VerboseOptHelper;
 
-std::string CONFIG_DIR = "/usr/local/SHIFT/WebClient/config/";
-
 int main(int ac, char* av[])
 {
     /**
@@ -37,7 +35,7 @@ int main(int ac, char* av[])
         std::string configDir;
         bool isVerbose;
     } params = {
-        "/usr/local/share/SHIFT/WebClient/", // default installation folder for configuration
+        "/usr/local/share/shift/WebClient/", // default installation folder for configuration
         false,
     };
 

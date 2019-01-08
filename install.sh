@@ -15,20 +15,18 @@ INSTALL_PREFIX="/usr/local"
 
 # number of cores of CPU
 CORE_NUM=1
-case ${OSTYPE} in
-    darwin* ) # in macOS
-		if [ ! $(sysctl -n hw.physicalcpu) -eq 1 ]
-		then
-			CORE_NUM=$(($(sysctl -n hw.physicalcpu) - 1))
-		fi
-        ;;
-    linux* )  # in Linux
-		if [ ! $(nproc) -eq 1 ]
-		then
-        	CORE_NUM=$(($(nproc) - 1))
-        fi
-        ;;
-esac
+if [ "$(uname)" == "Darwin" ]; then
+	if [ ! $(sysctl -n hw.physicalcpu) -eq 1 ]
+	then
+		CORE_NUM=$(($(sysctl -n hw.physicalcpu) - 1))
+	fi
+fi
+if [ "$(uname)" == "Linux" ]; then
+	if [ ! $(nproc) -eq 1 ]
+	then
+        CORE_NUM=$(($(nproc) - 1))
+    fi
+fi
 
 # avoid rebuilding LM before installing
 # (this should only be used during development,
@@ -64,14 +62,12 @@ function usage
 
 function chownFix
 {
-    case ${OSTYPE} in
-        darwin* ) # in macOS
-            chown -R ${CURRENT_USER} ${1}
-            ;;
-        linux* )  # in Linux
-            chown -R ${CURRENT_USER}:${CURRENT_USER} ${1}
-            ;;
-    esac
+    if [ "$(uname)" == "Darwin" ]; then
+        chown -R ${CURRENT_USER} ${1}
+    fi
+    if [ "$(uname)" == "Linux" ]; then
+        chown -R ${CURRENT_USER}:${CURRENT_USER} ${1}
+    fi
 }
 
 function installServer
@@ -80,14 +76,12 @@ function installServer
     echo "Installing ${1}..."
     echo -e ${NO_COLOR}
 
-    INSTALL_PATH=${INSTALL_PREFIX}/SHIFT
-
     # create ~/.shift directory if it does not exist yet 
     [ -d ~/.shift/${1} ] || mkdir -p ~/.shift/${1}
 
     # save installation path to install.log (erasing previous version)
     [ -f ~/.shift/${1}/install.log ] && rm ~/.shift/${1}/install.log
-    echo "INSTALL_PATH=${INSTALL_PATH}" > ~/.shift/${1}/install.log
+    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" > ~/.shift/${1}/install.log
     
     # give ownership of the ~/.shift directory to the current user
     chownFix ~/.shift
@@ -119,21 +113,6 @@ function installServer
 
     # give ownership of the build directory to the current user
     chownFix ${1}/build
-
-    # create binary file symlink (erasing previous version)
-    [ -h /usr/local/bin/${1} ] && rm /usr/local/bin/${1}
-    ln -s ${INSTALL_PATH}/${1}/${1} /usr/local/bin/${1}
-
-    # create configuration files symlinks (erasing previous versions)
-    [ -d /usr/local/share/SHIFT ] || mkdir -p /usr/local/share/SHIFT
-    [ -h /usr/local/share/SHIFT/${1} ] && rm /usr/local/share/SHIFT/${1}
-    ln -s ${INSTALL_PATH}/${1}/config /usr/local/share/SHIFT/${1}
-
-    echo -e ${COLOR}
-    echo "${1} was installed in ${INSTALL_PATH}/${1}/:"
-    echo "-- Binary file symlinked to /usr/local/bin/${1}"
-    echo "-- Configuration files symlinked to /usr/local/share/SHIFT/${1}/"
-    echo -e ${NO_COLOR}
 }
 
 function uninstallServer
@@ -142,8 +121,6 @@ function uninstallServer
     echo -n "Uninstalling ${1}..."
     echo -e ${NO_COLOR}
 
-    INSTALL_PATH=${INSTALL_PREFIX}/SHIFT
-
     # if installation did not use default installation path
     if [ -f ~/.shift/${1}/install.log ]
     then
@@ -151,30 +128,24 @@ function uninstallServer
         rm ~/.shift/${1}/install.log
     fi
 
-    # if installation folder is not found
-    if [ ! -d ${INSTALL_PATH}/${1} ]
+    # if installation is not found
+    if [ ! -f ${INSTALL_PREFIX}/bin/${1} ]
     then
         echo
-        echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for ${1}: installation path ${INSTALL_PATH}/${1} not found"
+        echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for ${1}: binary not found"
         echo
         return
     fi
 
-    # remove symlinks
-    [ -h /usr/local/bin/${1} ] && rm /usr/local/bin/${1}
-    [ -h /usr/local/share/SHIFT/${1} ] && rm /usr/local/share/SHIFT/${1}
-
     # remove installation
-    [ -d ${INSTALL_PATH}/${1} ] && rm -r ${INSTALL_PATH}/${1}
-
-    # if the last SHIFT module is being uninstalled, delete SHIFT installation folder
-    [ -d ${INSTALL_PATH} ] && [ -z "$(ls -A ${INSTALL_PATH})" ] && rm -r ${INSTALL_PATH}
+    [ -f /usr/local/bin/${1} ] && rm /usr/local/bin/${1}
+    [ -d /usr/local/share/shift/${1} ] && rm -r /usr/local/share/shift/${1}
 
     # if the last SHIFT module is being uninstalled, delete SHIFT configuration folder
-    [ -d /usr/local/share/SHIFT ] && [ -z "$(ls -A /usr/local/share/SHIFT)" ] && rm -r /usr/local/share/SHIFT
+    [ -d /usr/local/share/shift ] && [ -z "$(ls -A /usr/local/share/shift)" ] && rm -r /usr/local/share/shift
 
     echo -e ${COLOR}
-    echo "${1} was uninstalled from ${INSTALL_PATH}/${1}/"
+    echo "${1} was uninstalled from ${INSTALL_PREFIX}"
     echo -e ${NO_COLOR}
 }
 
@@ -184,8 +155,6 @@ function installLibrary
     echo "Installing ${1}..."
     echo -e ${NO_COLOR}
 
-    INSTALL_PATH=${INSTALL_PREFIX}/SHIFT
-
     # e.g. "LibCoreClient" -> "coreclient"
     LIB_NAME=$(echo ${1} | awk 'NR==1 {print substr(tolower($1), 4); exit}') 
 
@@ -194,7 +163,7 @@ function installLibrary
 
     # save installation path to install.log (erasing previous version)
     [ -f ~/.shift/${1}/install.log ] && rm ~/.shift/${1}/install.log
-    echo "INSTALL_PATH=${INSTALL_PATH}" > ~/.shift/${1}/install.log
+    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" > ~/.shift/${1}/install.log
 
     # give ownership of the ~/.shift directory to the current user
     chownFix ~/.shift
@@ -226,44 +195,6 @@ function installLibrary
 
     # give ownership of the build directory to the current user
     chownFix ${1}/build
-
-    # create library file symlink (erasing previous version)
-    case ${OSTYPE} in
-        darwin* ) # in macOS
-            # debug library
-            [ -h /usr/local/lib/libshift_${LIB_NAME}-d.dylib ] && rm /usr/local/lib/libshift_${LIB_NAME}-d.dylib
-            ln -s ${INSTALL_PATH}/${1}/libshift_${LIB_NAME}-d.dylib /usr/local/lib/libshift_${LIB_NAME}-d.dylib
-            # release library
-            [ -h /usr/local/lib/libshift_${LIB_NAME}.dylib ] && rm /usr/local/lib/libshift_${LIB_NAME}.dylib
-            ln -s ${INSTALL_PATH}/${1}/libshift_${LIB_NAME}.dylib /usr/local/lib/libshift_${LIB_NAME}.dylib
-            ;;
-        linux* )  # in Linux
-            [ -h /usr/local/lib/libshift_${LIB_NAME}-d.so ] && rm /usr/local/lib/libshift_${LIB_NAME}-d.so
-            ln -s ${INSTALL_PATH}/${1}/libshift_${LIB_NAME}-d.so /usr/local/lib/libshift_${LIB_NAME}-d.so
-            [ -h /usr/local/lib/libshift_${LIB_NAME}.so ] && rm /usr/local/lib/libshift_${LIB_NAME}.so
-            ln -s ${INSTALL_PATH}/${1}/libshift_${LIB_NAME}.so /usr/local/lib/libshift_${LIB_NAME}.so
-            ;;
-    esac
-
-    # create header files symlinks (erasing previous versions)
-    [ -d /usr/local/include/shift ] || mkdir -p /usr/local/include/shift
-    [ -h /usr/local/include/shift/${LIB_NAME} ] && rm /usr/local/include/shift/${LIB_NAME}
-    ln -s $INSTALL_PATH/$1/include /usr/local/include/shift/${LIB_NAME}
-
-    echo -e ${COLOR}
-    echo "${1} was installed in ${INSTALL_PATH}/${1}/:"
-    case ${OSTYPE} in
-        darwin*) # in macOS
-            echo "-- Debug library file symlinked to /usr/local/lib/libshift_${LIB_NAME}-d.dylib"
-            echo "-- Release library file symlinked to /usr/local/lib/libshift_${LIB_NAME}.dylib"
-            ;;
-        linux*)  # in Linux
-            echo "-- Debug library file symlinked to /usr/local/lib/libshift_${LIB_NAME}-d.so"
-            echo "-- Release library file symlinked to /usr/local/lib/libshift_${LIB_NAME}.so"
-            ;;
-    esac
-    echo "-- Header files symlinked to /usr/local/include/shift/${LIB_NAME}/"
-    echo -e ${NO_COLOR}
 }
 
 function uninstallLibrary
@@ -271,8 +202,6 @@ function uninstallLibrary
     echo -e ${COLOR}
     echo -n "Uninstalling ${1}..."
     echo -e ${NO_COLOR}
-
-    INSTALL_PATH=${INSTALL_PREFIX}/SHIFT
 
     # e.g. "LibCoreClient" -> "coreclient"
     LIB_NAME=$(echo ${1} | awk 'NR==1 {print substr(tolower($1), 4); exit}') 
@@ -284,49 +213,50 @@ function uninstallLibrary
         rm ~/.shift/${1}/install.log
     fi
 
-    # if installation folder is not found
-    if [ ! -d ${INSTALL_PATH}/${1} ]
-    then
-        echo
-        echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for ${1}: installation path ${INSTALL_PATH}/${1} not found"
-        echo
-        return
+    # remove installation
+    if [ "$(uname)" == "Darwin" ]; then
+        # if installation folder is not found
+        if [ ! -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib ]
+        then
+            echo
+            echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for ${1}: library not found"
+            echo
+            return
+        fi
+        # debug library
+        [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.dylib ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.dylib
+        # release library
+        [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib
+    fi
+    if [ "$(uname)" == "Linux" ]; then
+        # if installation folder is not found
+        if [ ! -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.so ]
+        then
+            echo
+            echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for ${1}: library not found"
+            echo
+            return
+        fi
+        # debug library
+        [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.so ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.so
+        # release library
+        [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.so ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.so
     fi
 
-    # remove symlinks
-    case ${OSTYPE} in
-        darwin* ) # in macOS
-            # debug library
-            [ -h /usr/local/lib/libshift_${LIB_NAME}-d.dylib ] && rm /usr/local/lib/libshift_${LIB_NAME}-d.dylib
-            # release library
-            [ -h /usr/local/lib/libshift_${LIB_NAME}.dylib ] && rm /usr/local/lib/libshift_${LIB_NAME}.dylib
-            ;;
-        linux* )  # in Linux
-            # debug library
-            [ -h /usr/local/lib/libshift_${LIB_NAME}-d.so ] && rm /usr/local/lib/libshift_${LIB_NAME}-d.so
-            # release library
-            [ -h /usr/local/lib/libshift_${LIB_NAME}.so ] && rm /usr/local/lib/libshift_${LIB_NAME}.so
-            ;;
-    esac
-    [ -h /usr/local/include/shift/${LIB_NAME} ] && rm /usr/local/include/shift/${LIB_NAME}
-
-    # remove installation
-    [ -d ${INSTALL_PATH}/${1} ] && rm -r ${INSTALL_PATH}/${1}
-
-    # remove pkg-congif script
-    # debug package
-    [ -h /usr/local/lib/pkgconfig/libshift_${LIB_NAME}.pc ] && rm /usr/local/lib/pkgconfig/libshift_${LIB_NAME}.pc
-    # release package
-    [ -h /usr/local/lib/pkgconfig/libshift_${LIB_NAME}-d.pc ] && rm /usr/local/lib/pkgconfig/libshift_${LIB_NAME}-d.pc
-
-    # if the last SHIFT module is being uninstalled, delete SHIFT installation folder
-    [ -d ${INSTALL_PATH} ] && [ -z "$(ls -A ${INSTALL_PATH})" ] && rm -r ${INSTALL_PATH}
+    # remove include directory
+    [ -d ${INSTALL_PREFIX}/include/shift/${LIB_NAME} ] && rm -r ${INSTALL_PREFIX}/include/shift/${LIB_NAME}
 
     # if the last SHIFT library is being uninstalled, delete SHIFT include folder
     [ -d /usr/local/include/shift ] && [ -z "$(ls -A /usr/local/include/shift)" ] && rm -r /usr/local/include/shift
 
+    # remove pkg-congif script
+    # debug package
+    [ -f ${INSTALL_PREFIX}/lib/pkgconfig/libshift_${LIB_NAME}.pc ] && rm ${INSTALL_PREFIX}/lib/pkgconfig/libshift_${LIB_NAME}.pc
+    # release package
+    [ -f ${INSTALL_PREFIX}/lib/pkgconfig/libshift_${LIB_NAME}-d.pc ] && rm ${INSTALL_PREFIX}/lib/pkgconfig/libshift_${LIB_NAME}-d.pc
+
     echo -e ${COLOR}
-    echo "${1} was uninstalled from ${INSTALL_PATH}/${1}/"
+    echo "${1} was uninstalled from ${INSTALL_PREFIX}"
     echo -e ${NO_COLOR}
 }
 
@@ -399,9 +329,9 @@ while [ "${1}" != "" ]; do
 done
 
 case ${OSTYPE} in
-    darwin* )
+    darwin* ) # macOS
         ;;
-    linux* )
+    linux* )  # Linux
         ;;
     *)
         echo

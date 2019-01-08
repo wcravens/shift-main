@@ -88,7 +88,7 @@ int main(int ac, char* av[])
             std::vector<std::string> info;
         } user;
     } params = {
-        "/usr/local/share/SHIFT/BrokerageCenter/", // default installation folder for configuration
+        "/usr/local/share/shift/BrokerageCenter/", // default installation folder for configuration
         "SHIFT123", // built-in initial crypto key used for encrypting dbLogin.txt
         {
             false,
