@@ -172,9 +172,9 @@ mkdir build
 cd build
 
 # Ubuntu:
-cmake .. -DHAVE_SSL=ON
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON
 # macOS:
-cmake .. -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
 
 make
 sudo make install
