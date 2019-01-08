@@ -61,14 +61,12 @@ function installWebClient
     echo "Installing WebClient backend..."
     echo -e ${NO_COLOR}
 
-    INSTALL_PATH=${INSTALL_PREFIX}/SHIFT
-
     # create ~/.shift directory if it does not exist yet 
     [ -d ~/.shift/WebClient ] || mkdir -p ~/.shift/WebClient
 
     # save installation path to install.log (erasing previous version)
     [ -f ~/.shift/WebClient/install.log ] && rm ~/.shift/WebClient/install.log
-    echo "INSTALL_PATH=${INSTALL_PATH}" > ~/.shift/WebClient/install.log
+    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" > ~/.shift/WebClient/install.log
     
     # give ownership of the ~/.shift directory to the current user
     chown -R ${CURRENT_USER}:${CURRENT_USER} ~/.shift
@@ -101,15 +99,6 @@ function installWebClient
     # give ownership of the build directory to the current user
     chown -R ${CURRENT_USER}:${CURRENT_USER} backend/build
 
-    # create binary file symlink (erasing previous version)
-    [ -h /usr/local/bin/WebClient ] && rm /usr/local/bin/WebClient
-    ln -s ${INSTALL_PATH}/WebClient/WebClient /usr/local/bin/WebClient
-
-    # create configuration files symlinks (erasing previous versions)
-    [ -d /usr/local/share/SHIFT ] || mkdir -p /usr/local/share/SHIFT
-    [ -h /usr/local/share/SHIFT/WebClient ] && rm /usr/local/share/SHIFT/WebClient
-    ln -s ${INSTALL_PATH}/WebClient/config /usr/local/share/SHIFT/WebClient
-
     # frontend composer
     [ -d frontend/vendor ] && rm -r frontend/vendor
     composer install --quiet --working-dir=frontend
@@ -120,12 +109,6 @@ function installWebClient
     [ -d frontend/public/data ] && rm -r frontend/public/data
     mkdir -p frontend/public/data
     chown -R ${CURRENT_USER}:${CURRENT_USER} frontend/public/data
-
-    echo -e ${COLOR}
-    echo "WebClient was installed in ${INSTALL_PATH}/WebClient/:"
-    echo "-- Binary file symlinked to /usr/local/bin/WebClient"
-    echo "-- Configuration files symlinked to /usr/local/share/SHIFT/WebClient/"
-    echo -e ${NO_COLOR}
 }
 
 function uninstallWebClient
@@ -134,8 +117,6 @@ function uninstallWebClient
     echo -n "Uninstalling WebClient..."
     echo -e ${NO_COLOR}
 
-    INSTALL_PATH=${INSTALL_PREFIX}/SHIFT
-
     # if installation did not use default installation path
     if [ -f ~/.shift/WebClient/install.log ]
     then
@@ -143,27 +124,21 @@ function uninstallWebClient
         rm ~/.shift/WebClient/install.log
     fi
 
-    # if installation folder is not found
-    if [ ! -d ${INSTALL_PATH}/WebClient ]
+     # if installation is not found
+    if [ ! -f ${INSTALL_PREFIX}/bin/WebClient ]
     then
         echo
-        echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for WebClient (installation path ${INSTALL_PATH}/WebClient not found)"
+        echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for WebClient: binary not found"
         echo
         return
     fi
 
-    # remove symlinks
-    [ -h /usr/local/bin/WebClient ] && rm /usr/local/bin/WebClient
-    [ -h /usr/local/share/SHIFT/WebClient ] && rm /usr/local/share/SHIFT/WebClient
-
     # remove installation
-    [ -d ${INSTALL_PATH}/WebClient ] && rm -r ${INSTALL_PATH}/WebClient
-
-    # if the last SHIFT module is being uninstalled, delete SHIFT installation folder
-    [ -d ${INSTALL_PATH} ] && [ -z "$(ls -A ${INSTALL_PATH})" ] && rm -r ${INSTALL_PATH}
+    [ -f /usr/local/bin/WebClient ] && rm /usr/local/bin/WebClient
+    [ -d /usr/local/share/shift/WebClient ] && rm -r /usr/local/share/shift/WebClient
 
     # if the last SHIFT module is being uninstalled, delete SHIFT configuration folder
-    [ -d /usr/local/share/SHIFT ] && [ -z "$(ls -A /usr/local/share/SHIFT)" ] && rm -r /usr/local/share/SHIFT
+    [ -d /usr/local/share/shift ] && [ -z "$(ls -A /usr/local/share/shift)" ] && rm -r /usr/local/share/shift
 
     # frontend composer
     [ -d frontend/vendor ] && rm -r frontend/vendor
@@ -172,7 +147,7 @@ function uninstallWebClient
     [ -d frontend/public/data ] && rm -r frontend/public/data
 
     echo -e ${COLOR}
-    echo "WebClient was uninstalled from ${INSTALL_PATH}/WebClient/"
+    echo "WebClient was uninstalled from ${INSTALL_PREFIX}"
     echo -e ${NO_COLOR}
 }
 
