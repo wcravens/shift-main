@@ -26,7 +26,7 @@ action::action(std::string stock1, double price1, int size1, std::string trader_
     time2 = time21;
 }
 
-action::action(const action &newaction)
+action::action(const action& newaction)
 {
     stockname = newaction.stockname;
     price = newaction.price;
