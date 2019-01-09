@@ -306,9 +306,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <span class="bu">cd</span> build
 
 <span class="co"># Ubuntu:</span>
-<span class="fu">cmake</span> .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON
+<span class="fu">cmake</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..
 <span class="co"># macOS:</span>
-<span class="fu">cmake</span> .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+<span class="fu">cmake</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
 
 <span class="fu">make</span>
 <span class="fu">sudo</span> make install</code></pre></div>
