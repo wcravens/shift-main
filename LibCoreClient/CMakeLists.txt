@@ -70,6 +70,9 @@ set(OTHER
 
 ### Compiler Flags ############################################################
 
+# Important for libraries
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # UNIX only
 if(NOT WIN32)
 
