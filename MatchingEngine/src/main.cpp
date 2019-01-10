@@ -89,7 +89,7 @@ int main(int ac, char* av[])
     }
 
     std::string configfile = params.configDir + "config.txt";
-    std::string date = "2018-03-15";
+    std::string date = "2018-12-17";
     std::string stime = "09:30:00";
     std::string etime = "16:00:00";
     int experiment_speed = 1;
