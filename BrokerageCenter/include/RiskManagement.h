@@ -47,8 +47,8 @@ private:
 
 public:
     RiskManagement(std::string userName, double buyingPower);
-    RiskManagement(std::string userName, double buyingPower, int totalShares);
-    RiskManagement(std::string userName, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares);
+    RiskManagement(std::string userName, double buyingPower, int totalShares); //> For default use, i.e. portfolio summary's Holding Balance/Borrowed Balance/Total P&L == 0.
+    RiskManagement(std::string userName, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio summary.
 
     ~RiskManagement();
 
