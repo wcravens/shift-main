@@ -505,7 +505,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     }
 
     // send security list of all stocks to user when he login
-    sendSecurityList(targetID, BCDocuments::getInstance()->getSymbols());
+    sendSymbols(targetID, BCDocuments::getInstance()->getSymbols());
 
     BCDocuments::getInstance()->sendHistoryToUser(userName);
 }
@@ -744,7 +744,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
 /*
  * @brief Send the security list
  */
-void FIXAcceptor::sendSecurityList(const std::string& targetID, const std::unordered_set<std::string>& symbols)
+void FIXAcceptor::sendSymbols(const std::string& targetID, const std::unordered_set<std::string>& symbols)
 {
     FIX::Message message;
 

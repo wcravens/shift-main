@@ -77,13 +77,23 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
         auto summary = DBConnector::s_readFieldsOfRow(
             "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
             "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n"
-            "WHERE username = '"
+            "WHERE traders.username = '"
                 + userName + "';",
             5);
 
-        if (summary.empty())
-            rmPtr.reset(new RiskManagement(userName, 1e6));
-        else
+        if (summary.empty()) { // use default summary?
+            constexpr auto DEFAULT_BUYING_POWER = 1e6;
+
+            // PGresult* pRes;
+            // DBConnector::getInstance()->doQuery("SELECT EXISTS(SELECT 1 FROM portfolio_summary WHERE username = '" + userName + "');", "", PGRES_TUPLES_OK, &pRes);
+            // if ("FALSE" == ::toUpper(PQgetvalue(pRes, 0, 0))) {
+            DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
+            // }
+            // PQclear(pRes);
+            DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
+
+            rmPtr.reset(new RiskManagement(userName, DEFAULT_BUYING_POWER));
+        } else // explicitly parameterize the summary
             rmPtr.reset(new RiskManagement(userName, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
 
         rmPtr->spawn();
@@ -174,7 +184,7 @@ int BCDocuments::sendHistoryToUser(const std::string& userName)
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
 
     auto pos = m_riskManagementByName.find(userName);
-    if (m_riskManagementByName.end() == pos) {
+    if (m_riskManagementByName.end() == pos) { // newly joined user ?
         pos = addRiskManagementToUserNoLock(userName);
         res = 1;
     }

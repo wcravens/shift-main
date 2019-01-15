@@ -83,12 +83,12 @@ struct PSQLTable<TradingRecords> {
 template <>
 struct PSQLTable<PortfolioSummary> {
     static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
-                                                ", buying_power REAL"
-                                                ", holding_balance REAL"
-                                                ", borrowed_balance REAL"
-                                                ", total_pl REAL"
+                                                ", buying_power REAL DEFAULT 0.0"
+                                                ", holding_balance REAL DEFAULT 0.0"
+                                                ", borrowed_balance REAL DEFAULT 0.0"
+                                                ", total_pl REAL DEFAULT 0.0"
 
-                                                ", total_shares INTEGER"
+                                                ", total_shares INTEGER DEFAULT 0"
 
                                                 ", CONSTRAINT portfolio_summary_pkey PRIMARY KEY (id)\
                                                    \
@@ -125,14 +125,14 @@ struct PSQLTable<PortfolioSummary> {
 template <>
 struct PSQLTable<PortfolioItem> {
     static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
-                                                ", symbol VARCHAR(15)"
-                                                ", borrowed_balance REAL"
-                                                ", pl REAL"
-                                                ", long_price REAL"
+                                                ", symbol VARCHAR(15) DEFAULT '<UnknownSymbol>'"
+                                                ", borrowed_balance REAL DEFAULT 0.0"
+                                                ", pl REAL DEFAULT 0.0"
+                                                ", long_price REAL DEFAULT 0.0"
 
-                                                ", short_price REAL"
-                                                ", long_shares INTEGER"
-                                                ", short_shares INTEGER"
+                                                ", short_price REAL DEFAULT 0.0"
+                                                ", long_shares INTEGER DEFAULT 0"
+                                                ", short_shares INTEGER DEFAULT 0"
 
                                                 ", CONSTRAINT portfolio_items_pkey PRIMARY KEY (id, symbol)\
                                                    \

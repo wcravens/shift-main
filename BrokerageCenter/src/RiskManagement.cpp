@@ -4,12 +4,12 @@
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
 
-// #include "DBConnector.h"
+#include "DBConnector.h"
 
 #include <cmath>
 
 #include <shift/miscutils/concurrency/Consumer.h>
-// #include <shift/miscutils/terminal/Common.h>
+#include <shift/miscutils/terminal/Common.h>
 
 // static inline std::string s_getPortfolioItemsCursorName(const std::string& userName)
 // {
@@ -173,6 +173,7 @@ void RiskManagement::insertPortfolioItem(const std::string& symbol, const Portfo
 {
     std::lock_guard<std::mutex> guard(m_mtxPortfolioItems);
     m_portfolioItems[symbol] = portfolioItem;
+    // TODO
 }
 
 inline double RiskManagement::getMarketBuyPrice(const std::string& symbol)
@@ -198,9 +199,9 @@ void RiskManagement::processQuote()
 
         auto quotePtr = &m_quoteBuffer.front();
 
-        if (m_portfolioItems.find(quotePtr->getSymbol()) == m_portfolioItems.end()) { // create new portfolio item
-            std::lock_guard<std::mutex> guard(m_mtxPortfolioItems);
-            m_portfolioItems.emplace(quotePtr->getSymbol(), quotePtr->getSymbol());
+        if (m_portfolioItems.find(quotePtr->getSymbol()) == m_portfolioItems.end()) { // add new portfolio item ?
+            insertPortfolioItem(quotePtr->getSymbol(), quotePtr->getSymbol());
+            // DBConnector::getInstance()->doQuery(); TODO
         }
 
         if (verifyAndSendQuote(*quotePtr)) {
@@ -422,6 +423,23 @@ void RiskManagement::processExecRpt()
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
+            // TODO: Add PostgreSQL write operations here
+            // TODO 2: Insert & prepair new user in 2 tables when uesr login
+            DBConnector::getInstance()->doQuery(
+                "UPDATE portfolio_items"
+                "\n"
+                "SET portfolio_items.id = traders.id"
+                ", portfolio_items.borrowed_balance = "
+                    + std::to_string(m_portfolioItems[reportPtr->symbol].getBorrowedBalance())
+                    + ", portfolio_items.pl = " + std::to_string(m_portfolioItems[reportPtr->symbol].getPL())
+                    + ", portfolio_items.long_price = " + std::to_string(m_portfolioItems[reportPtr->symbol].getLongPrice())
+                    + ", portfolio_items.short_price = " + std::to_string(m_portfolioItems[reportPtr->symbol].getShortPrice())
+                    + ", portfolio_items.long_shares = " + std::to_string(m_portfolioItems[reportPtr->symbol].getLongShares())
+                    + ", portfolio_items.short_shares = " + std::to_string(m_portfolioItems[reportPtr->symbol].getShortShares())
+                    + "\n"
+                      "FROM traders WHERE traders.username = '"
+                    + m_userName + "';",
+                COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_userName + "]!\n" NO_COLOR);
             sendPortfolioItemToClient(m_userName, m_portfolioItems[reportPtr->symbol]);
             sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
         }

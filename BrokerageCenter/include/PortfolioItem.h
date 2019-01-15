@@ -3,7 +3,7 @@
 #include <string>
 
 /**
-*   @brief The "Position" item of the user's portfolio.
+*   @brief The "Positions" item of the user's portfolio.
 */
 
 class PortfolioItem {

@@ -3,7 +3,7 @@
 #include <string>
 
 /**
-*   @brief Class that maintains an instance of quote, and provides options-contract related controls.
+*   @brief The "Waiting List" item of the user's portfolio, maintains an instance of quote, and provides options-contract related controls.
 */
 struct Quote {
     enum ORDER_TYPE : char {

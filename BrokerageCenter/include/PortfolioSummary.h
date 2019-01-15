@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+*   @brief The "Account Summary" of the user's portfolio.
+*/
+
 class PortfolioSummary {
     double m_buyingPower;
     double m_holdingBalance;

@@ -88,7 +88,7 @@ private:
     void onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) override;
     void onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) override;
 
-    void sendSecurityList(const std::string& targetID, const std::unordered_set<std::string>& symbols);
+    void sendSymbols(const std::string& targetID, const std::unordered_set<std::string>& symbols);
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
