@@ -779,6 +779,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     partyGroup.get(destination);
 
     symbol = m_originalName_symbol[symbol];
+    // TODO: comment
     m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, std::stod(time), destination });
 }
 

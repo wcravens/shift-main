@@ -68,6 +68,7 @@ void MainClient::sendOrderBookToFront()
             auto orderBook = getOrderBook(symbol, (shift::OrderBook::Type)type, 5);
             std::string res = "";
             for (const auto& entry : orderBook) {
+                cout << "Test Use: " << entry.getTime() << endl;
                 std::ostringstream out;
                 out << "{ "
                     << "\"symbol\": "

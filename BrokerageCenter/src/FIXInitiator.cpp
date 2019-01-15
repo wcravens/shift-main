@@ -470,6 +470,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     static FIX::MDEntrySize size;
     static FIX::Text time;
     static FIX::PartyID destination;
+    static FIX::ExpireTime utctime;
 
     // #pragma GCC diagnostic ignored ....
 
@@ -482,6 +483,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     FIX::MDEntrySize* pSize;
     FIX::Text* pTime;
     FIX::PartyID* pDestination;
+    FIX::ExpireTime* pUtctime;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
     unsigned int prevCnt = 0;
@@ -499,6 +501,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pSize = &size;
         pTime = &time;
         pDestination = &destination;
+        pUtctime = &utctime;
     } else { // > 1 threads; always safe way:
         pEntryGroup = new decltype(entryGroup);
         pPartyGroup = new decltype(partyGroup);
@@ -508,17 +511,21 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pSize = new decltype(size);
         pTime = new decltype(time);
         pDestination = new decltype(destination);
+        pUtctime = new decltype(utctime);
     }
 
     message.getGroup(1, *pEntryGroup);
-    pEntryGroup->getGroup(1, *pPartyGroup);
-
     pEntryGroup->get(*pBookType);
     pEntryGroup->get(*pSymbol);
     pEntryGroup->get(*pPrice);
     pEntryGroup->get(*pSize);
     pEntryGroup->get(*pTime);
+    pEntryGroup->get(*pUtctime);
+
+    pEntryGroup->getGroup(1, *pPartyGroup);
     pPartyGroup->get(*pDestination);
+
+    // cout << "Test Use: " << pTime->getString() << " " << pUtctime->getString() << endl;
 
     OrderBookEntry update{
         OrderBookEntry::s_toOrderBookType(*pBookType),
