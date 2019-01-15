@@ -83,7 +83,7 @@ struct PSQLTable<TradingRecords> {
 template <>
 struct PSQLTable<PortfolioSummary> {
     static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
-                                                ", buying_power REAL DEFAULT 0.0"
+                                                ", buying_power REAL DEFAULT 1e6"
                                                 ", holding_balance REAL DEFAULT 0.0"
                                                 ", borrowed_balance REAL DEFAULT 0.0"
                                                 ", total_pl REAL DEFAULT 0.0"

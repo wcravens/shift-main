@@ -173,7 +173,6 @@ void RiskManagement::insertPortfolioItem(const std::string& symbol, const Portfo
 {
     std::lock_guard<std::mutex> guard(m_mtxPortfolioItems);
     m_portfolioItems[symbol] = portfolioItem;
-    // TODO
 }
 
 inline double RiskManagement::getMarketBuyPrice(const std::string& symbol)
@@ -201,7 +200,8 @@ void RiskManagement::processQuote()
 
         if (m_portfolioItems.find(quotePtr->getSymbol()) == m_portfolioItems.end()) { // add new portfolio item ?
             insertPortfolioItem(quotePtr->getSymbol(), quotePtr->getSymbol());
-            // DBConnector::getInstance()->doQuery(); TODO
+            // TODO: insert new item by PK == (id, symbol)
+            DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_userName + "'), '" + quotePtr->getSymbol() + "');", "");
         }
 
         if (verifyAndSendQuote(*quotePtr)) {
@@ -419,29 +419,47 @@ void RiskManagement::processExecRpt()
         } break;
         }
 
+        bool wasPortfolioSent = false; // to postpone DB writes until lock guards are released
         {
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-            // TODO: Add PostgreSQL write operations here
-            // TODO 2: Insert & prepair new user in 2 tables when uesr login
-            DBConnector::getInstance()->doQuery(
-                "UPDATE portfolio_items"
-                "\n"
-                "SET portfolio_items.id = traders.id"
-                ", portfolio_items.borrowed_balance = "
-                    + std::to_string(m_portfolioItems[reportPtr->symbol].getBorrowedBalance())
-                    + ", portfolio_items.pl = " + std::to_string(m_portfolioItems[reportPtr->symbol].getPL())
-                    + ", portfolio_items.long_price = " + std::to_string(m_portfolioItems[reportPtr->symbol].getLongPrice())
-                    + ", portfolio_items.short_price = " + std::to_string(m_portfolioItems[reportPtr->symbol].getShortPrice())
-                    + ", portfolio_items.long_shares = " + std::to_string(m_portfolioItems[reportPtr->symbol].getLongShares())
-                    + ", portfolio_items.short_shares = " + std::to_string(m_portfolioItems[reportPtr->symbol].getShortShares())
-                    + "\n"
-                      "FROM traders WHERE traders.username = '"
-                    + m_userName + "';",
-                COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_userName + "]!\n" NO_COLOR);
             sendPortfolioItemToClient(m_userName, m_portfolioItems[reportPtr->symbol]);
             sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
+
+            wasPortfolioSent = true;
+        }
+        if (wasPortfolioSent) {
+            // TODO: Add PostgreSQL write operations here
+            DBConnector::getInstance()->doQuery(
+                "UPDATE portfolio_items" // presume that we have got the user's uuid already in it
+                "\n"
+                "SET borrowed_balance = "
+                    + std::to_string(m_portfolioItems[reportPtr->symbol].getBorrowedBalance())
+                    + ", pl = " + std::to_string(m_portfolioItems[reportPtr->symbol].getPL())
+                    + ", long_price = " + std::to_string(m_portfolioItems[reportPtr->symbol].getLongPrice())
+                    + ", short_price = " + std::to_string(m_portfolioItems[reportPtr->symbol].getShortPrice())
+                    + ", long_shares = " + std::to_string(m_portfolioItems[reportPtr->symbol].getLongShares())
+                    + ", short_shares = " + std::to_string(m_portfolioItems[reportPtr->symbol].getShortShares())
+                    + "\n" // PK == (id, symbol):
+                      "WHERE symbol = '"
+                    + reportPtr->symbol + "' AND id = (SELECT id FROM traders WHERE username = '"
+                    + m_userName + "');",
+                COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_userName + "]!\n" NO_COLOR);
+
+            DBConnector::getInstance()->doQuery(
+                "UPDATE portfolio_summary" // presume that we have got the user's uuid already in it
+                "\n"
+                "SET buying_power = "
+                    + std::to_string(m_porfolioSummary.getBuyingPower())
+                    + ", holding_balance = " + std::to_string(m_porfolioSummary.getHoldingBalance())
+                    + ", borrowed_balance = " + std::to_string(m_porfolioSummary.getBorrowedBalance())
+                    + ", total_pl = " + std::to_string(m_porfolioSummary.getTotalPL())
+                    + ", total_shares = " + std::to_string(m_porfolioSummary.getTotalShares())
+                    + "\n" // PK == id:
+                      "WHERE id = (SELECT id FROM traders WHERE username = '"
+                    + m_userName + "');",
+                COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_userName + "]!\n" NO_COLOR);
         }
 
         updateQuoteHistory(*reportPtr);

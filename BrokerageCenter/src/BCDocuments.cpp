@@ -76,21 +76,23 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
 
         auto summary = DBConnector::s_readFieldsOfRow(
             "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
-            "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n"
-            "WHERE traders.username = '"
+            "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
+            "WHERE traders.username = '" // here presume we always has got current user name in traders table
                 + userName + "';",
             5);
 
-        if (summary.empty()) { // use default summary?
+        if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
             constexpr auto DEFAULT_BUYING_POWER = 1e6;
-
+            // TODO
             // PGresult* pRes;
             // DBConnector::getInstance()->doQuery("SELECT EXISTS(SELECT 1 FROM portfolio_summary WHERE username = '" + userName + "');", "", PGRES_TUPLES_OK, &pRes);
             // if ("FALSE" == ::toUpper(PQgetvalue(pRes, 0, 0))) {
             DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
             // }
             // PQclear(pRes);
-            DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
+
+            // TODO
+            // DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " +  ...<symbol>.... + ");", "");
 
             rmPtr.reset(new RiskManagement(userName, DEFAULT_BUYING_POWER));
         } else // explicitly parameterize the summary
