@@ -95,6 +95,7 @@ endif(UNIX AND NOT APPLE)
 # -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
+    include_directories(/usr/local/include)
 endif(APPLE)
 
 ### Build Types ###############################################################
@@ -137,6 +138,7 @@ add_executable(${PROJECT_NAME}
                ${CONFIG} ${CONFIGDEFAULT} ${INCLUDE} ${SRC} ${OTHER})
 
 target_include_directories(${PROJECT_NAME}
+                           PRIVATE ${CMAKE_PREFIX_PATH}/include
                            PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(${PROJECT_NAME}
@@ -152,10 +154,6 @@ target_link_libraries(${PROJECT_NAME}
 if(NOT CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX /usr/local)
 endif(NOT CMAKE_INSTALL_PREFIX)
-
-# Add installation path to list of include directories
-# (required to use other project libraries during compilation)
-include_directories(${CMAKE_INSTALL_PREFIX}/include)
 
 # Install only if build type is set to Release
 install(TARGETS ${PROJECT_NAME}
