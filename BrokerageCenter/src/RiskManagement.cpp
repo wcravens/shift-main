@@ -134,6 +134,7 @@ void RiskManagement::sendPortfolioHistory()
     std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
     sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
+    // TODO: populate items from DB
 
     for (auto& i : m_portfolioItems)
         sendPortfolioItemToClient(m_userName, i.second);
@@ -208,9 +209,11 @@ void RiskManagement::processQuote()
             {
                 std::lock_guard<std::mutex> guard(m_mtxQuoteHistory);
                 if (quotePtr->getOrderType() != QOT::CANCEL_BID && quotePtr->getOrderType() != QOT::CANCEL_ASK) {
-                    m_quoteHistory[quotePtr->getOrderID()] = *quotePtr; // save to m_quoteHistory map
+                    m_quoteHistory[quotePtr->getOrderID()] = *quotePtr;
                 }
             }
+            // TODO(?)
+
             sendQuoteHistory();
         }
 
