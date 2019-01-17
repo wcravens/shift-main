@@ -672,7 +672,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         entryGroup.getGroup(1, partyGroup);
         partyGroup.getField(destination);
 
-        orderBook.push_back({ (double)price, (int)size, std::stod(time), destination });
+        orderBook.push_back({ (double)price, (int)size, std::stod(time), destination, FIX::UtcTimeStamp() }); // FIXME: no use of UtcTimeStamp
     }
 
     try {
@@ -770,17 +770,20 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     FIX::MDEntrySize size;
     FIX::Text time;
     FIX::PartyID destination;
+    FIX::ExpireTime utctime;
 
     entryGroup.get(type);
     entryGroup.get(symbol);
     entryGroup.get(price);
     entryGroup.get(size);
     entryGroup.get(time);
+    entryGroup.get(utctime);
     partyGroup.get(destination);
 
+    // cout << "Test Use: " << time << " " << utctime.getString() << endl;
+
     symbol = m_originalName_symbol[symbol];
-    // TODO: comment
-    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, std::stod(time), destination });
+    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, std::stod(time), destination, utctime.getValue() });
 }
 
 /**

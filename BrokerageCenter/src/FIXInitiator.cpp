@@ -533,7 +533,8 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         double{ *pPrice },
         double{ *pSize },
         double{ std::stod(pTime->getString()) },
-        pDestination->getString()
+        pDestination->getString(),
+        pUtctime->getValue()
     };
     BCDocuments::getInstance()->addStockToSymbol(*pSymbol, update);
 
@@ -546,6 +547,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         delete pSize;
         delete pTime;
         delete pDestination;
+        delete pUtctime;
     }
 
     s_cntAtom--;
@@ -570,7 +572,13 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
         message.getGroup(i, relatedSymGroup);
         relatedSymGroup.get(symbol);
         BCDocuments::getInstance()->addSymbol(symbol);
-        OrderBookEntry update(OrderBookEntry::s_toOrderBookType('e'), "initial", 0.0, 0.0, 0.0, "initial");
+        OrderBookEntry update(OrderBookEntry::s_toOrderBookType('e'),
+            "initial",
+            0.0,
+            0.0,
+            0.0,
+            "initial",
+            FIX::UtcTimeStamp(6)); // FIXME: not used
         BCDocuments::getInstance()->addStockToSymbol(symbol, update);
     }
 }

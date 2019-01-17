@@ -18,11 +18,12 @@ shift::OrderBookEntry::OrderBookEntry()
  * @param destination string value for m_destination
  * @param time double value for m_time
  */
-shift::OrderBookEntry::OrderBookEntry(double price, int size, double time, const std::string& destination)
+shift::OrderBookEntry::OrderBookEntry(double price, int size, double time, const std::string& destination, FIX::UtcTimeStamp utctime)
     : m_price(price)
     , m_size(size)
     , m_time(time)
     , m_destination(destination)
+    , m_utctime(utctime)
 {
 }
 
@@ -51,6 +52,16 @@ int shift::OrderBookEntry::getSize() const
 double shift::OrderBookEntry::getTime() const
 {
     return m_time;
+}
+
+const FIX::UtcTimeStamp shift::OrderBookEntry::getUtcTime() const
+{
+    return m_utctime;
+}
+
+void shift::OrderBookEntry::setUtcTime(FIX::UtcTimeStamp utctime)
+{
+    m_utctime = utctime;
 }
 
 /**

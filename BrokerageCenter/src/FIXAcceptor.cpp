@@ -245,6 +245,7 @@ void FIXAcceptor::sendOrderbookUpdate(const std::string& userName, const OrderBo
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));
     entryGroup.setField(FIX::Text(std::to_string(update.getTime())));
+    entryGroup.setField(FIX::ExpireTime(update.getUtcTime(), 6));
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
     partyGroup.setField(::FIXFIELD_EXECBROKER);

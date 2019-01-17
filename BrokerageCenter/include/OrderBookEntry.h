@@ -1,5 +1,7 @@
 #pragma once
 
+#include <quickfix/FieldTypes.h>
+
 #include <string>
 
 /**
@@ -17,7 +19,7 @@ public:
     };
 
     OrderBookEntry();
-    OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, double time, std::string destination);
+    OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, double time, std::string destination, FIX::UtcTimeStamp utctime);
 
     ORDER_BOOK_TYPE getType() const;
     const std::string& getSymbol() const;
@@ -25,6 +27,7 @@ public:
     double getSize() const;
     double getTime() const;
     const std::string& getDestination() const;
+    const FIX::UtcTimeStamp getUtcTime() const;
 
     static ORDER_BOOK_TYPE s_toOrderBookType(char c);
 
@@ -35,4 +38,5 @@ private:
     double m_size; // The size of the order
     double m_time; // The time of the order.
     std::string m_destination; // The destination of the order.
+    FIX::UtcTimeStamp m_utctime;
 };
