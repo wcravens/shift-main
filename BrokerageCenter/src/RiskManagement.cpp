@@ -11,40 +11,6 @@
 #include <shift/miscutils/concurrency/Consumer.h>
 #include <shift/miscutils/terminal/Common.h>
 
-// static inline std::string s_getPortfolioItemsCursorName(const std::string& userName)
-// {
-//     return "csr_pi_" + userName;
-// }
-
-// static inline std::string s_getPortfolioSummaryCursorName(const std::string& userName)
-// {
-//     return "csr_ps_" + userName;
-// }
-
-// static void s_declPortfolioItemsCursor(const std::string& userName, const std::string& symbol)
-// {
-//     if(userName.empty()) return;
-
-//     const auto& csrName = s_getPortfolioItemsCursorName(userName);
-//     DBConnector::getInstance()->doQuery(
-//         "DECLARE " + csrName + " CURSOR FOR"
-//         "  SELECT * FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.client_id\n"
-//         "WHERE traders.username = '" + userName + "' AND portfolio_items.symbol = '" + symbol + '\''
-//         , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (RiskManagement." + csrName + ")\n" NO_COLOR);
-// }
-
-// static void s_declPortfolioSummaryCursor(const std::string& userName)
-// {
-//     if(userName.empty()) return;
-
-//     const auto& csrName = s_getPortfolioSummaryCursorName(userName);
-//     DBConnector::getInstance()->doQuery(
-//         "DECLARE " + csrName + " CURSOR FOR"
-//         "  SELECT * FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.client_id\n"
-//         "WHERE traders.username = '" + userName + '\''
-//         , COLOR_ERROR "ERROR: DECLARE CURSOR failed. (RiskManagement." + csrName + ")\n" NO_COLOR);
-// }
-
 RiskManagement::RiskManagement(std::string userName, double buyingPower)
     : m_userName(std::move(userName))
     , m_porfolioSummary{ buyingPower }
@@ -101,12 +67,12 @@ void RiskManagement::enqueueExecRpt(const Report& report)
     m_cvExecRpt.notify_one();
 }
 
-inline void RiskManagement::sendQuoteToME(const Quote& quote)
+/*static*/ inline void RiskManagement::s_sendQuoteToME(const Quote& quote)
 {
     FIXInitiator::getInstance()->sendQuote(quote);
 }
 
-inline void RiskManagement::sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary)
+/*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
@@ -117,7 +83,7 @@ inline void RiskManagement::sendPortfolioSummaryToClient(const std::string& user
     FIXAcceptor::getInstance()->sendPortfolioSummary(userName, targetID, summary);
 }
 
-inline void RiskManagement::sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item)
+/*static*/ inline void RiskManagement::s_sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
     if (CSTR_NULL == targetID) {
@@ -133,11 +99,10 @@ void RiskManagement::sendPortfolioHistory()
     std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
     std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-    sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
-    // TODO: populate items from DB
+    s_sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
 
     for (auto& i : m_portfolioItems)
-        sendPortfolioItemToClient(m_userName, i.second);
+        s_sendPortfolioItemToClient(m_userName, i.second);
 }
 
 void RiskManagement::sendQuoteHistory() const
@@ -201,7 +166,6 @@ void RiskManagement::processQuote()
 
         if (m_portfolioItems.find(quotePtr->getSymbol()) == m_portfolioItems.end()) { // add new portfolio item ?
             insertPortfolioItem(quotePtr->getSymbol(), quotePtr->getSymbol());
-            // TODO: insert new item by PK == (id, symbol)
             DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_userName + "'), '" + quotePtr->getSymbol() + "');", "");
         }
 
@@ -427,23 +391,23 @@ void RiskManagement::processExecRpt()
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-            sendPortfolioItemToClient(m_userName, m_portfolioItems[reportPtr->symbol]);
-            sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
+            s_sendPortfolioItemToClient(m_userName, m_portfolioItems[reportPtr->symbol]);
+            s_sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
 
             wasPortfolioSent = true;
         }
         if (wasPortfolioSent) {
-            // TODO: Add PostgreSQL write operations here
+            const auto& item = m_portfolioItems[reportPtr->symbol];
             DBConnector::getInstance()->doQuery(
                 "UPDATE portfolio_items" // presume that we have got the user's uuid already in it
                 "\n"
                 "SET borrowed_balance = "
-                    + std::to_string(m_portfolioItems[reportPtr->symbol].getBorrowedBalance())
-                    + ", pl = " + std::to_string(m_portfolioItems[reportPtr->symbol].getPL())
-                    + ", long_price = " + std::to_string(m_portfolioItems[reportPtr->symbol].getLongPrice())
-                    + ", short_price = " + std::to_string(m_portfolioItems[reportPtr->symbol].getShortPrice())
-                    + ", long_shares = " + std::to_string(m_portfolioItems[reportPtr->symbol].getLongShares())
-                    + ", short_shares = " + std::to_string(m_portfolioItems[reportPtr->symbol].getShortShares())
+                    + std::to_string(item.getBorrowedBalance())
+                    + ", pl = " + std::to_string(item.getPL())
+                    + ", long_price = " + std::to_string(item.getLongPrice())
+                    + ", short_price = " + std::to_string(item.getShortPrice())
+                    + ", long_shares = " + std::to_string(item.getLongShares())
+                    + ", short_shares = " + std::to_string(item.getShortShares())
                     + "\n" // PK == (id, symbol):
                       "WHERE symbol = '"
                     + reportPtr->symbol + "' AND id = (SELECT id FROM traders WHERE username = '"
@@ -551,7 +515,7 @@ bool RiskManagement::verifyAndSendQuote(const Quote& quote)
     }
 
     if (success) {
-        sendQuoteToME(quote);
+        s_sendQuoteToME(quote);
     }
 
     return success;

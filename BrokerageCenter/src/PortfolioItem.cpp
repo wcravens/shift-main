@@ -1,43 +1,42 @@
 #include "PortfolioItem.h"
 
 PortfolioItem::PortfolioItem()
-    : m_symbol{ "" }
-    , m_longShares{ 0 }
-    , m_shortShares{ 0 }
-    , m_longPrice{ 0.0 }
-    , m_shortPrice{ 0.0 }
-    , m_pl{ 0.0 }
-    , m_borrowedBalance{ 0.0 }
+    : PortfolioItem("", 0.0, 0.0, 0.0, 0.0, 0, 0)
 {
 }
 
 PortfolioItem::PortfolioItem(const std::string& symbol)
-    : m_symbol{ symbol }
-    , m_longShares{ 0 }
-    , m_shortShares{ 0 }
-    , m_longPrice{ 0.0 }
-    , m_shortPrice{ 0.0 }
-    , m_pl{ 0.0 }
-    , m_borrowedBalance{ 0.0 }
+    : PortfolioItem(symbol, 0.0, 0.0, 0.0, 0.0, 0, 0)
 {
 }
 
 PortfolioItem::PortfolioItem(const std::string& symbol, int shares, double price)
     : m_symbol{ symbol }
-    , m_pl{ 0.0 }
     , m_borrowedBalance{ 0.0 }
+    , m_pl{ 0.0 }
 {
     if (shares >= 0) {
-        m_longShares = shares;
-        m_shortShares = 0;
         m_longPrice = price;
         m_shortPrice = 0.0;
+        m_longShares = shares;
+        m_shortShares = 0;
     } else {
-        m_longShares = 0;
-        m_shortShares = -shares;
         m_longPrice = 0.0;
         m_shortPrice = price;
+        m_longShares = 0;
+        m_shortShares = -shares;
     }
+}
+
+PortfolioItem::PortfolioItem(const std::string& symbol, double borrowedBalace, double pl, double longPrice, double shortPrice, int longShares, int shortShares)
+    : m_symbol{ symbol }
+    , m_borrowedBalance{ borrowedBalace }
+    , m_pl{ pl }
+    , m_longPrice{ longPrice }
+    , m_shortPrice{ shortPrice }
+    , m_longShares{ longShares }
+    , m_shortShares{ shortShares }
+{
 }
 
 void PortfolioItem::addLongShares(int value)

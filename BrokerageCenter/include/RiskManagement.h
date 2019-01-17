@@ -64,9 +64,9 @@ public:
 
     bool verifyAndSendQuote(const Quote& quote);
 
-    void sendQuoteToME(const Quote& quote);
-    void sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary);
-    void sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item);
+    static void s_sendQuoteToME(const Quote& quote);
+    static void s_sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary);
+    static void s_sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item);
     void sendPortfolioHistory();
     void sendQuoteHistory() const;
     double getMarketBuyPrice(const std::string& symbol);

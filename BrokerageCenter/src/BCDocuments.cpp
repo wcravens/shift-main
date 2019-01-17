@@ -83,20 +83,33 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
 
         if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
             constexpr auto DEFAULT_BUYING_POWER = 1e6;
-            // TODO
-            // PGresult* pRes;
-            // DBConnector::getInstance()->doQuery("SELECT EXISTS(SELECT 1 FROM portfolio_summary WHERE username = '" + userName + "');", "", PGRES_TUPLES_OK, &pRes);
-            // if ("FALSE" == ::toUpper(PQgetvalue(pRes, 0, 0))) {
             DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
-            // }
-            // PQclear(pRes);
-
-            // TODO
-            // DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " +  ...<symbol>.... + ");", "");
-
             rmPtr.reset(new RiskManagement(userName, DEFAULT_BUYING_POWER));
         } else // explicitly parameterize the summary
             rmPtr.reset(new RiskManagement(userName, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
+
+        // TODO: populate portfolio items
+        struct MyVec : std::vector<std::string> {
+            MyVec(std::vector<std::string>&& vs)
+                : std::vector<std::string>(std::move(vs))
+            {
+            }
+            operator bool()
+            {
+                return !empty();
+            }
+        };
+
+        for (int row = 0; MyVec item = DBConnector::s_readFieldsOfRow(
+                              "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
+                              "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
+                              "WHERE traders.username = '"
+                                  + userName + "';",
+                              7,
+                              row);
+             row++) {
+            rmPtr->insertPortfolioItem(item[0], { item[0], std::stod(item[1]), std::stod(item[2]), std::stod(item[3]), std::stod(item[4]), std::stoi(item[5]), std::stoi(item[6]) });
+        }
 
         rmPtr->spawn();
     }

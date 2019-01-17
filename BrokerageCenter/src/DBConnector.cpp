@@ -344,8 +344,8 @@ bool DBConnector::checkCreateTable()
 
     PGresult* pRes;
     if (getInstance()->doQuery(query, COLOR_ERROR "ERROR: Get fields of row[" + std::to_string(rowIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)
-        && PQntuples(pRes) > 0) {
-        for (int field = 0; field < numFields; field++) // from the SELECT clause above
+        && 0 <= rowIndex && rowIndex < PQntuples(pRes)) {
+        for (int field = 0; field < numFields; field++) // i.e. column-wise
             vs.push_back(PQgetvalue(pRes, rowIndex, field));
     }
 
