@@ -532,7 +532,6 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pSymbol->getString(),
         double{ *pPrice },
         double{ *pSize },
-        double{ std::stod(pTime->getString()) },
         pDestination->getString(),
         pUtctime->getValue()
     };
@@ -576,9 +575,8 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
             "initial",
             0.0,
             0.0,
-            0.0,
             "initial",
-            FIX::UtcTimeStamp(6)); // FIXME: not used
+            FIX::UtcTimeStamp(6));
         BCDocuments::getInstance()->addStockToSymbol(symbol, update);
     }
 }

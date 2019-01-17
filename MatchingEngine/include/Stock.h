@@ -109,8 +109,8 @@ public:
 
     void showglobal();
 
-    void bookupdate(char _book, std::string _symbol, double _price, int _size, double _time, FIX::UtcTimeStamp _utctime);
-    void bookupdate(char _book, std::string _symbol, double _price, int _size, double _time, std::string _destination, FIX::UtcTimeStamp _utctime);
+    void bookupdate(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp _utctime);
+    void bookupdate(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp _utctime);
 
     // hiukin
     // operation for local order

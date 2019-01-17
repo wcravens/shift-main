@@ -120,7 +120,7 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
     entryGroup.setField(FIX::Symbol(update.getsymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getprice()));
     entryGroup.setField(FIX::MDEntrySize(update.getsize()));
-    entryGroup.setField(FIX::Text(std::to_string(update.gettime()))); // FIXME: Use FIX::UTCTimestamp instead
+    entryGroup.setField(FIX::Text("NULL")); // FIXME: FIX Required
     entryGroup.setField(FIX::ExpireTime(update.getutctime(), 6)); // test use
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;

@@ -22,12 +22,11 @@ OrderBookEntry::OrderBookEntry() = default;
  * @param   time: The time passed by.
  * @param   destination: The security ID used as destination.
  */
-OrderBookEntry::OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, double time, std::string destination, FIX::UtcTimeStamp utctime)
+OrderBookEntry::OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, std::string destination, FIX::UtcTimeStamp utctime)
     : m_type(type)
     , m_symbol(std::move(symbol))
     , m_price{ price }
     , m_size{ size }
-    , m_time{ time }
     , m_destination(std::move(destination))
     , m_utctime{ utctime }
 {
@@ -67,15 +66,6 @@ double OrderBookEntry::getPrice() const
 double OrderBookEntry::getSize() const
 {
     return m_size;
-}
-
-/**
- * @brief   Getter of the time of order.
- * @return  The time.
- */
-double OrderBookEntry::getTime() const
-{
-    return m_time;
 }
 
 /**

@@ -19,13 +19,12 @@ public:
     };
 
     OrderBookEntry();
-    OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, double time, std::string destination, FIX::UtcTimeStamp utctime);
+    OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, std::string destination, FIX::UtcTimeStamp utctime);
 
     ORDER_BOOK_TYPE getType() const;
     const std::string& getSymbol() const;
     double getPrice() const;
     double getSize() const;
-    double getTime() const;
     const std::string& getDestination() const;
     const FIX::UtcTimeStamp getUtcTime() const;
 
@@ -36,7 +35,6 @@ private:
     std::string m_symbol; // The symbol of the order.
     double m_price; // The price of the order.
     double m_size; // The size of the order
-    double m_time; // The time of the order.
     std::string m_destination; // The destination of the order.
     FIX::UtcTimeStamp m_utctime;
 };
