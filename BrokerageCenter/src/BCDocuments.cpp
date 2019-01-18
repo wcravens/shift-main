@@ -55,8 +55,8 @@ void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction
     candPtr->enqueueTransaction(transac);
 }
 
-void BCDocuments::addRiskManagementToUser(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol)
-{ //for low frequency client use
+void BCDocuments::addRiskManagementToUserLockedExplicit(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol)
+{ // for low frequency client use
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
 
     auto res = m_riskManagementByName.emplace(userName, nullptr);
@@ -88,26 +88,18 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
         } else // explicitly parameterize the summary
             rmPtr.reset(new RiskManagement(userName, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
 
-        // TODO: populate portfolio items
-        struct MyVec : std::vector<std::string> {
-            MyVec(std::vector<std::string>&& vs)
-                : std::vector<std::string>(std::move(vs))
-            {
-            }
-            operator bool()
-            {
-                return !empty();
-            }
-        };
+        // populate portfolio items
+        for (int row = 0; true; row++) {
+            const auto& item = DBConnector::s_readFieldsOfRow(
+                "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
+                "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
+                "WHERE traders.username = '"
+                    + userName + "';",
+                7,
+                row);
+            if (item.empty())
+                break;
 
-        for (int row = 0; MyVec item = DBConnector::s_readFieldsOfRow(
-                              "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
-                              "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
-                              "WHERE traders.username = '"
-                                  + userName + "';",
-                              7,
-                              row);
-             row++) {
             rmPtr->insertPortfolioItem(item[0], { item[0], std::stod(item[1]), std::stod(item[2]), std::stod(item[3]), std::stod(item[4]), std::stoi(item[5]), std::stoi(item[6]) });
         }
 

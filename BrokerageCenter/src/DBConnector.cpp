@@ -82,7 +82,7 @@ struct PSQLTable<TradingRecords> {
 
 template <>
 struct PSQLTable<PortfolioSummary> {
-    static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
+    static constexpr char sc_colsDefinition[] = "( id UUID"
                                                 ", buying_power REAL DEFAULT 1e6"
                                                 ", holding_balance REAL DEFAULT 0.0"
                                                 ", borrowed_balance REAL DEFAULT 0.0"
@@ -124,7 +124,7 @@ struct PSQLTable<PortfolioSummary> {
 
 template <>
 struct PSQLTable<PortfolioItem> {
-    static constexpr char sc_colsDefinition[] = "( id UUID" // TODO ?
+    static constexpr char sc_colsDefinition[] = "( id UUID"
                                                 ", symbol VARCHAR(15) DEFAULT '<UnknownSymbol>'"
                                                 ", borrowed_balance REAL DEFAULT 0.0"
                                                 ", pl REAL DEFAULT 0.0"
@@ -244,7 +244,7 @@ bool DBConnector::createUsers(const std::string& symbol)
             auto shares = atoi(PQgetvalue(res2, i, 1));
             auto price = atof(PQgetvalue(res2, i, 2));
 
-            BCDocuments::getInstance()->addRiskManagementToUser(userName, buyingPower, shares, price, symbol);
+            BCDocuments::getInstance()->addRiskManagementToUserLockedExplicit(userName, buyingPower, shares, price, symbol);
             cout << userName << '\n';
         }
         cout << endl;
@@ -325,8 +325,8 @@ bool DBConnector::checkCreateTable()
 /*static*/ std::vector<std::string> DBConnector::s_readRowsOfField(const std::string& query, int fieldIndex /*= 0*/)
 {
     std::vector<std::string> vs;
-
     PGresult* pRes;
+
     if (getInstance()->doQuery(query, COLOR_ERROR "ERROR: Get rows of field[" + std::to_string(fieldIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
         int rows = PQntuples(pRes);
         for (int row = 0; row < rows; row++) {
@@ -341,8 +341,8 @@ bool DBConnector::checkCreateTable()
 /*static*/ std::vector<std::string> DBConnector::s_readFieldsOfRow(const std::string& query, int numFields, int rowIndex /*= 0*/)
 {
     std::vector<std::string> vs;
-
     PGresult* pRes;
+
     if (getInstance()->doQuery(query, COLOR_ERROR "ERROR: Get fields of row[" + std::to_string(rowIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)
         && 0 <= rowIndex && rowIndex < PQntuples(pRes)) {
         for (int field = 0; field < numFields; field++) // i.e. column-wise

@@ -16,7 +16,6 @@ RiskManagement::RiskManagement(std::string userName, double buyingPower)
     , m_porfolioSummary{ buyingPower }
     , m_pendingShortCashAmount{ 0.0 }
 {
-    // s_declPortfolioSummaryCursor(userName);
 }
 
 RiskManagement::RiskManagement(std::string userName, double buyingPower, int totalShares)
@@ -24,7 +23,6 @@ RiskManagement::RiskManagement(std::string userName, double buyingPower, int tot
     , m_porfolioSummary{ buyingPower, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
-    // s_declPortfolioSummaryCursor(userName);
 }
 
 RiskManagement::RiskManagement(std::string userName, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
@@ -32,7 +30,6 @@ RiskManagement::RiskManagement(std::string userName, double buyingPower, double 
     , m_porfolioSummary{ buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
-    // s_declPortfolioSummaryCursor(userName);
 }
 
 RiskManagement::~RiskManagement()
@@ -176,7 +173,6 @@ void RiskManagement::processQuote()
                     m_quoteHistory[quotePtr->getOrderID()] = *quotePtr;
                 }
             }
-            // TODO(?)
 
             sendQuoteHistory();
         }
@@ -204,9 +200,6 @@ void RiskManagement::processExecRpt()
             FIXAcceptor::getInstance()->sendConfirmationReport(*reportPtr);
         } break;
         case FIX::ExecType_FILL: { // execution report
-            // DBConnector::getInstance()->doQuery("BEGIN", "");
-            // s_declPortfolioItemsCursor(m_userName, reportPtr->symbol);
-
             switch (reportPtr->orderType) {
             case QOT::MARKET_BUY:
             case QOT::LIMIT_BUY: {
@@ -245,12 +238,6 @@ void RiskManagement::processExecRpt()
                         ret = std::floor(ret * std::pow(10, 2)) / std::pow(10, 2);
                         m_porfolioSummary.returnBalance(ret);
                         item.addBorrowedBalance(-ret);
-                        // DBConnector::getInstance()->doQuery(
-                        //     "UPDATE portfolio_items\n"
-                        //     "SET portfolio_items.borrowed_balance = " + std::to_string(item.getBorrowedBalance()) + "\n"
-                        //     "WHERE CURRENT OF " + s_getPortfolioItemsCursorName(m_userName)
-                        //     , ""
-                        // );
 
                         item.addShortShares(-buyShares);
                         if (item.getShortShares() == 0) {
@@ -344,9 +331,6 @@ void RiskManagement::processExecRpt()
 
             } break;
             }
-
-            // DBConnector::getInstance()->doQuery("CLOSE " + s_getPortfolioItemsCursorName(m_userName), "");
-            // DBConnector::getInstance()->doQuery("END", "");
         } break;
         case FIX::ExecType_EXPIRED: { // cancellation report
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);

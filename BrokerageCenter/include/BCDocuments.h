@@ -58,7 +58,7 @@ public:
 
     void addStockToSymbol(const std::string& symbol, const OrderBookEntry& ob);
     void addCandleToSymbol(const std::string& symbol, const Transaction& transac);
-    void addRiskManagementToUser(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol);
+    void addRiskManagementToUserLockedExplicit(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol);
     void addQuoteToUserRiskManagement(const std::string& userName, const Quote& quote);
     void addReportToUserRiskManagement(const std::string& userName, const Report& report);
 

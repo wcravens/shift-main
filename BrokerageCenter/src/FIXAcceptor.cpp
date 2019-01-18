@@ -524,7 +524,7 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
         return;
     }
     cout << COLOR_WARNING "[User] " NO_COLOR << userName << endl;
-    // TODO
+    // TODO: Issue #3
     BCDocuments::getInstance()->removeUserFromCandles(userName);
     // cout << "DEBUG MUTEX: removeUserFromCandles" << endl;
     BCDocuments::getInstance()->unregisterUserInDoc(userName);
@@ -566,14 +566,6 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
         BCDocuments::getInstance()->registerUserInDoc(targetID, adminName);
         cout << COLOR_PROMPT "Authentication successful for " << targetID << ':' << adminName << NO_COLOR << endl;
     } else {
-        // TODO, send message
-        FIX::Message tokenMessage;
-        FIXT11::Logon::NoMsgTypes msgTypeGroup;
-        msgTypeGroup.set(FIX::RefMsgType("m_username"));
-        tokenMessage.addGroup(msgTypeGroup);
-        msgTypeGroup.set(FIX::RefMsgType("m_password"));
-        tokenMessage.addGroup(msgTypeGroup);
-
         cout << COLOR_WARNING "User name or password was wrong for " << targetID << ':' << adminName << NO_COLOR << endl;
         throw FIX::RejectLogon();
     }
