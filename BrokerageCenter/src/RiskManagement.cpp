@@ -260,8 +260,8 @@ void RiskManagement::processExecRpt()
                 item.addPL(inc); // update instrument P&L
                 m_porfolioSummary.addTotalPL(inc); // update portfolio P&L
                 m_porfolioSummary.addTotalShares(buyShares); // update total trade shares
-
             } break;
+
             case QOT::MARKET_SELL:
             case QOT::LIMIT_SELL: {
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
@@ -328,10 +328,10 @@ void RiskManagement::processExecRpt()
                 item.addPL(inc); // update instrument P&L
                 m_porfolioSummary.addTotalPL(inc); // update portfolio P&L
                 m_porfolioSummary.addTotalShares(sellShares); // update total trade shares
-
-            } break;
-            }
+            } break; // case
+            } // switch
         } break;
+
         case FIX::ExecType_EXPIRED: { // cancellation report
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
@@ -339,7 +339,6 @@ void RiskManagement::processExecRpt()
             const int cancelShares = reportPtr->shareSize * 100;
 
             if (reportPtr->orderType == QOT::CANCEL_BID) {
-
                 // pending transaction price is returned
                 m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * cancelShares);
 
@@ -348,9 +347,7 @@ void RiskManagement::processExecRpt()
                 if (m_pendingBidOrders[reportPtr->orderID].getShareSize() == 0) { // if pending transaction is completely cancelled
                     m_pendingBidOrders.erase(reportPtr->orderID); // it can be deleted
                 }
-
             } else if (reportPtr->orderType == QOT::CANCEL_ASK) {
-
                 const int shortShares = m_pendingAskOrders[reportPtr->orderID].first.getShareSize() * 100 - m_pendingAskOrders[reportPtr->orderID].second;
 
                 if (cancelShares < shortShares) {
@@ -368,7 +365,7 @@ void RiskManagement::processExecRpt()
                 }
             }
         } break;
-        }
+        } // switch
 
         bool wasPortfolioSent = false; // to postpone DB writes until lock guards are released
         {
@@ -418,7 +415,7 @@ void RiskManagement::processExecRpt()
 
         reportPtr = nullptr;
         m_execRptBuffer.pop();
-    }
+    } // while
 }
 
 bool RiskManagement::verifyAndSendQuote(const Quote& quote)
@@ -470,13 +467,11 @@ bool RiskManagement::verifyAndSendQuote(const Quote& quote)
         int shortShares = quote.getShareSize() * 100 - availableShares; // this is the amount of shares that need to be shorted
 
         if (shortShares <= 0) { // no short positions are necessary
-
             m_pendingShortUnitAmount[quote.getSymbol()] += quote.getShareSize() * 100; // reserve all shares of this order
             m_pendingAskOrders[quote.getOrderID()] = std::make_pair(quote, quote.getShareSize() * 100); // store the pending transaction along with reserved shares
             m_pendingAskOrders[quote.getOrderID()].first.setPrice(price);
 
             success = true;
-
         } else if ((m_porfolioSummary.getBorrowedBalance() < usableBuyingPower) && (price * shortShares < usableBuyingPower)) {
             // m_porfolioSummary.getBorrowedBalance() < usableBuyingPower means it is still possible to "recover" from all short positions
             // i.e. the user still has enough money to buy everything back
