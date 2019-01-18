@@ -130,26 +130,21 @@ double BCDocuments::getStockOrderBookMarketFirstPrice(bool isBuy, const std::str
     std::lock_guard<std::mutex> guard(m_mtxStockBySymbol);
 
     auto pos = m_stockBySymbol.find(symbol);
-    if (m_stockBySymbol.end() == pos) {
+    if (m_stockBySymbol.end() == pos)
         return 0.0;
-    } else {
-        if (isBuy) {
-            global_price = pos->second->getGlobalBidOrderbookFirstPrice();
-            local_price = pos->second->getLocalBidOrderbookFirstPrice();
 
-            if (global_price > local_price)
-                return global_price;
-            else
-                return local_price;
-        } else { // Sell
-            global_price = pos->second->getGlobalAskOrderbookFirstPrice();
-            local_price = pos->second->getLocalAskOrderbookFirstPrice();
+    if (isBuy) {
+        global_price = pos->second->getGlobalBidOrderbookFirstPrice();
+        local_price = pos->second->getLocalBidOrderbookFirstPrice();
 
-            if ((global_price && global_price < local_price) || (local_price == 0.0))
-                return global_price;
-            else
-                return local_price;
-        }
+        return std::max(global_price, local_price);
+    } else { // Sell
+        global_price = pos->second->getGlobalAskOrderbookFirstPrice();
+        local_price = pos->second->getLocalAskOrderbookFirstPrice();
+
+        if ((global_price && global_price < local_price) || (local_price == 0.0))
+            return global_price;
+        return local_price;
     }
 }
 

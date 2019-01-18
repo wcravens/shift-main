@@ -748,7 +748,7 @@ void FIXAcceptor::sendSymbols(const std::string& targetID, const std::unordered_
 
     message.setField(FIX::SecurityResponseID(shift::crossguid::newGuid().str()));
 
-    // make acscending ordered stock symbols
+    // make ascending ordered stock symbols
     std::vector<std::string> ascStocks(symbols.begin(), symbols.end());
     std::sort(ascStocks.begin(), ascStocks.end());
 
