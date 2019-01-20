@@ -279,6 +279,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pUserName2 = &userName2;
             pDestination = &destination;
         } else {
+            // note: important precondition of the correctness of the following code is: std::operator new() is thread-safe.
             pSymbol = new decltype(symbol);
             pOrderID1 = new decltype(orderID1);
             pOrderType1 = new decltype(orderType1);
