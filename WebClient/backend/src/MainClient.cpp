@@ -69,7 +69,7 @@ void MainClient::sendOrderBookToFront()
             std::string res = "";
             for (const auto& entry : orderBook) {
                 FIX::EffectiveTime tmp = FIX::EffectiveTime(entry.getUtcTime(), 6);
-                cout << "Test Use: " << tmp.getString() << endl;
+                // cout << "Test Use: " << tmp.getString() << endl;
                 std::ostringstream out;
                 out << "{ "
                     << "\"symbol\": "
