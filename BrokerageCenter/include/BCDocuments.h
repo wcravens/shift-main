@@ -12,8 +12,7 @@
 #include <string>
 #include <unordered_map>
 
-const std::string STDSTR_NULL = "NULL"; // for returning-by-const-reference uses!
-constexpr const char* CSTR_NULL = "NULL"; // for returning-by-value or comparison uses!
+const std::string STDSTR_NULL = "NULL";
 
 std::string toUpper(const std::string&);
 
@@ -63,9 +62,9 @@ public:
     void addReportToUserRiskManagement(const std::string& userName, const Report& report);
 
     std::unordered_map<std::string, std::string> getUserList(); // UserName, Target Computer ID
-    std::string getTargetID(const std::string& userName);
     void registerUserInDoc(const std::string& targetID, const std::string& userName); // for connection
     void unregisterUserInDoc(const std::string& userName); // for connection
+    void registerWebUserInDoc(const std::string& targetID, const std::string& userName);
 
     void addOrderbookSymbolToUser(const std::string& userName, const std::string& symbol);
     void addCandleSymbolToUser(const std::string& userName, const std::string& symbol);

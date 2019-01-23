@@ -37,7 +37,6 @@ void SHIFTServiceHandler::webUserLogin(const std::string& username)
 
     try {
         shift::FIXInitiator::getInstance().getClient(username);
-        shift::FIXInitiator::getInstance().webClientSendUsername(username);
     } catch (...) {
         shift::CoreClient* ccptr = new UserClient(username);
         shift::FIXInitiator::getInstance().attach(ccptr);

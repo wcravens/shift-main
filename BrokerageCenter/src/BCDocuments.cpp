@@ -204,17 +204,6 @@ std::unordered_map<std::string, std::string> BCDocuments::getUserList()
     return m_mapName2TarID;
 }
 
-std::string BCDocuments::getTargetID(const std::string& userName)
-{
-    std::lock_guard<std::mutex> guard(m_mtxName2TarID);
-
-    auto pos = m_mapName2TarID.find(userName);
-    if (m_mapName2TarID.end() != pos)
-        return pos->second;
-
-    return CSTR_NULL;
-}
-
 void BCDocuments::registerUserInDoc(const std::string& targetID, const std::string& userName)
 {
     std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
@@ -236,6 +225,14 @@ void BCDocuments::unregisterUserInDoc(const std::string& userName)
 
         m_mapName2TarID.erase(posN2ID);
     }
+}
+
+void BCDocuments::registerWebUserInDoc(const std::string& targetID, const std::string& userName)
+{
+    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name); // this is also needed to avoid potential deadlocks
+    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
+
+    m_mapName2TarID[userName] = targetID;
 }
 
 std::string BCDocuments::getTargetIDByUserName(const std::string& userName)

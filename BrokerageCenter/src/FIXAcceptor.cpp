@@ -183,7 +183,7 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& userName, const std::s
 void FIXAcceptor::sendQuoteHistory(const std::string& userName, const std::unordered_map<std::string, Quote>& quotes)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == targetID) {
         cout << "sendQuoteHistory(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -224,7 +224,7 @@ void FIXAcceptor::sendQuoteHistory(const std::string& userName, const std::unord
 void FIXAcceptor::sendOrderbookUpdate(const std::string& userName, const OrderBookEntry& update)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == targetID) {
         cout << "sendOrderbookUpdate(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -286,7 +286,7 @@ void FIXAcceptor::sendNewBook2all(const std::unordered_set<std::string>& userLis
 void FIXAcceptor::sendConfirmationReport(const Report& report)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(report.userName);
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == targetID) {
         cout << "sendConfirmationReport(): ";
         cout << report.userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -343,7 +343,7 @@ static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::Market
 void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == targetID) {
         cout << "sendOrderBook(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -382,7 +382,7 @@ void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<doub
 void FIXAcceptor::sendTempCandlestickData(const std::string& userName, const TempCandlestickData& tmpCandle)
 { //for candlestick data
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == targetID) {
         cout << "sendTempCandlestickData(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -416,7 +416,7 @@ void FIXAcceptor::sendTempCandlestickData(const std::string& userName, const Tem
 void FIXAcceptor::sendLatestStockPrice(const std::string& userName, const Transaction& transac)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == targetID) {
         cout << "sendLatestStockPrice(): ";
         cout << userName << " does not exist: Target computer ID not identified!" << endl;
         return;
@@ -498,9 +498,9 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     auto& targetID = sessionID.getTargetCompID();
     const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(targetID); // TODO
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == userName) {
         cout << "onLogon(): ";
-        cout << userName << " does not exist: Target computer ID not identified!" << endl;
+        cout << targetID << " does not have an associated admin!" << endl;
         return;
     }
 
@@ -518,19 +518,19 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
         return;
 
     const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(targetID);
-    if (CSTR_NULL == targetID) {
-        cout << "onLogout(): ";
-        cout << userName << " does not exist: Target computer ID not identified!" << endl;
+    if (::STDSTR_NULL == userName) {
+        cout << "onLogon(): ";
+        cout << targetID << " does not have an associated admin!" << endl;
         return;
     }
     cout << COLOR_WARNING "[User] " NO_COLOR << userName << endl;
     // TODO: Issue #3
     BCDocuments::getInstance()->removeUserFromCandles(userName);
-    // cout << "DEBUG MUTEX: removeUserFromCandles" << endl;
-    BCDocuments::getInstance()->unregisterUserInDoc(userName);
-    // cout << "DEBUG MUTEX: unregisterUserInDoc" << endl;
+    cout << "DEBUG MUTEX: removeUserFromCandles" << endl;
     BCDocuments::getInstance()->removeUserFromStocks(userName);
-    // cout << "DEBUG MUTEX: removeUserFromStocks" << endl;
+    cout << "DEBUG MUTEX: removeUserFromStocks" << endl;
+    BCDocuments::getInstance()->unregisterUserInDoc(userName);
+    cout << "DEBUG MUTEX: unregisterUserInDoc" << endl;
     cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
          << endl;
 }
@@ -658,7 +658,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     if (userName.getLength() == 0) {
         cout << "userName is empty" << endl;
         return;
-    } else if (CSTR_NULL == BCDocuments::getInstance()->getTargetID(userName)) {
+    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUserName(userName)) {
         cout << COLOR_ERROR "This userName is not register in the Brokerage Center" NO_COLOR << endl;
         return;
     }
@@ -728,7 +728,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
 {
     FIX::Username userName; // WebClient userName
     message.get(userName);
-    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID(), userName);
+    BCDocuments::getInstance()->registerWebUserInDoc(sessionID.getTargetCompID(), userName);
     BCDocuments::getInstance()->sendHistoryToUser(userName.getString());
     cout << COLOR_PROMPT "Web user [ " NO_COLOR << userName << COLOR_PROMPT " ] was registered.\n" NO_COLOR << endl;
 }

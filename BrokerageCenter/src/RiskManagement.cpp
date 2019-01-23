@@ -72,7 +72,7 @@ void RiskManagement::enqueueExecRpt(const Report& report)
 /*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == targetID) {
         std::cout << " Don't exist: " << userName << std::endl;
         return;
     }
@@ -83,7 +83,7 @@ void RiskManagement::enqueueExecRpt(const Report& report)
 /*static*/ inline void RiskManagement::s_sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (CSTR_NULL == targetID) {
+    if (::STDSTR_NULL == targetID) {
         std::cout << " Don't exist: " << userName << std::endl;
         return;
     }
