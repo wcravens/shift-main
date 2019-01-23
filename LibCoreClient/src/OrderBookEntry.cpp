@@ -6,7 +6,6 @@
 shift::OrderBookEntry::OrderBookEntry()
     : m_price(0.0)
     , m_size(0)
-    , m_time(0.0)
     , m_destination("")
 {
 }
@@ -18,11 +17,11 @@ shift::OrderBookEntry::OrderBookEntry()
  * @param destination string value for m_destination
  * @param time double value for m_time
  */
-shift::OrderBookEntry::OrderBookEntry(double price, int size, double time, const std::string& destination)
+shift::OrderBookEntry::OrderBookEntry(double price, int size, const std::string& destination, FIX::UtcTimeStamp utctime)
     : m_price(price)
     , m_size(size)
-    , m_time(time)
     , m_destination(destination)
+    , m_utctime(utctime)
 {
 }
 
@@ -48,9 +47,18 @@ int shift::OrderBookEntry::getSize() const
  * @brief Getter to get the execution time of current OrderBookEntry.
  * @return Time of the current OrderBookEntry as a double.
  */
-double shift::OrderBookEntry::getTime() const
+const FIX::UtcTimeStamp shift::OrderBookEntry::getUtcTime() const
 {
-    return m_time;
+    return m_utctime;
+}
+
+/**
+ * @brief Setter to set order time into m_time.
+ * @param time as double (timestamp)
+ */
+void shift::OrderBookEntry::setUtcTime(FIX::UtcTimeStamp utctime)
+{
+    m_utctime = utctime;
 }
 
 /**
@@ -78,15 +86,6 @@ void shift::OrderBookEntry::setPrice(double price)
 void shift::OrderBookEntry::setSize(int size)
 {
     m_size = size;
-}
-
-/**
- * @brief Setter to set order time into m_time.
- * @param time as double (timestamp)
- */
-void shift::OrderBookEntry::setTime(double time)
-{
-    m_time = time;
 }
 
 /**

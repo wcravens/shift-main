@@ -16,28 +16,28 @@ Newbook::Newbook() {}
  * @brief   Constructor for the Newbook class.
  * @param   book, symbol, price, size, time
  */
-Newbook::Newbook(char _book, std::string _symbol, double _price, int _size, double _time)
+Newbook::Newbook(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp& _utctime)
 {
     book = _book;
     symbol = _symbol;
     price = _price;
     size = _size;
-    time = _time;
     destination = "Server";
+    utctime = _utctime;
 }
 
 /**
  * @brief   Constructor for the Newbook class.
  * @param   book, symbol, price, size, time, destination
  */
-Newbook::Newbook(char _book, std::string _symbol, double _price, int _size, double _time, std::string _destination)
+Newbook::Newbook(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp& _utctime)
 {
     book = _book;
     symbol = _symbol;
     price = _price;
     size = _size;
-    time = _time;
     destination = _destination;
+    utctime = _utctime;
 }
 
 /**
@@ -50,8 +50,8 @@ Newbook::Newbook(const Newbook& newbook)
     symbol = newbook.symbol;
     price = newbook.price;
     size = newbook.size;
-    time = newbook.time;
     destination = newbook.destination;
+    utctime = newbook.utctime;
 }
 
 /**
@@ -96,8 +96,8 @@ void Newbook::copy(const Newbook& newbook)
     symbol = newbook.symbol;
     price = newbook.price;
     size = newbook.size;
-    time = newbook.time;
     destination = newbook.destination;
+    utctime = newbook.utctime;
 }
 
 /**
@@ -122,7 +122,7 @@ int Newbook::getsize() { return size; }
  * @brief   Getter function for the field of time.
  * @return  The time of the current order book object.
  */
-double Newbook::gettime() { return time; }
+FIX::UtcTimeStamp Newbook::getutctime() { return utctime; }
 
 /**
  * @brief   Getter function for the field of book.

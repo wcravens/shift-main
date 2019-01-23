@@ -102,7 +102,7 @@ function installServer
     fi
 
     # build & install
-    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX}
+    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX}
     if ( ! cmake --build ${1}/build --target install -- -j${CORE_NUM} )
     then
         echo
@@ -138,11 +138,14 @@ function uninstallServer
     fi
 
     # remove installation
-    [ -f /usr/local/bin/${1} ] && rm /usr/local/bin/${1}
-    [ -d /usr/local/share/shift/${1} ] && rm -r /usr/local/share/shift/${1}
+    [ -f ${INSTALL_PREFIX}/bin/${1} ] && rm ${INSTALL_PREFIX}/bin/${1}
+    [ -d ${INSTALL_PREFIX}/share/shift/${1} ] && rm -r ${INSTALL_PREFIX}/share/shift/${1}
 
-    # if the last SHIFT module is being uninstalled, delete SHIFT configuration folder
-    [ -d /usr/local/share/shift ] && [ -z "$(ls -A /usr/local/share/shift)" ] && rm -r /usr/local/share/shift
+    # if the last SHIFT module is being uninstalled, delete SHIFT folders
+    [ -d ${INSTALL_PREFIX}/bin ] && [ -z "$(ls -A ${INSTALL_PREFIX}/bin)" ] && rm -r ${INSTALL_PREFIX}/bin
+    [ -d ${INSTALL_PREFIX}/share/shift ] && [ -z "$(ls -A ${INSTALL_PREFIX}/share/shift)" ] && rm -r ${INSTALL_PREFIX}/share/shift
+    [ -d ${INSTALL_PREFIX}/share ] && [ -z "$(ls -A ${INSTALL_PREFIX}/share)" ] && rm -r ${INSTALL_PREFIX}/share
+    [ -d ${INSTALL_PREFIX} ] && [ -z "$(ls -A ${INSTALL_PREFIX})" ] && rm -r ${INSTALL_PREFIX}
 
     echo -e ${COLOR}
     echo "${1} was uninstalled from ${INSTALL_PREFIX}"
@@ -174,7 +177,7 @@ function installLibrary
     fi
 
     # build & install debug version of the library
-    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX}
+    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX}
     if ( ! cmake --build ${1}/build --target install -- -j${CORE_NUM} )
     then
         echo
@@ -184,7 +187,7 @@ function installLibrary
     fi
 
     # build & install release version of the library
-    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX}
+    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX}
     if ( ! cmake --build ${1}/build --target install -- -j${CORE_NUM} )
     then
         echo
@@ -246,14 +249,18 @@ function uninstallLibrary
     # remove include directory
     [ -d ${INSTALL_PREFIX}/include/shift/${LIB_NAME} ] && rm -r ${INSTALL_PREFIX}/include/shift/${LIB_NAME}
 
-    # if the last SHIFT library is being uninstalled, delete SHIFT include folder
-    [ -d /usr/local/include/shift ] && [ -z "$(ls -A /usr/local/include/shift)" ] && rm -r /usr/local/include/shift
-
-    # remove pkg-congif script
+    # remove pkg-config script
     # debug package
     [ -f ${INSTALL_PREFIX}/lib/pkgconfig/libshift_${LIB_NAME}.pc ] && rm ${INSTALL_PREFIX}/lib/pkgconfig/libshift_${LIB_NAME}.pc
     # release package
     [ -f ${INSTALL_PREFIX}/lib/pkgconfig/libshift_${LIB_NAME}-d.pc ] && rm ${INSTALL_PREFIX}/lib/pkgconfig/libshift_${LIB_NAME}-d.pc
+
+    # if the last SHIFT library is being uninstalled, delete SHIFT folders
+    [ -d ${INSTALL_PREFIX}/lib/pkgconfig ] && [ -z "$(ls -A ${INSTALL_PREFIX}/lib/pkgconfig)" ] && rm -r ${INSTALL_PREFIX}/lib/pkgconfig
+    [ -d ${INSTALL_PREFIX}/lib ] && [ -z "$(ls -A ${INSTALL_PREFIX}/lib)" ] && rm -r ${INSTALL_PREFIX}/lib
+    [ -d ${INSTALL_PREFIX}/include/shift ] && [ -z "$(ls -A ${INSTALL_PREFIX}/include/shift)" ] && rm -r ${INSTALL_PREFIX}/include/shift
+    [ -d ${INSTALL_PREFIX}/include ] && [ -z "$(ls -A ${INSTALL_PREFIX}/include)" ] && rm -r ${INSTALL_PREFIX}/include
+    [ -d ${INSTALL_PREFIX} ] && [ -z "$(ls -A ${INSTALL_PREFIX})" ] && rm -r ${INSTALL_PREFIX}
 
     echo -e ${COLOR}
     echo "${1} was uninstalled from ${INSTALL_PREFIX}"
@@ -423,3 +430,4 @@ else
         esac
     done
 fi
+

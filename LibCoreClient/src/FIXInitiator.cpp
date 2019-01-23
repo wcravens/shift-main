@@ -645,7 +645,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     FIX::MDEntryType type;
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
-    FIX::Text time;
+    FIX::ExpireTime utctime;
 
     FIX::NoPartyIDs numOfParty;
     FIX::PartyID destination;
@@ -661,7 +661,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         entryGroup.getField(type);
         entryGroup.getField(price);
         entryGroup.getField(size);
-        entryGroup.getField(time);
+        entryGroup.getField(utctime);
 
         entryGroup.getField(numOfParty);
         if (!numOfParty) {
@@ -672,7 +672,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         entryGroup.getGroup(1, partyGroup);
         partyGroup.getField(destination);
 
-        orderBook.push_back({ (double)price, (int)size, std::stod(time), destination });
+        orderBook.push_back({ (double)price, (int)size, destination, utctime.getValue() });
     }
 
     try {
@@ -768,18 +768,18 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     FIX::Symbol symbol;
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
-    FIX::Text time;
     FIX::PartyID destination;
+    FIX::ExpireTime utctime;
 
     entryGroup.get(type);
     entryGroup.get(symbol);
     entryGroup.get(price);
     entryGroup.get(size);
-    entryGroup.get(time);
+    entryGroup.get(utctime);
     partyGroup.get(destination);
 
     symbol = m_originalName_symbol[symbol];
-    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, std::stod(time), destination });
+    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, utctime.getValue() });
 }
 
 /**

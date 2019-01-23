@@ -244,7 +244,7 @@ void FIXAcceptor::sendOrderbookUpdate(const std::string& userName, const OrderBo
     entryGroup.setField(FIX::Symbol(update.getSymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));
-    entryGroup.setField(FIX::Text(std::to_string(update.getTime())));
+    entryGroup.setField(FIX::ExpireTime(update.getUtcTime(), 6));
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
     partyGroup.setField(::FIXFIELD_EXECBROKER);
@@ -327,7 +327,7 @@ static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::Market
     entryGroup.setField(FIX::MDEntryType((char)odrBk.getType()));
     entryGroup.setField(FIX::MDEntryPx(odrBk.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(odrBk.getSize()));
-    entryGroup.setField(FIX::Text(std::to_string(odrBk.getTime())));
+    entryGroup.setField(FIX::ExpireTime(odrBk.getUtcTime(), 6));
 
     FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
     partyGroup.setField(FIXFIELD_EXECBROKER);

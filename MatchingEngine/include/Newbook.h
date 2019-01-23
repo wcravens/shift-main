@@ -3,14 +3,16 @@
 #include <list>
 #include <string>
 
+#include <quickfix/FieldTypes.h>
+
 /**
  * @brief   Class to dealing with everything about new OrderBook.
  */
 class Newbook {
 public:
     Newbook();
-    Newbook(char _book, std::string _symbol, double _price, int _size, double _time);
-    Newbook(char _book, std::string _symbol, double _price, int _size, double _time, std::string _destination);
+    Newbook(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp& _utctime);
+    Newbook(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp& _utctime);
     Newbook(const Newbook& newbook);
     void store();
     bool empty();
@@ -19,7 +21,7 @@ public:
     std::string getsymbol();
     double getprice();
     int getsize();
-    double gettime();
+    FIX::UtcTimeStamp getutctime();
     char getbook();
     std::string getdestination();
     virtual ~Newbook();
@@ -31,6 +33,6 @@ private:
     std::string symbol;
     double price;
     int size;
-    double time;
     std::string destination;
+    FIX::UtcTimeStamp utctime;
 };
