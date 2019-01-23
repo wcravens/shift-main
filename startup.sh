@@ -411,7 +411,7 @@ then
                 startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]}
                 ;;
             4_WC )
-                startVerboseCapableService "WebClient" ${LOADING_TIME[4]}
+                startService "WebClient" ${LOADING_TIME[4]}
                 ;;
             5_PS )
                 startPushServer ${LOADING_TIME[5]}
