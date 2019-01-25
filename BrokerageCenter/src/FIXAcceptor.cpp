@@ -514,8 +514,6 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 {
     auto& targetID = sessionID.getTargetCompID();
     cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
-    if (::toUpper(targetID) == "WEBCLIENTID")
-        return;
 
     const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(targetID);
     if (::STDSTR_NULL == userName) {
@@ -525,10 +523,10 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
     }
     cout << COLOR_WARNING "[User] " NO_COLOR << userName << endl;
     // TODO: Issue #3
-    BCDocuments::getInstance()->removeUserFromCandles(userName);
-    cout << "DEBUG MUTEX: removeUserFromCandles" << endl;
-    BCDocuments::getInstance()->removeUserFromStocks(userName);
-    cout << "DEBUG MUTEX: removeUserFromStocks" << endl;
+    // BCDocuments::getInstance()->removeUserFromCandles(userName);
+    // cout << "DEBUG MUTEX: removeUserFromCandles" << endl;
+    // BCDocuments::getInstance()->removeUserFromStocks(userName);
+    // cout << "DEBUG MUTEX: removeUserFromStocks" << endl;
     BCDocuments::getInstance()->unregisterUserInDoc(userName);
     cout << "DEBUG MUTEX: unregisterUserInDoc" << endl;
     cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
