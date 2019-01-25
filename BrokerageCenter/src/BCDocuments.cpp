@@ -198,10 +198,10 @@ int BCDocuments::sendHistoryToUser(const std::string& userName)
     return res;
 }
 
-std::unordered_map<std::string, std::string> BCDocuments::getUserList()
+std::unordered_map<std::string, std::string> BCDocuments::getConnectedTargetIDsMap()
 {
-    std::lock_guard<std::mutex> guard(m_mtxName2TarID);
-    return m_mapName2TarID;
+    std::lock_guard<std::mutex> guard(m_mtxTarID2Name);
+    return m_mapTarID2Name;
 }
 
 void BCDocuments::registerUserInDoc(const std::string& targetID, const std::string& userName)

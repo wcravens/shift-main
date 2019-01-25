@@ -423,25 +423,15 @@ void FIXAcceptor::sendTempCandlestickData(const std::string& userName, const Tem
 /**
  * @brief Send the latest stock price to LC
  *
- * @param userName as a string that converted to ClientID
- *
- * @param transac as a Transaction object to provide latest price
+ * @param transac as a Transaction object to provide last price
  */
-void FIXAcceptor::sendLatestStockPrice(const std::string& userName, const Transaction& transac)
+void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
 {
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (::STDSTR_NULL == targetID) {
-        cout << "sendLatestStockPrice(): ";
-        cout << userName << " does not exist: Target computer ID not identified!" << endl;
-        return;
-    }
-
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
 
     message.setField(FIX::OrderID(transac.orderID));
@@ -467,13 +457,9 @@ void FIXAcceptor::sendLatestStockPrice(const std::string& userName, const Transa
     brokerGroup.setField(FIX::PartyID(transac.destination));
     message.addGroup(brokerGroup);
 
-    FIX::Session::sendToTarget(message);
-}
-
-void FIXAcceptor::sendLatestStockPrice2All(const Transaction& transac)
-{
-    for (const auto& i : BCDocuments::getInstance()->getUserList()) {
-        sendLatestStockPrice(i.first, transac);
+    for (const auto& kv : BCDocuments::getInstance()->getConnectedTargetIDsMap()) {
+        header.setField(FIX::TargetCompID(kv.first));
+        FIX::Session::sendToTarget(message);
     }
 }
 

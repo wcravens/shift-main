@@ -64,8 +64,7 @@ public:
     void sendConfirmationReport(const Report& report); // send quote conformation report
     void sendOrderBook(const std::string& userName, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
     void sendTempCandlestickData(const std::string& userName, const TempCandlestickData& tmpCandle); // for candlestick data
-    void sendLatestStockPrice(const std::string& userName, const Transaction& transac);
-    void sendLatestStockPrice2All(const Transaction& transac);
+    void sendLastPrice2All(const Transaction& transac);
 
     bool subscribeOrderBook(const std::string& userName, const std::string& symbol);
     bool unsubscribeOrderBook(const std::string& userName, const std::string& symbol);

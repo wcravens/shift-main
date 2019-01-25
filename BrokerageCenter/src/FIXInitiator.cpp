@@ -388,7 +388,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 BCDocuments::getInstance()->addCandleToSymbol(*pSymbol, transac);
             }
 
-            FIXAcceptor::getInstance()->sendLatestStockPrice2All(transac);
+            FIXAcceptor::getInstance()->sendLastPrice2All(transac);
         } break;
         case FIX::ExecType_EXPIRED: { // CANCEL
             Report report2{

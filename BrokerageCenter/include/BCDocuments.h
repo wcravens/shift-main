@@ -11,6 +11,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 const std::string STDSTR_NULL = "NULL";
 
@@ -20,7 +21,7 @@ std::string toUpper(const std::string&);
 Some terminologies:
 
 (1) "Target" or "Target Computer ID": Identifies a certain physical(FIX) connection between the BC and a remote device.
-(2) "User", "User Name", "Name" or "Client": Identifies a certain trading user(or, "client") that remote interact with the BC.
+(2) "User", "UserName", "Name" or "Client": Identifies a certain trading user(or, "client") that remote interact with the BC.
 (3) One (1) can consist of multiple (2)s; one (2) can interact(e.g. login) through various (1)s, but each (1) will maintain that respectively.
 */
 class BCDocuments {
@@ -28,16 +29,16 @@ class BCDocuments {
     mutable std::mutex m_mtxStockBySymbol;
     mutable std::mutex m_mtxCandleBySymbol;
     mutable std::mutex m_mtxSymbols;
-    mutable std::mutex m_mtxTarID2Name; // the mutex for map from Target Computer ID to User Name
-    mutable std::mutex m_mtxName2TarID; // the mutex for map from User Name to Target Computer ID
+    mutable std::mutex m_mtxTarID2Name; // the mutex for map from Target Computer ID to UserName
+    mutable std::mutex m_mtxName2TarID; // the mutex for map from UserName to Target Computer ID
     mutable std::mutex m_mtxOrderbookSymbolsByName;
     mutable std::mutex m_mtxCandleSymbolsByName;
     mutable std::mutex m_mtxRiskManagementByName;
 
     std::unordered_set<std::string> m_symbols;
 
-    std::unordered_map<std::string, std::string> m_mapTarID2Name; // map from Target Computer ID to User Name
-    std::unordered_map<std::string, std::string> m_mapName2TarID; // map from User Name to Target Computer ID
+    std::unordered_map<std::string, std::string> m_mapTarID2Name; // map from Target Computer ID to UserName
+    std::unordered_map<std::string, std::string> m_mapName2TarID; // map from UserName to Target Computer ID
 
     std::unordered_map<std::string, std::unique_ptr<Stock>> m_stockBySymbol; // symbol, Stock; contains 4 types of orderbook for each stock
     std::unordered_map<std::string, std::unique_ptr<CandlestickData>> m_candleBySymbol; // symbol, StockSummery; contains current price and candle data history for each stock
@@ -61,10 +62,10 @@ public:
     void addQuoteToUserRiskManagement(const std::string& userName, const Quote& quote);
     void addReportToUserRiskManagement(const std::string& userName, const Report& report);
 
-    std::unordered_map<std::string, std::string> getUserList(); // UserName, Target Computer ID
     void registerUserInDoc(const std::string& targetID, const std::string& userName); // for connection
     void unregisterUserInDoc(const std::string& userName); // for connection
-    void registerWebUserInDoc(const std::string& targetID, const std::string& userName);
+    void registerWebUserInDoc(const std::string& targetID, const std::string& userName); // for connection
+    std::unordered_map<std::string, std::string> getConnectedTargetIDsMap(); // Target Computer ID, UserName
 
     void addOrderbookSymbolToUser(const std::string& userName, const std::string& symbol);
     void addCandleSymbolToUser(const std::string& userName, const std::string& symbol);
@@ -75,7 +76,7 @@ public:
     void addTransacToUser(const Transaction& t, const std::string& userName);
     void addSymbol(const std::string& symbol);
     bool hasSymbol(const std::string& symbol) const;
-    std::unordered_set<std::string> getSymbols(); // stock list
+    std::unordered_set<std::string> getSymbols(); // symbols list
 
     std::string getTargetIDByUserName(const std::string& userName);
     std::string getUserNameByTargetID(const std::string& targetID);
