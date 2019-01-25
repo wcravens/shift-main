@@ -231,68 +231,6 @@ void FIXAcceptor::sendQuoteHistory(const std::string& userName, const std::unord
 }
 
 /**
- * @brief   Send order book update to one client
- * @param   userName as a string to provide the name of client user
- * @param   update as an OrderBook object to provide price and others
- */
-void FIXAcceptor::sendOrderbookUpdate(const std::string& userName, const OrderBookEntry& update)
-{
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (::STDSTR_NULL == targetID) {
-        cout << "sendOrderbookUpdate(): ";
-        cout << userName << " does not exist: Target computer ID not identified!" << endl;
-        return;
-    }
-
-    FIX::Message message;
-    FIX::Header& header = message.getHeader();
-
-    header.setField(::FIXFIELD_BEGSTR);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
-
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    entryGroup.setField(::FIXFIELD_MDUPDATE_CHANGE); // Required by FIX
-    entryGroup.setField(FIX::MDEntryType(char(update.getType())));
-    entryGroup.setField(FIX::Symbol(update.getSymbol()));
-    entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
-    entryGroup.setField(FIX::MDEntrySize(update.getSize()));
-    entryGroup.setField(FIX::ExpireTime(update.getUtcTime(), 6));
-
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
-    partyGroup.setField(::FIXFIELD_EXECBROKER);
-    partyGroup.setField(FIX::PartyID(update.getDestination()));
-    entryGroup.addGroup(partyGroup);
-
-    message.addGroup(entryGroup);
-
-    FIX::Session::sendToTarget(message);
-}
-
-/**
- * @brief   Send order book update to all clients
- * @param   userList as a list to provide the name of clients
- * @param   update as an OrderBook object to provide price and others
- */
-void FIXAcceptor::sendOrderbookUpdate2All(const std::unordered_set<std::string>& userList, const OrderBookEntry& update)
-{
-    for (const auto& userName : userList) {
-        sendOrderbookUpdate(userName, update);
-    }
-}
-
-/**
- * @brief Send order book update to all clients
- */
-void FIXAcceptor::sendNewBook2all(const std::unordered_set<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
-{
-    for (const auto& userName : userList) {
-        sendOrderBook(userName, orderBookName);
-    }
-}
-
-/**
  * @brief Sending the order confirmation to the client,
  * because report.status usual set to 1,
  * Then the client will notify it is a confirmation
@@ -336,90 +274,6 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     FIX::Session::sendToTarget(message);
 }
 
-static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& odrBk)
-{
-    entryGroup.setField(FIX::MDEntryType((char)odrBk.getType()));
-    entryGroup.setField(FIX::MDEntryPx(odrBk.getPrice()));
-    entryGroup.setField(FIX::MDEntrySize(odrBk.getSize()));
-    entryGroup.setField(FIX::ExpireTime(odrBk.getUtcTime(), 6));
-
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
-    partyGroup.setField(FIXFIELD_EXECBROKER);
-    partyGroup.setField(FIX::PartyID(odrBk.getDestination()));
-    entryGroup.addGroup(partyGroup);
-
-    message.addGroup(entryGroup);
-}
-
-/**
- * @brief Send complete order book by type
- */
-void FIXAcceptor::sendOrderBook(const std::string& userName, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
-{
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (::STDSTR_NULL == targetID) {
-        cout << "sendOrderBook(): ";
-        cout << userName << " does not exist: Target computer ID not identified!" << endl;
-        return;
-    }
-
-    FIX::Message message;
-    FIX::Header& header = message.getHeader();
-
-    header.setField(::FIXFIELD_BEGSTR);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
-
-    message.setField(FIX::Symbol(orderBookName.begin()->second.begin()->second.getSymbol()));
-
-    using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
-
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
-    const auto obt = orderBookName.begin()->second.begin()->second.getType();
-
-    if (obt == OBT::GLB_BID || obt == OBT::LOC_BID) { //reverse the Bid/bid orderbook order
-        for (auto ri = orderBookName.crbegin(); ri != orderBookName.crend(); ++ri) {
-            for (const auto& j : ri->second)
-                ::s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
-        }
-    } else { // *_ASK
-        for (const auto& i : orderBookName) {
-            for (const auto& j : i.second)
-                ::s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
-        }
-    }
-
-    FIX::Session::sendToTarget(message);
-}
-
-void FIXAcceptor::sendTempCandlestickData(const std::string& userName, const TempCandlestickData& tmpCandle)
-{ //for candlestick data
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (::STDSTR_NULL == targetID) {
-        cout << "sendTempCandlestickData(): ";
-        cout << userName << " does not exist: Target computer ID not identified!" << endl;
-        return;
-    }
-
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
-
-    message.setField(FIX::Symbol(tmpCandle.getSymbol()));
-    message.setField(FIX::Text(std::to_string(tmpCandle.getTempTimeFrom()))); // no need for timestamp
-    message.setField(FIX::StrikePrice(tmpCandle.getTempOpenPrice())); // Open price
-    message.setField(FIX::HighPx(tmpCandle.getTempHighPrice())); // High price
-    message.setField(FIX::LowPx(tmpCandle.getTempLowPrice())); // Low price
-    message.setField(FIX::LastPx(tmpCandle.getTempClosePrice())); // Close price
-
-    FIX::Session::sendToTarget(message);
-}
-
 /**
  * @brief Send the latest stock price to LC
  *
@@ -459,6 +313,127 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
 
     for (const auto& kv : BCDocuments::getInstance()->getConnectedTargetIDsMap()) {
         header.setField(FIX::TargetCompID(kv.first));
+        FIX::Session::sendToTarget(message);
+    }
+}
+
+/**
+ * @brief Send complete order book by type
+ */
+void FIXAcceptor::sendOrderBook(const std::unordered_set<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
+{
+    FIX::Message message;
+    FIX::Header& header = message.getHeader();
+
+    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
+
+    message.setField(FIX::Symbol(orderBookName.begin()->second.begin()->second.getSymbol()));
+
+    using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
+
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
+    const auto obt = orderBookName.begin()->second.begin()->second.getType();
+
+    if (obt == OBT::GLB_BID || obt == OBT::LOC_BID) { //reverse the Bid/bid orderbook order
+        for (auto ri = orderBookName.crbegin(); ri != orderBookName.crend(); ++ri) {
+            for (const auto& j : ri->second)
+                s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
+        }
+    } else { // *_ASK
+        for (const auto& i : orderBookName) {
+            for (const auto& j : i.second)
+                s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
+        }
+    }
+
+    for (const auto& userName : userList) {
+        const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
+        if (::STDSTR_NULL == targetID) {
+            continue;
+        }
+        header.setField(FIX::TargetCompID(targetID));
+        FIX::Session::sendToTarget(message);
+    }
+}
+
+/*static*/ inline void FIXAcceptor::s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry)
+{
+    entryGroup.setField(FIX::MDEntryType((char)entry.getType()));
+    entryGroup.setField(FIX::MDEntryPx(entry.getPrice()));
+    entryGroup.setField(FIX::MDEntrySize(entry.getSize()));
+    entryGroup.setField(FIX::ExpireTime(entry.getUtcTime(), 6));
+
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
+    partyGroup.setField(FIXFIELD_EXECBROKER);
+    partyGroup.setField(FIX::PartyID(entry.getDestination()));
+    entryGroup.addGroup(partyGroup);
+
+    message.addGroup(entryGroup);
+}
+
+/**
+ * @brief   Send order book update to one client
+ * @param   userList as a unordered_set to provide the name of clients
+ * @param   update as an OrderBook object to provide price and others
+ */
+void FIXAcceptor::sendOrderBookUpdate(const std::unordered_set<std::string>& userList, const OrderBookEntry& update)
+{
+    FIX::Message message;
+    FIX::Header& header = message.getHeader();
+
+    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
+
+    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
+    entryGroup.setField(::FIXFIELD_MDUPDATE_CHANGE); // Required by FIX
+    entryGroup.setField(FIX::MDEntryType(char(update.getType())));
+    entryGroup.setField(FIX::Symbol(update.getSymbol()));
+    entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
+    entryGroup.setField(FIX::MDEntrySize(update.getSize()));
+    entryGroup.setField(FIX::ExpireTime(update.getUtcTime(), 6));
+
+    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
+    partyGroup.setField(::FIXFIELD_EXECBROKER);
+    partyGroup.setField(FIX::PartyID(update.getDestination()));
+    entryGroup.addGroup(partyGroup);
+
+    message.addGroup(entryGroup);
+
+    for (const auto& userName : userList) {
+        const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
+        if (::STDSTR_NULL == targetID) {
+            continue;
+        }
+        header.setField(FIX::TargetCompID(targetID));
+        FIX::Session::sendToTarget(message);
+    }
+}
+
+void FIXAcceptor::sendCandlestickData(const std::unordered_set<std::string>& userList, const TempCandlestickData& tmpCandle)
+{
+    FIX::Message message;
+
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
+
+    message.setField(FIX::Symbol(tmpCandle.getSymbol()));
+    message.setField(FIX::Text(std::to_string(tmpCandle.getTempTimeFrom()))); // no need for timestamp
+    message.setField(FIX::StrikePrice(tmpCandle.getTempOpenPrice())); // Open price
+    message.setField(FIX::HighPx(tmpCandle.getTempHighPrice())); // High price
+    message.setField(FIX::LowPx(tmpCandle.getTempLowPrice())); // Low price
+    message.setField(FIX::LastPx(tmpCandle.getTempClosePrice())); // Close price
+
+    for (const auto& userName : userList) {
+        const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
+        if (::STDSTR_NULL == targetID) {
+            continue;
+        }
+        header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
 }

@@ -159,7 +159,7 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& record)
         return;
     }
 
-    toWCPtr->sendOrderbookUpdate2All(m_userList, record);
+    toWCPtr->sendOrderBookUpdate(m_userList, record);
 }
 
 /**
@@ -176,13 +176,13 @@ void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
 
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(userName, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook({ userName }, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(userName, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook({ userName }, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(userName, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook({ userName }, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(userName, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook({ userName }, m_odrBkLocalBid);
 }
 
 /**
@@ -202,13 +202,13 @@ void Stock::broadcastWholeOrderBookToAll()
 
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendNewBook2all(m_userList, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook(m_userList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendNewBook2all(m_userList, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook(m_userList, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendNewBook2all(m_userList, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook(m_userList, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendNewBook2all(m_userList, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook(m_userList, m_odrBkLocalBid);
 }
 
 /**

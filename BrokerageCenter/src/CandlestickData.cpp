@@ -184,8 +184,7 @@ void CandlestickData::spawn()
 void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpCandle)
 {
     std::lock_guard<std::mutex> guard(m_mtxCDUserList);
-    for (const auto& userName : m_userList)
-        FIXAcceptor::getInstance()->sendTempCandlestickData(userName, tmpCandle);
+    FIXAcceptor::getInstance()->sendCandlestickData(m_userList, tmpCandle);
 }
 
 void CandlestickData::sendHistory(const std::string userName)
@@ -196,7 +195,7 @@ void CandlestickData::sendHistory(const std::string userName)
         history = m_history;
     }
     for (const auto& i : history) {
-        FIXAcceptor::getInstance()->sendTempCandlestickData(userName, i.second);
+        FIXAcceptor::getInstance()->sendCandlestickData({ userName }, i.second);
     }
 }
 

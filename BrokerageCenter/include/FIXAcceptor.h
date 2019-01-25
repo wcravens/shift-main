@@ -58,13 +58,13 @@ public:
     void sendPortfolioSummary(const std::string& userName, const PortfolioSummary& summary);
     void sendPortfolioItem(const std::string& userName, const PortfolioItem& item);
     void sendQuoteHistory(const std::string& userName, const std::unordered_map<std::string, Quote>& quotes);
-    void sendOrderbookUpdate(const std::string& userName, const OrderBookEntry& update); // send order book update to user
-    void sendOrderbookUpdate2All(const std::unordered_set<std::string>& userList, const OrderBookEntry& newOrderBook);
-    void sendNewBook2all(const std::unordered_set<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
     void sendConfirmationReport(const Report& report); // send quote conformation report
-    void sendOrderBook(const std::string& userName, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
-    void sendTempCandlestickData(const std::string& userName, const TempCandlestickData& tmpCandle); // for candlestick data
+
     void sendLastPrice2All(const Transaction& transac);
+    void sendOrderBook(const std::unordered_set<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
+    static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry);
+    void sendOrderBookUpdate(const std::unordered_set<std::string>& userList, const OrderBookEntry& update); // send order book update to users
+    void sendCandlestickData(const std::unordered_set<std::string>& userList, const TempCandlestickData& tmpCandle); // for candlestick data
 
     bool subscribeOrderBook(const std::string& userName, const std::string& symbol);
     bool unsubscribeOrderBook(const std::string& userName, const std::string& symbol);
