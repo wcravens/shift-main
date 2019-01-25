@@ -58,7 +58,7 @@ static std::atomic<bool> s_isBroadcasting{ true };
 /*
  * @brief   Function to broadcast order books, for broadcast order book thread
  */
-static void s_broadcastOrderBook() // broadcasting the whole orderbook
+static void s_broadcastOrderBook() // broadcasting the whole order book
 {
     while (::s_isBroadcasting) {
         // broadcast the full order book of every stock every 30s (forcing a refresh in the client side)
