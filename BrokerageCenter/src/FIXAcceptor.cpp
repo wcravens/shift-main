@@ -105,44 +105,17 @@ void FIXAcceptor::disconnectClientComputers()
 }
 
 /**
- * @brief Send Portfolio Item to LC
- */
-void FIXAcceptor::sendPortfolioItem(const std::string& userName, const std::string& targetID, const PortfolioItem& item)
-{
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIXFIELD_MSGTY_POSIREPORT);
-
-    message.setField(FIX::PosMaintRptID(shift::crossguid::newGuid().str()));
-    message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
-    message.setField(FIX::Symbol(item.getSymbol()));
-    message.setField(FIX::SecurityType("CS"));
-    message.setField(FIX::SettlPrice(item.getLongPrice()));
-    message.setField(FIX::PriorSettlPrice(item.getShortPrice()));
-    message.setField(FIX::PriceDelta(item.getPL()));
-
-    FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
-    userNameGroup.setField(::FIXFIELD_CLIENTID);
-    userNameGroup.setField(FIX::PartyID(userName));
-    message.addGroup(userNameGroup);
-
-    FIX50SP2::PositionReport::NoPositions qtyGroup;
-    qtyGroup.setField(FIX::LongQty(item.getLongShares()));
-    qtyGroup.setField(FIX::ShortQty(item.getShortShares()));
-    message.addGroup(qtyGroup);
-
-    FIX::Session::sendToTarget(message);
-}
-
-/**
  * @brief Send Portfolio Summary to LC
  */
-void FIXAcceptor::sendPortfolioSummary(const std::string& userName, const std::string& targetID, const PortfolioSummary& summary)
+void FIXAcceptor::sendPortfolioSummary(const std::string& userName, const PortfolioSummary& summary)
 {
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
+    if (::STDSTR_NULL == targetID) {
+        cout << "sendPortfolioSummary(): ";
+        cout << userName << " does not exist: Target computer ID not identified!" << endl;
+        return;
+    }
+
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
@@ -173,6 +146,47 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& userName, const std::s
     FIX50SP2::PositionReport::NoPosAmt holdingBalanceGroup;
     holdingBalanceGroup.setField(FIX::PosAmt(summary.getHoldingBalance()));
     message.addGroup(holdingBalanceGroup);
+
+    FIX::Session::sendToTarget(message);
+}
+
+/**
+ * @brief Send Portfolio Item to LC
+ */
+void FIXAcceptor::sendPortfolioItem(const std::string& userName, const PortfolioItem& item)
+{
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
+    if (::STDSTR_NULL == targetID) {
+        cout << "sendPortfolioItem(): ";
+        cout << userName << " does not exist: Target computer ID not identified!" << endl;
+        return;
+    }
+
+    FIX::Message message;
+
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::TargetCompID(targetID));
+    header.setField(FIXFIELD_MSGTY_POSIREPORT);
+
+    message.setField(FIX::PosMaintRptID(shift::crossguid::newGuid().str()));
+    message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
+    message.setField(FIX::Symbol(item.getSymbol()));
+    message.setField(FIX::SecurityType("CS"));
+    message.setField(FIX::SettlPrice(item.getLongPrice()));
+    message.setField(FIX::PriorSettlPrice(item.getShortPrice()));
+    message.setField(FIX::PriceDelta(item.getPL()));
+
+    FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
+    userNameGroup.setField(::FIXFIELD_CLIENTID);
+    userNameGroup.setField(FIX::PartyID(userName));
+    message.addGroup(userNameGroup);
+
+    FIX50SP2::PositionReport::NoPositions qtyGroup;
+    qtyGroup.setField(FIX::LongQty(item.getLongShares()));
+    qtyGroup.setField(FIX::ShortQty(item.getShortShares()));
+    message.addGroup(qtyGroup);
 
     FIX::Session::sendToTarget(message);
 }

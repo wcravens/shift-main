@@ -55,8 +55,8 @@ public:
     void connectClientComputers(const std::string& configFile, bool verbose = false);
     void disconnectClientComputers();
 
-    void sendPortfolioItem(const std::string& userName, const std::string& targetID, const PortfolioItem& item);
-    void sendPortfolioSummary(const std::string& userName, const std::string& targetID, const PortfolioSummary& summary);
+    void sendPortfolioSummary(const std::string& userName, const PortfolioSummary& summary);
+    void sendPortfolioItem(const std::string& userName, const PortfolioItem& item);
     void sendQuoteHistory(const std::string& userName, const std::unordered_map<std::string, Quote>& quotes);
     void sendOrderbookUpdate(const std::string& userName, const OrderBookEntry& update); // send order book update to user
     void sendOrderbookUpdate2All(const std::unordered_set<std::string>& userList, const OrderBookEntry& newOrderBook);

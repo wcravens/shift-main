@@ -71,24 +71,12 @@ void RiskManagement::enqueueExecRpt(const Report& report)
 
 /*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary)
 {
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (::STDSTR_NULL == targetID) {
-        std::cout << " Don't exist: " << userName << std::endl;
-        return;
-    }
-
-    FIXAcceptor::getInstance()->sendPortfolioSummary(userName, targetID, summary);
+    FIXAcceptor::getInstance()->sendPortfolioSummary(userName, summary);
 }
 
 /*static*/ inline void RiskManagement::s_sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item)
 {
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserName(userName);
-    if (::STDSTR_NULL == targetID) {
-        std::cout << " Don't exist: " << userName << std::endl;
-        return;
-    }
-
-    FIXAcceptor::getInstance()->sendPortfolioItem(userName, targetID, item);
+    FIXAcceptor::getInstance()->sendPortfolioItem(userName, item);
 }
 
 void RiskManagement::sendPortfolioHistory()
@@ -372,8 +360,8 @@ void RiskManagement::processExecRpt()
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-            s_sendPortfolioItemToClient(m_userName, m_portfolioItems[reportPtr->symbol]);
             s_sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
+            s_sendPortfolioItemToClient(m_userName, m_portfolioItems[reportPtr->symbol]);
 
             wasPortfolioSent = true;
         }
