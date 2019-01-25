@@ -61,8 +61,8 @@ static std::atomic<bool> s_isBroadcasting{ true };
 static void s_broadcastOrderBook() // broadcasting the whole orderbook
 {
     while (::s_isBroadcasting) {
-        // broadcast the full order book of every stock every 1s (forcing a refresh in the client side)
-        std::this_thread::sleep_for(1s);
+        // broadcast the full order book of every stock every 30s (forcing a refresh in the client side)
+        std::this_thread::sleep_for(30s);
         BCDocuments::getInstance()->broadcastStocks();
     }
 }
