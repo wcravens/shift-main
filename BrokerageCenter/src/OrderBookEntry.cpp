@@ -33,8 +33,8 @@ OrderBookEntry::OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double 
 }
 
 /**
- * @brief   Getter of the orderbook type.
- * @return  The orderbook type.
+ * @brief   Getter of the order book type.
+ * @return  The order book type.
  */
 auto OrderBookEntry::getType() const -> ORDER_BOOK_TYPE
 {

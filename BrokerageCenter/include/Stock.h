@@ -32,7 +32,7 @@ private:
     std::condition_variable m_cvOdrBkBuff;
     std::promise<void> m_quitFlag;
 
-    std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkGlobalAsk; // price, destination, OrderBook
+    std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkGlobalAsk; // price, destination, order book entry
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalAsk;
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkGlobalBid;
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalBid;
@@ -62,8 +62,8 @@ public:
     void saveOrderBookLocalBid(const OrderBookEntry& record);
     void saveOrderBookLocalAsk(const OrderBookEntry& record);
 
-    double getGlobalBidOrderbookFirstPrice() const;
-    double getGlobalAskOrderbookFirstPrice() const;
-    double getLocalBidOrderbookFirstPrice() const;
-    double getLocalAskOrderbookFirstPrice() const;
+    double getGlobalBidOrderBookFirstPrice() const;
+    double getGlobalAskOrderBookFirstPrice() const;
+    double getLocalBidOrderBookFirstPrice() const;
+    double getLocalAskOrderBookFirstPrice() const;
 };

@@ -82,10 +82,10 @@ private:
     void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override;
     void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
-    void onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) override;
-    void onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) override;
-    void onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) override;
     void onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) override;
+    void onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) override;
+    void onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) override;
+    void onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) override;
 
     void sendSymbols(const std::string& targetID, const std::unordered_set<std::string>& symbols);
 

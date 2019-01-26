@@ -251,7 +251,7 @@ int main(int ac, char* av[])
     FIXAcceptor::getInstance()->connectClientComputers(params.configDir + "acceptor.cfg", params.isVerbose);
 
     /*
-     * @brief   Create a broadcaster to broadcast all orderbook
+     * @brief   Create a broadcaster to broadcast all order books
      */
     std::thread broadcaster(&::s_broadcastOrderBook);
 

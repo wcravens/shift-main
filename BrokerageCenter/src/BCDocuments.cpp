@@ -136,13 +136,13 @@ double BCDocuments::getStockOrderBookMarketFirstPrice(bool isBuy, const std::str
         return 0.0;
 
     if (isBuy) {
-        global_price = pos->second->getGlobalBidOrderbookFirstPrice();
-        local_price = pos->second->getLocalBidOrderbookFirstPrice();
+        global_price = pos->second->getGlobalBidOrderBookFirstPrice();
+        local_price = pos->second->getLocalBidOrderBookFirstPrice();
 
         return std::max(global_price, local_price);
     } else { // Sell
-        global_price = pos->second->getGlobalAskOrderbookFirstPrice();
-        local_price = pos->second->getLocalAskOrderbookFirstPrice();
+        global_price = pos->second->getGlobalAskOrderBookFirstPrice();
+        local_price = pos->second->getLocalAskOrderBookFirstPrice();
 
         if ((global_price && global_price < local_price) || (local_price == 0.0))
             return global_price;
@@ -204,7 +204,7 @@ std::unordered_map<std::string, std::string> BCDocuments::getConnectedTargetIDsM
     return m_mapTarID2Name;
 }
 
-void BCDocuments::registerUserInDoc(const std::string& targetID, const std::string& userName)
+void BCDocuments::registerUserInDoc(const std::string& userName, const std::string& targetID)
 {
     std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
     std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
@@ -227,7 +227,7 @@ void BCDocuments::unregisterUserInDoc(const std::string& userName)
     }
 }
 
-void BCDocuments::registerWebUserInDoc(const std::string& targetID, const std::string& userName)
+void BCDocuments::registerWebUserInDoc(const std::string& userName, const std::string& targetID)
 {
     std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name); // this is also needed to avoid potential deadlocks
     std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
@@ -259,10 +259,10 @@ std::string BCDocuments::getUserNameByTargetID(const std::string& targetID)
     return pos->second;
 }
 
-void BCDocuments::addOrderbookSymbolToUser(const std::string& userName, const std::string& symbol)
+void BCDocuments::addOrderBookSymbolToUser(const std::string& userName, const std::string& symbol)
 {
-    std::lock_guard<std::mutex> guard(m_mtxOrderbookSymbolsByName);
-    m_orderbookSymbolsByName[userName].insert(symbol);
+    std::lock_guard<std::mutex> guard(m_mtxOrderBookSymbolsByName);
+    m_orderBookSymbolsByName[userName].insert(symbol);
 }
 
 void BCDocuments::addCandleSymbolToUser(const std::string& userName, const std::string& symbol)
@@ -274,14 +274,14 @@ void BCDocuments::addCandleSymbolToUser(const std::string& userName, const std::
 void BCDocuments::removeUserFromStocks(const std::string& userName)
 {
     std::lock_guard<std::mutex> guardSBS(m_mtxStockBySymbol); // Issue #3 TODO
-    std::lock_guard<std::mutex> guardOSBN(m_mtxOrderbookSymbolsByName);
+    std::lock_guard<std::mutex> guardOSBN(m_mtxOrderBookSymbolsByName);
 
-    auto pos = m_orderbookSymbolsByName.find(userName);
-    if (m_orderbookSymbolsByName.end() != pos) {
+    auto pos = m_orderBookSymbolsByName.find(userName);
+    if (m_orderBookSymbolsByName.end() != pos) {
         for (const auto& stock : pos->second) {
             m_stockBySymbol[stock]->unregisterUserInStock(userName);
         }
-        m_orderbookSymbolsByName.erase(pos);
+        m_orderBookSymbolsByName.erase(pos);
     }
 }
 

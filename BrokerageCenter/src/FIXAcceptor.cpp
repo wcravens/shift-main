@@ -275,7 +275,7 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
 }
 
 /**
- * @brief Send the latest stock price to LC
+ * @brief Send the last stock price to LC
  *
  * @param transac as a Transaction object to provide last price
  */
@@ -336,7 +336,7 @@ void FIXAcceptor::sendOrderBook(const std::unordered_set<std::string>& userList,
     FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
     const auto obt = orderBookName.begin()->second.begin()->second.getType();
 
-    if (obt == OBT::GLB_BID || obt == OBT::LOC_BID) { //reverse the Bid/bid orderbook order
+    if (obt == OBT::GLB_BID || obt == OBT::LOC_BID) { //reverse the Bid/bid order book order
         for (auto ri = orderBookName.crbegin(); ri != orderBookName.crend(); ++ri) {
             for (const auto& j : ri->second)
                 s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
@@ -376,7 +376,7 @@ void FIXAcceptor::sendOrderBook(const std::unordered_set<std::string>& userList,
 /**
  * @brief   Send order book update to one client
  * @param   userList as a unordered_set to provide the name of clients
- * @param   update as an OrderBook object to provide price and others
+ * @param   update as an OrderBookEntry object to provide price and others
  */
 void FIXAcceptor::sendOrderBookUpdate(const std::unordered_set<std::string>& userList, const OrderBookEntry& update)
 {
@@ -459,7 +459,7 @@ inline bool FIXAcceptor::unsubscribeCandleData(const std::string& userName, cons
 }
 
 /**
- * @brief Method called when a new Session was created.
+ * @brief Method called when a new Session is created.
  * Set Sender and Target Comp ID.
  */
 void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
@@ -536,7 +536,7 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
 
     const auto pswCol = DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE username = '" + adminName + "';");
     if (pswCol.size() && pswCol.front() == adminPsw) {
-        BCDocuments::getInstance()->registerUserInDoc(targetID, adminName);
+        BCDocuments::getInstance()->registerUserInDoc(adminName, targetID);
         cout << COLOR_PROMPT "Authentication successful for " << targetID << ':' << adminName << NO_COLOR << endl;
     } else {
         cout << COLOR_WARNING "User name or password was wrong for " << targetID << ':' << adminName << NO_COLOR << endl;
@@ -553,38 +553,17 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
 #endif
 }
 
-/*
- * @brief Receive OrderBook request from LC
- */
-void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
+void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
 {
-    FIX::NoRelatedSym numOfGroup;
-    message.get(numOfGroup);
-
-    if (numOfGroup < 1) {
-        cout << "Cannot find Symbol in MarketDataRequest!" << endl;
-        return;
-    }
-
-    FIX::SubscriptionRequestType isSubscribed;
-    message.get(isSubscribed);
-
-    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
-    message.getGroup(1, relatedSymGroup);
-
-    FIX::Symbol symbol;
-    relatedSymGroup.get(symbol);
-
-    const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(sessionID.getTargetCompID());
-    if ('1' == isSubscribed) {
-        subscribeOrderBook(userName, symbol);
-    } else {
-        unsubscribeOrderBook(userName, symbol);
-    }
+    FIX::Username userName; // WebClient userName
+    message.get(userName);
+    BCDocuments::getInstance()->registerWebUserInDoc(userName, sessionID.getTargetCompID());
+    BCDocuments::getInstance()->sendHistoryToUser(userName.getString());
+    cout << COLOR_PROMPT "Web user [ " NO_COLOR << userName << COLOR_PROMPT " ] was registered.\n" NO_COLOR << endl;
 }
 
 /**
- * @brief Deal with the incoming quotes from clients
+ * @brief Deal with incoming orders from clients
  */
 void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID&) // override
 {
@@ -668,7 +647,37 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 }
 
 /*
- * @brief Receive candle data request from LC
+ * @brief Receive order book subscription request from LC
+ */
+void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
+{
+    FIX::NoRelatedSym numOfGroup;
+    message.get(numOfGroup);
+
+    if (numOfGroup < 1) {
+        cout << "Cannot find Symbol in MarketDataRequest!" << endl;
+        return;
+    }
+
+    FIX::SubscriptionRequestType isSubscribed;
+    message.get(isSubscribed);
+
+    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
+    message.getGroup(1, relatedSymGroup);
+
+    FIX::Symbol symbol;
+    relatedSymGroup.get(symbol);
+
+    const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(sessionID.getTargetCompID());
+    if ('1' == isSubscribed) {
+        subscribeOrderBook(userName, symbol);
+    } else {
+        unsubscribeOrderBook(userName, symbol);
+    }
+}
+
+/*
+ * @brief Receive candlestick data subscription request from LC
  */
 void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) // override
 {
@@ -695,15 +704,6 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
     } else {
         unsubscribeCandleData(userName, symbol);
     }
-}
-
-void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
-{
-    FIX::Username userName; // WebClient userName
-    message.get(userName);
-    BCDocuments::getInstance()->registerWebUserInDoc(sessionID.getTargetCompID(), userName);
-    BCDocuments::getInstance()->sendHistoryToUser(userName.getString());
-    cout << COLOR_PROMPT "Web user [ " NO_COLOR << userName << COLOR_PROMPT " ] was registered.\n" NO_COLOR << endl;
 }
 
 /*

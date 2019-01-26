@@ -31,7 +31,7 @@ class BCDocuments {
     mutable std::mutex m_mtxSymbols;
     mutable std::mutex m_mtxTarID2Name; // the mutex for map from Target Computer ID to UserName
     mutable std::mutex m_mtxName2TarID; // the mutex for map from UserName to Target Computer ID
-    mutable std::mutex m_mtxOrderbookSymbolsByName;
+    mutable std::mutex m_mtxOrderBookSymbolsByName;
     mutable std::mutex m_mtxCandleSymbolsByName;
     mutable std::mutex m_mtxRiskManagementByName;
 
@@ -40,10 +40,10 @@ class BCDocuments {
     std::unordered_map<std::string, std::string> m_mapTarID2Name; // map from Target Computer ID to UserName
     std::unordered_map<std::string, std::string> m_mapName2TarID; // map from UserName to Target Computer ID
 
-    std::unordered_map<std::string, std::unique_ptr<Stock>> m_stockBySymbol; // symbol, Stock; contains 4 types of orderbook for each stock
+    std::unordered_map<std::string, std::unique_ptr<Stock>> m_stockBySymbol; // symbol, Stock; contains 4 types of order book for each stock
     std::unordered_map<std::string, std::unique_ptr<CandlestickData>> m_candleBySymbol; // symbol, StockSummery; contains current price and candle data history for each stock
     std::unordered_map<std::string, std::unique_ptr<RiskManagement>> m_riskManagementByName; // UserName, RiskManagement
-    std::unordered_map<std::string, std::unordered_set<std::string>> m_orderbookSymbolsByName; // UserName, symbols; for orderbook subscription
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_orderBookSymbolsByName; // UserName, symbols; for order book subscription
     std::unordered_map<std::string, std::unordered_set<std::string>> m_candleSymbolsByName; // UserName, symbols; for candle stick data subscription
 
     auto addRiskManagementToUserNoLock(const std::string& userName) -> decltype(m_riskManagementByName)::iterator;
@@ -62,12 +62,12 @@ public:
     void addQuoteToUserRiskManagement(const std::string& userName, const Quote& quote);
     void addReportToUserRiskManagement(const std::string& userName, const Report& report);
 
-    void registerUserInDoc(const std::string& targetID, const std::string& userName); // for connection
+    void registerUserInDoc(const std::string& userName, const std::string& targetID); // for connection
     void unregisterUserInDoc(const std::string& userName); // for connection
-    void registerWebUserInDoc(const std::string& targetID, const std::string& userName); // for connection
+    void registerWebUserInDoc(const std::string& userName, const std::string& targetID); // for connection
     std::unordered_map<std::string, std::string> getConnectedTargetIDsMap(); // Target Computer ID, UserName
 
-    void addOrderbookSymbolToUser(const std::string& userName, const std::string& symbol);
+    void addOrderBookSymbolToUser(const std::string& userName, const std::string& symbol);
     void addCandleSymbolToUser(const std::string& userName, const std::string& symbol);
     void removeUserFromStocks(const std::string& userName);
     void removeUserFromCandles(const std::string& userName);

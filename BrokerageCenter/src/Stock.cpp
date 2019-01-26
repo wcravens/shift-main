@@ -26,21 +26,21 @@ Stock::~Stock()
 }
 
 /**
-*   @brief  Thread-safely adds an OrderBook to the orderbook buffer, then notify to process the orders.
-*	@param	ob: The OrderBook to be enqueue the buffer.
+*   @brief  Thread-safely adds an OrderBookEntry to the buffer, then notify to process the order.
+*	@param	entry: The OrderBookEntry to be enqueue the buffer.
 *   @return nothing
 */
-void Stock::enqueueOrderBook(const OrderBookEntry& ob)
+void Stock::enqueueOrderBook(const OrderBookEntry& entry)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxOdrBkBuff);
-        m_odrBkBuff.push(ob);
+        m_odrBkBuff.push(entry);
     }
     m_cvOdrBkBuff.notify_one();
 }
 
 /**
-*   @brief  Thread-safely save the OrderBook items correspondingly with respect to their order type.
+*   @brief  Thread-safely save the OrderBookEntry items correspondingly with respect to their order book type.
 *   @return nothing
 */
 void Stock::process()
@@ -109,7 +109,7 @@ void Stock::registerUserInStock(const std::string& userName)
         std::lock_guard<std::mutex> guard(m_mtxStockUserList);
         m_userList.insert(userName);
     }
-    BCDocuments::getInstance()->addOrderbookSymbolToUser(userName, m_symbol);
+    BCDocuments::getInstance()->addOrderBookSymbolToUser(userName, m_symbol);
 }
 
 /**
@@ -124,11 +124,11 @@ void Stock::unregisterUserInStock(const std::string& userName)
 }
 
 /**
-*   @brief  Thread-safely sends an orderbook's single update to all users.
-*	@param	record: The OrderBook record to be sent.
+*   @brief  Thread-safely sends an order book's single update to all users.
+*	@param	entry: The order book entry record to be sent.
 *   @return nothing
 */
-void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& record)
+void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& entry)
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
@@ -138,7 +138,7 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& record)
     using ulock_t = std::unique_lock<std::mutex>;
     ulock_t lock;
 
-    switch (record.getType()) {
+    switch (entry.getType()) {
     case OBT::GLB_ASK: {
         lock = ulock_t(m_mtxOdrBkGlobalAsk);
         break;
@@ -159,7 +159,7 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& record)
         return;
     }
 
-    toWCPtr->sendOrderBookUpdate(m_userList, record);
+    toWCPtr->sendOrderBookUpdate(m_userList, entry);
 }
 
 /**
@@ -212,44 +212,44 @@ void Stock::broadcastWholeOrderBookToAll()
 }
 
 /**
-*   @brief  Thread-safely saves the latest orderbook record to Bid orderbook, as the ceiling of all hitherto bid prices.
-*   @param	record: The orderbook record to be saved.
+*   @brief  Thread-safely saves the latest order book entry to global bid order book, as the ceiling of all hitherto bid prices.
+*   @param	entry: The order book entry to be saved.
 *   @return nothing
 */
-void Stock::saveOrderBookGlobalBid(const OrderBookEntry& record)
+void Stock::saveOrderBookGlobalBid(const OrderBookEntry& entry)
 {
-    double price = record.getPrice();
+    double price = entry.getPrice();
     std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalBid);
 
-    m_odrBkGlobalBid[price][record.getDestination()] = record;
+    m_odrBkGlobalBid[price][entry.getDestination()] = entry;
     // discard all higher bid prices, if any:
     m_odrBkGlobalBid.erase(m_odrBkGlobalBid.upper_bound(price), m_odrBkGlobalBid.end());
 }
 
 /**
-*   @brief  Thread-safely saves the latest orderbook record to Ask orderbook, as the bottom of all hitherto ask prices.
-*   @param	record: The orderbook record to be saved.
+*   @brief  Thread-safely saves the latest order book entry to global ask order book, as the bottom of all hitherto ask prices.
+*   @param	entry: The order book entry to be saved.
 *   @return nothing
 */
-void Stock::saveOrderBookGlobalAsk(const OrderBookEntry& record)
+void Stock::saveOrderBookGlobalAsk(const OrderBookEntry& entry)
 {
-    double price = record.getPrice();
+    double price = entry.getPrice();
     std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalAsk);
 
-    m_odrBkGlobalAsk[price][record.getDestination()] = record;
+    m_odrBkGlobalAsk[price][entry.getDestination()] = entry;
     // discard all lower ask prices, if any:
     m_odrBkGlobalAsk.erase(m_odrBkGlobalAsk.begin(), m_odrBkGlobalAsk.lower_bound(price));
 }
 
-static void s_saveOdrBkLocal(const OrderBookEntry& record, std::mutex& mtxOdrBkLocal, std::map<double, std::map<std::string, OrderBookEntry>>& odrBkLocal)
+static void s_saveOdrBkLocal(const OrderBookEntry& entry, std::mutex& mtxOdrBkLocal, std::map<double, std::map<std::string, OrderBookEntry>>& odrBkLocal)
 {
-    double price = record.getPrice();
+    double price = entry.getPrice();
     std::lock_guard<std::mutex> guard(mtxOdrBkLocal);
 
-    if (record.getSize() > 0) {
-        odrBkLocal[price][record.getDestination()] = record;
+    if (entry.getSize() > 0) {
+        odrBkLocal[price][entry.getDestination()] = entry;
     } else {
-        odrBkLocal[price].erase(record.getDestination());
+        odrBkLocal[price].erase(entry.getDestination());
         if (odrBkLocal[price].empty()) {
             odrBkLocal.erase(price);
         }
@@ -257,26 +257,26 @@ static void s_saveOdrBkLocal(const OrderBookEntry& record, std::mutex& mtxOdrBkL
 }
 
 /**
-*   @brief  Thread-safely saves orderbook record to bidOrderBook at specific price.
-*   @param	record: The orderbook record to be saved.
+*   @brief  Thread-safely saves order book entry to local bid order book at specific price.
+*   @param	entry: The order book entry to be saved.
 *   @return nothing
 */
-inline void Stock::saveOrderBookLocalBid(const OrderBookEntry& record)
+inline void Stock::saveOrderBookLocalBid(const OrderBookEntry& entry)
 {
-    ::s_saveOdrBkLocal(record, m_mtxOdrBkLocalBid, m_odrBkLocalBid);
+    ::s_saveOdrBkLocal(entry, m_mtxOdrBkLocalBid, m_odrBkLocalBid);
 }
 
 /**
-*   @brief  Thread-safely saves orderbook record to askOrderBook at specific price.
-*   @param	record: The orderbook record to be saved.
+*   @brief  Thread-safely saves order book entry to local ask order book at specific price.
+*   @param	entry: The order book entry to be saved.
 *   @return nothing
 */
-inline void Stock::saveOrderBookLocalAsk(const OrderBookEntry& record)
+inline void Stock::saveOrderBookLocalAsk(const OrderBookEntry& entry)
 {
-    ::s_saveOdrBkLocal(record, m_mtxOdrBkLocalAsk, m_odrBkLocalAsk);
+    ::s_saveOdrBkLocal(entry, m_mtxOdrBkLocalAsk, m_odrBkLocalAsk);
 }
 
-double Stock::getGlobalBidOrderbookFirstPrice() const
+double Stock::getGlobalBidOrderBookFirstPrice() const
 {
     std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalBid);
     if (!m_odrBkGlobalBid.empty())
@@ -285,7 +285,7 @@ double Stock::getGlobalBidOrderbookFirstPrice() const
         return 0.0;
 }
 
-double Stock::getGlobalAskOrderbookFirstPrice() const
+double Stock::getGlobalAskOrderBookFirstPrice() const
 {
     std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalAsk);
     if (!m_odrBkGlobalAsk.empty())
@@ -294,7 +294,7 @@ double Stock::getGlobalAskOrderbookFirstPrice() const
         return 0.0;
 }
 
-double Stock::getLocalBidOrderbookFirstPrice() const
+double Stock::getLocalBidOrderBookFirstPrice() const
 {
     std::lock_guard<std::mutex> guard(m_mtxOdrBkLocalBid);
     if (!m_odrBkLocalBid.empty())
@@ -303,7 +303,7 @@ double Stock::getLocalBidOrderbookFirstPrice() const
         return 0.0;
 }
 
-double Stock::getLocalAskOrderbookFirstPrice() const
+double Stock::getLocalAskOrderBookFirstPrice() const
 {
     std::lock_guard<std::mutex> guard(m_mtxOdrBkLocalAsk);
     if (!m_odrBkLocalAsk.empty())
