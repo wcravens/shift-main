@@ -29,7 +29,7 @@ private:
     std::queue<Transaction> m_transacBuff;
     std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
 
-    std::unordered_set<std::string> m_userList; // userName
+    std::unordered_set<std::string> m_cdUserList; // userName
     std::map<std::time_t, TempCandlestickData> m_history;
 
     mutable std::mutex m_mtxTransacBuff;

@@ -25,12 +25,12 @@ Some terminologies:
 (3) One (1) can consist of multiple (2)s; one (2) can interact(e.g. login) through various (1)s, but each (1) will maintain that respectively.
 */
 class BCDocuments {
-    mutable std::mutex m_mtxTransacsByID;
-    mutable std::mutex m_mtxStockBySymbol;
+    // TODO
     mutable std::mutex m_mtxCandleBySymbol;
-    mutable std::mutex m_mtxSymbols;
+
     mutable std::mutex m_mtxTarID2Name; // the mutex for map from Target Computer ID to UserName
     mutable std::mutex m_mtxName2TarID; // the mutex for map from UserName to Target Computer ID
+    // end TODO
     mutable std::mutex m_mtxOrderBookSymbolsByName;
     mutable std::mutex m_mtxCandleSymbolsByName;
     mutable std::mutex m_mtxRiskManagementByName;
@@ -56,7 +56,9 @@ public:
     bool manageCandleStickDataUser(bool isRegister, const std::string& userName, const std::string& symbol) const;
     int sendHistoryToUser(const std::string& userName);
 
-    void addStockToSymbol(const std::string& symbol, const OrderBookEntry& ob);
+    void attachStockToSymbol(const std::string& symbol);
+    static std::atomic<bool> s_isSecurityListReady;
+    void addOrderBookEntryToStock(const std::string& symbol, const OrderBookEntry& ob);
     void addCandleToSymbol(const std::string& symbol, const Transaction& transac);
     void addRiskManagementToUserLockedExplicit(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol);
     void addQuoteToUserRiskManagement(const std::string& userName, const Quote& quote);
@@ -76,7 +78,7 @@ public:
     void addTransacToUser(const Transaction& t, const std::string& userName);
     void addSymbol(const std::string& symbol);
     bool hasSymbol(const std::string& symbol) const;
-    std::unordered_set<std::string> getSymbols(); // symbols list
+    const std::unordered_set<std::string>& getSymbols() const; // symbols list
 
     std::string getTargetIDByUserName(const std::string& userName);
     std::string getUserNameByTargetID(const std::string& targetID);

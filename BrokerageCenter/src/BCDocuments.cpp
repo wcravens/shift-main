@@ -2,6 +2,9 @@
 #include "DBConnector.h"
 
 #include <algorithm>
+#include <cassert>
+
+/* static */ std::atomic<bool> BCDocuments::s_isSecurityListReady{ false };
 
 /*static*/ BCDocuments* BCDocuments::getInstance()
 {
@@ -10,28 +13,35 @@
 }
 
 void BCDocuments::addSymbol(const std::string& symbol)
-{
-    std::lock_guard<std::mutex> guard(m_mtxSymbols);
+{ // Here no locking is needed only when satisfies precondition: addSymbol was run before others
     m_symbols.insert(symbol);
 }
 
-std::unordered_set<std::string> BCDocuments::getSymbols()
+const std::unordered_set<std::string>& BCDocuments::getSymbols() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxSymbols);
     return m_symbols;
 }
 
-void BCDocuments::addStockToSymbol(const std::string& symbol, const OrderBookEntry& ob)
+bool BCDocuments::hasSymbol(const std::string& symbol) const
 {
-    std::lock_guard<std::mutex> guard(m_mtxStockBySymbol);
+    return m_symbols.find(symbol) != m_symbols.end();
+}
 
+void BCDocuments::attachStockToSymbol(const std::string& symbol)
+{
     auto res = m_stockBySymbol.emplace(symbol, nullptr);
     auto& stockPtr = res.first->second;
-    if (res.second) { // inserted new?
+
+    if (res.second) { // new inserted?
         stockPtr.reset(new Stock(symbol));
         stockPtr->spawn();
     }
-    stockPtr->enqueueOrderBook(ob);
+}
+
+void BCDocuments::addOrderBookEntryToStock(const std::string& symbol, const OrderBookEntry& entry)
+{
+    // assert(s_isSecurityListReady);
+    m_stockBySymbol[symbol]->enqueueOrderBook(entry);
 }
 
 void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction& transac)
@@ -129,7 +139,6 @@ double BCDocuments::getStockOrderBookMarketFirstPrice(bool isBuy, const std::str
 {
     double global_price = 0.0;
     double local_price = 0.0;
-    std::lock_guard<std::mutex> guard(m_mtxStockBySymbol);
 
     auto pos = m_stockBySymbol.find(symbol);
     if (m_stockBySymbol.end() == pos)
@@ -152,8 +161,6 @@ double BCDocuments::getStockOrderBookMarketFirstPrice(bool isBuy, const std::str
 
 bool BCDocuments::manageStockOrderBookUser(bool isRegister, const std::string& symbol, const std::string& userName) const
 {
-    std::lock_guard<std::mutex> guard(m_mtxStockBySymbol);
-
     auto pos = m_stockBySymbol.find(symbol);
     if (m_stockBySymbol.end() != pos) {
         if (isRegister)
@@ -273,7 +280,6 @@ void BCDocuments::addCandleSymbolToUser(const std::string& userName, const std::
 
 void BCDocuments::removeUserFromStocks(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardSBS(m_mtxStockBySymbol); // Issue #3 TODO
     std::lock_guard<std::mutex> guardOSBN(m_mtxOrderBookSymbolsByName);
 
     auto pos = m_orderBookSymbolsByName.find(userName);
@@ -309,16 +315,8 @@ void BCDocuments::removeCandleSymbolFromUser(const std::string& userName, const 
     }
 }
 
-bool BCDocuments::hasSymbol(const std::string& symbol) const
-{
-    std::lock_guard<std::mutex> guard(m_mtxSymbols);
-    return m_symbols.find(symbol) != m_symbols.end();
-}
-
 void BCDocuments::broadcastStocks() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxStockBySymbol);
-
     for (const auto& i : m_stockBySymbol) {
         i.second->broadcastWholeOrderBookToAll();
     }

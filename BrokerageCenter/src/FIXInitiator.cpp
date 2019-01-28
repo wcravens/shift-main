@@ -260,7 +260,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         unsigned int prevCnt = 0;
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-            ;
+            continue;
         assert(s_cntAtom > 0);
 
         if (0 == prevCnt) {
@@ -490,7 +490,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     unsigned int prevCnt = 0;
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        ;
+        continue;
     assert(s_cntAtom > 0);
 
     if (0 == prevCnt) { // sequential case; optimized:
@@ -536,7 +536,10 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pDestination->getString(),
         pUtctime->getValue()
     };
-    BCDocuments::getInstance()->addStockToSymbol(*pSymbol, update);
+
+    while (!BCDocuments::s_isSecurityListReady)
+        continue;
+    BCDocuments::getInstance()->addOrderBookEntryToStock(*pSymbol, update);
 
     if (prevCnt) { // > 1 threads
         delete pEntryGroup;
@@ -572,12 +575,8 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
         message.getGroup(i, relatedSymGroup);
         relatedSymGroup.get(symbol);
         BCDocuments::getInstance()->addSymbol(symbol);
-        OrderBookEntry update(OrderBookEntry::s_toOrderBookType('e'),
-            "initial",
-            0.0,
-            0.0,
-            "initial",
-            FIX::UtcTimeStamp(6));
-        BCDocuments::getInstance()->addStockToSymbol(symbol, update);
+        BCDocuments::getInstance()->attachStockToSymbol(symbol);
     }
+
+    BCDocuments::s_isSecurityListReady = true;
 }

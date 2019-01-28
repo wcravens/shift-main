@@ -48,7 +48,6 @@ void Stock::process()
     thread_local auto quitFut = m_quitFlag.get_future();
 
     while (true) {
-        std::unique_lock<std::mutex> lock(m_mtxStock);
         std::unique_lock<std::mutex> buffLock(m_mtxOdrBkBuff);
         if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOdrBkBuff, buffLock, [this] { return !m_odrBkBuff.empty(); }))
             return;
@@ -87,17 +86,6 @@ void Stock::spawn()
 }
 
 /**
-*   @brief  Wait for the process thread to finish for at most 5 seconds.
-*   @return nothing
-*/
-void Stock::stop()
-{
-    std::lock_guard<std::mutex> guard(m_mtxStock);
-    m_flag = true;
-    m_th->detach();
-}
-
-/**
 *   @brief  Thread-safely registers a user to the list by user name.
 *	@param	userName: The name of the user to be registered.
 *   @return nothing
@@ -107,7 +95,7 @@ void Stock::registerUserInStock(const std::string& userName)
     broadcastWholeOrderBookToOne(userName);
     {
         std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-        m_userList.insert(userName);
+        m_stockUserList.insert(userName);
     }
     BCDocuments::getInstance()->addOrderBookSymbolToUser(userName, m_symbol);
 }
@@ -120,7 +108,7 @@ void Stock::registerUserInStock(const std::string& userName)
 void Stock::unregisterUserInStock(const std::string& userName)
 {
     std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-    m_userList.erase(userName);
+    m_stockUserList.erase(userName);
 }
 
 /**
@@ -159,7 +147,7 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& entry)
         return;
     }
 
-    toWCPtr->sendOrderBookUpdate(m_userList, entry);
+    toWCPtr->sendOrderBookUpdate(m_stockUserList, entry);
 }
 
 /**
@@ -192,7 +180,7 @@ void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
 void Stock::broadcastWholeOrderBookToAll()
 {
     std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-    if (m_userList.empty())
+    if (m_stockUserList.empty())
         return; // nobody to sent to.
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
@@ -202,13 +190,13 @@ void Stock::broadcastWholeOrderBookToAll()
 
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(m_userList, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook(m_stockUserList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(m_userList, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook(m_stockUserList, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(m_userList, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook(m_stockUserList, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(m_userList, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook(m_stockUserList, m_odrBkLocalBid);
 }
 
 /**

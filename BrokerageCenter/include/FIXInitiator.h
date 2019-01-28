@@ -1,5 +1,5 @@
 /*
-** This file contains the intiaitor which is used to 
+** This file contains the intiaitor which is used to
 ** accept/send FIX messages from/to MatchingEngine
 **/
 

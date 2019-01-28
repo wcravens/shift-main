@@ -503,7 +503,7 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
     // BCDocuments::getInstance()->removeUserFromStocks(userName);
     // cout << "DEBUG MUTEX: removeUserFromStocks" << endl;
     BCDocuments::getInstance()->unregisterUserInDoc(userName);
-    cout << "DEBUG MUTEX: unregisterUserInDoc" << endl;
+    // cout << "DEBUG MUTEX: unregisterUserInDoc" << endl;
     cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
          << endl;
 }
