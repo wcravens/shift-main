@@ -74,9 +74,9 @@ int main(int ac, char* av[])
              << endl;
     }
 
-    // if (vm.count(CSTR_VERBOSE)) {
-    params.isVerbose = true;
-    // }
+    if (vm.count(CSTR_VERBOSE)) {
+        params.isVerbose = true;
+    }
 
     voh_t voh(cout, params.isVerbose);
 

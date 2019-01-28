@@ -1,12 +1,18 @@
 #!/bin/bash
 
-# default loading time for each service
+# default loading time parameter for each service
 declare -a LOADING_TIME
 LOADING_TIME[1]=1   # DatafeedEngine
 LOADING_TIME[2]=5   # MatchingEngine
 LOADING_TIME[3]=5   # BrokerageCenter
 LOADING_TIME[4]=1   # WebClient backend  (WebClient)
 LOADING_TIME[5]=1   # WebClient frontend (pushServer)
+
+# default time-out parameter for services
+TIME_OUT=400
+
+# whether to keep execution log or not
+LOG_FLAG=0
 
 # different output colors
 COLOR='\033[1;36m'          # bold;cyan
@@ -18,17 +24,11 @@ NO_COLOR='\033[0m'
 # regex to capture any integer number
 IS_NUMBER='^[0-9]+$'
 
-# root folder of the cloned SHIFT repository
-SHIFT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 # directory from which the script is being run from
 CURRENT_DIR="$( pwd )"
 
-# default time-out parameter for the servers
-TIME_OUT=400
-
-# whether to keep log of the execution or not
-KEEP_LOG=0
+# root folder of the cloned SHIFT repository
+SHIFT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function usage
 {
@@ -41,6 +41,7 @@ function usage
     echo "  -h [ --help ]                      Display available options"
     echo "  -m [ --modules ] DE|ME|BC|WC|PS    List of modules to start up or terminate"
     echo "  -d [ --date ]                      Simulation date (format: YYYY-MM-DD)"
+    echo "  -r [ --reset ]                     Reset stored portfolio information"
     echo "  -t [ --timeout ]                   Time-out duration counted in minutes"
     echo "                                     (default: 400)"
     echo "  -l [ --log ]                       Create a log of the execution"
@@ -51,20 +52,27 @@ function usage
 
 function startService
 {
-    # if service is not installed, do not try to run it
-    ( command -v /usr/local/bin/${1} >/dev/null ) || return
+    # default installation path prefix
+    INSTALL_PREFIX="/usr/local"
 
-    # if log is to be kept, erase previous version
-    [ ${KEEP_LOG} -ne 0 ] && [ -f ~/.shift/${1}/execution.log ] && rm ~/.shift/${1}/execution.log
+    # if installation did not use default installation path
+    if [ -f ~/.shift/${1}/install.log ]
+    then
+        source ~/.shift/${1}/install.log
+        rm ~/.shift/${1}/install.log
+    fi
+
+    # if service is not installed, do not try to run it
+    ( command -v ${INSTALL_PREFIX}/bin/${1} >/dev/null ) || return
 
     # start a new instance of the service
     echo -e ${COLOR}
     echo -ne "Starting ${1}...\r"
-    if [ ${KEEP_LOG} -ne 0 ]
+    if [ ${LOG_FLAG} -ne 0 ]
     then
-        nohup /usr/local/bin/${1} ${3} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
+        nohup ${INSTALL_PREFIX}/bin/${1} ${3} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
     else
-        nohup /usr/local/bin/${1} ${3} </dev/null >/dev/null 2>&1 &
+        nohup ${INSTALL_PREFIX}/bin/${1} ${3} </dev/null >/dev/null 2>&1 &
     fi
 
     # loading time
@@ -79,20 +87,27 @@ function startService
 
 function startVerboseCapableService
 {
-    # if service is not installed, do not try to run it
-    ( command -v /usr/local/bin/${1} >/dev/null ) || return
+# default installation path prefix
+    INSTALL_PREFIX="/usr/local"
 
-    # if log is to be kept, erase previous version
-    [ ${KEEP_LOG} -ne 0 ] && [ -f ~/.shift/${1}/execution.log ] && rm ~/.shift/${1}/execution.log
+    # if installation did not use default installation path
+    if [ -f ~/.shift/${1}/install.log ]
+    then
+        source ~/.shift/${1}/install.log
+        rm ~/.shift/${1}/install.log
+    fi
+
+    # if service is not installed, do not try to run it
+    ( command -v ${INSTALL_PREFIX}/bin/${1} >/dev/null ) || return
 
     # start a new instance of the service
     echo -e ${COLOR}
     echo -ne "Starting ${1}...\r"
-    if [ ${KEEP_LOG} -ne 0 ]
+    if [ ${LOG_FLAG} -ne 0 ]
     then
-        nohup /usr/local/bin/${1} -v -t ${TIME_OUT} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
+        nohup ${INSTALL_PREFIX}/bin/${1} -v ${3} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
     else
-        nohup /usr/local/bin/${1} -t ${TIME_OUT} </dev/null >/dev/null 2>&1 &
+        nohup ${INSTALL_PREFIX}/bin/${1} ${3} </dev/null >/dev/null 2>&1 &
     fi
 
     # loading time
@@ -148,7 +163,7 @@ function startPushServer
     ( pgrep -x WebClient > /dev/null ) || return
 
     # if log is to be kept, erase previous version
-    [ ${KEEP_LOG} -ne 0 ] && [ -f ~/.shift/WebClient/push_server.log ] && rm ~/.shift/WebClient/push_server.log
+    [ ${LOG_FLAG} -ne 0 ] && [ -f ~/.shift/WebClient/push_server.log ] && rm ~/.shift/WebClient/push_server.log
 
     # accessing the frontend directory
     cd ${SHIFT_ROOT}/WebClient/frontend/service/transfer
@@ -156,7 +171,7 @@ function startPushServer
     # start a new instance of the service
     echo -e ${COLOR}
     echo -ne "Starting pushServer...\r"
-    if [ ${KEEP_LOG} -ne 0 ]
+    if [ ${LOG_FLAG} -ne 0 ]
     then
         nohup /usr/bin/php pushServer.php </dev/null >~/.shift/WebClient/$( date +%s )-push_server.log 2>&1 &
     else
@@ -216,7 +231,10 @@ function killPushServer
 }
 
 declare -a MODULES
+
 SIMULATION_DATE=""
+RESET_FLAG=0
+
 STATUS_FLAG=0
 KILL_FLAG=0
 
@@ -267,6 +285,10 @@ while [ "${1}" != "" ]; do
             SIMULATION_DATE=${1}
             shift
             ;;
+        -r | --reset )
+            RESET_FLAG=1
+            shift
+            ;;
         -t | --timeout )
             shift
             if [[ ${1} =~ ${IS_NUMBER} ]]
@@ -276,7 +298,7 @@ while [ "${1}" != "" ]; do
             shift
             ;;
         -l | --log )
-            KEEP_LOG=1
+            LOG_FLAG=1
             shift
             ;;
         -s | --status )
@@ -401,17 +423,18 @@ then
     do
         case ${i} in
             1_DE )
-                startVerboseCapableService "DatafeedEngine" ${LOADING_TIME[1]}
+                startVerboseCapableService "DatafeedEngine" ${LOADING_TIME[1]} "-t ${TIME_OUT}"
                 ;;
             2_ME )
-                [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-d ${SIMULATION_DATE}"
                 [ ${SIMULATION_DATE} ] || startService "MatchingEngine" ${LOADING_TIME[2]}
+                [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-d ${SIMULATION_DATE}"
                 ;;
             3_BC )
-                startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]}
+                [ ${RESET_FLAG} -ne 0 ] || startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT}"
+                [ ${RESET_FLAG} -ne 0 ] && startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r"
                 ;;
             4_WC )
-                startService "WebClient" ${LOADING_TIME[4]}
+                startVerboseCapableService "WebClient" ${LOADING_TIME[4]}
                 ;;
             5_PS )
                 startPushServer ${LOADING_TIME[5]}
