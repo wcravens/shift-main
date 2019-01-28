@@ -38,7 +38,7 @@ private:
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalBid;
 
     std::queue<OrderBookEntry> m_odrBkBuff;
-    std::unordered_set<std::string> m_userList; //registered user
+    std::unordered_set<std::string> m_stockUserList; //registered user
 
 public:
     Stock();

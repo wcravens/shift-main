@@ -184,7 +184,7 @@ void CandlestickData::spawn()
 void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpCandle)
 {
     std::lock_guard<std::mutex> guard(m_mtxCDUserList);
-    FIXAcceptor::getInstance()->sendCandlestickData(m_userList, tmpCandle);
+    FIXAcceptor::getInstance()->sendCandlestickData(m_cdUserList, tmpCandle);
 }
 
 void CandlestickData::sendHistory(const std::string userName)
@@ -204,7 +204,7 @@ void CandlestickData::registerUserInCD(const std::string& userName)
     std::thread(&CandlestickData::sendHistory, this, userName).detach();
     {
         std::lock_guard<std::mutex> guard(m_mtxCDUserList);
-        m_userList.insert(userName);
+        m_cdUserList.insert(userName);
     }
     BCDocuments::getInstance()->addCandleSymbolToUser(userName, m_symbol);
 }
@@ -212,9 +212,9 @@ void CandlestickData::registerUserInCD(const std::string& userName)
 void CandlestickData::unregisterUserInCD(const std::string& userName)
 {
     std::lock_guard<std::mutex> guard(m_mtxCDUserList);
-    auto it = m_userList.find(userName);
-    if (it != m_userList.end()) {
-        m_userList.erase(it);
+    auto it = m_cdUserList.find(userName);
+    if (it != m_cdUserList.end()) {
+        m_cdUserList.erase(it);
     }
 }
 
