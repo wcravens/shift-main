@@ -10,15 +10,18 @@
 }
 
 void BCDocuments::addSymbol(const std::string& symbol)
-{
-    std::lock_guard<std::mutex> guard(m_mtxSymbols);
+{ // Here no locking is needed only when satisfies precondition: addSymbol was run before others
     m_symbols.insert(symbol);
 }
 
-std::unordered_set<std::string> BCDocuments::getSymbols()
+const std::unordered_set<std::string>& BCDocuments::getSymbols() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxSymbols);
     return m_symbols;
+}
+
+bool BCDocuments::hasSymbol(const std::string& symbol) const
+{
+    return m_symbols.find(symbol) != m_symbols.end();
 }
 
 void BCDocuments::addStockToSymbol(const std::string& symbol, const OrderBookEntry& ob)
@@ -307,12 +310,6 @@ void BCDocuments::removeCandleSymbolFromUser(const std::string& userName, const 
     if (m_candleSymbolsByName.end() != pos) {
         pos->second.erase(symbol);
     }
-}
-
-bool BCDocuments::hasSymbol(const std::string& symbol) const
-{
-    std::lock_guard<std::mutex> guard(m_mtxSymbols);
-    return m_symbols.find(symbol) != m_symbols.end();
 }
 
 void BCDocuments::broadcastStocks() const
