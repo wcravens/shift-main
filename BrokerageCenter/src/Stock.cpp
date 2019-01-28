@@ -48,7 +48,6 @@ void Stock::process()
     thread_local auto quitFut = m_quitFlag.get_future();
 
     while (true) {
-        std::unique_lock<std::mutex> lock(m_mtxStock);
         std::unique_lock<std::mutex> buffLock(m_mtxOdrBkBuff);
         if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOdrBkBuff, buffLock, [this] { return !m_odrBkBuff.empty(); }))
             return;
@@ -84,17 +83,6 @@ void Stock::process()
 void Stock::spawn()
 {
     m_th.reset(new std::thread(&Stock::process, this));
-}
-
-/**
-*   @brief  Wait for the process thread to finish for at most 5 seconds.
-*   @return nothing
-*/
-void Stock::stop()
-{
-    std::lock_guard<std::mutex> guard(m_mtxStock);
-    m_flag = true;
-    m_th->detach();
 }
 
 /**

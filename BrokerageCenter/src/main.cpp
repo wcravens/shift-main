@@ -245,9 +245,18 @@ int main(int ac, char* av[])
     DBConnector::getInstance()->createUsers("XYZ");
 
     /*
-     * @brief   Try to connect Matching Engine and waiting for client
+     * @brief   Try to connect Matching Engine
      */
     FIXInitiator::getInstance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose);
+
+    /*
+     * @brief   Wait for complete security list
+     */
+    while (!BCDocuments::s_isSecurityListReady)
+        continue;
+    /*
+     * @brief   Try to connect to clients
+     */
     FIXAcceptor::getInstance()->connectClientComputers(params.configDir + "acceptor.cfg", params.isVerbose);
 
     /*

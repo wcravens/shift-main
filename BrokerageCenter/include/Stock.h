@@ -19,7 +19,6 @@ class Stock {
 private:
     std::string m_symbol; ///> The stock name of this Stock instance.
 
-    mutable std::mutex m_mtxStock; ///> Mutex for Stock
     mutable std::mutex m_mtxOdrBkBuff; ///> Mutex for m_odrBkBuff.
     mutable std::mutex m_mtxStockUserList;
     mutable std::mutex m_mtxOdrBkGlobalAsk;
@@ -27,7 +26,6 @@ private:
     mutable std::mutex m_mtxOdrBkLocalAsk;
     mutable std::mutex m_mtxOdrBkLocalBid;
 
-    bool m_flag = true;
     std::unique_ptr<std::thread> m_th;
     std::condition_variable m_cvOdrBkBuff;
     std::promise<void> m_quitFlag;
@@ -48,7 +46,7 @@ public:
     void enqueueOrderBook(const OrderBookEntry& ob);
     void process();
     void spawn();
-    void stop();
+    // void stop();
 
     void registerUserInStock(const std::string& userName);
     void unregisterUserInStock(const std::string& userName);
