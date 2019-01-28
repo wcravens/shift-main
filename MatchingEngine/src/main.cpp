@@ -16,12 +16,12 @@ using namespace std::chrono_literals;
 /* PROGRAM OPTIONS */
 #define CSTR_HELP \
     "help"
-#define CSTR_MANUAL \
-    "manual"
 #define CSTR_CONFIG \
     "config"
 #define CSTR_DATE \
     "date"
+#define CSTR_MANUAL \
+    "manual"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -47,9 +47,9 @@ int main(int ac, char* av[])
     po::options_description desc("\nUSAGE: ./MatchingEngine [options] <args>\n\n\tThis is the MatchingEngine.\n\tThe server connects with DatafeedEngine and BrokerageCenter instances and runs in background.\n\nOPTIONS");
     desc.add_options() // <--- every line-end from here needs a comment mark so that to prevent auto formating into single line
         (CSTR_HELP ",h", "produce help message") //
-        (CSTR_MANUAL ",m", "set manual input of all parameters") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
         (CSTR_DATE ",d", po::value<std::string>(), "simulation date") //
+        (CSTR_MANUAL ",m", "set manual input of all parameters") //
         ; // add_options
 
     po::variables_map vm;
@@ -71,10 +71,6 @@ int main(int ac, char* av[])
         return 1;
     }
 
-    if (vm.count(CSTR_MANUAL)) {
-        params.isManualInput = true;
-    }
-
     if (vm.count(CSTR_CONFIG)) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
@@ -86,6 +82,10 @@ int main(int ac, char* av[])
 
     if (vm.count(CSTR_DATE)) {
         params.simulationDate = vm[CSTR_DATE].as<std::string>();
+    }
+
+    if (vm.count(CSTR_MANUAL)) {
+        params.isManualInput = true;
     }
 
     std::string configfile = params.configDir + "config.txt";
