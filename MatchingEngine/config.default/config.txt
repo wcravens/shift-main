@@ -39,7 +39,7 @@ stock=WMT
 stock=WBA.O
 stock=DIS
 
-date=2018-03-15
+date=2018-12-17
 starttime=09:30:00
 endtime=16:00:00
 speed=1
