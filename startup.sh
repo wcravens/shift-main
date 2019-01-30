@@ -248,23 +248,23 @@ while [ "${1}" != "" ]; do
                 shift
                 case ${1} in
                     DE | de | DatafeedEngine | datafeedengine )
-                        MODULES+=('1_DE')
+                        MODULES+=("1_DE")
                         LOADING_TIME_INDEX=1
                         ;;
                     ME | me | MatchingEngine | matchingengine )
-                        MODULES+=('2_ME')
+                        MODULES+=("2_ME")
                         LOADING_TIME_INDEX=2
                         ;;
                     BC | bc | BrokerageCenter | brokeragecenter )
-                        MODULES+=('3_BC')
+                        MODULES+=("3_BC")
                         LOADING_TIME_INDEX=3
                         ;;
                     WC | wc | WebClient | webclient )
-                        MODULES+=('4_WC')
+                        MODULES+=("4_WC")
                         LOADING_TIME_INDEX=4
                         ;;
                     PS | ps | PushServer | pushserver )
-                        MODULES+=('5_PS')
+                        MODULES+=("5_PS")
                         LOADING_TIME_INDEX=5
                         ;;
                     * )
@@ -333,11 +333,11 @@ MODULES=($(echo ${MODULES[@]} | tr ' ' '\n' | awk '!a[$0]++' | tr '\n' ' '))
 
 if [ ${#MODULES[@]} -eq 0 ]
 then
-    MODULES+=('1_DE')
-    MODULES+=('2_ME')
-    MODULES+=('3_BC')
-    MODULES+=('4_WC')
-    MODULES+=('5_PS')
+    MODULES+=("1_DE")
+    MODULES+=("2_ME")
+    MODULES+=("3_BC")
+    MODULES+=("4_WC")
+    MODULES+=("5_PS")
 fi
 
 if [ ${STATUS_FLAG} -ne 0 ]
