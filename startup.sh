@@ -59,7 +59,6 @@ function startService
     if [ -f ~/.shift/${1}/install.log ]
     then
         source ~/.shift/${1}/install.log
-        rm ~/.shift/${1}/install.log
     fi
 
     # if service is not installed, do not try to run it
@@ -94,7 +93,6 @@ function startVerboseCapableService
     if [ -f ~/.shift/${1}/install.log ]
     then
         source ~/.shift/${1}/install.log
-        rm ~/.shift/${1}/install.log
     fi
 
     # if service is not installed, do not try to run it
