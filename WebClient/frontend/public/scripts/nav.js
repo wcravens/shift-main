@@ -76,7 +76,7 @@ $(document).ready(function () {
     var conn = new ab.Session('ws://' + php_server_ip + ':8080',
         function () {
             conn.subscribe('portfolioSummary_' + php_username, function (topic, data) {
-                document.getElementById("BP").innerHTML = "BP: " + numFloat(data.data.totalBP) + " | P&L: " + numFloat(data.data.totalPL) + " (" + numFloat(parseFloat(data.data.earnings) * 100) + "%)";
+                document.getElementById("Summary").innerHTML = "BP: " + numFloat(data.data.totalBP) + " | P&L: " + numFloat(data.data.totalPL) + " (" + numFloat(parseFloat(data.data.earnings) * 100) + "%)";
             });
         },
         function () {
