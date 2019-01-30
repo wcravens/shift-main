@@ -31,11 +31,11 @@ COLOR_PROMPT='\033[1;32m'   # bold;green
 COLOR_ERROR='\033[1;31m'    # bold;red
 NO_COLOR='\033[0m'
 
-# root folder of the supervisor script
-SUPERVISOR_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 # directory from which the script is being run from
 CURRENT_DIR="$( pwd )"
+
+# root folder of the supervisor script
+SUPERVISOR_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function usage
 {
