@@ -24,6 +24,14 @@
 #
 ####################################################
 
+# simulation dates for the supervisor to follow (it also works if empty)
+declare -a SIMULATION_DATES
+#SIMULATION_DATES+=("2018-12-17")
+#SIMULATION_DATES+=("2018-12-18")
+#SIMULATION_DATES+=("2018-12-19")
+#SIMULATION_DATES+=("2018-12-20")
+#SIMULATION_DATES+=("2018-12-21")
+
 # different output colors
 COLOR='\033[1;36m'          # bold;cyan
 COLOR_WARNING='\033[1;33m'  # bold;yellow
@@ -100,7 +108,7 @@ then
 
     if [ -f ~/.shift/supervisor.log ]
     then
-        source ~/.shift/supervisor.log # START_DATE is saved at supervisor.log
+        source ~/.shift/supervisor.log # SD_INDEX and START_DATE are saved in supervisor.log
         rm ~/.shift/supervisor.log
         END_DATE="$( date +%s )"
         RUNTIME=$(( ${END_DATE} - ${START_DATE} ))
@@ -122,8 +130,20 @@ then
 
     if [ ${KILL_FLAG} -eq 0 ]
     then
-        echo "START_DATE=$( date +%s )" > ~/.shift/supervisor.log
-        ./startup.sh >/dev/null 2>&1 # start all services
+        # the following order of tests should be kept:
+        [ ${SD_INDEX} ] && SD_INDEX=$(( ${SD_INDEX} + 1 ))     # if there is a previous SD_INDEX value, increment it by one
+        [ ${SD_INDEX} ] || SD_INDEX=0                          # if there is no previous SD_INDEX value, set it to zero
+        [ ${SD_INDEX} -eq ${#SIMULATION_DATES[@]} ] SD_INDEX=0 # if SD_INDEX reaches the size of SIMULATION_DATES, reset it to zero
+
+        if [ ${#SIMULATION_DATES[@]} -ne 0 ]
+        then
+            echo "SD_INDEX=${SD_INDEX}" > ~/.shift/supervisor.log
+            echo "START_DATE=$( date +%s )" > ~/.shift/supervisor.log
+            ./startup.sh -d ${SIMULATION_DATES[${SD_INDEX}]} >/dev/null 2>&1 # start all services with a given simulation date
+        else
+            echo "START_DATE=$( date +%s )" > ~/.shift/supervisor.log
+            ./startup.sh >/dev/null 2>&1 # start all services
+        fi
     fi
 fi
 
