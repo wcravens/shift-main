@@ -81,7 +81,7 @@ function installServer
 
     # save installation path to install.log (erasing previous version)
     [ -f ~/.shift/${1}/install.log ] && rm ~/.shift/${1}/install.log
-    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" > ~/.shift/${1}/install.log
+    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" >> ~/.shift/${1}/install.log
     
     # give ownership of the ~/.shift directory to the current user
     chownFix ~/.shift
@@ -166,7 +166,7 @@ function installLibrary
 
     # save installation path to install.log (erasing previous version)
     [ -f ~/.shift/${1}/install.log ] && rm ~/.shift/${1}/install.log
-    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" > ~/.shift/${1}/install.log
+    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" >> ~/.shift/${1}/install.log
 
     # give ownership of the ~/.shift directory to the current user
     chownFix ~/.shift
