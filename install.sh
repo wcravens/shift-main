@@ -294,19 +294,19 @@ while [ "${1}" != "" ]; do
                 shift
                 case ${1} in
                     LM | lm | LibMiscUtils | libmiscutils )
-                        MODULES+=('0_LM')
+                        MODULES+=("0_LM")
                         ;;
                     DE | de | DatafeedEngine | datafeedengine )
-                        MODULES+=('1_DE')
+                        MODULES+=("1_DE")
                         ;;
                     ME | me | MatchingEngine | matchingengine )
-                        MODULES+=('2_ME')
+                        MODULES+=("2_ME")
                         ;;
                     BC | bc | BrokerageCenter | brokeragecenter )
-                        MODULES+=('3_BC')
+                        MODULES+=("3_BC")
                         ;;
                     LC | lc | LibCoreClient | libcoreclient )
-                        MODULES+=('4_LC')
+                        MODULES+=("4_LC")
                         ;;
                     * )
                         break
@@ -359,10 +359,10 @@ fi
 # LibMiscUtils is a requirement for all other projects
 if [ ${UNINSTALL_FLAG} -eq 0 ] && [ ${AVOID_INSTALL} -eq 0 ]
 then
-    [[ "${MODULES[@]}" =~ "1_DE" ]] && MODULES+=('0_LM')
-    [[ "${MODULES[@]}" =~ "2_ME" ]] && MODULES+=('0_LM')
-    [[ "${MODULES[@]}" =~ "3_BC" ]] && MODULES+=('0_LM')
-    [[ "${MODULES[@]}" =~ "4_LC" ]] && MODULES+=('0_LM')
+    [[ "${MODULES[@]}" =~ "1_DE" ]] && MODULES+=("0_LM")
+    [[ "${MODULES[@]}" =~ "2_ME" ]] && MODULES+=("0_LM")
+    [[ "${MODULES[@]}" =~ "3_BC" ]] && MODULES+=("0_LM")
+    [[ "${MODULES[@]}" =~ "4_LC" ]] && MODULES+=("0_LM")
 fi
 
 # remove duplicates
@@ -370,11 +370,11 @@ MODULES=($(echo ${MODULES[@]} | tr ' ' '\n' | awk '!a[$0]++' | tr '\n' ' '))
 
 if [ ${#MODULES[@]} -eq 0 ]
 then
-    MODULES+=('0_LM')
-    MODULES+=('1_DE')
-    MODULES+=('2_ME')
-    MODULES+=('3_BC')
-    MODULES+=('4_LC')
+    MODULES+=("0_LM")
+    MODULES+=("1_DE")
+    MODULES+=("2_ME")
+    MODULES+=("3_BC")
+    MODULES+=("4_LC")
 fi
 
 # sort modules to be (un)installed
