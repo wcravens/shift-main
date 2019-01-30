@@ -440,22 +440,12 @@ void FIXAcceptor::sendCandlestickData(const std::unordered_set<std::string>& use
 
 inline bool FIXAcceptor::subscribeOrderBook(const std::string& userName, const std::string& symbol)
 {
-    return BCDocuments::getInstance()->manageStockOrderBookUser(true, symbol, userName);
+    return BCDocuments::getInstance()->manageUsersInStockOrderBook(true, symbol, userName);
 }
 
 inline bool FIXAcceptor::unsubscribeOrderBook(const std::string& userName, const std::string& symbol)
 {
-    return BCDocuments::getInstance()->manageStockOrderBookUser(false, symbol, userName);
-}
-
-inline bool FIXAcceptor::subscribeCandleData(const std::string& userName, const std::string& symbol)
-{
-    return BCDocuments::getInstance()->manageCandleStickDataUser(true, userName, symbol);
-}
-
-inline bool FIXAcceptor::unsubscribeCandleData(const std::string& userName, const std::string& symbol)
-{
-    return BCDocuments::getInstance()->manageCandleStickDataUser(false, userName, symbol);
+    return BCDocuments::getInstance()->manageUsersInStockOrderBook(false, symbol, userName);
 }
 
 /**
@@ -699,11 +689,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
     message.get(isSubscribed);
 
     const auto& userName = BCDocuments::getInstance()->getUserNameByTargetID(sessionID.getTargetCompID());
-    if ('1' == isSubscribed) {
-        subscribeCandleData(userName, symbol);
-    } else {
-        unsubscribeCandleData(userName, symbol);
-    }
+    BCDocuments::getInstance()->manageUsersInCandlestickData('1' == isSubscribed, userName, symbol);
 }
 
 /*

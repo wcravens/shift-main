@@ -30,12 +30,7 @@
 #endif
 
 CandlestickData::CandlestickData()
-    : m_currPrice{ .0 }
-    , m_currOpenPrice{ .0 }
-    , m_currClosePrice{ .0 }
-    , m_currHighPrice{ .0 }
-    , m_currLowPrice{ .0 }
-    , m_lastTransacSent(true)
+    : CandlestickData("", .0, .0, .0, .0, .0, std::time_t{})
 {
 }
 
@@ -106,6 +101,13 @@ void CandlestickData::process()
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
         const auto currExecTime = transac.execTime.getTimeT();
+
+        if (std::time_t{} == m_currOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup status ?
+            m_currOpenTime = currExecTime;
+            m_symbol = std::move(transac.symbol);
+            continue;
+        }
+
         const auto execTimeGap = currExecTime - m_currOpenTime;
 
         if (m_lastTransacSent) {
@@ -183,8 +185,8 @@ void CandlestickData::spawn()
 
 void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpCandle)
 {
-    std::lock_guard<std::mutex> guard(m_mtxCDUserList);
-    FIXAcceptor::getInstance()->sendCandlestickData(m_cdUserList, tmpCandle);
+    std::lock_guard<std::mutex> guard(m_mtxCandleUserList);
+    FIXAcceptor::getInstance()->sendCandlestickData(m_candleUserList, tmpCandle);
 }
 
 void CandlestickData::sendHistory(const std::string userName)
@@ -199,22 +201,21 @@ void CandlestickData::sendHistory(const std::string userName)
     }
 }
 
-void CandlestickData::registerUserInCD(const std::string& userName)
+void CandlestickData::registerUserInCandlestickData(const std::string& userName)
 {
-    std::thread(&CandlestickData::sendHistory, this, userName).detach();
+    std::thread(&CandlestickData::sendHistory, this, userName).detach(); // this takes time, so let run on side
     {
-        std::lock_guard<std::mutex> guard(m_mtxCDUserList);
-        m_cdUserList.insert(userName);
+        std::lock_guard<std::mutex> guard(m_mtxCandleUserList);
+        m_candleUserList.insert(userName);
     }
-    BCDocuments::getInstance()->addCandleSymbolToUser(userName, m_symbol);
 }
 
-void CandlestickData::unregisterUserInCD(const std::string& userName)
+void CandlestickData::unregisterUserInCandlestickData(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guard(m_mtxCDUserList);
-    auto it = m_cdUserList.find(userName);
-    if (it != m_cdUserList.end()) {
-        m_cdUserList.erase(it);
+    std::lock_guard<std::mutex> guard(m_mtxCandleUserList);
+    auto it = m_candleUserList.find(userName);
+    if (it != m_candleUserList.end()) {
+        m_candleUserList.erase(it);
     }
 }
 

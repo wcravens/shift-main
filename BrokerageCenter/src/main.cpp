@@ -253,7 +253,7 @@ int main(int ac, char* av[])
      * @brief   Wait for complete security list
      */
     while (!BCDocuments::s_isSecurityListReady)
-        continue;
+        std::this_thread::sleep_for(500ms);
     /*
      * @brief   Try to connect to clients
      */
