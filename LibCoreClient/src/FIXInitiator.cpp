@@ -398,20 +398,6 @@ void shift::FIXInitiator::toAdmin(FIX::Message& message, const FIX::SessionID& s
 }
 
 /**
- * @brief Method to communicate with FIX server.
- */
-void shift::FIXInitiator::toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) // override
-{
-    try {
-        FIX::PossDupFlag possDupFlag;
-        message.getHeader().getField(possDupFlag);
-        if (possDupFlag)
-            throw FIX::DoNotSend();
-    } catch (FIX::FieldNotFound&) {
-    }
-}
-
-/**
  * @brief Method for passing message to core client
  */
 void shift::FIXInitiator::fromAdmin(const FIX::Message& message, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override

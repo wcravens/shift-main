@@ -236,17 +236,6 @@ void FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
          << "Logout - " << sessionID << endl;
 }
 
-void FIXInitiator::toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) // override
-{
-    try {
-        FIX::PossDupFlag possDupFlag;
-        message.getHeader().getField(possDupFlag);
-        if (possDupFlag)
-            throw FIX::DoNotSend();
-    } catch (FIX::FieldNotFound&) {
-    }
-}
-
 void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
 {
     crack(message, sessionID);

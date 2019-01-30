@@ -188,17 +188,6 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
          << "FIX:Logout - " << sessionID << endl;
 }
 
-void FIXAcceptor::toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) // override
-{
-    try {
-        FIX::PossDupFlag possDupFlag;
-        message.getHeader().getField(possDupFlag);
-        if (possDupFlag)
-            throw FIX::DoNotSend();
-    } catch (FIX::FieldNotFound&) {
-    }
-}
-
 void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
 {
     crack(message, sessionID);

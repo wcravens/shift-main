@@ -79,7 +79,7 @@ private:
     void onLogon(const FIX::SessionID& sessionID) override;
     void onLogout(const FIX::SessionID& sessionID) override;
     void toAdmin(FIX::Message& message, const FIX::SessionID& sessionID) override {}
-    void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override;
+    void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override {}
     void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) override;

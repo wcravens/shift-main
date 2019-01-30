@@ -94,7 +94,7 @@ protected:
     R_FIXINIT void onLogon(const FIX::SessionID& sessionID) override;
     R_FIXINIT void onLogout(const FIX::SessionID& sessionID) override;
     R_FIXINIT void toAdmin(FIX::Message& message, const FIX::SessionID& sessionID) override;
-    R_FIXINIT void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override;
+    R_FIXINIT void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override {}
     R_FIXINIT void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     R_FIXINIT void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     R_FIXINIT void onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) override;
