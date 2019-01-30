@@ -10,10 +10,10 @@ function createsession() {
                 var rate = document.getElementById("rate");
                 var diff = document.getElementById("diff");
                 var arrow = document.getElementById("arrow");
-                if (lastPrice.innerHTML < parseFloat(data.data.lastPrice) && lastPrice.innerHTML != "0.00") {
+                if (lastPrice.innerHTML < numFloat(data.data.lastPrice) && lastPrice.innerHTML != "0.00") {
                     lastPrice.className = "bold rise";
                 }
-                else if (lastPrice.innerHTML > parseFloat(data.data.lastPrice)) {
+                else if (lastPrice.innerHTML > numFloat(data.data.lastPrice)) {
                     lastPrice.className = "bold drop";
                 }
                 /* Four orderBooks at a time (0.5 seconds), only flash back to black when Global Ask comes*/

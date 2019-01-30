@@ -8,9 +8,9 @@ $(document).ready(function () {
         function () {
             conn.subscribe('bestPrice', function (topic, data) {
                 var bestPriceCells = document.getElementById(data.data.symbol).cells;
-                if (bestPriceCells[1].innerHTML < parseFloat(data.data.lastPrice) && bestPriceCells[1].innerHTML != "")
+                if (bestPriceCells[1].innerHTML < numFloat(data.data.lastPrice) && bestPriceCells[1].innerHTML != "")
                     bestPriceCells[1].className = "rise bold";
-                else if (bestPriceCells[1].innerHTML > parseFloat(data.data.lastPrice))
+                else if (bestPriceCells[1].innerHTML > numFloat(data.data.lastPrice))
                     bestPriceCells[1].className = "drop bold";
                 else
                     bestPriceCells[1].className = "";
@@ -18,16 +18,16 @@ $(document).ready(function () {
                 bestPriceCells[2].className = "rborder";
                 bestPriceCells[3].innerHTML = numInt(data.data.best_bid_size);
                 bestPriceCells[3].className = "notimpcol";
-                if (bestPriceCells[4].innerHTML < parseFloat(data.data.best_bid_price) && bestPriceCells[4].innerHTML != "")
+                if (bestPriceCells[4].innerHTML < numFloat(data.data.best_bid_price) && bestPriceCells[4].innerHTML != "")
                     bestPriceCells[4].className = "rise bold";
-                else if (bestPriceCells[4].innerHTML > parseFloat(data.data.best_bid_price))
+                else if (bestPriceCells[4].innerHTML > numFloat(data.data.best_bid_price))
                     bestPriceCells[4].className = "drop bold";
                 else
                     bestPriceCells[4].className = "";
                 bestPriceCells[4].innerHTML = numFloat(data.data.best_bid_price);
-                if (bestPriceCells[5].innerHTML < parseFloat(data.data.best_ask_price) && bestPriceCells[5].innerHTML != "")
+                if (bestPriceCells[5].innerHTML < numFloat(data.data.best_ask_price) && bestPriceCells[5].innerHTML != "")
                     bestPriceCells[5].className = "rise bold";
-                else if (bestPriceCells[5].innerHTML > parseFloat(data.data.best_ask_price))
+                else if (bestPriceCells[5].innerHTML > numFloat(data.data.best_ask_price))
                     bestPriceCells[5].className = "drop bold";
                 else
                     bestPriceCells[5].className = "";
