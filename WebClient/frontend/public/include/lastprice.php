@@ -1,7 +1,7 @@
 <!-- lastprice module -->
 <!-- To keep consistency, the lastprice.js will be included in the head of all the pages that includes lastprice module, not in this php file -->
 <div class="notselectable">
-    <font id="last_price" class="boldlablelastprice" size="+3" >0.00</font>
+    <font id="last_price" class="boldlabellastprice" size="+3" >0.00</font>
     <font class="grey">USD</font>
     &nbsp
     <font id="diff" size="+2">0.00</font>

@@ -18,7 +18,7 @@ function createsession() {
                 }
                 /* Four orderBooks at a time (0.5 seconds), only flash back to black when Global Ask comes*/
                 else {
-                    lastPrice.className = "boldlablelastprice";
+                    lastPrice.className = "boldlabellastprice";
                 }
 
                 if (parseFloat(data.data.rate) > 0) {
