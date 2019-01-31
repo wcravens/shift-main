@@ -31,13 +31,9 @@ bool BCDocuments::hasSymbol(const std::string& symbol) const
 
 void BCDocuments::attachStockToSymbol(const std::string& symbol)
 {
-    auto res = m_stockBySymbol.emplace(symbol, nullptr);
-    auto& stockPtr = res.first->second;
-
-    if (res.second) { // new inserted?
-        stockPtr.reset(new Stock(symbol));
-        stockPtr->spawn();
-    }
+    auto& stockPtr = m_stockBySymbol[symbol]; // insert new
+    stockPtr.reset(new Stock(symbol));
+    stockPtr->spawn();
 }
 
 void BCDocuments::addOrderBookEntryToStock(const std::string& symbol, const OrderBookEntry& entry)
@@ -49,12 +45,9 @@ void BCDocuments::addOrderBookEntryToStock(const std::string& symbol, const Orde
 
 void BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
 {
-    auto res = m_candleBySymbol.emplace(symbol, nullptr);
-    auto& candPtr = res.first->second;
-    if (res.second) { // inserted new?
-        candPtr.reset(new CandlestickData);
-        candPtr->spawn();
-    }
+    auto& candlePtr = m_candleBySymbol[symbol]; // insert new
+    candlePtr.reset(new CandlestickData);
+    candlePtr->spawn();
 }
 
 void BCDocuments::addTransacToCandlestickData(const std::string& symbol, const Transaction& transac)
