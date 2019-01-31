@@ -369,12 +369,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 printRpts(true, pUserName1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
                 printRpts(false, pUserName2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
 
-                BCDocuments* docs = BCDocuments::getInstance();
-                docs->addCandleToSymbol(*pSymbol, transac);
+                auto* docs = BCDocuments::getInstance();
+                docs->addTransacToCandlestickData(*pSymbol, transac);
                 docs->addReportToUserRiskManagement(*pUserName1, report1);
                 docs->addReportToUserRiskManagement(*pUserName2, report2);
             } else { // TRTH TRADE
-                BCDocuments::getInstance()->addCandleToSymbol(*pSymbol, transac);
+                BCDocuments::getInstance()->addTransacToCandlestickData(*pSymbol, transac);
             }
 
             FIXAcceptor::getInstance()->sendLastPrice2All(transac);
@@ -526,8 +526,6 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pUtctime->getValue()
     };
 
-    while (!BCDocuments::s_isSecurityListReady)
-        continue;
     BCDocuments::getInstance()->addOrderBookEntryToStock(*pSymbol, update);
 
     if (prevCnt) { // > 1 threads
@@ -547,7 +545,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 }
 
 /*
- * @brief Receive security list from ME
+ * @brief Receive security list from ME. Only run once each system session.
  */
 void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
 {
@@ -560,12 +558,16 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
     FIX::Symbol symbol;
 
+    auto* docs = BCDocuments::getInstance();
     for (int i = 1; i <= numOfGroup; i++) {
         message.getGroup(i, relatedSymGroup);
         relatedSymGroup.get(symbol);
-        BCDocuments::getInstance()->addSymbol(symbol);
-        BCDocuments::getInstance()->attachStockToSymbol(symbol);
+
+        docs->addSymbol(symbol);
+        docs->attachStockToSymbol(symbol);
+        docs->attachCandlestickDataToSymbol(symbol);
     }
 
+    // Now, it's safe to advance all routines that *read* permanent data structures created above:
     BCDocuments::s_isSecurityListReady = true;
 }

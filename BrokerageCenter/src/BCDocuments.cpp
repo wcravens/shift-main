@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cassert>
 
+using namespace std::chrono_literals;
+
 /* static */ std::atomic<bool> BCDocuments::s_isSecurityListReady{ false };
 
 /*static*/ BCDocuments* BCDocuments::getInstance()
@@ -29,40 +31,30 @@ bool BCDocuments::hasSymbol(const std::string& symbol) const
 
 void BCDocuments::attachStockToSymbol(const std::string& symbol)
 {
-    auto res = m_stockBySymbol.emplace(symbol, nullptr);
-    auto& stockPtr = res.first->second;
-
-    if (res.second) { // new inserted?
-        stockPtr.reset(new Stock(symbol));
-        stockPtr->spawn();
-    }
+    auto& stockPtr = m_stockBySymbol[symbol]; // insert new
+    stockPtr.reset(new Stock(symbol));
+    stockPtr->spawn();
 }
 
 void BCDocuments::addOrderBookEntryToStock(const std::string& symbol, const OrderBookEntry& entry)
 {
-    // assert(s_isSecurityListReady);
+    while (!s_isSecurityListReady)
+        std::this_thread::sleep_for(500ms);
     m_stockBySymbol[symbol]->enqueueOrderBook(entry);
 }
 
-void BCDocuments::addCandleToSymbol(const std::string& symbol, const Transaction& transac)
+void BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> guard(m_mtxCandleBySymbol);
+    auto& candlePtr = m_candleBySymbol[symbol]; // insert new
+    candlePtr.reset(new CandlestickData);
+    candlePtr->spawn();
+}
 
-    auto res = m_candleBySymbol.emplace(symbol, nullptr);
-    auto& candPtr = res.first->second;
-    if (res.second) { // inserted new?
-        candPtr.reset(
-            new CandlestickData(
-                transac.symbol,
-                transac.price,
-                transac.price,
-                transac.price,
-                transac.price,
-                transac.price,
-                transac.execTime.getTimeT()));
-        candPtr->spawn();
-    }
-    candPtr->enqueueTransaction(transac);
+void BCDocuments::addTransacToCandlestickData(const std::string& symbol, const Transaction& transac)
+{
+    while (!s_isSecurityListReady)
+        std::this_thread::sleep_for(500ms);
+    m_candleBySymbol[symbol]->enqueueTransaction(transac);
 }
 
 void BCDocuments::addRiskManagementToUserLockedExplicit(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol)
@@ -159,7 +151,7 @@ double BCDocuments::getStockOrderBookMarketFirstPrice(bool isBuy, const std::str
     }
 }
 
-bool BCDocuments::manageStockOrderBookUser(bool isRegister, const std::string& symbol, const std::string& userName) const
+bool BCDocuments::manageUsersInStockOrderBook(bool isRegister, const std::string& symbol, const std::string& userName) const
 {
     auto pos = m_stockBySymbol.find(symbol);
     if (m_stockBySymbol.end() != pos) {
@@ -173,16 +165,27 @@ bool BCDocuments::manageStockOrderBookUser(bool isRegister, const std::string& s
     return false;
 }
 
-bool BCDocuments::manageCandleStickDataUser(bool isRegister, const std::string& userName, const std::string& symbol) const
+bool BCDocuments::manageUsersInCandlestickData(bool isRegister, const std::string& userName, const std::string& symbol)
 {
-    std::lock_guard<std::mutex> guard(m_mtxCandleBySymbol);
+    assert(s_isSecurityListReady);
+    /*  ||
+       \||/
+        \/
+        I do write assert(...) here instead of explicitly writting busy waiting loop because that
+        assert() assumes that the dependency logics are implied and preconditions are guarenteed by the
+        implementation somewhere, whereas a waiting loop assumes nothing.
+        Hence, the assert() here is reasonable because this function is invoked only after we connected to the user, at which security list must be ready.
+    */
 
     auto pos = m_candleBySymbol.find(symbol);
     if (m_candleBySymbol.end() != pos) {
-        if (isRegister)
-            pos->second->registerUserInCD(userName);
-        else
-            pos->second->unregisterUserInCD(userName);
+        if (isRegister) {
+            pos->second->registerUserInCandlestickData(userName);
+
+            std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByName);
+            m_candleSymbolsByName[userName].insert(symbol);
+        } else
+            pos->second->unregisterUserInCandlestickData(userName);
         return true;
     }
 
@@ -207,45 +210,38 @@ int BCDocuments::sendHistoryToUser(const std::string& userName)
 
 std::unordered_map<std::string, std::string> BCDocuments::getConnectedTargetIDsMap()
 {
-    std::lock_guard<std::mutex> guard(m_mtxTarID2Name);
+    std::lock_guard<std::mutex> guard(m_mtxMapsBetweenNamesAndTargetIDs);
     return m_mapTarID2Name;
 }
 
 void BCDocuments::registerUserInDoc(const std::string& userName, const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
-
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
     m_mapTarID2Name[targetID] = userName;
     m_mapName2TarID[userName] = targetID;
 }
 
 void BCDocuments::unregisterUserInDoc(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
 
     auto posN2ID = m_mapName2TarID.find(userName);
     if (m_mapName2TarID.end() != posN2ID) {
         const auto& tarID = posN2ID->second;
         m_mapTarID2Name.erase(tarID);
-
         m_mapName2TarID.erase(posN2ID);
     }
 }
 
 void BCDocuments::registerWebUserInDoc(const std::string& userName, const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name); // this is also needed to avoid potential deadlocks
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
-
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
     m_mapName2TarID[userName] = targetID;
 }
 
 std::string BCDocuments::getTargetIDByUserName(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name); // this is also needed to avoid potential deadlocks
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
 
     auto pos = m_mapName2TarID.find(userName);
     if (m_mapName2TarID.end() == pos)
@@ -256,8 +252,7 @@ std::string BCDocuments::getTargetIDByUserName(const std::string& userName)
 
 std::string BCDocuments::getUserNameByTargetID(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID); // this is also needed to avoid potential deadlocks
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
 
     auto pos = m_mapTarID2Name.find(targetID);
     if (m_mapTarID2Name.end() == pos)
@@ -270,12 +265,6 @@ void BCDocuments::addOrderBookSymbolToUser(const std::string& userName, const st
 {
     std::lock_guard<std::mutex> guard(m_mtxOrderBookSymbolsByName);
     m_orderBookSymbolsByName[userName].insert(symbol);
-}
-
-void BCDocuments::addCandleSymbolToUser(const std::string& userName, const std::string& symbol)
-{
-    std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByName);
-    m_candleSymbolsByName[userName].insert(symbol);
 }
 
 void BCDocuments::removeUserFromStocks(const std::string& userName)
@@ -294,12 +283,11 @@ void BCDocuments::removeUserFromStocks(const std::string& userName)
 void BCDocuments::removeUserFromCandles(const std::string& userName)
 {
     std::lock_guard<std::mutex> guardCSBN(m_mtxCandleSymbolsByName);
-    std::lock_guard<std::mutex> guardCBS(m_mtxCandleBySymbol);
 
     auto pos = m_candleSymbolsByName.find(userName);
     if (m_candleSymbolsByName.end() != pos) {
         for (const auto& stock : pos->second) {
-            m_candleBySymbol[stock]->unregisterUserInCD(userName);
+            m_candleBySymbol[stock]->unregisterUserInCandlestickData(userName);
         }
         m_candleSymbolsByName.erase(pos);
     }

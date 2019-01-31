@@ -25,12 +25,7 @@ Some terminologies:
 (3) One (1) can consist of multiple (2)s; one (2) can interact(e.g. login) through various (1)s, but each (1) will maintain that respectively.
 */
 class BCDocuments {
-    // TODO
-    mutable std::mutex m_mtxCandleBySymbol;
-
-    mutable std::mutex m_mtxTarID2Name; // the mutex for map from Target Computer ID to UserName
-    mutable std::mutex m_mtxName2TarID; // the mutex for map from UserName to Target Computer ID
-    // end TODO
+    mutable std::mutex m_mtxMapsBetweenNamesAndTargetIDs; // the mutex for map from Target Computer ID to UserName
     mutable std::mutex m_mtxOrderBookSymbolsByName;
     mutable std::mutex m_mtxCandleSymbolsByName;
     mutable std::mutex m_mtxRiskManagementByName;
@@ -49,17 +44,19 @@ class BCDocuments {
     auto addRiskManagementToUserNoLock(const std::string& userName) -> decltype(m_riskManagementByName)::iterator;
 
 public:
+    static std::atomic<bool> s_isSecurityListReady;
+
     static BCDocuments* getInstance();
 
     double getStockOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const;
-    bool manageStockOrderBookUser(bool isRegister, const std::string& symbol, const std::string& userName) const;
-    bool manageCandleStickDataUser(bool isRegister, const std::string& userName, const std::string& symbol) const;
+    bool manageUsersInStockOrderBook(bool isRegister, const std::string& symbol, const std::string& userName) const;
+    bool manageUsersInCandlestickData(bool isRegister, const std::string& userName, const std::string& symbol);
     int sendHistoryToUser(const std::string& userName);
 
     void attachStockToSymbol(const std::string& symbol);
-    static std::atomic<bool> s_isSecurityListReady;
     void addOrderBookEntryToStock(const std::string& symbol, const OrderBookEntry& ob);
-    void addCandleToSymbol(const std::string& symbol, const Transaction& transac);
+    void attachCandlestickDataToSymbol(const std::string& symbol);
+    void addTransacToCandlestickData(const std::string& symbol, const Transaction& transac);
     void addRiskManagementToUserLockedExplicit(const std::string& userName, double buyingPower, int shares, double price, const std::string& symbol);
     void addQuoteToUserRiskManagement(const std::string& userName, const Quote& quote);
     void addReportToUserRiskManagement(const std::string& userName, const Report& report);
@@ -70,7 +67,6 @@ public:
     std::unordered_map<std::string, std::string> getConnectedTargetIDsMap(); // Target Computer ID, UserName
 
     void addOrderBookSymbolToUser(const std::string& userName, const std::string& symbol);
-    void addCandleSymbolToUser(const std::string& userName, const std::string& symbol);
     void removeUserFromStocks(const std::string& userName);
     void removeUserFromCandles(const std::string& userName);
     void removeCandleSymbolFromUser(const std::string& userName, const std::string& symbol);

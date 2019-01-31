@@ -66,11 +66,6 @@ public:
     void sendOrderBookUpdate(const std::unordered_set<std::string>& userList, const OrderBookEntry& update); // send order book update to users
     void sendCandlestickData(const std::unordered_set<std::string>& userList, const TempCandlestickData& tmpCandle); // for candlestick data
 
-    bool subscribeOrderBook(const std::string& userName, const std::string& symbol);
-    bool unsubscribeOrderBook(const std::string& userName, const std::string& symbol);
-    bool subscribeCandleData(const std::string& userName, const std::string& symbol);
-    bool unsubscribeCandleData(const std::string& userName, const std::string& symbol);
-
 private:
     FIXAcceptor() = default;
 

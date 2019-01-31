@@ -29,11 +29,11 @@ private:
     std::queue<Transaction> m_transacBuff;
     std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
 
-    std::unordered_set<std::string> m_cdUserList; // userName
+    std::unordered_set<std::string> m_candleUserList; // userName
     std::map<std::time_t, TempCandlestickData> m_history;
 
     mutable std::mutex m_mtxTransacBuff;
-    mutable std::mutex m_mtxCDUserList;
+    mutable std::mutex m_mtxCandleUserList;
     mutable std::mutex m_mtxHistory;
 
     std::unique_ptr<std::thread> m_th;
@@ -41,7 +41,7 @@ private:
     std::promise<void> m_quitFlag;
 
 public:
-    CandlestickData();
+    CandlestickData(); //> This will postpone initializing of valid startup status (e.g. symbol is not empty and open time is not 0) to first time processing a transaction.
     CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime);
     ~CandlestickData();
 
@@ -53,8 +53,8 @@ public:
     static std::time_t s_nowUnixTimestamp() noexcept;
     static std::time_t s_toUnixTimestamp(const std::string& time) noexcept;
 
-    void registerUserInCD(const std::string& userName);
-    void unregisterUserInCD(const std::string& userName);
+    void registerUserInCandlestickData(const std::string& userName);
+    void unregisterUserInCandlestickData(const std::string& userName);
     void enqueueTransaction(const Transaction& t);
     void process();
     void spawn();
