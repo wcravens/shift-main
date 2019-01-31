@@ -47,7 +47,7 @@ void BCDocuments::addOrderBookEntryToStock(const std::string& symbol, const Orde
     m_stockBySymbol[symbol]->enqueueOrderBook(entry);
 }
 
-BCDocuments* BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
+void BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
 {
     auto res = m_candleBySymbol.emplace(symbol, nullptr);
     auto& candPtr = res.first->second;
@@ -55,8 +55,6 @@ BCDocuments* BCDocuments::attachCandlestickDataToSymbol(const std::string& symbo
         candPtr.reset(new CandlestickData);
         candPtr->spawn();
     }
-
-    return this;
 }
 
 void BCDocuments::addTransacToCandlestickData(const std::string& symbol, const Transaction& transac)
@@ -219,45 +217,38 @@ int BCDocuments::sendHistoryToUser(const std::string& userName)
 
 std::unordered_map<std::string, std::string> BCDocuments::getConnectedTargetIDsMap()
 {
-    std::lock_guard<std::mutex> guard(m_mtxTarID2Name);
+    std::lock_guard<std::mutex> guard(m_mtxMapsBetweenNamesAndTargetIDs);
     return m_mapTarID2Name;
 }
 
 void BCDocuments::registerUserInDoc(const std::string& userName, const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
-
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
     m_mapTarID2Name[targetID] = userName;
     m_mapName2TarID[userName] = targetID;
 }
 
 void BCDocuments::unregisterUserInDoc(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
 
     auto posN2ID = m_mapName2TarID.find(userName);
     if (m_mapName2TarID.end() != posN2ID) {
         const auto& tarID = posN2ID->second;
         m_mapTarID2Name.erase(tarID);
-
         m_mapName2TarID.erase(posN2ID);
     }
 }
 
 void BCDocuments::registerWebUserInDoc(const std::string& userName, const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name); // this is also needed to avoid potential deadlocks
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
-
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
     m_mapName2TarID[userName] = targetID;
 }
 
 std::string BCDocuments::getTargetIDByUserName(const std::string& userName)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name); // this is also needed to avoid potential deadlocks
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID);
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
 
     auto pos = m_mapName2TarID.find(userName);
     if (m_mapName2TarID.end() == pos)
@@ -268,8 +259,7 @@ std::string BCDocuments::getTargetIDByUserName(const std::string& userName)
 
 std::string BCDocuments::getUserNameByTargetID(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxTarID2Name);
-    std::lock_guard<std::mutex> guardN2ID(m_mtxName2TarID); // this is also needed to avoid potential deadlocks
+    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
 
     auto pos = m_mapTarID2Name.find(targetID);
     if (m_mapTarID2Name.end() == pos)
