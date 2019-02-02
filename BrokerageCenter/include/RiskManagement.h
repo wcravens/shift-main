@@ -17,7 +17,7 @@
 
 class RiskManagement {
 private:
-    int m_userID; // internal use
+    // int m_userID; // internal use
     std::string m_userName;
 
     PortfolioSummary m_porfolioSummary;
