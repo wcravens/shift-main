@@ -3,6 +3,8 @@
 #include <quickfix/FieldTypes.h>
 
 #include "CoreClient_EXPORTS.h"
+#include <chrono>
+#include <ctime>
 #include <string>
 
 namespace shift {
@@ -15,25 +17,25 @@ class CORECLIENT_EXPORTS OrderBookEntry {
 public:
     OrderBookEntry();
 
-    OrderBookEntry(double price, int size, const std::string& destination, FIX::UtcTimeStamp utctime);
+    OrderBookEntry(double price, int size, const std::string& destination, std::chrono::system_clock::time_point time);
 
     // Getters
     double getPrice() const;
     int getSize() const;
     const std::string& getDestination() const;
-    const FIX::UtcTimeStamp getUtcTime() const;
+    const std::chrono::system_clock::time_point getTime() const;
 
     // Setters
     void setPrice(double price);
     void setSize(int size);
     void setDestination(const std::string& destination);
-    void setUtcTime(FIX::UtcTimeStamp utctime);
+    void setTime(std::chrono::system_clock::time_point time);
 
 private:
     double m_price;
     int m_size;
     std::string m_destination;
-    FIX::UtcTimeStamp m_utctime;
+    std::chrono::system_clock::time_point m_time;
 };
 
 } // shift

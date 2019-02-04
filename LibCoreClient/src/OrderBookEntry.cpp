@@ -12,16 +12,16 @@ shift::OrderBookEntry::OrderBookEntry()
 
 /**
  * @brief Constructor with all members preset.
- * @param price double value for m_price
- * @param size int value for m_size
- * @param destination string value for m_destination
- * @param time double value for m_time
+ * @param price: double value for m_price
+ * @param size: int value for m_size
+ * @param destination: string value for m_destination
+ * @param time: time_point value for m_time
  */
-shift::OrderBookEntry::OrderBookEntry(double price, int size, const std::string& destination, FIX::UtcTimeStamp utctime)
+shift::OrderBookEntry::OrderBookEntry(double price, int size, const std::string& destination, std::chrono::system_clock::time_point time)
     : m_price(price)
     , m_size(size)
     , m_destination(destination)
-    , m_utctime(utctime)
+    , m_time(time)
 {
 }
 
@@ -45,20 +45,19 @@ int shift::OrderBookEntry::getSize() const
 
 /**
  * @brief Getter to get the execution time of current OrderBookEntry.
- * @return Time of the current OrderBookEntry as a double.
  */
-const FIX::UtcTimeStamp shift::OrderBookEntry::getUtcTime() const
+const std::chrono::system_clock::time_point shift::OrderBookEntry::getTime() const
 {
-    return m_utctime;
+    return m_time;
 }
 
 /**
  * @brief Setter to set order time into m_time.
- * @param time as double (timestamp)
+ * @param time_point
  */
-void shift::OrderBookEntry::setUtcTime(FIX::UtcTimeStamp utctime)
+void shift::OrderBookEntry::setTime(std::chrono::system_clock::time_point time)
 {
-    m_utctime = utctime;
+    m_time = time;
 }
 
 /**

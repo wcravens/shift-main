@@ -68,8 +68,10 @@ void MainClient::sendOrderBookToFront()
             auto orderBook = getOrderBook(symbol, (shift::OrderBook::Type)type, 5);
             std::string res = "";
             for (const auto& entry : orderBook) {
-                FIX::EffectiveTime tmp = FIX::EffectiveTime(entry.getUtcTime(), 6);
-                // cout << "Test Use: " << tmp.getString() << endl;
+                std::time_t timeTmp = std::chrono::system_clock::to_time_t(entry.getTime());
+                // std::string timestampStr = std::ctime(&timeTmp);
+                // timestampStr.pop_back();
+
                 std::ostringstream out;
                 out << "{ "
                     << "\"symbol\": "
@@ -83,7 +85,7 @@ void MainClient::sendOrderBookToFront()
                     << "\"destination\": "
                     << "\"" << entry.getDestination() << "\","
                     << "\"time\": "
-                    << "\"" << tmp.getString() << "\""
+                    << "\"" << timeTmp << "\""
                     << "}";
                 if (res == "") {
                     res += out.str();

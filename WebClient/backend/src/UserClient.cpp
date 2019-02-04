@@ -63,7 +63,6 @@ void UserClient::sendSubmittedOrders()
     for (const auto& order : submittedOrders) {
         std::ostringstream out;
 
-        // use this
         std::time_t timestamp = std::chrono::system_clock::to_time_t(order.getTimestamp());
         std::string timestampStr = std::ctime(&timestamp);
         timestampStr.pop_back();

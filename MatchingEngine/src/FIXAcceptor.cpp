@@ -121,7 +121,9 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
     entryGroup.setField(FIX::MDEntryPx(update.getprice()));
     entryGroup.setField(FIX::MDEntrySize(update.getsize()));
     entryGroup.setField(FIX::Text("NULL")); // FIXME: FIX Required
-    entryGroup.setField(FIX::ExpireTime(update.getutctime(), 6)); // test use
+    auto utc = update.getutctime();
+    entryGroup.setField(FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())));
+    entryGroup.setField(FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)));
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
     partyGroup.setField(FIXFIELD_EXECBROKER);

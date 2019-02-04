@@ -608,6 +608,14 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
     }
 }
 
+static std::chrono::system_clock::time_point convertToTimePoint(FIX::UtcDateOnly date, FIX::UtcTimeOnly time)
+{
+    return std::chrono::system_clock::from_time_t(date.getTimeT()
+        + time.getHour() * 3600
+        + time.getMinute() * 60
+        + time.getSecond());
+}
+
 /**
  * @brief Method to receive Global/Local orders from Brokerage Center.
  *
@@ -631,7 +639,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     FIX::MDEntryType type;
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
-    FIX::ExpireTime utctime;
+    FIX::MDEntryDate date;
+    FIX::MDEntryTime daytime;
 
     FIX::NoPartyIDs numOfParty;
     FIX::PartyID destination;
@@ -647,7 +656,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         entryGroup.getField(type);
         entryGroup.getField(price);
         entryGroup.getField(size);
-        entryGroup.getField(utctime);
+        entryGroup.getField(date);
+        entryGroup.getField(daytime);
 
         entryGroup.getField(numOfParty);
         if (!numOfParty) {
@@ -658,7 +668,10 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         entryGroup.getGroup(1, partyGroup);
         partyGroup.getField(destination);
 
-        orderBook.push_back({ (double)price, (int)size, destination, utctime.getValue() });
+        orderBook.push_back({ (double)price,
+            (int)size,
+            destination,
+            convertToTimePoint(date.getValue(), daytime.getValue()) });
     }
 
     try {
@@ -755,17 +768,19 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
     FIX::PartyID destination;
-    FIX::ExpireTime utctime;
+    FIX::MDEntryDate date;
+    FIX::MDEntryTime daytime;
 
-    entryGroup.get(type);
-    entryGroup.get(symbol);
-    entryGroup.get(price);
-    entryGroup.get(size);
-    entryGroup.get(utctime);
-    partyGroup.get(destination);
+    entryGroup.getField(type);
+    entryGroup.getField(symbol);
+    entryGroup.getField(price);
+    entryGroup.getField(size);
+    partyGroup.getField(destination);
+    entryGroup.getField(date);
+    entryGroup.getField(daytime);
 
     symbol = m_originalName_symbol[symbol];
-    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, utctime.getValue() });
+    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, convertToTimePoint(date.getValue(), daytime.getValue()) });
 }
 
 /**

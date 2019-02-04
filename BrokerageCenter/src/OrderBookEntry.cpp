@@ -19,16 +19,18 @@ OrderBookEntry::OrderBookEntry() = default;
  * @param	symbol: The symbol of the order.
  * @param   price: The price of order.
  * @param	size: The contract size.
- * @param   time: The time passed by.
  * @param   destination: The security ID used as destination.
+ * @param   date: FIX::UtcDateOnly for the date of order
+ * @param   time: FIX::UtcTimeOnly for the time of order
  */
-OrderBookEntry::OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, std::string destination, FIX::UtcTimeStamp utctime)
+OrderBookEntry::OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, std::string destination, FIX::UtcDateOnly date, FIX::UtcTimeOnly time)
     : m_type(type)
     , m_symbol(std::move(symbol))
     , m_price{ price }
     , m_size{ size }
     , m_destination(std::move(destination))
-    , m_utctime{ utctime }
+    , m_date(date)
+    , m_time(time)
 {
 }
 
@@ -77,9 +79,20 @@ const std::string& OrderBookEntry::getDestination() const
     return m_destination;
 }
 
-const FIX::UtcTimeStamp OrderBookEntry::getUtcTime() const
+/**
+ * @brief   Return the date of order(FIX::UtcDateOnly)
+ */
+const FIX::UtcDateOnly OrderBookEntry::getDate() const
 {
-    return m_utctime;
+    return m_date;
+}
+
+/**
+ * @brief   Return the time of day of order(FIX::UtcTimeOnly)
+ */
+const FIX::UtcTimeOnly OrderBookEntry::getTime() const
+{
+    return m_time;
 }
 
 /**

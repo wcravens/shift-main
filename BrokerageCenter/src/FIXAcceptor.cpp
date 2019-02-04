@@ -276,7 +276,6 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
 
 /**
  * @brief Send the last stock price to LC
- *
  * @param transac as a Transaction object to provide last price
  */
 void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
@@ -363,7 +362,8 @@ void FIXAcceptor::sendOrderBook(const std::unordered_set<std::string>& userList,
     entryGroup.setField(FIX::MDEntryType((char)entry.getType()));
     entryGroup.setField(FIX::MDEntryPx(entry.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(entry.getSize()));
-    entryGroup.setField(FIX::ExpireTime(entry.getUtcTime(), 6));
+    entryGroup.setField(FIX::MDEntryDate(entry.getDate()));
+    entryGroup.setField(FIX::MDEntryTime(entry.getTime()));
 
     FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
     partyGroup.setField(FIXFIELD_EXECBROKER);
@@ -393,7 +393,8 @@ void FIXAcceptor::sendOrderBookUpdate(const std::unordered_set<std::string>& use
     entryGroup.setField(FIX::Symbol(update.getSymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));
-    entryGroup.setField(FIX::ExpireTime(update.getUtcTime(), 6));
+    entryGroup.setField(FIX::MDEntryDate(update.getDate()));
+    entryGroup.setField(FIX::MDEntryTime(update.getTime()));
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
     partyGroup.setField(::FIXFIELD_EXECBROKER);
