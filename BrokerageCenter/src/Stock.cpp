@@ -113,41 +113,16 @@ void Stock::unregisterUserInStock(const std::string& userName)
 
 /**
 *   @brief  Thread-safely sends an order book's single update to all users.
-*	@param	entry: The order book entry record to be sent.
+*	@param	update: The order book update record to be sent.
 *   @return nothing
 */
-void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& entry)
+void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 {
-    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
-    using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
-
     std::lock_guard<std::mutex> guard(m_mtxStockUserList);
+    if (m_stockUserList.empty())
+        return; // nobody to sent to.
 
-    using ulock_t = std::unique_lock<std::mutex>;
-    ulock_t lock;
-
-    switch (entry.getType()) {
-    case OBT::GLB_ASK: {
-        lock = ulock_t(m_mtxOdrBkGlobalAsk);
-        break;
-    }
-    case OBT::LOC_ASK: {
-        lock = ulock_t(m_mtxOdrBkLocalAsk);
-        break;
-    }
-    case OBT::GLB_BID: {
-        lock = ulock_t(m_mtxOdrBkGlobalBid);
-        break;
-    }
-    case OBT::LOC_BID: {
-        lock = ulock_t(m_mtxOdrBkLocalBid);
-        break;
-    }
-    default:
-        return;
-    }
-
-    toWCPtr->sendOrderBookUpdate(m_stockUserList, entry);
+    FIXAcceptor::getInstance()->sendOrderBookUpdate(m_stockUserList, update);
 }
 
 /**
@@ -157,12 +132,13 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& entry)
 */
 void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
 {
+    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
+
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
     std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
     std::lock_guard<std::mutex> guard_B(m_mtxOdrBkGlobalBid);
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
-    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     if (!m_odrBkGlobalAsk.empty())
         toWCPtr->sendOrderBook({ userName }, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
@@ -179,6 +155,8 @@ void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
 */
 void Stock::broadcastWholeOrderBookToAll()
 {
+    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
+
     std::lock_guard<std::mutex> guard(m_mtxStockUserList);
     if (m_stockUserList.empty())
         return; // nobody to sent to.
@@ -188,7 +166,6 @@ void Stock::broadcastWholeOrderBookToAll()
     std::lock_guard<std::mutex> guard_B(m_mtxOdrBkGlobalBid);
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
-    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     if (!m_odrBkGlobalAsk.empty())
         toWCPtr->sendOrderBook(m_stockUserList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())

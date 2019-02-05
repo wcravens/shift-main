@@ -53,12 +53,12 @@ public:
 
     void broadcastWholeOrderBookToOne(const std::string& userName);
     void broadcastWholeOrderBookToAll();
-    void broadcastSingleUpdateToAll(const OrderBookEntry& record);
+    void broadcastSingleUpdateToAll(const OrderBookEntry& update);
 
-    void saveOrderBookGlobalBid(const OrderBookEntry& record);
-    void saveOrderBookGlobalAsk(const OrderBookEntry& record);
-    void saveOrderBookLocalBid(const OrderBookEntry& record);
-    void saveOrderBookLocalAsk(const OrderBookEntry& record);
+    void saveOrderBookGlobalBid(const OrderBookEntry& entry);
+    void saveOrderBookGlobalAsk(const OrderBookEntry& entry);
+    void saveOrderBookLocalBid(const OrderBookEntry& entry);
+    void saveOrderBookLocalAsk(const OrderBookEntry& entry);
 
     double getGlobalBidOrderBookFirstPrice() const;
     double getGlobalAskOrderBookFirstPrice() const;
