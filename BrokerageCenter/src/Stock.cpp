@@ -122,6 +122,32 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
     if (m_stockUserList.empty())
         return; // nobody to sent to.
 
+    using ulock_t = std::unique_lock<std::mutex>;
+    ulock_t lock;
+
+    using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
+
+    switch (update.getType()) {
+    case OBT::GLB_ASK: {
+        lock = ulock_t(m_mtxOdrBkGlobalAsk);
+        break;
+    }
+    case OBT::LOC_ASK: {
+        lock = ulock_t(m_mtxOdrBkLocalAsk);
+        break;
+    }
+    case OBT::GLB_BID: {
+        lock = ulock_t(m_mtxOdrBkGlobalBid);
+        break;
+    }
+    case OBT::LOC_BID: {
+        lock = ulock_t(m_mtxOdrBkLocalBid);
+        break;
+    }
+    default:
+        return;
+    }
+
     FIXAcceptor::getInstance()->sendOrderBookUpdate(m_stockUserList, update);
 }
 
