@@ -133,7 +133,7 @@ then
         # the following order of tests should be kept:
         [ ${SD_INDEX} ] && SD_INDEX=$(( ${SD_INDEX} + 1 ))        # if there is a previous SD_INDEX value, increment it by one
         [ ${SD_INDEX} ] || SD_INDEX=0                             # if there is no previous SD_INDEX value, set it to zero
-        [ ${SD_INDEX} -eq ${#SIMULATION_DATES[@]} ] && SD_INDEX=0 # if SD_INDEX reaches the size of SIMULATION_DATES, reset it to zero
+        [ ${SD_INDEX} -ge ${#SIMULATION_DATES[@]} ] && SD_INDEX=0 # if SD_INDEX reaches the size of SIMULATION_DATES, reset it to zero
 
         if [ ${#SIMULATION_DATES[@]} -ne 0 ]
         then
