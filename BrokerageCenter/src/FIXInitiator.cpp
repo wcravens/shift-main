@@ -548,6 +548,11 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
  */
 void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
 {
+    // This test is required because if there is a disconnection between ME and BC,
+    // the ME will send the security list again during the reconnection procedure.
+    if (BCDocuments::s_isSecurityListReady)
+        return;
+
     FIX::NoRelatedSym numOfGroup;
     message.get(numOfGroup);
     if (numOfGroup < 1) {
