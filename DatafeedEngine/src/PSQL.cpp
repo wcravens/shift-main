@@ -454,12 +454,12 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
 
                 // reuters time
                 const auto& rtNanoSec = cell.substr(dateTimeDelimPos + 1, timeTailPos - dateTimeDelimPos - 1);
-                // const auto& rtMicroSec = rtNanoSec.substr({}, rtNanoSec.find('.') + 1 + 6); // trancated
-                pqQuery += rtNanoSec;
+                const auto& rtMicroSec = rtNanoSec.substr({}, rtNanoSec.find('.') + 1 + 6); // truncated
+                pqQuery += rtMicroSec;
                 pqQuery += "',";
 
                 // reuters time order (for primary key purpose)
-                pqQuery += ::getUpdateReutersTimeOrder(rtNanoSec, lastRTime, lastRTimeOrder);
+                pqQuery += ::getUpdateReutersTimeOrder(rtMicroSec, lastRTime, lastRTimeOrder);
                 pqQuery += ',';
 
                 // reuters time offset
