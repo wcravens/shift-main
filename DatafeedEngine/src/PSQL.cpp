@@ -397,228 +397,170 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
     std::ifstream file(csvName); //define input stream
     std::string line;
     std::string cell;
-    std::string pqQuery;
 
     // to keep track ordering of reuters time so as to enable us create primary key (PK=(reuters_time, reuters_time_order)).
     std::string lastRTime("N/A"); // **NOTE** : We assume that reuters time are always in increasing order in the CSV, otherwise the ordering algorithm here does NOT work!
     int lastRTimeOrder{ 1 }; // initial value is always 1
+    bool hasAnyData = false;
 
     // skip csv's headline
     std::getline(file, line);
 
-    pqQuery = "INSERT INTO " + tableName + PSQLTable<TradeAndQuoteRecords>::sc_recordFormat;
+    while (true) {
+        std::string pqQuery = "INSERT INTO " + tableName + PSQLTable<TradeAndQuoteRecords>::sc_recordFormat;
+        size_t nVals = 0;
 
-    int n = 0;
-    while (std::getline(file, line)) {
-        std::stringstream lineStream(line);
-        pqQuery += "('"; // begin adding value
+        while (nVals < 1e4 && std::getline(file, line)) { // reached one-time insertion limit?
+            hasAnyData = true;
+            // begin assembling a value:
+            pqQuery += '(';
 
-        // RIC
-        std::getline(lineStream, cell, ','); // extract a substring from the stream
-        pqQuery += cell;
-        pqQuery += "','";
+            std::stringstream lineStream(line);
+            static auto readAppendField = [](auto& lineStream, auto& cell, auto& pqQuery, bool isNumeric) {
+                std::getline(lineStream, cell, ',');
+                if (cell.empty()) {
+                    pqQuery += "NULL,";
+                } else {
+                    if (!isNumeric)
+                        pqQuery += '\'';
+                    pqQuery += cell;
+                    if (!isNumeric)
+                        pqQuery += '\'';
+                    pqQuery += ',';
+                }
+            };
 
-        // skip Domain(?)
-        std::getline(lineStream, cell, ',');
+            // RIC
+            readAppendField(lineStream, cell, pqQuery, false);
 
-        // Date-Time & order
-        std::getline(lineStream, cell, ','); // YYYY-MM-DDTHH:MM:SS.SSSSSSSSS(Z|-XX|+XX), where T and Z are required character literals
-        {
-            const auto dateTimeDelimPos = cell.find('T');
-            const bool bGMTUTC = (cell.rfind('Z') != std::string::npos);
-            const auto timeTailPos = bGMTUTC
-                ? cell.rfind('Z')
-                : (cell.substr(cell.rfind(':') + 1).rfind('-') != std::string::npos) // ensure there is '-' in the non-date parts for rfind('-')
-                    ? cell.rfind('-') // expect "-XX"
-                    : cell.rfind('+'); // expect "+XX"
+            // skip Domain(?)
+            std::getline(lineStream, cell, ',');
 
-            // reuters date
-            pqQuery += cell.substr(0, dateTimeDelimPos);
-            pqQuery += "','";
+            // [PK] Date-Time & order
+            std::getline(lineStream, cell, ','); // YYYY-MM-DDTHH:MM:SS.SSSSSSSSS(Z|-XX|+XX), where T and Z are required character literals
+            {
+                const auto dateTimeDelimPos = cell.find('T');
+                const bool bGMTUTC = (cell.rfind('Z') != std::string::npos);
+                const auto timeTailPos = bGMTUTC
+                    ? cell.rfind('Z')
+                    : (cell.substr(cell.rfind(':') + 1).rfind('-') != std::string::npos) // ensure there is '-' in the non-date parts for rfind('-')
+                        ? cell.rfind('-') // expect "-XX"
+                        : cell.rfind('+'); // expect "+XX"
 
-            // reuters time
-            const auto& rtNanoSec = cell.substr(dateTimeDelimPos + 1, timeTailPos - dateTimeDelimPos - 1);
-            // const auto& rtMicroSec = rtNanoSec.substr({}, rtNanoSec.find('.') + 1 + 6); // trancated
-            pqQuery += rtNanoSec;
-            pqQuery += "','";
+                // reuters date
+                pqQuery += '\'';
+                pqQuery += cell.substr(0, dateTimeDelimPos);
+                pqQuery += "','";
 
-            // reuters time order (for primary key purpose)
-            pqQuery += ::getUpdateReutersTimeOrder(rtNanoSec, lastRTime, lastRTimeOrder);
+                // reuters time
+                const auto& rtNanoSec = cell.substr(dateTimeDelimPos + 1, timeTailPos - dateTimeDelimPos - 1);
+                // const auto& rtMicroSec = rtNanoSec.substr({}, rtNanoSec.find('.') + 1 + 6); // trancated
+                pqQuery += rtNanoSec;
+                pqQuery += "',";
+
+                // reuters time order (for primary key purpose)
+                pqQuery += ::getUpdateReutersTimeOrder(rtNanoSec, lastRTime, lastRTimeOrder);
+                pqQuery += ',';
+
+                // reuters time offset
+                if (bGMTUTC) {
+                    pqQuery += "0,";
+                } else if (std::string::npos == timeTailPos) { // no offset info
+                    pqQuery += "NULL,";
+                } else { // local exchange time
+                    pqQuery += cell.substr(timeTailPos);
+                    pqQuery += ',';
+                }
+            }
+
+            pqQuery += '\'';
+            // type: Trade / Quote
+            std::getline(lineStream, cell, ',');
+            bool isTrade = true;
+            if ("Quote" == cell) {
+                isTrade = false;
+                pqQuery += 'Q';
+            } else if ("Trade" == cell) {
+                pqQuery += 'T';
+            } else { // abnormal: missing/unknown type
+                cout << " - " << COLOR_ERROR "ERROR: At least one Trade/Quote type cannot be determined! Insertion failed.\n" NO_COLOR;
+                return false;
+            }
             pqQuery += "',";
 
-            // reuters time offset
-            if (bGMTUTC) {
-                pqQuery += "'0','";
-            } else if (std::string::npos == timeTailPos) { // no offset info
-                pqQuery += "NULL,'";
-            } else { // local exchange time
+            // exchange id
+            std::getline(lineStream, cell, ',');
+            if (cell.length()) {
                 pqQuery += '\'';
-                pqQuery += cell.substr(timeTailPos);
-                pqQuery += "','";
+                pqQuery += cell;
+                pqQuery += "',";
+            } else if (isTrade) {
+                pqQuery += "'TRADE_EXCH_ID',";
+            } else {
+                pqQuery += "NULL,";
             }
+
+            // price
+            readAppendField(lineStream, cell, pqQuery, true);
+
+            // volume
+            readAppendField(lineStream, cell, pqQuery, true);
+
+            // buyer id
+            readAppendField(lineStream, cell, pqQuery, false);
+
+            // bid price
+            readAppendField(lineStream, cell, pqQuery, true);
+
+            // bid size
+            readAppendField(lineStream, cell, pqQuery, true);
+
+            // seller id
+            readAppendField(lineStream, cell, pqQuery, false);
+
+            // ask price
+            readAppendField(lineStream, cell, pqQuery, true);
+
+            // ask size
+            readAppendField(lineStream, cell, pqQuery, true);
+
+            // exch & quote Time
+            std::getline(lineStream, cell, ',');
+            {
+                const auto& etNanoSec = cell; // exch. time with praction in nano seconds
+                // const auto fracPos = etNanoSec.find('.') + 1;
+                // const auto& etMicroSec = etNanoSec.substr({}, etNanoSec.find('.') + 1 + 3); // trancated
+
+                if (isTrade) {
+                    // set SQL exch. time with blank quote time
+                    pqQuery += '\'' + etNanoSec + "',NULL";
+                } else {
+                    // set SQL quote time with blank exch. time
+                    pqQuery += "NULL,'" + etNanoSec + '\'';
+                }
+            }
+
+            // finish assembling one value
+            pqQuery += "),";
+
+            nVals++;
+        } // while(getline)
+
+        if (!hasAnyData) {
+            cout << " - " << COLOR_WARNING "WARNING: " << csvName << " has no data to be inserted into database.\n" NO_COLOR;
+            return true;
         }
 
-        // type: Trade / Quote
-        std::getline(lineStream, cell, ',');
-        bool isTrade = true;
-        if ("Quote" == cell) {
-            isTrade = false;
-            pqQuery += 'Q';
-        } else if ("Trade" == cell) {
-            pqQuery += 'T';
-        } else { // abnormal: missing/unknown type
-            cout << " - " << COLOR_ERROR "ERROR: At least one Trade/Quote type cannot be determined! Insertion failed.\n" NO_COLOR;
+        if (0 == nVals) // finished processing all lines ?
+            break;
+
+        pqQuery.back() = ';';
+
+        auto lock{ lockPSQL() };
+        if (!doQuery(pqQuery, COLOR_ERROR "ERROR: Insert into [ " + tableName + " ] failed.\n" NO_COLOR)) {
             return false;
         }
-        pqQuery += "',";
-
-        // exchange id
-        std::getline(lineStream, cell, ',');
-        if (cell.length()) {
-            pqQuery += '\'';
-            pqQuery += cell;
-            pqQuery += "',";
-        } else if (isTrade) {
-            pqQuery += "'2014HFT',";
-        } else {
-            pqQuery += "NULL,";
-        }
-
-        // price
-        std::getline(lineStream, cell, ',');
-        if (cell.empty()) {
-            pqQuery += "NULL,";
-        } else {
-            pqQuery += '\'';
-            pqQuery += cell;
-            pqQuery += "',";
-        }
-
-        // volume
-        std::getline(lineStream, cell, ',');
-        if (cell.empty()) {
-            pqQuery += "NULL,";
-        } else {
-            pqQuery += '\'';
-            pqQuery += cell;
-            pqQuery += "',";
-        }
-
-        // buyer id
-        std::getline(lineStream, cell, ',');
-        if (cell.empty()) {
-            pqQuery += "NULL,";
-        } else {
-            pqQuery += '\'';
-            pqQuery += cell; //.substr(1, 3);
-            pqQuery += "',";
-        }
-
-        // bid price
-        std::getline(lineStream, cell, ',');
-        if (cell.empty()) {
-            pqQuery += "NULL,";
-        } else {
-            pqQuery += '\'';
-            pqQuery += cell;
-            pqQuery += "',";
-        }
-
-        // bid size
-        std::getline(lineStream, cell, ',');
-        if (cell.empty()) {
-            pqQuery += "NULL,";
-        } else {
-            pqQuery += '\'';
-            pqQuery += cell;
-            pqQuery += "',";
-        }
-
-        // seller id
-        std::getline(lineStream, cell, ',');
-        if (cell.empty()) {
-            pqQuery += "NULL,";
-        } else {
-            pqQuery += '\'';
-            pqQuery += cell; //.substr(1, 3);
-            pqQuery += "',";
-        }
-
-        // ask price
-        std::getline(lineStream, cell, ',');
-        if (cell.empty()) {
-            pqQuery += "NULL,";
-        } else {
-            pqQuery += '\'';
-            pqQuery += cell;
-            pqQuery += "',";
-        }
-
-        // ask size
-        std::getline(lineStream, cell, ',');
-        if (cell.empty()) {
-            pqQuery += "NULL,";
-        } else {
-            pqQuery += '\'';
-            pqQuery += cell;
-            pqQuery += "',";
-        }
-
-        // Exch Time
-        std::getline(lineStream, cell, ',');
-        {
-            const auto& etNanoSec = cell; // exch. time with praction in nano seconds
-            // const auto fracPos = etNanoSec.find('.') + 1;
-            // const auto& etMicroSec = etNanoSec.substr({}, etNanoSec.find('.') + 1 + 3); // trancated
-
-            if (isTrade) {
-                // set SQL exch. time with blank quote time
-                pqQuery += '\'';
-                pqQuery += etNanoSec + "',NULL";
-            } else {
-                // set SQL quote time with blank exch. time
-                pqQuery += "NULL,'" + etNanoSec + '\'';
-            }
-        }
-
-        pqQuery += "),"; // end adding value
-        n++;
-
-        if (1e4 == n) { // reached one-time insertion limit?
-            pqQuery.back() = ';'; //"(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);";
-
-#if __DBG_DUMP_PQCMD
-            cout << "DEBUG: pqQuery@n=10000@insertTradeAndQuoteRecords ==\n\n"
-                 << pqQuery << '\n'
-                 << endl;
-#endif
-            auto lock{ lockPSQL() };
-            if (!doQuery(pqQuery, COLOR_ERROR "ERROR: Insert into [ " + tableName + " ] failed.\n" NO_COLOR))
-                return false;
-            lock.unlock();
-
-            n = 1;
-            pqQuery = "INSERT INTO " + tableName + PSQLTable<TradeAndQuoteRecords>::sc_recordFormat;
-        }
-    } // while
-
-    if (0 == n) {
-        cout << " - " << COLOR_WARNING "WARNING: " << csvName << " has no data to be inserted into database.\n" NO_COLOR;
-        return true;
-    }
-
-    pqQuery.back() = ';';
-
-#if __DBG_DUMP_PQCMD
-    cout << "DEBUG: pqQuery@insertTradeAndQuoteRecords ==\n\n"
-         << pqQuery << '\n'
-         << endl;
-#endif
-
-    auto lock{ lockPSQL() };
-
-    if (!doQuery(pqQuery, COLOR_ERROR "ERROR: Insert into [ " + tableName + " ] failed.\n" NO_COLOR))
-        return false;
+    } // while(true)
 
     return true;
 }
