@@ -214,16 +214,16 @@ A list of the aliases used by the installer is provided below.
 | BC    | BrokerageCenter | Server (Binary) | `BrokerageCenter`            | LM      |
 | LC    | LibCoreClient   | Shared Library  | `libshift_coreclient` **\*** | LM      |
 
-By default, everything is installed under /usr/local/ (in the /usr/local/SHIFT/ folder), but the `-p` parameter can be used to change the default installation path prefix.
+By default, everything is installed under `/usr/local/`, but the `-p` parameter can be used to change the default installation path prefix.
 
-Regardless of the location chosen by the user to install SHIFT, symlinks will always be created in the following paths (and properly removed by the uninstaller if necessary).
+Given an installation path prefix, the following directories are used:
 
 | Type                 | Path                                   |
 | -------------------- | -------------------------------------- |
-| Binaries             | /usr/local/bin/                        |
-| Configuration Files  | /usr/local/share/SHIFT/                |
-| Libraries            | /usr/local/lib/                        |
-| Library Header Files | /usr/local/include/shift/*libraryname* |
+| Binaries             | ${PREFIX}/bin/                         |
+| Configuration Files  | ${PREFIX}/share/shift/*binaryname*/    |
+| Libraries            | ${PREFIX}/lib/                         |
+| Library Header Files | ${PREFIX}/include/shift/*libraryname*/ |
 
 **\*** Library files with enabled debug symbols are also provided with the `-d` postfix.
 
