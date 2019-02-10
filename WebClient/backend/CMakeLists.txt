@@ -225,7 +225,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
                       ${THRIFT_LIBRARIES}
                       ${Boost_LIBRARIES}
-                      ${cppzmq_LIBRARY}
+                      ${ZeroMQ_LIBRARY}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${QUICKFIX}
                       ${LIBMISCUTILS}
