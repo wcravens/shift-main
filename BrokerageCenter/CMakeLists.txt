@@ -81,9 +81,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 # Release Flags
 # -O2 instead of -O3
 # -flto stands for Link Time Optimization (LTO)
-#set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
-# BrokerageCenter does not work with optimization flags - we need to fix this:
-set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 # -Wno-deprecated is required when linking QuickFIX on Ubuntu
