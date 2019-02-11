@@ -33,12 +33,6 @@ static inline std::string createCSVName(const std::string& symbol, const std::st
     return symbol + date + ".csv";
 }
 
-static inline void addUnavailableRequest(std::mutex& unavailMtx, std::vector<TRTHRequest>& unavailReqs, const TRTHRequest& req)
-{
-    std::lock_guard<std::mutex> guard(unavailMtx);
-    unavailReqs.push_back(req);
-}
-
 /**@brief Unzips a .GZ file (source) as a new file (destination) */
 static bool unzip(const char* src, const char* dst, int* errn)
 {
@@ -71,6 +65,7 @@ static auto operator>>(utility::ifstream_t&& istrm, _Sink&& s) -> decltype(istrm
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*static*/ TRTHAPI* TRTHAPI::s_pInst = nullptr;
+/*static*/ std::atomic<bool> TRTHAPI::s_bTRTHLoginJsonExists{ false };
 
 TRTHAPI::TRTHAPI(const std::string& cryptoKey, const std::string& configDir)
     : m_key(cryptoKey)
@@ -127,18 +122,24 @@ void TRTHAPI::processRequests()
 
         switch (dbFlag) {
         case PMTS::NOT_EXIST:
-            break; // go to download from TRTH
+            if (s_bTRTHLoginJsonExists)
+                break; // go to download it from TRTH
+
+            // Issue #32: Do NOT download if NO trthLogin.json exist on this computer
+            req.prom->set_value(true);
+            addUnavailableRequest(req);
+            continue; // while(true)
 
         case PMTS::DB_ERROR:
         case PMTS::OTHER_ERROR: {
             isPerfect = false;
             cout << COLOR_ERROR "ERROR: Database was abnormal @ TRTHAPI::processRequests when querying symbol [ " << req.symbol << " ]. The symbol will be ignored!" NO_COLOR << endl;
-            addUnavailableRequest(m_mtxReqsUnavail, m_requestsUnavailable, req);
+            addUnavailableRequest(req);
         }
         case PMTS::EXISTS: {
             req.prom->set_value(isPerfect);
-        }
             continue; // while(true)
+        }
 
         default:
             cout << COLOR_WARNING "Unknown database status!" NO_COLOR << endl;
@@ -161,20 +162,20 @@ void TRTHAPI::processRequests()
             }
         } else if (flag == 1) { //soap_status(RETRIEVE_STATUS::ERR_NOT_IN_TR)) {
             isPerfect = false;
-            addUnavailableRequest(m_mtxReqsUnavail, m_requestsUnavailable, req);
+            addUnavailableRequest(req);
         } else { // other RETRIEVE_STATUS
             isPerfect = false;
             cout << COLOR_ERROR "ERROR: TRTH cannot download [ " << req.symbol << " ]. The symbol will be skipped." << endl;
             // SoapStatusCodeInterpreter::interpret(flag);
             cout << NO_COLOR;
-            addUnavailableRequest(m_mtxReqsUnavail, m_requestsUnavailable, req);
+            addUnavailableRequest(req);
         }
 
         req.prom->set_value(isPerfect);
     } // while
 }
 
-void TRTHAPI::pushRequest(TRTHRequest req)
+void TRTHAPI::enqueueRequest(TRTHRequest req)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxReqs);
@@ -339,26 +340,32 @@ int TRTHAPI::retrieveData(const std::string& symbol, const std::string& requestD
     return 0;
 }
 
+void TRTHAPI::addUnavailableRequest(const TRTHRequest& req)
+{
+    std::lock_guard<std::mutex> guard(m_mtxReqsUnavail);
+    m_requestsUnavailable.push_back(req);
+}
+
 /**
- * @brief Removes unrecognizable symbols/RICs from the given symbols collection, with respect to the current TRTH contents.
+ * @brief Removes unrecognizable symbols/RICs from the given symbols/RICs collection, with respect to the current TRTH contents.
  *        Note that, if any TRTH request detects a formerly unrecognized symbol from the remote now, at which time any ME
  *        concurrently requesting Next Data that contains this symbol, DE will either send or do not send this symbol to ME.
  *        Such behavior is caused by the concurrency contention characteristics.
  * @return Number of removed RICs.
  */
-size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& symbols)
+size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs)
 {
     std::lock_guard<std::mutex> guard(m_mtxReqsUnavail);
 
-    if (m_requestsUnavailable.empty() || symbols.empty())
+    if (m_requestsUnavailable.empty() || originalRICs.empty())
         return 0;
 
-    std::sort(symbols.begin(), symbols.end());
+    std::sort(originalRICs.begin(), originalRICs.end());
     std::stable_sort(m_requestsUnavailable.begin(), m_requestsUnavailable.end(), [](const TRTHRequest& lhs, const TRTHRequest& rhs) { return lhs.symbol < rhs.symbol; });
 
-    auto oldSize = symbols.size();
-    auto lastSearchPosInUnavail = m_requestsUnavailable.cbegin();
-    auto pred = [this, &lastSearchPosInUnavail](const std::string& symbol) {
+    const auto oldSize = originalRICs.size();
+
+    auto pred = [this, lastSearchPosInUnavail = m_requestsUnavailable.cbegin()](const std::string& symbol) mutable {
         lastSearchPosInUnavail = std::lower_bound(lastSearchPosInUnavail, m_requestsUnavailable.cend(), symbol, [](const TRTHRequest& elem, const std::string& symbol) { return elem.symbol < symbol; });
 
         if (m_requestsUnavailable.cend() == lastSearchPosInUnavail)
@@ -366,11 +373,9 @@ size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& symbols)
 
         return symbol == lastSearchPosInUnavail->symbol;
     };
+    originalRICs.erase(std::remove_if(originalRICs.begin(), originalRICs.end(), pred), originalRICs.end());
 
-    auto newEnd = std::remove_if(symbols.begin(), symbols.end(), pred);
-    symbols.erase(newEnd, symbols.end());
-
-    return oldSize - symbols.size();
+    return oldSize - originalRICs.size();
 }
 
 // /**@brief Prints friendlier SOAP error messages for specified funcion. */

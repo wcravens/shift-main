@@ -36,10 +36,13 @@ private:
 
     std::mutex m_mtxReqsUnavail; ///> One per target; for guarding list of unavailable/unrecognizable requests
 
-    void processRequests();
     TRTHAPI(const std::string& cryptoKey, const std::string& configDir);
 
+    void processRequests();
+
 public:
+    static std::atomic<bool> s_bTRTHLoginJsonExists; // Issue #32
+
     static TRTHAPI* createInstance(const std::string& cryptoKey, const std::string& configDir);
     static TRTHAPI* getInstance();
 
@@ -52,9 +55,10 @@ public:
     void start();
     void stop();
     // void join();
-    void pushRequest(TRTHRequest req); // Date format: YYYY-MM-DD
+    void enqueueRequest(TRTHRequest req); // Date format: YYYY-MM-DD
 
-    size_t removeUnavailableRICs(std::vector<std::string>&);
+    void addUnavailableRequest(const TRTHRequest& req);
+    size_t removeUnavailableRICs(std::vector<std::string>& originalRICs);
 
 private:
     // /**@brief The extension to soap status codes for TRTHAPI's internal use. */

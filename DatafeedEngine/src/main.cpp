@@ -33,8 +33,8 @@ using voh_t = shift::terminal::VerboseOptHelper;
 int main(int ac, char* av[])
 {
     /**
-     * @brief Centralizes and classifies all necessary parameters and 
-     * hides them behind one variable to ease understanding and debugging. 
+     * @brief Centralizes and classifies all necessary parameters and
+     * hides them behind one variable to ease understanding and debugging.
      */
     struct {
         std::string configDir;
@@ -112,6 +112,8 @@ int main(int ac, char* av[])
     if (vm.count(CSTR_VERBOSE)) {
         params.isVerbose = true;
     }
+
+    TRTHAPI::s_bTRTHLoginJsonExists = std::ifstream{ params.configDir + CSTR_TRTHLOGIN_JSN }.good(); // file exists ?
 
     voh_t voh(cout, params.isVerbose);
 

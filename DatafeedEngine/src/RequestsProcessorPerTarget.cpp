@@ -119,6 +119,12 @@ void RequestsProcessorPerTarget::processRequests()
         } break;
 
         case PTS::NOT_EXIST:
+            if (!TRTHAPI::s_bTRTHLoginJsonExists) {
+                // Issue #32: Do NOT download if NO trthLogin.json exist on this computer
+                proms[idx].set_value(true);
+                TRTHAPI::getInstance()->addUnavailableRequest({ symbols[idx], marketReq.getDate(), &proms[idx] });
+                break; // skip this symbol
+            }
         case PTS::DB_ERROR:
         case PTS::OTHER_ERROR:
         default: {
@@ -130,8 +136,8 @@ void RequestsProcessorPerTarget::processRequests()
             }
 
             requestedSymbolsIndexes.push_back(idx);
+            continue; // for
         }
-            continue; // (for)
         } // switch
     } // for
 
@@ -141,8 +147,8 @@ void RequestsProcessorPerTarget::processRequests()
 
     for (auto idx : requestedSymbolsIndexes) {
         // Here relies on the stability of the memory location that proms[idx] locates at!
-        TRTHRequest trthReq = { symbols[idx], marketReq.getDate(), &proms[idx] };
-        TRTHAPI::getInstance()->pushRequest(std::move(trthReq));
+        TRTHRequest trthReq{ symbols[idx], marketReq.getDate(), &proms[idx] };
+        TRTHAPI::getInstance()->enqueueRequest(std::move(trthReq));
     }
 
     /** Creates and returns a future so as to
@@ -200,18 +206,18 @@ void RequestsProcessorPerTarget::processRequests()
     if (!oneReqLock.owns_lock())
         return;
 
-    bool enableSkipWarning = false;
+    bool warnUnavailSkipped = false;
 
     if (lastDownloadFutPtr->valid()) {
-        enableSkipWarning = true; // only need show warning for first Next Data since last Market Data
+        warnUnavailSkipped = true; // only need show warning for first Next Data since last Market Data
         bool isPerfect = lastDownloadFutPtr->get();
         (void)isPerfect; // just to avoid 'unused' warning
     }
 
     auto symbols = lastMarketRequestPtr->getSymbols();
     auto remCnt = TRTHAPI::getInstance()->removeUnavailableRICs(symbols);
-    if (enableSkipWarning && remCnt) {
-        cout << COLOR_WARNING "NOTE: " << remCnt << " unrecognized symbols will not be sent.\n" NO_COLOR << endl;
+    if (warnUnavailSkipped && remCnt) {
+        cout << COLOR_WARNING "NOTE: " << remCnt << " unavailable symbols will not be sent.\n" NO_COLOR << endl;
     }
 
     // get start time and end time
