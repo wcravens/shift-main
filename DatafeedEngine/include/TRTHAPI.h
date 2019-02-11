@@ -71,7 +71,7 @@ private:
     //     __LAST_STATUS__ // use this as the first value of other enum class (if any)
     // };
 
-    int retrieveData(const std::string& symbol, const std::string& requestDate); // Date format: YYYY-MM-DD
+    int downloadAsCSV(const std::string& symbol, const std::string& requestDate); // Date format: YYYY-MM-DD
 
     // void printErrorDetails(std::string);
 

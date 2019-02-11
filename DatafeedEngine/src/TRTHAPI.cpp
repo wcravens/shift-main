@@ -146,7 +146,7 @@ void TRTHAPI::processRequests()
             break;
         } // switch
 
-        const auto flag = retrieveData(req.symbol, req.date);
+        const auto flag = downloadAsCSV(req.symbol, req.date);
 
         if (flag == 0) {
             std::string csvName = ::createCSVName(req.symbol, req.date);
@@ -156,17 +156,18 @@ void TRTHAPI::processRequests()
                 std::remove(csvName.c_str());
                 // cout << csvName << " deleted." << endl;
 
+                // it's available in DB now, untrack it from unavailables
                 std::lock_guard<std::mutex> guard(m_mtxReqsUnavail);
                 auto newEnd = std::remove_if(m_requestsUnavailable.begin(), m_requestsUnavailable.end(), [&req](const TRTHRequest& elem) { return elem.symbol == req.symbol && elem.date == req.date; });
                 m_requestsUnavailable.erase(newEnd, m_requestsUnavailable.end());
             }
-        } else if (flag == 1) { //soap_status(RETRIEVE_STATUS::ERR_NOT_IN_TR)) {
+        } else if (flag == 1) { // not in TR
             isPerfect = false;
+            std::remove(::createCSVName(req.symbol, req.date).c_str());
             addUnavailableRequest(req);
         } else { // other RETRIEVE_STATUS
             isPerfect = false;
             cout << COLOR_ERROR "ERROR: TRTH cannot download [ " << req.symbol << " ]. The symbol will be skipped." << endl;
-            // SoapStatusCodeInterpreter::interpret(flag);
             cout << NO_COLOR;
             addUnavailableRequest(req);
         }
@@ -207,7 +208,7 @@ void TRTHAPI::stop()
 }
 
 /**@brief The main method to search, check, request and download data from TRTH. Gives processing status as feedback. */
-int TRTHAPI::retrieveData(const std::string& symbol, const std::string& requestDate) // Date format: YYYY-MM-DD
+int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& requestDate) // Date format: YYYY-MM-DD
 {
     // prepare symbol format for TRTH request (_ to .)
     std::string ric = symbol;
@@ -336,6 +337,11 @@ int TRTHAPI::retrieveData(const std::string& symbol, const std::string& requestD
     // cout << endl;
 
     std::remove(gzipName.c_str());
+
+    if (std::ifstream{ csvName }.peek() == std::ifstream::traits_type::eof()) { // empty file ?
+        cout << COLOR_WARNING "WARNING: No data for this RIC!" << NO_COLOR << endl;
+        return 1; // e.g. RIC does not exist in TRTH
+    }
 
     return 0;
 }
