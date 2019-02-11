@@ -163,7 +163,6 @@ void TRTHAPI::processRequests()
             }
         } else if (flag == 1) { // not in TR
             isPerfect = false;
-            std::remove(::createCSVName(req.symbol, req.date).c_str());
             addUnavailableRequest(req);
         } else { // other RETRIEVE_STATUS
             isPerfect = false;
@@ -338,8 +337,9 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
 
     std::remove(gzipName.c_str());
 
-    if (std::ifstream{ csvName }.peek() == std::ifstream::traits_type::eof()) { // empty file ?
+    if (std::ifstream{ csvName }.peek() == std::ifstream::traits_type::eof()) { // empty CSV file ?
         cout << COLOR_WARNING "WARNING: No data for this RIC!" << NO_COLOR << endl;
+        std::remove(csvName.c_str());
         return 1; // e.g. RIC does not exist in TRTH
     }
 
