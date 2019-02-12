@@ -370,8 +370,9 @@ size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs)
     std::stable_sort(m_requestsUnavailable.begin(), m_requestsUnavailable.end(), [](const TRTHRequest& lhs, const TRTHRequest& rhs) { return lhs.symbol < rhs.symbol; });
 
     const auto oldSize = originalRICs.size();
+    auto lastSearchPosInUnavail = m_requestsUnavailable.cbegin();
 
-    auto pred = [this, lastSearchPosInUnavail = m_requestsUnavailable.cbegin()](const std::string& symbol) mutable {
+    auto pred = [this, &lastSearchPosInUnavail](const std::string& symbol) {
         lastSearchPosInUnavail = std::lower_bound(lastSearchPosInUnavail, m_requestsUnavailable.cend(), symbol, [](const TRTHRequest& elem, const std::string& symbol) { return elem.symbol < symbol; });
 
         if (m_requestsUnavailable.cend() == lastSearchPosInUnavail)
@@ -379,6 +380,7 @@ size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs)
 
         return symbol == lastSearchPosInUnavail->symbol;
     };
+
     originalRICs.erase(std::remove_if(originalRICs.begin(), originalRICs.end(), pred), originalRICs.end());
 
     return oldSize - originalRICs.size();
