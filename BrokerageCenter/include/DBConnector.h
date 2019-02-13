@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -25,11 +26,15 @@ class DBConnector {
 public:
     ~DBConnector();
 
+    std::unique_lock<std::mutex> lockPSQL() const;
+
     static DBConnector* getInstance();
     bool init(const std::string& cryptoKey, const std::string& fileName);
+
     PGconn* getConn() { return m_pConn; } // establish connection to database
     bool connectDB();
     void disconnectDB();
+
     bool createUsers(const std::string& symbol);
 
     /*@brief Indicates table status when querying */
@@ -58,4 +63,5 @@ private:
 
 protected:
     PGconn* m_pConn;
+    mutable std::mutex m_mtxPSQL;
 };

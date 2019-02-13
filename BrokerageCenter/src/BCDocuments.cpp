@@ -78,34 +78,36 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
 
     auto& rmPtr = res.first->second;
 
-    // auto summary = DBConnector::s_readFieldsOfRow(
-    //     "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
-    //     "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
-    //     "WHERE traders.username = '" // here presume we always has got current user name in traders table
-    //         + userName + "';",
-    //     5);
+    auto lock{ DBConnector::getInstance()->lockPSQL() };
 
-    // if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
-    constexpr auto DEFAULT_BUYING_POWER = 1e6;
-    //     DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
-    rmPtr.reset(new RiskManagement(userName, DEFAULT_BUYING_POWER));
-    // } else // explicitly parameterize the summary
-    //     rmPtr.reset(new RiskManagement(userName, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
+    const auto summary = DBConnector::s_readFieldsOfRow(
+        "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
+        "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
+        "WHERE traders.username = '" // here presume we always has got current user name in traders table
+            + userName + "';",
+        5);
 
-    // // populate portfolio items
-    // for (int row = 0; true; row++) {
-    //     const auto& item = DBConnector::s_readFieldsOfRow(
-    //         "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
-    //         "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
-    //         "WHERE traders.username = '"
-    //             + userName + "';",
-    //         7,
-    //         row);
-    //     if (item.empty())
-    //         break;
+    if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
+        constexpr auto DEFAULT_BUYING_POWER = 1e6;
+        DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ((SELECT id FROM traders WHERE username = '" + userName + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
+        rmPtr.reset(new RiskManagement(userName, DEFAULT_BUYING_POWER));
+    } else // explicitly parameterize the summary
+        rmPtr.reset(new RiskManagement(userName, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
 
-    //     rmPtr->insertPortfolioItem(item[0], { item[0], std::stod(item[1]), std::stod(item[2]), std::stod(item[3]), std::stod(item[4]), std::stoi(item[5]), std::stoi(item[6]) });
-    // }
+    // populate portfolio items
+    for (int row = 0; true; row++) {
+        const auto& item = DBConnector::s_readFieldsOfRow(
+            "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
+            "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
+            "WHERE traders.username = '"
+                + userName + "';",
+            7,
+            row);
+        if (item.empty())
+            break;
+
+        rmPtr->insertPortfolioItem(item[0], { item[0], std::stod(item[1]), std::stod(item[2]), std::stod(item[3]), std::stod(item[4]), std::stoi(item[5]), std::stoi(item[6]) });
+    }
 
     rmPtr->spawn();
 

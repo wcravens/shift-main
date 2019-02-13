@@ -191,6 +191,15 @@ DBConnector::~DBConnector()
 }
 
 /**
+ * @brief To provide a simpler syntax to lock.
+ */
+std::unique_lock<std::mutex> DBConnector::lockPSQL() const
+{
+    std::unique_lock<std::mutex> lock(m_mtxPSQL);
+    return lock; // move()-ed out here
+}
+
+/**
  * @brief   Establish connection to database
  * @return  whether the connection had been built
  */
@@ -255,6 +264,24 @@ bool DBConnector::createUsers(const std::string& symbol)
     return res;
 }
 
+bool DBConnector::doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
+{
+    bool isMatch = true;
+
+    PGresult* pRes = PQexec(m_pConn, query.c_str());
+    if (PQresultStatus(pRes) != statToMatch) {
+        cout << msgIfStatMismatch;
+        isMatch = false;
+    }
+
+    if (ppRes)
+        *ppRes = pRes;
+    else
+        PQclear(pRes);
+
+    return isMatch;
+}
+
 auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
 {
     if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
@@ -284,24 +311,6 @@ auto DBConnector::checkTableExist(std::string tableName) -> TABLE_STATUS
 
     cout << COLOR_ERROR "ERROR: More than one " << tableName << " table exist." NO_COLOR << endl;
     return TABLE_STATUS::OTHER_ERROR;
-}
-
-bool DBConnector::doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
-{
-    bool isMatch = true;
-
-    PGresult* pRes = PQexec(m_pConn, query.c_str());
-    if (PQresultStatus(pRes) != statToMatch) {
-        cout << msgIfStatMismatch;
-        isMatch = false;
-    }
-
-    if (ppRes)
-        *ppRes = pRes;
-    else
-        PQclear(pRes);
-
-    return isMatch;
 }
 
 template <typename _WhichTable>
