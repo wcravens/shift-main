@@ -531,7 +531,9 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                 // const auto fracPos = etNanoSec.find('.') + 1;
                 // const auto& etMicroSec = etNanoSec.substr({}, etNanoSec.find('.') + 1 + 3); // trancated
 
-                if (isTrade) {
+                if (etNanoSec.empty()) // Exch Time empty in CSV ?
+                    pqQuery += "NULL,NULL";
+                else if (isTrade) {
                     // set SQL exch. time with blank quote time
                     pqQuery += '\'' + etNanoSec + "',NULL";
                 } else {
@@ -558,6 +560,10 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
 
         auto lock{ lockPSQL() };
         if (!doQuery(pqQuery, COLOR_ERROR "ERROR: Insert into [ " + tableName + " ] failed.\n" NO_COLOR)) {
+            std::ofstream of("./PSQL_INSERT_ERROR_DUMP.txt");
+            if (of.good())
+                of.write(pqQuery.c_str(), pqQuery.length());
+            cout << COLOR_WARNING "The failed SQL query was written into ./PSQL_INSERT_ERROR_DUMP.txt. Please check it by manually executing the query." NO_COLOR << endl;
             return false;
         }
     } // while(true)
