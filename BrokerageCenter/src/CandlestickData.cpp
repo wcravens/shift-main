@@ -103,8 +103,14 @@ void CandlestickData::process()
         const auto currExecTime = transac.execTime.getTimeT();
 
         if (std::time_t{} == m_currOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup status ?
-            m_currOpenTime = currExecTime;
             m_symbol = std::move(transac.symbol);
+            m_currPrice
+                = m_currOpenPrice
+                = m_currClosePrice
+                = m_currHighPrice
+                = m_currLowPrice
+                = transac.price;
+            m_currOpenTime = currExecTime;
             continue;
         }
 
