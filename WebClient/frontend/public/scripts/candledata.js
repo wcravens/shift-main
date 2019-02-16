@@ -1,4 +1,6 @@
-// get local time zone name
+// get local timezone offset & local time zone name
+var d = new Date();
+var n = d.getTimezoneOffset();
 var tz = jstz.determine();
 
 $(document).ready(function () {
@@ -204,7 +206,7 @@ $(document).ready(function () {
 
     Highcharts.setOptions({
         global: {
-            timezoneOffset: 0
+            timezoneOffset: n
         },
         lang: {
             rangeSelectorZoom: "Zoom:"

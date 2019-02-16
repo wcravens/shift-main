@@ -113,9 +113,9 @@ void FIXAcceptor::disconnectMatchingEngine()
 
     time_t secs = rawData.secs + static_cast<int>(rawData.microsecs);
     int millisec = static_cast<int>((rawData.microsecs - static_cast<int>(rawData.microsecs)) * 1000000);
-    auto utcTime = FIX::UtcTimeStamp(secs, millisec, 6);
+    auto secs_gmt = std::mktime(std::gmtime(&secs));
 
-    message.setField(FIX::TransactTime(utcTime, 6));
+    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(secs_gmt, millisec, 6), 6));
     message.setField(FIX::Symbol(rawData.symbol));
     message.setField(FIX::QuoteType(rawData.toq.front() == 'Q' ? 0 : 1));
     message.setField(FIX::QuoteID(shift::crossguid::newGuid().str()));

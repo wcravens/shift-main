@@ -6,11 +6,25 @@ timesetting timepara;
 
 /* static */ std::string timesetting::now_str()
 {
-    boost::posix_time::ptime now(boost::posix_time::microsec_clock::local_time());
+    boost::posix_time::ptime now(boost::posix_time::microsec_clock::universal_time());
+    // boost::posix_time::ptime now(boost::posix_time::microsec_clock::local_time());
     std::string now_string = boost::posix_time::to_iso_extended_string(now);
     now_string[10] = ' ';
-    //std::cout << now_string<<endl;
+    // std::cout << "Time now: " << now_string << std::endl;
     return now_string;
+}
+
+/* static */ boost::posix_time::ptime
+timesetting::getUtcPtime(const boost::posix_time::ptime& local_pt)
+{
+    // Grab copies of the current time in local and UTC form.
+    auto utc_time = boost::posix_time::microsec_clock::universal_time(); // UTC.
+    auto utc_time_t = boost::posix_time::to_time_t(utc_time);
+    auto* local_tm = std::localtime(&utc_time_t);
+    auto local_time = boost::posix_time::ptime_from_tm(*local_tm);
+
+    // Return the given time in ms plus the time_t difference
+    return local_pt + (utc_time - local_time);
 }
 
 void timesetting::initiate(std::string date, std::string stime, std::string etime, double _speed)
@@ -20,9 +34,12 @@ void timesetting::initiate(std::string date, std::string stime, std::string etim
     Innerendtime = etime;
     std::string timestring = date + " " + stime;
     cout << endl;
-    date_time = boost::posix_time::ptime(boost::posix_time::time_from_string(timestring));
-    cout << "date_time: " << boost::posix_time::to_iso_extended_string(date_time) << endl;
-    hhmmss = date_time.time_of_day().total_seconds();
+
+    auto local_date_time = boost::posix_time::ptime(boost::posix_time::time_from_string(timestring));
+    utc_date_time = getUtcPtime(local_date_time);
+    cout << "utc_date_time: " << boost::posix_time::to_iso_extended_string(utc_date_time) << endl;
+
+    hhmmss = utc_date_time.time_of_day().total_seconds();
     cout << "hhmmss: " << hhmmss << endl;
     speed = _speed;
 }
@@ -48,8 +65,8 @@ double timesetting::past_milli(const FIX::UtcTimeStamp& utc)
 double timesetting::past_milli() // FIXME: can be replaced by microsecond
 {
     std::chrono::high_resolution_clock h_resol_clock; // initiate a high resolute clock
-    std::chrono::high_resolution_clock::time_point timenow = h_resol_clock.now(); // initiate a high resolute time point
-    long milli = std::chrono::duration_cast<std::chrono::milliseconds>(timenow - start_time_point).count();
+    std::chrono::high_resolution_clock::time_point local_now = h_resol_clock.now(); // initiate a high resolute time point
+    long milli = std::chrono::duration_cast<std::chrono::milliseconds>(local_now - start_time_point).count();
     return (speed * milli);
 }
 
@@ -58,7 +75,7 @@ double timesetting::past_milli() // FIXME: can be replaced by microsecond
  */
 FIX::UtcTimeStamp timesetting::milli2utc(double milli)
 {
-    boost::posix_time::ptime now = date_time + boost::posix_time::milliseconds(milli);
+    boost::posix_time::ptime now = utc_date_time + boost::posix_time::milliseconds(milli);
     auto tm_now = boost::posix_time::to_tm(now);
     auto utc_now = FIX::UtcTimeStamp(&tm_now, ((int)milli % 1000) * 1000, 6);
     return utc_now;
@@ -72,8 +89,7 @@ FIX::UtcTimeStamp timesetting::utc_now()
     std::chrono::high_resolution_clock h_resol_clock;
     std::chrono::high_resolution_clock::time_point timenow = h_resol_clock.now();
     boost::posix_time::microseconds micro(std::chrono::duration_cast<std::chrono::microseconds>(timenow - start_time_point).count() * speed);
-    boost::posix_time::ptime now = date_time + micro;
-    auto tm_now = boost::posix_time::to_tm(now);
-    auto utc_now = FIX::UtcTimeStamp(&tm_now, (int)micro.fractional_seconds(), 6);
-    return utc_now;
+    auto tm_utc_now = boost::posix_time::to_tm(utc_date_time + micro);
+    auto utc_timestamp = FIX::UtcTimeStamp(&tm_utc_now, (int)micro.fractional_seconds(), 6);
+    return utc_timestamp;
 }

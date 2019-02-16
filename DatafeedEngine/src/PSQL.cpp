@@ -706,7 +706,7 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
     temp << "INSERT INTO " << CSTR_TBLNAME_TRADING_RECORDS << " VALUES ('"
          << s_sessionID << "','"
          << utcToString(trade.realtime, true) << "','"
-         << utcToString(trade.exetime) << "','"
+         << utcToString(trade.exetime, true) << "','"
          << trade.symbol << "','"
          << trade.price << "','"
          << trade.size << "','"
@@ -716,8 +716,8 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
          << trade.order_id_2 << "','"
          << trade.order_type_1 << "','"
          << trade.order_type_2 << "','"
-         << utcToString(trade.time1) << "','"
-         << utcToString(trade.time2) << "','"
+         << utcToString(trade.time1, true) << "','"
+         << utcToString(trade.time2, true) << "','"
          << trade.decision << "','"
          << trade.destination << "');";
 

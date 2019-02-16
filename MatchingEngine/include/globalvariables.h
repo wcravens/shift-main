@@ -9,22 +9,21 @@
 
 class timesetting {
 private:
-    boost::posix_time::ptime date_time;
+    boost::posix_time::ptime utc_date_time; // utc time
     std::string Innerendtime;
     std::string Innerstarttime;
     std::string Innerstartdate;
     //time_t innerstartLong; //difficult to use because of Winterzeit and summertime problems
     long hhmmss;
-    std::chrono::high_resolution_clock::time_point start_time_point;
+    std::chrono::high_resolution_clock::time_point start_time_point; // real time (not simulation time)
     double speed;
 
 public:
     static std::string now_str();
+    static boost::posix_time::ptime getUtcPtime(const boost::posix_time::ptime& pt);
 
     void initiate(std::string date, std::string stime, std::string etime, double _speed);
-
     void set_start_time();
-
     double past_milli();
     double past_milli(const FIX::UtcTimeStamp& utc);
 
