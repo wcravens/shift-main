@@ -107,7 +107,7 @@ int main(int ac, char* av[])
         date = params.simulationDate;
     }
 
-    timepara.initiate(date, stime, etime, experiment_speed);
+    timepara.initiate(date, stime, experiment_speed);
     boost::posix_time::ptime pt_start(boost::posix_time::time_from_string(date + " " + stime));
     boost::posix_time::ptime pt_end(boost::posix_time::time_from_string(date + " " + etime));
     std::string requestID = date + " :: " + std::to_string(symbols.size());
