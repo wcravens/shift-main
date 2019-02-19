@@ -32,6 +32,9 @@ using voh_t = shift::terminal::VerboseOptHelper;
 
 int main(int ac, char* av[])
 {
+    char tz[] = "TZ=America/New_York"; // specify the time zone to New York
+    putenv(tz);
+
     /**
      * @brief Centralizes and classifies all necessary parameters and
      * hides them behind one variable to ease understanding and debugging.

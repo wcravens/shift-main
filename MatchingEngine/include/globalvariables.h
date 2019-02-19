@@ -11,7 +11,7 @@ class timesetting {
 private:
     std::chrono::high_resolution_clock::time_point start_time_point; // real time (not simulation time)
     boost::posix_time::ptime utc_date_time;
-    long hhmmss;
+    time_t hhmmss;
     double speed;
 
 public:

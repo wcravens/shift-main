@@ -6,14 +6,15 @@ timesetting timepara;
 
 /* static */ boost::posix_time::ptime timesetting::getUTCPTime(const boost::posix_time::ptime& local_pt)
 {
-    // Grab copies of the current time in local and UTC form.
-    auto utc_time = boost::posix_time::microsec_clock::universal_time(); // UTC.
-    auto utc_time_t = boost::posix_time::to_time_t(utc_time);
-    auto* local_tm = std::localtime(&utc_time_t);
-    auto local_time = boost::posix_time::ptime_from_tm(*local_tm);
+    // time_t is always assumed to be UTC,
+    // but boost's ptime does not have time zone information,
+    // so this is the reason we need all this mess
+    time_t local_time_t = boost::posix_time::to_time_t(local_pt);
+    tm* local_tm = std::gmtime(&local_time_t);
+    time_t utc_time_t = mktime(local_tm);
+    tm* utc_tm = std::gmtime(&utc_time_t);
 
-    // Return the given time in ms plus the time_t difference
-    return local_pt + (utc_time - local_time);
+    return boost::posix_time::ptime_from_tm(*utc_tm);
 }
 
 void timesetting::initiate(std::string date, std::string stime, double _speed)
