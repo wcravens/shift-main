@@ -47,6 +47,8 @@ using namespace std::chrono_literals;
     "info"
 #define CSTR_SUPER \
     "super"
+#define CSTR_PFDBREADONLY \
+    "readonlyportfolio"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -112,6 +114,7 @@ int main(int ac, char* av[])
         (CSTR_PASSWORD ",p", po::value<std::string>(), "password of the new user") //
         (CSTR_INFO ",i", po::value<std::vector<std::string>>()->multitoken(), "<first name>  <last name>  <email>") //
         (CSTR_SUPER ",s", "is super user, requires -u present") //
+        (CSTR_PFDBREADONLY ",e", "is portfolio data in DB read-only") //
         ; // add_options
 
     po::variables_map vm;
@@ -190,6 +193,8 @@ int main(int ac, char* av[])
             return 4;
         }
     }
+
+    DBConnector::s_isPortfolioDBReadOnly = vm.count(CSTR_PFDBREADONLY) > 0;
 
     DBConnector::getInstance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 

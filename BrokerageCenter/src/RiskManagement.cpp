@@ -152,8 +152,10 @@ void RiskManagement::processQuote()
         if (m_portfolioItems.find(quotePtr->getSymbol()) == m_portfolioItems.end()) { // add new portfolio item ?
             insertPortfolioItem(quotePtr->getSymbol(), quotePtr->getSymbol());
 
-            auto lock{ DBConnector::getInstance()->lockPSQL() };
-            DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_userName + "'), '" + quotePtr->getSymbol() + "');", "");
+            if (!DBConnector::s_isPortfolioDBReadOnly) {
+                auto lock{ DBConnector::getInstance()->lockPSQL() };
+                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_userName + "'), '" + quotePtr->getSymbol() + "');", "");
+            }
         }
 
         if (verifyAndSendQuote(*quotePtr)) {
@@ -367,7 +369,7 @@ void RiskManagement::processExecRpt()
 
             wasPortfolioSent = true;
         }
-        if (wasPortfolioSent) {
+        if (!DBConnector::s_isPortfolioDBReadOnly && wasPortfolioSent) {
             const auto& item = m_portfolioItems[reportPtr->symbol];
             auto lock{ DBConnector::getInstance()->lockPSQL() };
 
