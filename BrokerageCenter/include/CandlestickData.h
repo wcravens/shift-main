@@ -13,7 +13,6 @@
 #include <queue>
 #include <string>
 #include <thread>
-#include <unordered_set>
 
 class CandlestickData {
 private:
@@ -29,7 +28,7 @@ private:
     std::queue<Transaction> m_transacBuff;
     std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
 
-    std::unordered_set<std::string> m_candleUserList; // userName
+    std::vector<std::string> m_candleUserList; // names of registered users for this CandlestickData
     std::map<std::time_t, TempCandlestickData> m_history;
 
     mutable std::mutex m_mtxTransacBuff;

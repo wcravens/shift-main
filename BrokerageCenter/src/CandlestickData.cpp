@@ -191,8 +191,14 @@ void CandlestickData::spawn()
 
 void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpCandle)
 {
-    std::lock_guard<std::mutex> guard(m_mtxCandleUserList);
-    FIXAcceptor::getInstance()->sendCandlestickData(m_candleUserList, tmpCandle);
+    std::unique_lock<std::mutex> ulCUL(m_mtxCandleUserList);
+    if (m_candleUserList.empty())
+        return;
+
+    auto culCopy(m_candleUserList);
+    ulCUL.unlock();
+
+    FIXAcceptor::getInstance()->sendCandlestickData(culCopy, tmpCandle);
 }
 
 void CandlestickData::sendHistory(const std::string userName)
@@ -212,17 +218,18 @@ void CandlestickData::registerUserInCandlestickData(const std::string& userName)
     std::thread(&CandlestickData::sendHistory, this, userName).detach(); // this takes time, so let run on side
     {
         std::lock_guard<std::mutex> guard(m_mtxCandleUserList);
-        m_candleUserList.insert(userName);
+        if (std::find(m_candleUserList.begin(), m_candleUserList.end(), userName) == m_candleUserList.end())
+            m_candleUserList.push_back(userName);
     }
 }
 
 void CandlestickData::unregisterUserInCandlestickData(const std::string& userName)
 {
     std::lock_guard<std::mutex> guard(m_mtxCandleUserList);
-    auto it = m_candleUserList.find(userName);
-    if (it != m_candleUserList.end()) {
-        m_candleUserList.erase(it);
-    }
+    const auto pos = std::find(m_candleUserList.begin(), m_candleUserList.end(), userName);
+    // fast removal:
+    std::swap(*pos, m_candleUserList.back());
+    m_candleUserList.pop_back();
 }
 
 //----------------------------------------------------------------------------

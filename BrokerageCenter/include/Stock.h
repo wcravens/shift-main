@@ -10,7 +10,6 @@
 #include <queue>
 #include <string>
 #include <thread>
-#include <unordered_set>
 
 /**
 *  @brief Class that asynchronosly receives and/or broadcasts order books for a specific stock.
@@ -36,7 +35,7 @@ private:
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalBid;
 
     std::queue<OrderBookEntry> m_odrBkBuff;
-    std::unordered_set<std::string> m_stockUserList; //registered user
+    std::vector<std::string> m_stockUserList; // names of registered users for this Stock
 
 public:
     Stock();
