@@ -198,9 +198,9 @@ int main(int ac, char* av[])
     while (pt_start < pt_end) {
         fixtoDB.sendMarketDataRequest();
         pt_start += boost::posix_time::minutes(15);
-        std::this_thread::sleep_for(15min);
+        std::this_thread::sleep_for(15min / experiment_speed);
     }
-    std::this_thread::sleep_for(15min);
+    std::this_thread::sleep_for(15min / experiment_speed);
 
     std::this_thread::sleep_for(1min);
     timeout = true;

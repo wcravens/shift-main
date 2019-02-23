@@ -42,9 +42,9 @@ public:
 
     void sendSecurityList(const std::string& clientID); // send security list from ME to BC
 
-    static void SendOrderbookUpdate(std::string& clientID, Newbook& newbook); // Send order book update to client
-    static void SendOrderbookUpdate2All(Newbook& newbook); // Send order book update to all client
-    static void SendExecution2client(std::string& targetID, action& actions);
+    static void SendOrderBookUpdate(std::string& clientID, Newbook& newbook); // Send order book update to client
+    static void SendOrderBookUpdate2All(Newbook& newbook); // Send order book update to all client
+    static void SendExecution2Client(std::string& targetID, action& actions);
     static void SendExecution(const action& actions);
 
     std::list<std::string> symbollist;

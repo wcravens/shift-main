@@ -2,8 +2,8 @@
 # "date": the date to be simulated, e.g. "date=2018-12-17".
 # "starttime": opening time of the market, e.g. "starttime=09:30:00".
 # "endtime": closing time of the market, e.g. "endtime=16:00:00".
-# (Deprecated) "speed": speed of the simulation, slower or faster than reality:
-#     any positive double value is accepted, but no more than 5 is recommended.
+# "speed": speed of the simulation, slower or faster than reality:
+#   any positive integer value is accepted, but no more than 5 is recommended.
 # Any line beginning with # will be ignored.
 
 # Dow Jones Industrial Average (last update: 2018-06-26)

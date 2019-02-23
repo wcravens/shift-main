@@ -9,21 +9,20 @@
 
 class timesetting {
 private:
-    std::chrono::high_resolution_clock::time_point start_time_point; // real time (not simulation time)
-    boost::posix_time::ptime utc_date_time;
-    time_t hhmmss;
-    double speed;
+    std::chrono::high_resolution_clock::time_point m_start_time_point; // real time (not simulation time)
+    boost::posix_time::ptime m_utc_date_time;
+    time_t m_hhmmss;
+    int m_speed;
 
 public:
     static boost::posix_time::ptime getUTCPTime(const boost::posix_time::ptime& pt);
 
-    void initiate(std::string date, std::string stime, double _speed);
+    void initiate(std::string date, std::string stime, int speed = false);
     void set_start_time();
-    double past_milli();
-    double past_milli(const FIX::UtcTimeStamp& utc);
+    long past_milli(bool simulation_time = false);
+    long past_milli(const FIX::UtcTimeStamp& utc, bool simulation_time = false);
 
-    FIX::UtcTimeStamp milli2utc(double milli);
-    FIX::UtcTimeStamp utc_now();
+    FIX::UtcTimeStamp simulationTimestamp();
 };
 
 extern timesetting timepara;

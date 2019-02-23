@@ -181,7 +181,7 @@ void createStockMarket(std::string symbol)
                     //decision 4 means this is a trade update from TRTH
                     // action newaction(newquote.getstockname(), newquote.getprice(), newquote.getsize(), "T1", "T2", '1', '2', "o1", "o2", newquote.gettime(), "t2", "t3", '4', "TRTH", newquote.getutctime(), utc_now, utc_now);
 
-                    auto utc_now = timepara.utc_now();
+                    auto utc_now = timepara.simulationTimestamp();
                     action newaction(
                         newquote.getstockname(),
                         newquote.getprice(),
@@ -254,7 +254,7 @@ void createStockMarket(std::string symbol)
             stock->second.actions.clear();
 
             for_each(stock->second.orderbookupdate.begin(), stock->second.orderbookupdate.end(),
-                [](Newbook& _newbook) { FIXAcceptor::SendOrderbookUpdate2All(_newbook); });
+                [](Newbook& _newbook) { FIXAcceptor::SendOrderBookUpdate2All(_newbook); });
             stock->second.orderbookupdate.clear();
         }
     }
