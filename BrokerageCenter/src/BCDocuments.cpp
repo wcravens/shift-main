@@ -275,8 +275,8 @@ void BCDocuments::removeUserFromStocks(const std::string& userName)
 
     auto pos = m_orderBookSymbolsByName.find(userName);
     if (m_orderBookSymbolsByName.end() != pos) {
-        for (const auto& stock : pos->second) {
-            m_stockBySymbol[stock]->unregisterUserInStock(userName);
+        for (const auto& symbol : pos->second) {
+            m_stockBySymbol[symbol]->unregisterUserInStock(userName);
         }
         m_orderBookSymbolsByName.erase(pos);
     }
@@ -288,8 +288,8 @@ void BCDocuments::removeUserFromCandles(const std::string& userName)
 
     auto pos = m_candleSymbolsByName.find(userName);
     if (m_candleSymbolsByName.end() != pos) {
-        for (const auto& stock : pos->second) {
-            m_candleBySymbol[stock]->unregisterUserInCandlestickData(userName);
+        for (const auto& symbol : pos->second) {
+            m_candleBySymbol[symbol]->unregisterUserInCandlestickData(userName);
         }
         m_candleSymbolsByName.erase(pos);
     }
@@ -307,8 +307,9 @@ void BCDocuments::removeCandleSymbolFromUser(const std::string& userName, const 
 
 void BCDocuments::broadcastStocks() const
 {
-    for (const auto& i : m_stockBySymbol) {
-        i.second->broadcastWholeOrderBookToAll();
+    for (const auto& kv : m_stockBySymbol) {
+        auto& stock = *kv.second;
+        stock.broadcastWholeOrderBookToAll();
     }
 }
 

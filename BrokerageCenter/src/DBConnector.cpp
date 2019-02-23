@@ -168,6 +168,8 @@ struct PSQLTable<PortfolioItem> {
 
 //----------------------------------------------------------------------------------------------------------------
 
+/*static*/ bool DBConnector::s_isPortfolioDBReadOnly = false;
+
 /*static*/ DBConnector* DBConnector::getInstance()
 {
     static DBConnector s_DBInst;

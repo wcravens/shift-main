@@ -61,10 +61,10 @@ public:
     void sendConfirmationReport(const Report& report); // send quote conformation report
 
     void sendLastPrice2All(const Transaction& transac);
-    void sendOrderBook(const std::unordered_set<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
+    void sendOrderBook(const std::vector<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
     static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry);
-    void sendOrderBookUpdate(const std::unordered_set<std::string>& userList, const OrderBookEntry& update); // send order book update to users
-    void sendCandlestickData(const std::unordered_set<std::string>& userList, const TempCandlestickData& tmpCandle); // for candlestick data
+    void sendOrderBookUpdate(const std::vector<std::string>& userList, const OrderBookEntry& update); // send order book update to users
+    void sendCandlestickData(const std::vector<std::string>& userList, const TempCandlestickData& tmpCandle); // for candlestick data
 
 private:
     FIXAcceptor() = default;

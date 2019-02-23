@@ -3,6 +3,8 @@
 #include "BCDocuments.h"
 #include "FIXAcceptor.h"
 
+#include <algorithm>
+
 #include <shift/miscutils/concurrency/Consumer.h>
 
 /**
@@ -95,7 +97,8 @@ void Stock::registerUserInStock(const std::string& userName)
     broadcastWholeOrderBookToOne(userName);
     {
         std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-        m_stockUserList.insert(userName);
+        if (std::find(m_stockUserList.begin(), m_stockUserList.end(), userName) == m_stockUserList.end())
+            m_stockUserList.push_back(userName);
     }
     BCDocuments::getInstance()->addOrderBookSymbolToUser(userName, m_symbol);
 }
@@ -108,7 +111,10 @@ void Stock::registerUserInStock(const std::string& userName)
 void Stock::unregisterUserInStock(const std::string& userName)
 {
     std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-    m_stockUserList.erase(userName);
+    const auto pos = std::find(m_stockUserList.begin(), m_stockUserList.end(), userName);
+    // fast removal:
+    std::swap(*pos, m_stockUserList.back());
+    m_stockUserList.pop_back();
 }
 
 /**
@@ -118,9 +124,12 @@ void Stock::unregisterUserInStock(const std::string& userName)
 */
 void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 {
-    std::lock_guard<std::mutex> guard(m_mtxStockUserList);
+    std::unique_lock<std::mutex> ulSUL(m_mtxStockUserList);
     if (m_stockUserList.empty())
-        return; // nobody to sent to.
+        return;
+
+    auto sulCopy(m_stockUserList);
+    ulSUL.unlock();
 
     using ulock_t = std::unique_lock<std::mutex>;
     ulock_t lock;
@@ -148,7 +157,7 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
         return;
     }
 
-    FIXAcceptor::getInstance()->sendOrderBookUpdate(m_stockUserList, update);
+    FIXAcceptor::getInstance()->sendOrderBookUpdate(sulCopy, update);
 }
 
 /**
@@ -159,6 +168,7 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
+    const std::vector<std::string> userList{ userName };
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
     std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
@@ -166,13 +176,13 @@ void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook({ userName }, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook(userList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook({ userName }, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook(userList, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook({ userName }, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook(userList, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook({ userName }, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook(userList, m_odrBkLocalBid);
 }
 
 /**
@@ -183,9 +193,12 @@ void Stock::broadcastWholeOrderBookToAll()
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
 
-    std::lock_guard<std::mutex> guard(m_mtxStockUserList);
+    std::unique_lock<std::mutex> ulSUL(m_mtxStockUserList);
     if (m_stockUserList.empty())
-        return; // nobody to sent to.
+        return;
+
+    auto sulCopy(m_stockUserList);
+    ulSUL.unlock();
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
     std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
@@ -193,13 +206,13 @@ void Stock::broadcastWholeOrderBookToAll()
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(m_stockUserList, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook(sulCopy, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(m_stockUserList, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook(sulCopy, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(m_stockUserList, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook(sulCopy, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(m_stockUserList, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook(sulCopy, m_odrBkLocalBid);
 }
 
 /**

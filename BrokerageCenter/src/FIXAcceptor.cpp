@@ -319,7 +319,7 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
 /**
  * @brief Send complete order book by type
  */
-void FIXAcceptor::sendOrderBook(const std::unordered_set<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
+void FIXAcceptor::sendOrderBook(const std::vector<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -375,10 +375,10 @@ void FIXAcceptor::sendOrderBook(const std::unordered_set<std::string>& userList,
 
 /**
  * @brief   Send order book update to one client
- * @param   userList as a unordered_set to provide the name of clients
+ * @param   userList as a vector to provide the name of clients
  * @param   update as an OrderBookEntry object to provide price and others
  */
-void FIXAcceptor::sendOrderBookUpdate(const std::unordered_set<std::string>& userList, const OrderBookEntry& update)
+void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& userList, const OrderBookEntry& update)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -413,7 +413,7 @@ void FIXAcceptor::sendOrderBookUpdate(const std::unordered_set<std::string>& use
     }
 }
 
-void FIXAcceptor::sendCandlestickData(const std::unordered_set<std::string>& userList, const TempCandlestickData& tmpCandle)
+void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& userList, const TempCandlestickData& tmpCandle)
 {
     FIX::Message message;
 
@@ -478,13 +478,9 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
         return;
     }
     cout << COLOR_WARNING "[User] " NO_COLOR << userName << endl;
-    // TODO: Issue #3
-    // BCDocuments::getInstance()->removeUserFromCandles(userName);
-    // cout << "DEBUG MUTEX: removeUserFromCandles" << endl;
-    // BCDocuments::getInstance()->removeUserFromStocks(userName);
-    // cout << "DEBUG MUTEX: removeUserFromStocks" << endl;
-    BCDocuments::getInstance()->unregisterUserInDoc(userName);
-    // cout << "DEBUG MUTEX: unregisterUserInDoc" << endl;
+    BCDocuments::getInstance()->unregisterUserInDoc(userName); // this shall come first to timely affect other acceptor parts that are sending things aside
+    BCDocuments::getInstance()->removeUserFromCandles(userName);
+    BCDocuments::getInstance()->removeUserFromStocks(userName);
     cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
          << endl;
 }
@@ -684,13 +680,13 @@ void FIXAcceptor::sendSymbols(const std::string& targetID, const std::unordered_
     message.setField(FIX::SecurityResponseID(shift::crossguid::newGuid().str()));
 
     // make ascending ordered stock symbols
-    std::vector<std::string> ascStocks(symbols.begin(), symbols.end());
-    std::sort(ascStocks.begin(), ascStocks.end());
+    std::vector<std::string> ascSymbols(symbols.begin(), symbols.end());
+    std::sort(ascSymbols.begin(), ascSymbols.end());
 
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
 
-    for (const auto& stock : ascStocks) {
-        relatedSymGroup.setField(FIX::Symbol(stock));
+    for (const auto& symbol : ascSymbols) {
+        relatedSymGroup.setField(FIX::Symbol(symbol));
         message.addGroup(relatedSymGroup);
     }
 
