@@ -434,13 +434,13 @@ then
                 [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-d ${SIMULATION_DATE}"
                 ;;
             3_BC )
-                if [ ${RESET_FLAG} -eq 0 && ${PFDBREADONLY_FLAG} -eq 0 ]
+                if [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
                 then
                     startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT}"
-                elif [ ${RESET_FLAG} -ne 0 && ${PFDBREADONLY_FLAG} -eq 0 ]
+                elif [ ${RESET_FLAG} -ne 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
                 then
                     startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r"
-                elif [ ${RESET_FLAG} -eq 0 && ${PFDBREADONLY_FLAG} -ne 0 ]
+                elif [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -ne 0 ]
                 then
                     startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -e"
                 else
