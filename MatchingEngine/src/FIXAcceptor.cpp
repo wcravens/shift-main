@@ -104,7 +104,7 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
 /*
  * @brief Send order book update to client
  */
-/* static */ void FIXAcceptor::SendOrderbookUpdate(std::string& clientID, Newbook& update)
+/* static */ void FIXAcceptor::SendOrderBookUpdate(std::string& clientID, Newbook& update)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -138,16 +138,16 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
 /*
  * @brief Send order book update to all client
  */
-/* static */ void FIXAcceptor::SendOrderbookUpdate2All(Newbook& newbook)
+/* static */ void FIXAcceptor::SendOrderBookUpdate2All(Newbook& newbook)
 {
     std::lock_guard<std::mutex> lock(clientid_mutex);
-    std::for_each(clientlist.begin(), clientlist.end(), std::bind(&FIXAcceptor::SendOrderbookUpdate, std::placeholders::_1, newbook));
+    std::for_each(clientlist.begin(), clientlist.end(), std::bind(&FIXAcceptor::SendOrderBookUpdate, std::placeholders::_1, newbook));
 }
 
 /**
  * @brief Sending the execution report to the client
  */
-/* static */ void FIXAcceptor::SendExecution2client(std::string& targetID, action& actions)
+/* static */ void FIXAcceptor::SendExecution2Client(std::string& targetID, action& actions)
 {
     FIX::Message message;
 
@@ -197,7 +197,8 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
 {
     std::lock_guard<std::mutex> lock1(ExecReport_mutex);
     std::lock_guard<std::mutex> lock2(clientid_mutex);
-    std::for_each(clientlist.begin(), clientlist.end(), std::bind(&FIXAcceptor::SendExecution2client, std::placeholders::_1, actions));
+    std::for_each(clientlist.begin(), clientlist.end(),
+        std::bind(&FIXAcceptor::SendExecution2Client, std::placeholders::_1, actions));
 }
 
 void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
@@ -265,7 +266,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
             price,
             0,
             ordType,
-            timepara.utc_now()
+            timepara.simulationTimestamp()
         };
         sendQuoteConfirmation(rejection);
         return;
@@ -304,8 +305,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         }
         }
 
-        double milli = timepara.past_milli();
-        FIX::UtcTimeStamp utc_now = timepara.milli2utc(milli);
+        long milli = timepara.past_milli();
+        FIX::UtcTimeStamp utc_now = timepara.simulationTimestamp();
 
         Quote quote(symbol, clientID, orderID, price, orderQty, ordType, utc_now);
 

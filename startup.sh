@@ -42,6 +42,7 @@ function usage
     echo "  -m [ --modules ] DE|ME|BC|WC|PS    List of modules to start up or terminate"
     echo "  -d [ --date ]                      Simulation date (format: YYYY-MM-DD)"
     echo "  -r [ --reset ]                     Reset stored portfolio information"
+    echo "  -e [ --readonlyportfolio ]         Read-only portfolio information"
     echo "  -t [ --timeout ]                   Time-out duration counted in minutes"
     echo "                                     (default: 400)"
     echo "  -l [ --log ]                       Create a log of the execution"
@@ -232,6 +233,7 @@ declare -a MODULES
 
 SIMULATION_DATE=""
 RESET_FLAG=0
+PFDBREADONLY_FLAG=0
 
 STATUS_FLAG=0
 KILL_FLAG=0
@@ -285,6 +287,10 @@ while [ "${1}" != "" ]; do
             ;;
         -r | --reset )
             RESET_FLAG=1
+            shift
+            ;;
+        -e | --readonlyportfolio )
+            PFDBREADONLY_FLAG=1
             shift
             ;;
         -t | --timeout )
@@ -428,8 +434,18 @@ then
                 [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-d ${SIMULATION_DATE}"
                 ;;
             3_BC )
-                [ ${RESET_FLAG} -ne 0 ] || startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT}"
-                [ ${RESET_FLAG} -ne 0 ] && startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r"
+                if [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
+                then
+                    startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT}"
+                elif [ ${RESET_FLAG} -ne 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
+                then
+                    startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r"
+                elif [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -ne 0 ]
+                then
+                    startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -e"
+                else
+                    startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r -e"
+                fi
                 ;;
             4_WC )
                 startVerboseCapableService "WebClient" ${LOADING_TIME[4]}

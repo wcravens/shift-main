@@ -39,12 +39,12 @@ void Stock::buf_new_local(Quote& quote)
 bool Stock::get_new_quote(Quote& quote)
 {
     bool good = false;
-    long mili_now = timepara.past_milli();
+    long milli_now = timepara.past_milli(true);
 
     std::lock_guard<std::mutex> g_lock(new_global_mu);
     if (!new_global.empty()) {
         quote = new_global.front();
-        if (quote.getmili() < mili_now) {
+        if (quote.getmili() < milli_now) {
             good = true;
         }
     }
@@ -57,7 +57,7 @@ bool Stock::get_new_quote(Quote& quote)
                 new_local.pop();
             } else
                 new_global.pop();
-        } else if (newlocal->getmili() < mili_now) {
+        } else if (newlocal->getmili() < milli_now) {
             good = true;
             quote = *newlocal;
             new_local.pop();
@@ -98,7 +98,7 @@ void Stock::execute(int size1, Quote& newquote, char decision1, std::string dest
         //cout<<newquote.getsize();
     }
 
-    auto utc_now = timepara.utc_now();
+    auto utc_now = timepara.simulationTimestamp();
     action act(
         newquote.getstockname(),
         thisquote->getprice(),
@@ -133,7 +133,7 @@ void Stock::executeglobal(int size1, Quote& newquote, char decision1, std::strin
         newquote.setsize(-size1);
     }
 
-    auto utc_now = timepara.utc_now();
+    auto utc_now = timepara.simulationTimestamp();
     action act(
         newquote.getstockname(),
         thisglobal->getprice(),
@@ -183,7 +183,8 @@ void Stock::dolimitbuy(Quote& newquote, std::string destination1)
             }
         }
 
-        bookupdate('a', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now()); //update the new price for broadcasting
+        bookupdate('a', name, thisprice->getprice(), thisprice->getsize(),
+            timepara.simulationTimestamp()); //update the new price for broadcasting
 
         if (thisprice->quotes.empty()) {
             thisprice = ask.erase(thisprice);
@@ -222,7 +223,8 @@ void Stock::dolimitsell(Quote& newquote, std::string destination1)
             }
         }
 
-        bookupdate('b', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now()); //update the new price for broadcasting
+        bookupdate('b', name, thisprice->getprice(), thisprice->getsize(),
+            timepara.simulationTimestamp()); //update the new price for broadcasting
 
         if (thisprice->quotes.empty()) {
             thisprice = bid.erase(thisprice);
@@ -259,7 +261,8 @@ void Stock::domarketbuy(Quote& newquote, std::string destination1)
             }
         }
 
-        bookupdate('a', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now()); //update the new price for broadcasting
+        bookupdate('a', name, thisprice->getprice(), thisprice->getsize(),
+            timepara.simulationTimestamp()); //update the new price for broadcasting
 
         if (thisprice->quotes.empty()) {
             thisprice = ask.erase(thisprice);
@@ -296,7 +299,8 @@ void Stock::domarketsell(Quote& newquote, std::string destination1)
             }
         }
 
-        bookupdate('b', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now()); //update the new price for broadcasting
+        bookupdate('b', name, thisprice->getprice(), thisprice->getsize(),
+            timepara.simulationTimestamp()); //update the new price for broadcasting
 
         if (thisprice->quotes.empty()) {
             thisprice = bid.erase(thisprice);
@@ -327,7 +331,8 @@ void Stock::docancelask(Quote& newquote, std::string destination1)
                 int size1 = thisquote->getsize() - newquote.getsize();
                 execute(size1, newquote, 'C', destination1);
 
-                bookupdate('a', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now()); //update the new price for broadcasting
+                bookupdate('a', name, thisprice->getprice(), thisprice->getsize(),
+                    timepara.simulationTimestamp()); //update the new price for broadcasting
 
                 if (size1 <= 0)
                     thisquote = thisprice->quotes.erase(thisquote);
@@ -370,7 +375,8 @@ void Stock::docancelbid(Quote& newquote, std::string destination1)
                 int size1 = thisquote->getsize() - newquote.getsize();
                 execute(size1, newquote, 'C', destination1);
 
-                bookupdate('b', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now()); //update the new price for broadcasting
+                bookupdate('b', name, thisprice->getprice(), thisprice->getsize(),
+                    timepara.simulationTimestamp()); //update the new price for broadcasting
 
                 if (size1 <= 0)
                     thisquote = thisprice->quotes.erase(thisquote);
@@ -395,7 +401,8 @@ void Stock::docancelbid(Quote& newquote, std::string destination1)
 
 void Stock::bid_insert(Quote newquote)
 {
-    bookupdate('b', name, newquote.getprice(), newquote.getsize(), timepara.utc_now()); //update the new price for broadcasting
+    bookupdate('b', name, newquote.getprice(), newquote.getsize(),
+        timepara.simulationTimestamp()); //update the new price for broadcasting
     thisprice = bid.begin();
     //Quote newquote(it.getstockname(),it.gettrader_id(),it.getorder_id(),it.getprice(),it.getsize(),it.gettime(),it.getordertype());
 
@@ -445,7 +452,8 @@ void Stock::bid_insert(Quote newquote)
 
 void Stock::ask_insert(Quote newquote)
 {
-    bookupdate('a', name, newquote.getprice(), newquote.getsize(), timepara.utc_now()); //update the new price for broadcasting
+    bookupdate('a', name, newquote.getprice(), newquote.getsize(),
+        timepara.simulationTimestamp()); //update the new price for broadcasting
     thisprice = ask.begin();
     //Quote newquote(it.getstockname(),it.gettrader_id(),it.getorder_id(),it.getprice(),it.getsize(),it.gettime(),it.getordertype());
 
@@ -510,12 +518,12 @@ void Stock::bookupdate(char _book, std::string _symbol, double _price, int _size
 
 void Stock::level()
 {
-    long realmilliseconds = timepara.past_milli();
+    long simulationmilliseconds = timepara.past_milli(true);
 
     std::string newlevel;
     std::stringstream ss;
 
-    ss << realmilliseconds << ";"
+    ss << simulationmilliseconds << ";"
        << "Local: "
        << ";";
     //std::cout<<"Local Ask :\t"<<name<<endl;
@@ -548,7 +556,7 @@ void Stock::level()
 
 void Stock::showglobal()
 {
-    long realmilliseconds = timepara.past_milli();
+    long simulationmilliseconds = timepara.past_milli(true);
 
     std::string newlevel;
     std::stringstream ss;
@@ -556,7 +564,7 @@ void Stock::showglobal()
     unsigned int _depth = globalask.size();
     _depth = depth > _depth ? _depth : depth;
 
-    ss << realmilliseconds << ";"
+    ss << simulationmilliseconds << ";"
        << "Global: "
        << ";";
     //std::cout<<"Global Ask :\t"<<name<<endl;
@@ -588,7 +596,8 @@ void Stock::showglobal()
 void Stock::updateglobalask(Quote newglobal)
 {
     //globalprice newglobal(newquote.getstockname(), newquote.getprice(), newquote.getsize(), newquote.getdestination(), newquote.gettime());
-    bookupdate('A', name, newglobal.getprice(), newglobal.getsize(), newglobal.getdestination(), timepara.utc_now()); //update the new price for broadcasting
+    bookupdate('A', name, newglobal.getprice(), newglobal.getsize(),
+        newglobal.getdestination(), timepara.simulationTimestamp()); //update the new price for broadcasting
     thisglobal = globalask.begin();
     while (!globalask.empty()) //&&(thisglobal->price>=newglobal.price))
     {
@@ -628,7 +637,8 @@ void Stock::updateglobalask(Quote newglobal)
 
 void Stock::updateglobalbid(Quote newglobal)
 {
-    bookupdate('B', name, newglobal.getprice(), newglobal.getsize(), newglobal.getdestination(), timepara.utc_now()); //update the new price for broadcasting
+    bookupdate('B', name, newglobal.getprice(), newglobal.getsize(),
+        newglobal.getdestination(), timepara.simulationTimestamp()); //update the new price for broadcasting
     thisglobal = globalbid.begin();
     while (!globalbid.empty()) {
         if (thisglobal == globalbid.end()) {
@@ -667,7 +677,8 @@ void Stock::checkglobalbid(Quote& newquote, std::string type)
                 int size1 = thisglobal->size - newquote.size;
                 executeglobal(size1, newquote, '2', thisglobal->destination);
 
-                bookupdate('B', name, thisglobal->getprice(), thisglobal->getsize(), thisglobal->getdestination(), timepara.utc_now());
+                bookupdate('B', name, thisglobal->getprice(), thisglobal->getsize(),
+                    thisglobal->getdestination(), timepara.simulationTimestamp());
                 //cout<<size1<<endl;
                 if (size1 <= 0) {
                     globalbid.pop_front();
@@ -685,7 +696,8 @@ void Stock::checkglobalbid(Quote& newquote, std::string type)
             {
                 int size1 = thisglobal->size - newquote.size;
                 executeglobal(size1, newquote, '2', thisglobal->destination);
-                bookupdate('B', name, thisglobal->getprice(), thisglobal->getsize(), thisglobal->getdestination(), timepara.utc_now());
+                bookupdate('B', name, thisglobal->getprice(), thisglobal->getsize(),
+                    thisglobal->getdestination(), timepara.simulationTimestamp());
 
                 if (size1 <= 0) {
                     globalbid.pop_front();
@@ -707,7 +719,8 @@ void Stock::checkglobalask(Quote& newquote, std::string type)
             } else if (thisglobal->price <= newquote.price) {
                 int size1 = thisglobal->size - newquote.size;
                 executeglobal(size1, newquote, '2', thisglobal->destination);
-                bookupdate('A', name, thisglobal->getprice(), thisglobal->getsize(), thisglobal->getdestination(), timepara.utc_now());
+                bookupdate('A', name, thisglobal->getprice(), thisglobal->getsize(),
+                    thisglobal->getdestination(), timepara.simulationTimestamp());
                 //cout<<size1<<endl;
                 if (size1 <= 0) {
                     globalask.pop_front();
@@ -724,7 +737,8 @@ void Stock::checkglobalask(Quote& newquote, std::string type)
             } else {
                 int size1 = thisglobal->size - newquote.size;
                 executeglobal(size1, newquote, '2', thisglobal->destination);
-                bookupdate('A', name, thisglobal->getprice(), thisglobal->getsize(), thisglobal->getdestination(), timepara.utc_now());
+                bookupdate('A', name, thisglobal->getprice(), thisglobal->getsize(),
+                    thisglobal->getdestination(), timepara.simulationTimestamp());
                 if (size1 <= 0) {
                     globalask.pop_front();
                 }
@@ -804,7 +818,8 @@ void Stock::doLocalLimitBuy(Quote& newquote, std::string destination1)
             }
 
             //update the new price for broadcasting
-            bookupdate('a', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now());
+            bookupdate('a', name, thisprice->getprice(), thisprice->getsize(),
+                timepara.simulationTimestamp());
 
             // remove empty price
             if (thisprice->quotes.empty()) {
@@ -817,7 +832,8 @@ void Stock::doLocalLimitBuy(Quote& newquote, std::string destination1)
             //trade with global order
             int size1 = thisglobal->size - newquote.size;
             executeglobal(size1, newquote, '2', thisglobal->destination);
-            bookupdate('A', name, thisglobal->getprice(), thisglobal->getsize(), thisglobal->getdestination(), timepara.utc_now());
+            bookupdate('A', name, thisglobal->getprice(), thisglobal->getsize(),
+                thisglobal->getdestination(), timepara.simulationTimestamp());
             if (size1 <= 0) {
                 globalask.pop_front();
             }
@@ -901,7 +917,8 @@ void Stock::doLocalLimitSell(Quote& newquote, std::string destination1)
             }
 
             //update the new price for broadcasting
-            bookupdate('b', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now());
+            bookupdate('b', name, thisprice->getprice(), thisprice->getsize(),
+                timepara.simulationTimestamp());
 
             // remove empty price
             if (thisprice->quotes.empty()) {
@@ -914,7 +931,8 @@ void Stock::doLocalLimitSell(Quote& newquote, std::string destination1)
             //trade with global order
             int size1 = thisglobal->size - newquote.size;
             executeglobal(size1, newquote, '2', thisglobal->destination);
-            bookupdate('B', name, thisglobal->getprice(), thisglobal->getsize(), thisglobal->getdestination(), timepara.utc_now());
+            bookupdate('B', name, thisglobal->getprice(), thisglobal->getsize(),
+                thisglobal->getdestination(), timepara.simulationTimestamp());
             if (size1 <= 0) {
                 globalbid.pop_front();
             }
@@ -988,7 +1006,8 @@ void Stock::doLocalMarketBuy(Quote& newquote, std::string destination1)
             }
 
             //update the new price for broadcasting
-            bookupdate('a', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now());
+            bookupdate('a', name, thisprice->getprice(), thisprice->getsize(),
+                timepara.simulationTimestamp());
 
             // remove empty price
             if (thisprice->quotes.empty()) {
@@ -1001,7 +1020,8 @@ void Stock::doLocalMarketBuy(Quote& newquote, std::string destination1)
             //trade with global order
             int size1 = thisglobal->size - newquote.size;
             executeglobal(size1, newquote, '2', thisglobal->destination);
-            bookupdate('A', name, thisglobal->getprice(), thisglobal->getsize(), thisglobal->getdestination(), timepara.utc_now());
+            bookupdate('A', name, thisglobal->getprice(), thisglobal->getsize(),
+                thisglobal->getdestination(), timepara.simulationTimestamp());
             if (size1 <= 0) {
                 globalask.pop_front();
             }
@@ -1072,7 +1092,8 @@ void Stock::doLocalMarketSell(Quote& newquote, std::string destination1)
             }
 
             //update the new price for broadcasting
-            bookupdate('b', name, thisprice->getprice(), thisprice->getsize(), timepara.utc_now());
+            bookupdate('b', name, thisprice->getprice(), thisprice->getsize(),
+                timepara.simulationTimestamp());
 
             // remove empty price
             if (thisprice->quotes.empty()) {
@@ -1085,7 +1106,8 @@ void Stock::doLocalMarketSell(Quote& newquote, std::string destination1)
             //trade with global order
             int size1 = thisglobal->size - newquote.size;
             executeglobal(size1, newquote, '2', thisglobal->destination);
-            bookupdate('B', name, thisglobal->getprice(), thisglobal->getsize(), thisglobal->getdestination(), timepara.utc_now());
+            bookupdate('B', name, thisglobal->getprice(), thisglobal->getsize(),
+                thisglobal->getdestination(), timepara.simulationTimestamp());
             if (size1 <= 0) {
                 globalbid.pop_front();
             }

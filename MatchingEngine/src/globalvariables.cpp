@@ -17,65 +17,55 @@ timesetting timepara;
     return boost::posix_time::ptime_from_tm(*utc_tm);
 }
 
-void timesetting::initiate(std::string date, std::string stime, double _speed)
+void timesetting::initiate(std::string date, std::string stime, int speed)
 {
     cout << endl;
 
     auto local_date_time = boost::posix_time::ptime(boost::posix_time::time_from_string(date + " " + stime));
-    utc_date_time = getUTCPTime(local_date_time);
-    cout << "utc_date_time: " << boost::posix_time::to_iso_extended_string(utc_date_time) << endl;
+    m_utc_date_time = getUTCPTime(local_date_time);
+    cout << "utc_date_time: " << boost::posix_time::to_iso_extended_string(m_utc_date_time) << endl;
 
-    hhmmss = utc_date_time.time_of_day().total_seconds();
-    cout << "hhmmss: " << hhmmss << endl;
-    speed = _speed;
+    m_hhmmss = m_utc_date_time.time_of_day().total_seconds();
+    cout << "hhmmss: " << m_hhmmss << endl;
+    m_speed = speed;
+    cout << "speed: " << m_speed << endl;
 }
 
 void timesetting::set_start_time()
 {
     std::chrono::high_resolution_clock h_resol_clock; // initiate a high resolution clock
-    start_time_point = h_resol_clock.now();
-}
-
-/**
- * @ brief Get total millisecond from FIX::UtcTimeStamp 
- */
-double timesetting::past_milli(const FIX::UtcTimeStamp& utc)
-{
-    double milli = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - hhmmss) * 1000 + utc.getMillisecond();
-    return milli * speed;
+    m_start_time_point = h_resol_clock.now();
 }
 
 /**
  * @brief Get total millisecond from now
  */
-double timesetting::past_milli() // FIXME: can be replaced by microsecond
+long timesetting::past_milli(bool simulation_time) // FIXME: can be replaced by microsecond
 {
     std::chrono::high_resolution_clock h_resol_clock; // initiate a high resolution clock
     std::chrono::high_resolution_clock::time_point local_now = h_resol_clock.now(); // initiate a high resolution time point
-    long milli = std::chrono::duration_cast<std::chrono::milliseconds>(local_now - start_time_point).count();
-    return (speed * milli);
+    long milli = std::chrono::duration_cast<std::chrono::milliseconds>(local_now - m_start_time_point).count();
+    return simulation_time ? (m_speed * milli) : milli;
 }
 
 /**
- * @brief Get FIX::UtcTimeStamp from millisecond since server starts 
+ * @ brief Get total millisecond from FIX::UtcTimeStamp
  */
-FIX::UtcTimeStamp timesetting::milli2utc(double milli)
+long timesetting::past_milli(const FIX::UtcTimeStamp& utc, bool simulation_time)
 {
-    boost::posix_time::ptime now = utc_date_time + boost::posix_time::milliseconds(milli);
-    auto tm_now = boost::posix_time::to_tm(now);
-    auto utc_now = FIX::UtcTimeStamp(&tm_now, ((int)milli % 1000) * 1000, 6);
-    return utc_now;
+    long milli = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - m_hhmmss) * 1000 + utc.getMillisecond();
+    return simulation_time ? (m_speed * milli) : milli;
 }
 
 /**
  * @brief Get FIX::UtcTimeStamp from now
  */
-FIX::UtcTimeStamp timesetting::utc_now()
+FIX::UtcTimeStamp timesetting::simulationTimestamp()
 {
     std::chrono::high_resolution_clock h_resol_clock;
     std::chrono::high_resolution_clock::time_point timenow = h_resol_clock.now();
-    boost::posix_time::microseconds micro(std::chrono::duration_cast<std::chrono::microseconds>(timenow - start_time_point).count() * speed);
-    auto tm_utc_now = boost::posix_time::to_tm(utc_date_time + micro);
+    boost::posix_time::microseconds micro(std::chrono::duration_cast<std::chrono::microseconds>(timenow - m_start_time_point).count() * m_speed);
+    auto tm_utc_now = boost::posix_time::to_tm(m_utc_date_time + micro);
     auto utc_timestamp = FIX::UtcTimeStamp(&tm_utc_now, (int)micro.fractional_seconds(), 6);
     return utc_timestamp;
 }
