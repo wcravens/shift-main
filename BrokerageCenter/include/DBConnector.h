@@ -11,17 +11,6 @@
 
 #include <postgresql/libpq-fe.h>
 
-struct UserInfo {
-    std::string id;
-    std::string fistName;
-    std::string lastName;
-    std::string accountName;
-    std::string password;
-    double buyingPower;
-    std::string email;
-    char gender;
-};
-
 class DBConnector {
 public:
     ~DBConnector();
@@ -57,13 +46,13 @@ public:
     static std::vector<std::string> s_readRowsOfField(const std::string& query, int fieldIndex = 0);
     static std::vector<std::string> s_readFieldsOfRow(const std::string& query, int numFields, int rowIndex = 0);
 
-    static bool s_isPortfolioDBReadOnly;
-
-private:
-    DBConnector(); /* singleton pattern */
-    std::unordered_map<std::string, std::string> m_loginInfo;
+    static bool s_isPortfolioDBReadOnly; // E.g. useful for research purpose when true
 
 protected:
     PGconn* m_pConn;
     mutable std::mutex m_mtxPSQL;
+
+private:
+    DBConnector(); /* singleton pattern */
+    std::unordered_map<std::string, std::string> m_loginInfo;
 };
