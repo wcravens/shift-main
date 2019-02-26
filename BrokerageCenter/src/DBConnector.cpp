@@ -57,7 +57,7 @@ bool DBConnector::connectDB()
         return false;
     }
 
-    return shift::database::checkCreateTable<shift::database::TradingRecords>(m_pConn)
+    return shift::database::checkCreateTable<shift::database::BCTradingRecords>(m_pConn)
         && shift::database::checkCreateTable<shift::database::PortfolioSummary>(m_pConn)
         && shift::database::checkCreateTable<shift::database::PortfolioItem>(m_pConn);
 }

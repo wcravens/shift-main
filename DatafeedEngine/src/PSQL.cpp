@@ -11,126 +11,6 @@
 
 #define __DBG_DUMP_PQCMD false
 
-#define CSTR_TBLNAME_LIST_OF_TAQ_TABLES "list_of_taq_tables"
-#define CSTR_TBLNAME_TRADING_RECORDS "trading_records"
-
-//-----------------------------------------------------------------------------------------------
-
-/*@brief Tag of table for storing Trade and Quote records */
-struct TradeAndQuoteRecords;
-/*@brief Tag of table for memorizing (by names) downloaded Trade and Quote tables */
-struct NamesOfTradeAndQuoteTables;
-/*@brief Tag of table for storing Trading records */
-struct TradingRecords;
-
-/*@brief Table selector; use predefined tags for various table types as template parameter to indicate a specific kind of table.
-         Each specialization centralizes and provides corresponding PostgreSQL commands and utilities for table manipulation.
-*/
-template <typename _TableType>
-struct PSQLTable;
-
-template <>
-struct PSQLTable<TradeAndQuoteRecords> {
-    static constexpr char sc_colsDefinition[] = "( ric VARCHAR(15)"
-                                                ", reuters_date DATE"
-                                                ", reuters_time TIME"
-                                                ", reuters_time_order INTEGER"
-                                                ", reuters_time_offset SMALLINT"
-
-                                                ", toq CHAR" /*Trade Or Quote*/
-                                                ", exchange_id VARCHAR(10)"
-                                                ", price REAL"
-                                                ", volume INTEGER"
-                                                ", buyer_id VARCHAR(10)"
-
-                                                ", bid_price REAL"
-                                                ", bid_size INTEGER"
-                                                ", seller_id VARCHAR(10)"
-                                                ", ask_price REAL"
-                                                ", ask_size INTEGER"
-
-                                                ", exchange_time TIME"
-                                                ", quote_time TIME"
-
-                                                ", PRIMARY KEY (reuters_time, reuters_time_order) ) ";
-
-    static constexpr char sc_recordFormat[] = " (ric"
-                                              ", reuters_date, reuters_time, reuters_time_order, reuters_time_offset, toq"
-                                              ", exchange_id,  price,        volume,       buyer_id,           bid_price"
-                                              ", bid_size,     seller_id,    ask_price,    ask_size,           exchange_time"
-                                              ", quote_time) "
-                                              "  VALUES ";
-
-    enum VAL_IDX : int {
-        RIC = 0,
-        REUT_DATE,
-        REUT_TIME,
-        RT_ORDER,
-        RT_OFFSET,
-
-        TOQ,
-        EXCH_ID,
-        PRICE,
-        VOLUMN,
-        BUYER_ID,
-
-        BID_PRICE,
-        BID_SIZE,
-        SELLER_ID,
-        ASK_PRICE,
-        ASK_SIZE,
-
-        EXCH_TIME,
-        QUOTE_TIME,
-
-        NUM_FIELDS
-    };
-};
-
-/*static*/ constexpr char PSQLTable<TradeAndQuoteRecords>::sc_colsDefinition[]; // In C++, if outside member definition has been qualified by any complete template type, e.g. "A<X>::", and there is no specialization "template<> class/struct A<X> {...};" ever declared, then there always shall be a "template<>" before each such definition. Otherwise, there shall NOT any "template<>" present.
-/*static*/ constexpr char PSQLTable<TradeAndQuoteRecords>::sc_recordFormat[];
-
-template <>
-struct PSQLTable<NamesOfTradeAndQuoteTables> {
-    static constexpr char sc_colsDefinition[] = "( ric VARCHAR(15)"
-                                                ", reuters_date DATE"
-                                                ", reuters_table_name VARCHAR(23)"
-                                                ", PRIMARY KEY (ric, reuters_date) ) ";
-
-    enum VAL_IDX : int {
-        RIC = 0,
-        REUT_DATE,
-        REUT_TABLE_NAME,
-
-        NUM_FIELDS
-    };
-};
-
-/*static*/ constexpr char PSQLTable<NamesOfTradeAndQuoteTables>::sc_colsDefinition[];
-
-template <>
-struct PSQLTable<TradingRecords> {
-    static constexpr char sc_colsDefinition[] = " (session_id VARCHAR(50)"
-                                                ", real_time TIMESTAMP"
-                                                ", execution_time TIMESTAMP"
-                                                ", symbol VARCHAR(15)"
-                                                ", price REAL"
-                                                ", size INTEGER"
-                                                ", trader_id_1 VARCHAR(40)"
-                                                ", trader_id_2 VARCHAR(40)"
-                                                ", order_id_1 VARCHAR(40)"
-                                                ", order_id_2 VARCHAR(40)"
-                                                ", order_type_1 VARCHAR(2)"
-                                                ", order_type_2 VARCHAR(2)"
-                                                ", time_1 TIMESTAMP"
-                                                ", time_2 TIMESTAMP"
-                                                ", decision CHAR"
-                                                ", destination VARCHAR(10)"
-                                                ")";
-};
-
-/*static*/ constexpr char PSQLTable<TradingRecords>::sc_colsDefinition[];
-
 static inline std::string createTableName(const std::string& symbol, const std::string& yyyymmdd)
 {
     return symbol + '_' + yyyymmdd;
@@ -232,7 +112,6 @@ void PSQL::disconnectDB()
     m_conn = nullptr;
 }
 
-/* check CSTR_TBLNAME_LIST_OF_TAQ_TABLES and CSTR_TBLNAME_TRADING_RECORDS */
 void PSQL::init()
 {
     if (!connectDB()) {
@@ -244,123 +123,41 @@ void PSQL::init()
 
     cout << "Connection to database is good." << endl;
 
-    if (checkTableExist(CSTR_TBLNAME_LIST_OF_TAQ_TABLES) == TABLE_STATUS::NOT_EXIST) {
-        // cout << CSTR_TBLNAME_LIST_OF_TAQ_TABLES " does not exist." << endl;
-        if (createTableOfTableNames()) {
-            cout << COLOR << '\'' << CSTR_TBLNAME_LIST_OF_TAQ_TABLES "' was created." NO_COLOR << endl;
-        } else {
-            cout << COLOR_ERROR "Error when creating " CSTR_TBLNAME_LIST_OF_TAQ_TABLES NO_COLOR << endl;
-            return;
-        }
-    } else {
-        // cout << CSTR_TBLNAME_LIST_OF_TAQ_TABLES " already exist." << endl;
-    }
-
-    if (checkTableExist(CSTR_TBLNAME_TRADING_RECORDS) == TABLE_STATUS::NOT_EXIST) {
-        // cout << CSTR_TBLNAME_TRADING_RECORDS " does not exist." << endl;
-        if (createTableOfTradingRecords()) {
-            cout << COLOR << '\'' << CSTR_TBLNAME_TRADING_RECORDS "' was created." NO_COLOR << endl;
-        } else {
-            cout << COLOR_ERROR "Error when creating " CSTR_TBLNAME_TRADING_RECORDS NO_COLOR << endl;
-            return;
-        }
-    } else {
-        // cout << CSTR_TBLNAME_TRADING_RECORDS " already exist." << endl;
-    }
+    auto res = shift::database::checkCreateTable<shift::database::NamesOfTradeAndQuoteTables>(m_conn)
+        && shift::database::checkCreateTable<shift::database::DETradingRecords>(m_conn);
+    (void)res;
 }
 
-bool PSQL::doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
+bool PSQL::doQuery(std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
 {
-    bool isMatch = true;
-
-    PGresult* pRes = PQexec(m_conn, query.c_str());
-    if (PQresultStatus(pRes) != statToMatch) {
-        cout << msgIfStatMismatch;
-        isMatch = false;
-    }
-
-    if (ppRes)
-        *ppRes = pRes;
-    else
-        PQclear(pRes);
-
-    return isMatch;
-}
-
-auto PSQL::checkTableExist(std::string tableName) -> TABLE_STATUS
-{
-    std::string pqQuery;
-    auto lock{ lockPSQL() };
-
-    if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
-        return TABLE_STATUS::DB_ERROR;
-
-    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM pg_class WHERE relname=\'" + tableName + "\'", COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_tbl_exist)\n" NO_COLOR))
-        return TABLE_STATUS::DB_ERROR;
-
-    PGresult* pRes;
-    if (!doQuery("FETCH ALL IN record", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
-        PQclear(pRes);
-        return TABLE_STATUS::DB_ERROR;
-    }
-
-    int nrows = PQntuples(pRes);
-
-    PQclear(pRes);
-    pRes = PQexec(m_conn, "CLOSE record");
-    PQclear(pRes);
-    pRes = PQexec(m_conn, "END");
-    PQclear(pRes);
-
-    lock.unlock();
-
-    if (0 == nrows) {
-        return TABLE_STATUS::NOT_EXIST;
-    } else if (1 == nrows) {
-        return TABLE_STATUS::EXISTS;
-    }
-    cout << COLOR_ERROR "ERROR: More than one " << tableName << " table exist." NO_COLOR << endl;
-    return TABLE_STATUS::OTHER_ERROR;
-}
-
-/* create table used to save the trading records*/
-bool PSQL::createTableOfTradingRecords()
-{
-    auto lock{ lockPSQL() };
-    return doQuery(std::string("CREATE TABLE " CSTR_TBLNAME_TRADING_RECORDS) + PSQLTable<TradingRecords>::sc_colsDefinition, COLOR_ERROR "ERROR: Create table [ " CSTR_TBLNAME_TRADING_RECORDS " ] failed.\n" NO_COLOR);
-}
-
-/* Create the list table of Trade & Quote table */
-bool PSQL::createTableOfTableNames()
-{
-    auto lock{ lockPSQL() };
-    return doQuery(std::string("CREATE TABLE " CSTR_TBLNAME_LIST_OF_TAQ_TABLES) + PSQLTable<NamesOfTradeAndQuoteTables>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create table [ " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " ] failed.\n" NO_COLOR);
+    return shift::database::doQuery(m_conn, std::move(query), msgIfStatMismatch, statToMatch, ppRes);
 }
 
 /* Insert record to the table after updating one day quote&trade data to the database*/
 bool PSQL::insertTableName(std::string ric, std::string reutersDate, std::string tableName)
 {
     auto lock{ lockPSQL() };
-    return doQuery("INSERT INTO " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " VALUES ('" + ric + "','" + reutersDate + "','" + tableName + "');", COLOR_ERROR "\tERROR: Insert into " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " table failed.\t" NO_COLOR);
+    return doQuery("INSERT INTO " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " VALUES ('" + ric + "','" + reutersDate + "','" + tableName + "');", COLOR_ERROR "\tERROR: Insert into " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " table failed.\t" NO_COLOR);
 }
 
 /* Create Trade & Quote data table */
 bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
 {
     auto lock{ lockPSQL() };
-    return doQuery("CREATE TABLE " + tableName + PSQLTable<TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
+    return doQuery("CREATE TABLE " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
 }
 
 /* Check if the Trade and Quote data for specific ric and date is exist
     save the table name in the std::string tableName                    */
-auto PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName) -> TABLE_STATUS
+shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName)
 {
     auto lock{ lockPSQL() };
+    using TABLE_STATUS = shift::database::TABLE_STATUS;
 
     if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
 
-    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM " CSTR_TBLNAME_LIST_OF_TAQ_TABLES " WHERE reuters_date='" + reutersDate + "' AND ric='" + ric + '\'', COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_taq_tbl_exist)\n" NO_COLOR))
+    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " WHERE reuters_date='" + reutersDate + "' AND ric='" + ric + '\'', COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_taq_tbl_exist)\n" NO_COLOR))
         return TABLE_STATUS::DB_ERROR;
 
     PGresult* pRes;
@@ -375,7 +172,7 @@ auto PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string re
     if (0 == nrows) {
         status = TABLE_STATUS::NOT_EXIST;
     } else if (1 == nrows) {
-        tableName = PQgetvalue(pRes, 0, PSQLTable<NamesOfTradeAndQuoteTables>::VAL_IDX::REUT_TABLE_NAME);
+        tableName = PQgetvalue(pRes, 0, shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::VAL_IDX::REUT_TABLE_NAME);
         status = TABLE_STATUS::EXISTS;
     } else {
         cout << COLOR_ERROR "ERROR: More than one Trade & Quote table for [ " << ric << ' ' << reutersDate << " ] exist." NO_COLOR << endl;
@@ -407,7 +204,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
     std::getline(file, line);
 
     while (true) {
-        std::string pqQuery = "INSERT INTO " + tableName + PSQLTable<TradeAndQuoteRecords>::sc_recordFormat;
+        std::string pqQuery = "INSERT INTO " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_recordFormat;
         size_t nVals = 0;
 
         while (nVals < 1e4 && std::getline(file, line)) { // reached one-time insertion limit?
@@ -582,7 +379,7 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return false;
 
-    const std::string csTQRecFmt = PSQLTable<TradeAndQuoteRecords>::sc_recordFormat;
+    const std::string csTQRecFmt = shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_recordFormat;
     std::string pqQuery;
     pqQuery += "DECLARE data CURSOR FOR SELECT " + csTQRecFmt.substr(csTQRecFmt.find('(') + 1, csTQRecFmt.rfind(')') - csTQRecFmt.find('(') - 1) + " FROM ";
     pqQuery += table_name;
@@ -631,7 +428,7 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     // Next, save each record for each row into struct RawData and send to matching engine
     for (int i = 0, nt = PQntuples(pRes); i < nt; i++) {
         char* pCh{};
-        using VAL_IDX = PSQLTable<TradeAndQuoteRecords>::VAL_IDX;
+        using VAL_IDX = shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::VAL_IDX;
 
         rawData.secs = std::atol(PQgetvalue(pResTime, i, 0));
         sscanf(PQgetvalue(pResTime, i, 1), "%lf", &microsecs);
@@ -667,21 +464,21 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     return true;
 }
 
-/* Check if Trade & Quote is empty or not */
-long PSQL::checkEmpty(std::string tableName)
-{
-    std::string pqQuery = "SELECT count(*) FROM " + tableName;
-    auto lock{ lockPSQL() };
+// /* Check if Trade & Quote is empty or not */
+// long PSQL::checkEmpty(std::string tableName)
+// {
+//     std::string pqQuery = "SELECT count(*) FROM " + tableName;
+//     auto lock{ lockPSQL() };
 
-    PGresult* pRes = PQexec(m_conn, pqQuery.c_str());
-    if ('0' == *PQgetvalue(pRes, 0, 0)) {
-        PQclear(pRes);
-        return 0;
-    }
-    PQclear(pRes);
+//     PGresult* pRes = PQexec(m_conn, pqQuery.c_str());
+//     if ('0' == *PQgetvalue(pRes, 0, 0)) {
+//         PQclear(pRes);
+//         return 0;
+//     }
+//     PQclear(pRes);
 
-    return 1;
-}
+//     return 1;
+// }
 
 /**
  * @brief Convert FIX::UtcTimeStamp to string used for date field in DB
@@ -703,7 +500,7 @@ long PSQL::checkEmpty(std::string tableName)
 bool PSQL::insertTradingRecord(const TradingRecord& trade)
 {
     std::ostringstream temp;
-    temp << "INSERT INTO " << CSTR_TBLNAME_TRADING_RECORDS << " VALUES ('"
+    temp << "INSERT INTO " << shift::database::PSQLTable<shift::database::DETradingRecords>::name << " VALUES ('"
          << s_sessionID << "','"
          << utcToString(trade.realtime, true) << "','"
          << utcToString(trade.exetime, true) << "','"
@@ -722,7 +519,7 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
          << trade.destination << "');";
 
     auto lock{ lockPSQL() };
-    if (!doQuery(temp.str(), COLOR_WARNING "Insert into [ " CSTR_TBLNAME_TRADING_RECORDS " ] failed.\n" NO_COLOR))
+    if (!doQuery(temp.str(), COLOR_WARNING "Insert into [ " + std::string(shift::database::PSQLTable<shift::database::DETradingRecords>::name) + " ] failed.\n" NO_COLOR))
         return false;
 
     return true;
@@ -780,6 +577,3 @@ PSQLManager::PSQLManager(std::unordered_map<std::string, std::string>&& dbInfo)
     s_pInst = &s_inst;
     return s_inst;
 }
-
-#undef CSTR_TBLNAME_LIST_OF_TAQ_TABLES
-#undef CSTR_TBLNAME_TRADING_RECORDS

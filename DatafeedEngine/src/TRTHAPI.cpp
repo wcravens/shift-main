@@ -116,12 +116,12 @@ void TRTHAPI::processRequests()
 
         // Shall detect duplicated requests and skip them:
         auto dbFlag = db.checkTableOfTradeAndQuoteRecordsExist(req.symbol, req.date, tableName);
-        using PMTS = PSQLManager::TABLE_STATUS;
+        using PTS = shift::database::TABLE_STATUS;
 
         bool isPerfect = true;
 
         switch (dbFlag) {
-        case PMTS::NOT_EXIST:
+        case PTS::NOT_EXIST:
             if (s_bTRTHLoginJsonExists)
                 break; // go to download it from TRTH
 
@@ -130,13 +130,13 @@ void TRTHAPI::processRequests()
             addUnavailableRequest(req);
             continue; // while(true)
 
-        case PMTS::DB_ERROR:
-        case PMTS::OTHER_ERROR: {
+        case PTS::DB_ERROR:
+        case PTS::OTHER_ERROR: {
             isPerfect = false;
             cout << COLOR_ERROR "ERROR: Database was abnormal @ TRTHAPI::processRequests when querying symbol [ " << req.symbol << " ]. The symbol will be ignored!" NO_COLOR << endl;
             addUnavailableRequest(req);
         }
-        case PMTS::EXISTS: {
+        case PTS::EXISTS: {
             req.prom->set_value(isPerfect);
             continue; // while(true)
         }

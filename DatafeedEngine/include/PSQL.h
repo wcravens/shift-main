@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <shift/miscutils/database/Common.h>
 
 #include <postgresql/libpq-fe.h>
 
@@ -45,28 +46,14 @@ public:
     /*@brief Check the list of Trade-and-Quote-tables and the Table of Trade-Records */
     void init();
 
-    /*@brief Indicates table status when querying */
-    enum class TABLE_STATUS : int {
-        NOT_EXIST = 0, // table does not exist
-        EXISTS, // table exists
-        DB_ERROR, // SQL database error
-        OTHER_ERROR, // other error
-    };
-
-    /*@brief Check if specific table already exists */
-    TABLE_STATUS checkTableExist(std::string tableName);
-
-    /*@brief Create the table consists of all Trade & Quote Table names */
-    bool createTableOfTableNames();
-
     /*@brief Insert one table name into the table created by createTableOfTableNames() */
     bool insertTableName(std::string ric, std::string reutersDate, std::string tableName);
 
     /*@brief Common PSQL query method */
-    bool doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
+    bool doQuery(std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
     /*@brief Check if the Trade and Quote data for specific ric and date exist, and if so feeds back the table name */
-    TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName);
+    shift::database::TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName);
 
     /*@brief Create new table of Trade & Quote data for one kind of RIC */
     bool createTableOfTradeAndQuoteRecords(std::string tableName);
@@ -77,11 +64,8 @@ public:
     /*@brief Fetch chunk of Trade & Quote records from database and sends them to matching engine via FIXAcceptor */
     bool readSendRawData(std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, std::string targetID);
 
-    /*@brief Check if Trade & Quote is empty */
-    long checkEmpty(std::string tableName);
-
-    /*@brief Create table used to save the trading records*/
-    bool createTableOfTradingRecords();
+    // /*@brief Check if Trade & Quote is empty */
+    // long checkEmpty(std::string tableName);
 
     /*@brief Convert FIX::UtcTimeStamp to string used for date field in DB*/
     static std::string utcToString(const FIX::UtcTimeStamp& utc, bool localTime = false);

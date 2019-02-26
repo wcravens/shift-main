@@ -108,7 +108,7 @@ void RequestsProcessorPerTarget::processRequests()
 
     for (size_t idx{}; idx < symbols.size(); idx++) {
         auto flag = db.checkTableOfTradeAndQuoteRecordsExist(symbols[idx], marketReq.getDate(), tableName);
-        using PTS = PSQL::TABLE_STATUS;
+        using PTS = shift::database::TABLE_STATUS;
 
         bool isPerfect = true;
 
