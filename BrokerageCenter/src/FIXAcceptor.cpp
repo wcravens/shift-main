@@ -600,7 +600,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    if (int(shareSize) < 0) {
+    if (int(shareSize) <= 0) {
         cout << "shareSize is empty" << endl;
         return;
     }

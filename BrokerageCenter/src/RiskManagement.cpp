@@ -430,10 +430,11 @@ bool RiskManagement::verifyAndSendQuote(const Quote& quote)
     switch (quote.getOrderType()) {
     case QOT::MARKET_BUY: {
         price = getMarketSellPrice(quote.getSymbol()); // use market price
-        if (price == 0.0)
-            break;
     } // the rest is the same as in limit orders
     case QOT::LIMIT_BUY: {
+        if (price == 0.0)
+            break;
+
         std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
         std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
 
@@ -448,10 +449,11 @@ bool RiskManagement::verifyAndSendQuote(const Quote& quote)
     } break;
     case QOT::MARKET_SELL: {
         price = getMarketBuyPrice(quote.getSymbol()); // use market price
-        if (price == 0.0)
-            break;
     } // the rest is the same as in limit orders
     case QOT::LIMIT_SELL: {
+        if (price == 0.0)
+            break;
+
         std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
         std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
         std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
