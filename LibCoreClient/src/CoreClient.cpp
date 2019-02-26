@@ -141,19 +141,13 @@ std::vector<shift::Order> shift::CoreClient::getWaitingList()
 
 void shift::CoreClient::cancelAllPendingOrders()
 {
-    {
-        std::lock_guard<std::mutex> lk(m_mutex_waitingList);
-
-        for (auto order : m_waitingList) {
-            if (order.getType() == shift::Order::LIMIT_BUY) {
-                shift::Order cancel_bid = order;
-                cancel_bid.setType(shift::Order::CANCEL_BID);
-                submitOrder(cancel_bid);
-            } else if (order.getType() == shift::Order::LIMIT_SELL) {
-                shift::Order cancel_ask = order;
-                cancel_ask.setType(shift::Order::CANCEL_ASK);
-                submitOrder(cancel_ask);
-            }
+    for (auto order : getWaitingList()) {
+        if (order.getType() == shift::Order::LIMIT_BUY) {
+            order.setType(shift::Order::CANCEL_BID);
+            submitOrder(order);
+        } else if (order.getType() == shift::Order::LIMIT_SELL) {
+            order.setType(shift::Order::CANCEL_ASK);
+            submitOrder(order);
         }
     }
 
@@ -565,19 +559,16 @@ void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, d
         m_portfolioSummary.setOpenBP(totalBP);
     }
 
-    m_portfolioSummary.setTimestamp(); // current time
     m_portfolioSummary.setTotalBP(totalBP);
     m_portfolioSummary.setTotalShares(totalShares);
     m_portfolioSummary.setTotalRealizedPL(totalRealizedPL);
+    m_portfolioSummary.setTimestamp(); // current time
 }
 
-void shift::CoreClient::storeWaitingList(const std::vector<shift::Order>& waitingList)
+void shift::CoreClient::storeWaitingList(std::vector<shift::Order> waitingList)
 {
     std::lock_guard<std::mutex> lock(m_mutex_waitingList);
-    m_waitingList.clear();
-    for (shift::Order order : waitingList) {
-        m_waitingList.push_back(order);
-    }
+    m_waitingList = std::move(waitingList);
 }
 
 void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)

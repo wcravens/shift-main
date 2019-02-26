@@ -14,7 +14,7 @@
 namespace shift {
 
 /**
- * @brief A class contains all information for a quote.
+ * @brief A class contains all information for an order.
  */
 class CORECLIENT_EXPORTS Order {
 

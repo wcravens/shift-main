@@ -733,7 +733,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 
     try {
         // store the data in target client
-        getClient(username)->storeWaitingList(waitingList);
+        getClient(username)->storeWaitingList(std::move(waitingList));
         // notify target client
         getClient(username)->receiveWaitingList();
     } catch (...) {
