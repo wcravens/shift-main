@@ -112,6 +112,8 @@ protected:
     // Price methods
     R_FIXSUB double getOpenPrice(const std::string& symbol);
     R_FIXSUB double getLastPrice(const std::string& symbol);
+    R_FIXSUB int getLastSize(const std::string& symbol);
+    R_FIXSUB std::chrono::system_clock::time_point getLastTradeTime();
     // Order book methods
     R_FIXSUB shift::BestPrice getBestPrice(const std::string& symbol);
     R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel);
@@ -160,7 +162,8 @@ private:
     R_TODO std::atomic<bool> m_openPricesReady;
     R_TODO std::mutex m_mutex_openPrices;
     R_FIXSUB std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value
-    R_FIXSUB std::unordered_map<std::string, double> m_lastPrices; //!< Map with stock symbol as key and their current price as value.
+    R_FIXSUB std::unordered_map<std::string, std::pair<double, int>> m_lastTrades; //!< Map with stock symbol as key and a pair with their last price and size as value.
+    std::chrono::system_clock::time_point m_lastTradeTime;
 
     R_FIXSUB std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
 

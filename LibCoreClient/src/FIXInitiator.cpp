@@ -47,6 +47,7 @@ shift::FIXInitiator::FIXInitiator()
     , m_verbose{ false }
     , m_logonSuccess{ false }
     , m_openPricesReady{ false }
+    , m_lastTradeTime{ std::chrono::system_clock::time_point() }
 {
 }
 
@@ -168,6 +169,7 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
     m_verbose = false;
     m_logonSuccess = false;
     m_openPricesReady = false;
+    m_lastTradeTime = std::chrono::system_clock::time_point();
 
     // Stock list is only updated when first connecting,
     // so this allows its update after a disconnection
@@ -307,13 +309,14 @@ inline void shift::FIXInitiator::createSymbolMap()
 }
 
 /**
- * @brief Method to initialize prices for every symbol
- * from the stock list
+ * @brief Method to initialize prices
+ * for every symbol in the stock list
  */
 inline void shift::FIXInitiator::initializePrices()
 {
     for (const auto& symbol : m_stockList) {
-        m_lastPrices[symbol] = 0.0;
+        m_lastTrades[symbol].first = 0.0;
+        m_lastTrades[symbol].second = 0;
     }
 
     std::lock_guard<std::mutex> opGuard(m_mutex_openPrices);
@@ -321,8 +324,8 @@ inline void shift::FIXInitiator::initializePrices()
 }
 
 /**
- * @brief Method to initialize order books for every symbol
- * from the stock list
+ * @brief Method to initialize order books
+ * for every symbol in the stock list
  */
 inline void shift::FIXInitiator::initializeOrderBooks()
 {
@@ -478,7 +481,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
         double price100 = price * 100;
         int priceInt = std::round(price100);
         if (std::abs(price100 - priceInt) < 0.000001) {
-            m_lastPrices[symbol] = price;
+            m_lastTrades[symbol].first = price;
+            m_lastTrades[symbol].second = (int)size;
+            m_lastTradeTime = std::chrono::system_clock::from_time_t(execTime.getValue().getTimeT());
             try {
                 getMainClient()->receiveLastPrice(symbol);
             } catch (...) {
@@ -608,7 +613,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
     }
 }
 
-static std::chrono::system_clock::time_point convertToTimePoint(FIX::UtcDateOnly date, FIX::UtcTimeOnly time)
+static inline std::chrono::system_clock::time_point s_convertToTimePoint(FIX::UtcDateOnly date, FIX::UtcTimeOnly time)
 {
     return std::chrono::system_clock::from_time_t(date.getTimeT()
         + time.getHour() * 3600
@@ -671,7 +676,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         orderBook.push_back({ (double)price,
             (int)size,
             destination,
-            convertToTimePoint(date.getValue(), daytime.getValue()) });
+            ::s_convertToTimePoint(date.getValue(), daytime.getValue()) });
     }
 
     try {
@@ -780,7 +785,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     entryGroup.getField(daytime);
 
     symbol = m_originalName_symbol[symbol];
-    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, convertToTimePoint(date.getValue(), daytime.getValue()) });
+    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, ::s_convertToTimePoint(date.getValue(), daytime.getValue()) });
 }
 
 /**
@@ -998,14 +1003,35 @@ double shift::FIXInitiator::getOpenPrice(const std::string& symbol)
 }
 
 /**
- * @brief Method to get the last price of a certain symbol. Return the value from the last price book map.
+ * @brief Method to get the last traded price of a certain symbol. Return the value from the last trades map.
  *
- * @param symbol The name of the symbol to be searched as a string.
+ * @param symbol The symbol to be searched as a string.
  * @return The result last price as a double.
  */
 double shift::FIXInitiator::getLastPrice(const std::string& symbol)
 {
-    return m_lastPrices[symbol];
+    return m_lastTrades[symbol].first;
+}
+
+/**
+ * @brief Method to get the last traded size of a certain symbol. Return the value from the last trades map.
+ *
+ * @param symbol The symbol to be searched as a string.
+ * @return The result last size as an int.
+ */
+int shift::FIXInitiator::getLastSize(const std::string& symbol)
+{
+    return m_lastTrades[symbol].second;
+}
+
+/**
+ * @brief Method to get the time of the last trade.
+ *
+ * @return The result time of the last trade.
+ */
+std::chrono::system_clock::time_point shift::FIXInitiator::getLastTradeTime()
+{
+    return m_lastTradeTime;
 }
 
 /**

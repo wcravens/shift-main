@@ -58,8 +58,10 @@ public:
 
     // Price methods
     double getOpenPrice(const std::string& symbol);
-    double getLastPrice(const std::string& symbol);
     double getClosePrice(const std::string& symbol, bool buy, int size);
+    double getLastPrice(const std::string& symbol);
+    int getLastSize(const std::string& symbol);
+    std::chrono::system_clock::time_point getLastTradeTime();
 
     // Order book methods
     shift::BestPrice getBestPrice(const std::string& symbol);

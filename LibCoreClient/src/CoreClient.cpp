@@ -166,15 +166,6 @@ double shift::CoreClient::getOpenPrice(const std::string& symbol)
     return m_fixInitiator->getOpenPrice(symbol);
 }
 
-double shift::CoreClient::getLastPrice(const std::string& symbol)
-{
-    if (!isConnected()) {
-        return 0.0;
-    }
-
-    return m_fixInitiator->getLastPrice(symbol);
-}
-
 double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int size)
 {
     if (!isConnected()) {
@@ -251,6 +242,33 @@ double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int
     }
 
     return closePrice;
+}
+
+double shift::CoreClient::getLastPrice(const std::string& symbol)
+{
+    if (!isConnected()) {
+        return 0.0;
+    }
+
+    return m_fixInitiator->getLastPrice(symbol);
+}
+
+int shift::CoreClient::getLastSize(const std::string& symbol)
+{
+    if (!isConnected()) {
+        return 0;
+    }
+
+    return m_fixInitiator->getLastSize(symbol);
+}
+
+std::chrono::system_clock::time_point shift::CoreClient::getLastTradeTime()
+{
+    if (!isConnected()) {
+        return std::chrono::system_clock::time_point();
+    }
+
+    return m_fixInitiator->getLastTradeTime();
 }
 
 shift::BestPrice shift::CoreClient::getBestPrice(const std::string& symbol)
