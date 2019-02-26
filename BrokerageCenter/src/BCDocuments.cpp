@@ -1,6 +1,8 @@
 #include "BCDocuments.h"
 #include "DBConnector.h"
 
+#include <shift/miscutils/database/Common.h>
+
 #include <algorithm>
 #include <cassert>
 
@@ -80,7 +82,7 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
 
     auto lock{ DBConnector::getInstance()->lockPSQL() };
 
-    const auto summary = DBConnector::s_readFieldsOfRow(
+    const auto summary = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
         "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
         "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
         "WHERE traders.username = '" // here presume we always has got current user name in traders table
@@ -96,7 +98,7 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& userName) -> 
 
     // populate portfolio items
     for (int row = 0; true; row++) {
-        const auto& item = DBConnector::s_readFieldsOfRow(
+        const auto& item = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
             "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
             "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
             "WHERE traders.username = '"

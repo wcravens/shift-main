@@ -9,6 +9,7 @@
 
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/crypto/Decryptor.h>
+#include <shift/miscutils/database/Common.h>
 #include <shift/miscutils/terminal/Common.h>
 
 #define SHOW_INPUT_MSG false
@@ -45,7 +46,7 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
 {
     disconnectClientComputers();
 
-    const auto targetIDs = DBConnector::s_readRowsOfField("SELECT username FROM traders WHERE super = TRUE;");
+    const auto targetIDs = shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT username FROM traders WHERE super = TRUE;");
     if (targetIDs.empty()) {
         cout << COLOR_WARNING "WARNING: No target is present in the database. The system terminates." NO_COLOR << endl;
         std::terminate();
@@ -500,7 +501,7 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
     message.getGroup(2, msgTypeGroup);
     adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
-    const auto pswCol = (DBConnector::getInstance()->lockPSQL(), DBConnector::s_readRowsOfField("SELECT password FROM traders WHERE username = '" + adminName + "';"));
+    const auto pswCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT password FROM traders WHERE username = '" + adminName + "';"));
     if (pswCol.size() && pswCol.front() == adminPsw) {
         BCDocuments::getInstance()->registerUserInDoc(adminName, targetID);
         cout << COLOR_PROMPT "Authentication successful for " << targetID << ':' << adminName << NO_COLOR << endl;

@@ -19,6 +19,7 @@
 #include <boost/program_options.hpp>
 
 #include <shift/miscutils/crypto/Encryptor.h>
+#include <shift/miscutils/database/Common.h>
 #include <shift/miscutils/terminal/Common.h>
 #include <shift/miscutils/terminal/Options.h>
 
@@ -227,7 +228,7 @@ int main(int ac, char* av[])
                 const auto& lname = params.user.info[1];
                 const auto& email = params.user.info[2];
 
-                const auto res = DBConnector::s_readRowsOfField("SELECT id FROM traders WHERE username = '" + params.user.userName + "';");
+                const auto res = shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + params.user.userName + "';");
                 if (res.size()) {
                     cout << COLOR_WARNING "The user " << params.user.userName << " already exists!" NO_COLOR << endl;
                     return 1;
