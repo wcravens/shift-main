@@ -24,6 +24,8 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/clock/Timestamp.h
     ${PROJECT_SOURCE_DIR}/include/concurrency/Consumer.h
     ${PROJECT_SOURCE_DIR}/include/crossguid/Guid.h
+    ${PROJECT_SOURCE_DIR}/include/database/Tables.h
+    ${PROJECT_SOURCE_DIR}/include/database/Common.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Decryptor.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Encryptor.h
     ${PROJECT_SOURCE_DIR}/include/statistics/BasicStatistics.h
@@ -43,6 +45,8 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/crossguid/Guid.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Cryptor.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Cryptor.h
+    ${PROJECT_SOURCE_DIR}/src/database/Tables.cpp
+    ${PROJECT_SOURCE_DIR}/src/database/Common.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Decryptor.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Encryptor.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/SHA1.h
@@ -135,6 +139,11 @@ else()
     target_link_libraries(shift_${LIB_NAME} ${LIBUUID_LIBRARY})
     target_compile_definitions(shift_${LIB_NAME} PRIVATE __linux__)
 endif()
+
+find_package(PostgreSQL REQUIRED)
+target_link_libraries(shift_${LIB_NAME}
+                      ${PostgreSQL_LIBRARIES}
+                      )
 
 if(ADDONS)
     add_subdirectory(${PROJECT_SOURCE_DIR}/filecryptor)
