@@ -2,7 +2,7 @@
 
 #include "Tables.h"
 
-#include "terminal/Common.h"
+#include "../terminal/Common.h"
 
 #include <postgresql/libpq-fe.h>
 
