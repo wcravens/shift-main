@@ -26,7 +26,7 @@ public:
 
     bool createUsers(const std::string& symbol);
 
-    bool doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
+    bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
     static bool s_isPortfolioDBReadOnly; // E.g. useful for research purpose when true
 

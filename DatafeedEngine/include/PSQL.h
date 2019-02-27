@@ -19,8 +19,8 @@ struct TradingRecord;
  */
 class PSQL {
 private:
-    std::mutex m_mutex;
-    PGconn* m_conn;
+    std::mutex m_mtxPSQL; // To mutual-exclusively access db
+    PGconn* m_pConn;
     std::unordered_map<std::string, std::string> m_loginInfo;
     static const std::string s_sessionID;
 
@@ -49,8 +49,8 @@ public:
     /*@brief Insert one table name into the table created by createTableOfTableNames() */
     bool insertTableName(std::string ric, std::string reutersDate, std::string tableName);
 
-    /*@brief Common PSQL query method */
-    bool doQuery(std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
+    /*@brief Common PSQL query method wrapper */
+    bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
     /*@brief Check if the Trade and Quote data for specific ric and date exist, and if so feeds back the table name */
     shift::database::TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName);

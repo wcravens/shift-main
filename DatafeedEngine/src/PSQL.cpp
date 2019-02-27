@@ -72,7 +72,7 @@ PSQL::PSQL(std::unordered_map<std::string, std::string>&& info)
  */
 std::unique_lock<std::mutex> PSQL::lockPSQL()
 {
-    std::unique_lock<std::mutex> ul(m_mutex); // std::unique_lock is only move-able!
+    std::unique_lock<std::mutex> ul(m_mtxPSQL); // std::unique_lock is only move-able!
     return ul; // here it is MOVED(by C++11 mechanism) out in such situation, instead of being copied, hence ul's locked status will be preserved in caller side
 }
 
@@ -83,12 +83,12 @@ bool PSQL::connectDB()
     const char* c = info.c_str();
     auto lock{ lockPSQL() };
 
-    m_conn = PQconnectdb(c);
-    if (PQstatus(m_conn) != CONNECTION_OK) {
+    m_pConn = PQconnectdb(c);
+    if (PQstatus(m_pConn) != CONNECTION_OK) {
         cout << COLOR_ERROR "ERROR: Connection to database failed.\n" NO_COLOR;
 
-        PQfinish(m_conn); // https://www.postgresql.org/docs/8.1/libpq.html \> PQfinish
-        m_conn = nullptr;
+        PQfinish(m_pConn); // https://www.postgresql.org/docs/8.1/libpq.html \> PQfinish
+        m_pConn = nullptr;
 
         return false;
     }
@@ -98,18 +98,18 @@ bool PSQL::connectDB()
 
 bool PSQL::isConnected() const
 {
-    return m_conn && PQstatus(m_conn) == CONNECTION_OK;
+    return m_pConn && PQstatus(m_pConn) == CONNECTION_OK;
 }
 
 /* Close connection to database */
 void PSQL::disconnectDB()
 {
     auto lock{ lockPSQL() };
-    if (nullptr == m_conn)
+    if (nullptr == m_pConn)
         return;
 
-    PQfinish(m_conn);
-    m_conn = nullptr;
+    PQfinish(m_pConn);
+    m_pConn = nullptr;
 }
 
 void PSQL::init()
@@ -123,14 +123,14 @@ void PSQL::init()
 
     cout << "Connection to database is good." << endl;
 
-    auto res = shift::database::checkCreateTable<shift::database::NamesOfTradeAndQuoteTables>(m_conn)
-        && shift::database::checkCreateTable<shift::database::DETradingRecords>(m_conn);
+    auto res = shift::database::checkCreateTable<shift::database::NamesOfTradeAndQuoteTables>(m_pConn)
+        && shift::database::checkCreateTable<shift::database::DETradingRecords>(m_pConn);
     (void)res;
 }
 
-bool PSQL::doQuery(std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
+bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
 {
-    return shift::database::doQuery(m_conn, std::move(query), msgIfStatMismatch, statToMatch, ppRes);
+    return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
 }
 
 /* Insert record to the table after updating one day quote&trade data to the database*/
@@ -147,8 +147,9 @@ bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
     return doQuery("CREATE TABLE " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
 }
 
-/* Check if the Trade and Quote data for specific ric and date is exist
-    save the table name in the std::string tableName                    */
+/* Check if the Trade and Quote data for a specific Ric-ReutersDate combination is exist.
+   If exist, saves the found table name to the parameter 'tableName'.
+*/
 shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName)
 {
     auto lock{ lockPSQL() };
@@ -180,9 +181,9 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     }
 
     PQclear(pRes);
-    pRes = PQexec(m_conn, "CLOSE record");
+    pRes = PQexec(m_pConn, "CLOSE record");
     PQclear(pRes);
-    pRes = PQexec(m_conn, "END");
+    pRes = PQexec(m_pConn, "END");
     PQclear(pRes);
 
     return status;
@@ -454,9 +455,9 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
     PQclear(pResTime);
     PQclear(pRes);
 
-    pRes = PQexec(m_conn, "CLOSE data");
+    pRes = PQexec(m_pConn, "CLOSE data");
     PQclear(pRes);
-    pRes = PQexec(m_conn, "END");
+    pRes = PQexec(m_pConn, "END");
     PQclear(pRes);
 
     cout << std::setw(10 + 9) << table_name << std::setw(12) << std::right << " - Finished ";
@@ -470,7 +471,7 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
 //     std::string pqQuery = "SELECT count(*) FROM " + tableName;
 //     auto lock{ lockPSQL() };
 
-//     PGresult* pRes = PQexec(m_conn, pqQuery.c_str());
+//     PGresult* pRes = PQexec(m_pConn, pqQuery.c_str());
 //     if ('0' == *PQgetvalue(pRes, 0, 0)) {
 //         PQclear(pRes);
 //         return 0;

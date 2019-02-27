@@ -106,7 +106,7 @@ bool DBConnector::createUsers(const std::string& symbol)
     return res;
 }
 
-bool DBConnector::doQuery(const std::string query, const std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
+bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
 {
-    return shift::database::doQuery(m_pConn, std::move(query), msgIfStatMismatch, statToMatch, ppRes);
+    return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
 }
