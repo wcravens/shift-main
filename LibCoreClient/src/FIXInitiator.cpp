@@ -194,8 +194,6 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
         std::lock_guard<std::mutex> scslGuard(m_mutex_subscribedCandleStickSet);
         m_subscribedCandleStickSet.clear();
     }
-
-    return;
 }
 
 /**
@@ -1186,7 +1184,7 @@ std::string shift::FIXInitiator::getCompanyName(const std::string& symbol)
     return m_companyNames[symbol];
 }
 
-bool shift::FIXInitiator::subOrderBook(const std::string& symbol)
+void shift::FIXInitiator::subOrderBook(const std::string& symbol)
 {
     std::lock_guard<std::mutex> soblGuard(m_mutex_subscribedOrderBookSet);
 
@@ -1195,14 +1193,12 @@ bool shift::FIXInitiator::subOrderBook(const std::string& symbol)
     // it would cause resubscription attempts during reconnections to fail.
     m_subscribedOrderBookSet.insert(symbol);
     sendOrderBookRequest(m_symbol_originalName[symbol], true);
-
-    return true;
 }
 
 /**
  * @brief unsubscriber the orderbook
  */
-bool shift::FIXInitiator::unsubOrderBook(const std::string& symbol)
+void shift::FIXInitiator::unsubOrderBook(const std::string& symbol)
 {
     std::lock_guard<std::mutex> soblGuard(m_mutex_subscribedOrderBookSet);
 
@@ -1210,34 +1206,20 @@ bool shift::FIXInitiator::unsubOrderBook(const std::string& symbol)
         m_subscribedOrderBookSet.erase(symbol);
         sendOrderBookRequest(m_symbol_originalName[symbol], false);
     }
-
-    return true;
 }
 
-bool shift::FIXInitiator::subAllOrderBook()
+void shift::FIXInitiator::subAllOrderBook()
 {
-    bool success = true;
-
     for (const auto& symbol : getStockList()) {
-        if (!subOrderBook(symbol)) {
-            success = false;
-        }
+        subOrderBook(symbol);
     }
-
-    return success;
 }
 
-bool shift::FIXInitiator::unsubAllOrderBook()
+void shift::FIXInitiator::unsubAllOrderBook()
 {
-    bool success = true;
-
     for (const auto& symbol : getStockList()) {
-        if (!unsubOrderBook(symbol)) {
-            success = false;
-        }
+        unsubOrderBook(symbol);
     }
-
-    return success;
 }
 
 /**
@@ -1259,12 +1241,8 @@ std::vector<std::string> shift::FIXInitiator::getSubscribedOrderBookList()
     return subscriptionList;
 }
 
-bool shift::FIXInitiator::subCandleData(const std::string& symbol)
+void shift::FIXInitiator::subCandleData(const std::string& symbol)
 {
-    if (getLastPrice(symbol) == 0.0) {
-        return false;
-    }
-
     std::lock_guard<std::mutex> scslGuard(m_mutex_subscribedCandleStickSet);
 
     // It's ok to send repeated subscription requests.
@@ -1272,11 +1250,9 @@ bool shift::FIXInitiator::subCandleData(const std::string& symbol)
     // it would cause resubscription attempts during reconnections to fail.
     m_subscribedCandleStickSet.insert(symbol);
     sendCandleDataRequest(m_symbol_originalName[symbol], true);
-
-    return true;
 }
 
-bool shift::FIXInitiator::unsubCandleData(const std::string& symbol)
+void shift::FIXInitiator::unsubCandleData(const std::string& symbol)
 {
     std::lock_guard<std::mutex> scslGuard(m_mutex_subscribedCandleStickSet);
 
@@ -1284,34 +1260,20 @@ bool shift::FIXInitiator::unsubCandleData(const std::string& symbol)
         m_subscribedCandleStickSet.erase(symbol);
         sendCandleDataRequest(m_symbol_originalName[symbol], false);
     }
-
-    return true;
 }
 
-bool shift::FIXInitiator::subAllCandleData()
+void shift::FIXInitiator::subAllCandleData()
 {
-    bool success = true;
-
     for (const auto& symbol : getStockList()) {
-        if (!subCandleData(symbol)) {
-            success = false;
-        }
+        subCandleData(symbol);
     }
-
-    return success;
 }
 
-bool shift::FIXInitiator::unsubAllCandleData()
+void shift::FIXInitiator::unsubAllCandleData()
 {
-    bool success = true;
-
     for (const auto& symbol : getStockList()) {
-        if (!unsubCandleData(symbol)) {
-            success = false;
-        }
+        unsubCandleData(symbol);
     }
-
-    return success;
 }
 
 /**

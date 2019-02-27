@@ -463,7 +463,9 @@ bool shift::CoreClient::subOrderBook(const std::string& symbol)
         return false;
     }
 
-    return m_fixInitiator->subOrderBook(symbol);
+    m_fixInitiator->subOrderBook(symbol);
+
+    return true;
 }
 
 bool shift::CoreClient::unsubOrderBook(const std::string& symbol)
@@ -472,7 +474,9 @@ bool shift::CoreClient::unsubOrderBook(const std::string& symbol)
         return false;
     }
 
-    return m_fixInitiator->unsubOrderBook(symbol);
+    m_fixInitiator->unsubOrderBook(symbol);
+
+    return true;
 }
 
 bool shift::CoreClient::subAllOrderBook()
@@ -481,7 +485,9 @@ bool shift::CoreClient::subAllOrderBook()
         return false;
     }
 
-    return m_fixInitiator->subAllOrderBook();
+    m_fixInitiator->subAllOrderBook();
+
+    return true;
 }
 
 bool shift::CoreClient::unsubAllOrderBook()
@@ -490,7 +496,9 @@ bool shift::CoreClient::unsubAllOrderBook()
         return false;
     }
 
-    return m_fixInitiator->unsubAllOrderBook();
+    m_fixInitiator->unsubAllOrderBook();
+
+    return true;
 }
 
 std::vector<std::string> shift::CoreClient::getSubscribedOrderBookList()
@@ -508,7 +516,9 @@ bool shift::CoreClient::subCandleData(const std::string& symbol)
         return false;
     }
 
-    return m_fixInitiator->subCandleData(symbol);
+    m_fixInitiator->subCandleData(symbol);
+
+    return true;
 }
 
 bool shift::CoreClient::unsubCandleData(const std::string& symbol)
@@ -517,7 +527,9 @@ bool shift::CoreClient::unsubCandleData(const std::string& symbol)
         return false;
     }
 
-    return m_fixInitiator->unsubCandleData(symbol);
+    m_fixInitiator->unsubCandleData(symbol);
+
+    return true;
 }
 
 bool shift::CoreClient::subAllCandleData()
@@ -526,7 +538,9 @@ bool shift::CoreClient::subAllCandleData()
         return false;
     }
 
-    return m_fixInitiator->subAllCandleData();
+    m_fixInitiator->subAllCandleData();
+
+    return true;
 }
 
 bool shift::CoreClient::unsubAllCandleData()
@@ -535,7 +549,9 @@ bool shift::CoreClient::unsubAllCandleData()
         return false;
     }
 
-    return m_fixInitiator->unsubAllCandleData();
+    m_fixInitiator->unsubAllCandleData();
+
+    return true;
 }
 
 std::vector<std::string> shift::CoreClient::getSubscribedCandlestickList()

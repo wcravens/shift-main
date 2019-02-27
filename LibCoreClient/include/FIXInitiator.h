@@ -127,15 +127,15 @@ protected:
     R_FIXSUB std::string getCompanyName(const std::string& symbol);
 
     // Subscription methods
-    R_FIXSUB bool subOrderBook(const std::string& symbol);
-    R_FIXSUB bool unsubOrderBook(const std::string& symbol);
-    R_FIXSUB bool subAllOrderBook();
-    R_FIXSUB bool unsubAllOrderBook();
+    R_FIXSUB void subOrderBook(const std::string& symbol);
+    R_FIXSUB void unsubOrderBook(const std::string& symbol);
+    R_FIXSUB void subAllOrderBook();
+    R_FIXSUB void unsubAllOrderBook();
     R_FIXSUB std::vector<std::string> getSubscribedOrderBookList();
-    R_FIXSUB bool subCandleData(const std::string& symbol);
-    R_FIXSUB bool unsubCandleData(const std::string& symbol);
-    R_FIXSUB bool subAllCandleData();
-    R_FIXSUB bool unsubAllCandleData();
+    R_FIXSUB void subCandleData(const std::string& symbol);
+    R_FIXSUB void unsubCandleData(const std::string& symbol);
+    R_FIXSUB void subAllCandleData();
+    R_FIXSUB void unsubAllCandleData();
     R_FIXSUB std::vector<std::string> getSubscribedCandlestickList();
 
 private:
