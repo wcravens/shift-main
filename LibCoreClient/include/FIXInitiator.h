@@ -163,7 +163,7 @@ private:
     R_TODO std::mutex m_mutex_openPrices;
     R_FIXSUB std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value
     R_FIXSUB std::unordered_map<std::string, std::pair<double, int>> m_lastTrades; //!< Map with stock symbol as key and a pair with their last price and size as value.
-    std::chrono::system_clock::time_point m_lastTradeTime;
+    R_FIXSUB std::chrono::system_clock::time_point m_lastTradeTime;
 
     R_FIXSUB std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
 
