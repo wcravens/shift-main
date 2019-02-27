@@ -1190,10 +1190,11 @@ bool shift::FIXInitiator::subOrderBook(const std::string& symbol)
 {
     std::lock_guard<std::mutex> soblGuard(m_mutex_subscribedOrderBookSet);
 
-    if (m_subscribedOrderBookSet.find(symbol) == m_subscribedOrderBookSet.end()) {
-        m_subscribedOrderBookSet.insert(symbol);
-        sendOrderBookRequest(m_symbol_originalName[symbol], true);
-    }
+    // It's ok to send repeated subscription requests.
+    // A test to see if it is already included in the set here is bad because
+    // it would cause resubscription attempts during reconnections to fail.
+    m_subscribedOrderBookSet.insert(symbol);
+    sendOrderBookRequest(m_symbol_originalName[symbol], true);
 
     return true;
 }
@@ -1266,10 +1267,11 @@ bool shift::FIXInitiator::subCandleData(const std::string& symbol)
 
     std::lock_guard<std::mutex> scslGuard(m_mutex_subscribedCandleStickSet);
 
-    if (m_subscribedCandleStickSet.find(symbol) == m_subscribedCandleStickSet.end()) {
-        m_subscribedCandleStickSet.insert(symbol);
-        sendCandleDataRequest(m_symbol_originalName[symbol], true);
-    }
+    // It's ok to send repeated subscription requests.
+    // A test to see if it is already included in the set here is bad because
+    // it would cause resubscription attempts during reconnections to fail.
+    m_subscribedCandleStickSet.insert(symbol);
+    sendCandleDataRequest(m_symbol_originalName[symbol], true);
 
     return true;
 }
