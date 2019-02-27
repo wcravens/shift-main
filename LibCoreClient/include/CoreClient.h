@@ -12,6 +12,7 @@
 #include "PortfolioItem.h"
 #include "PortfolioSummary.h"
 
+#include <atomic>
 #include <list>
 #include <map>
 #include <mutex>
@@ -131,7 +132,10 @@ private:
     std::map<std::string, PortfolioItem> m_symbol_portfolioItem;
     std::vector<std::string> m_submittedOrdersIDs;
     std::unordered_map<std::string, shift::Order> m_submittedOrders;
+    std::atomic<int> m_submittedOrdersSize;
+
     std::vector<shift::Order> m_waitingList;
+    std::atomic<int> m_waitingListSize;
     std::vector<std::thread> m_samplePriceThreads;
     std::unordered_map<std::string, bool> m_samplePricesFlags;
     std::unordered_map<std::string, std::list<double>> m_sampleLastPrices;

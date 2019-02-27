@@ -18,6 +18,8 @@ using namespace std::chrono_literals;
 shift::CoreClient::CoreClient()
     : m_fixInitiator{ nullptr }
     , m_verbose{ false }
+    , m_submittedOrdersSize{ 0 }
+    , m_waitingListSize{ 0 }
 {
 }
 
@@ -25,6 +27,8 @@ shift::CoreClient::CoreClient(const std::string& username)
     : m_fixInitiator{ nullptr }
     , m_username{ username }
     , m_verbose{ false }
+    , m_submittedOrdersSize{ 0 }
+    , m_waitingListSize{ 0 }
 {
 }
 
@@ -88,6 +92,7 @@ void shift::CoreClient::submitOrder(const shift::Order& order)
         std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
         m_submittedOrdersIDs.push_back(order.getID());
         m_submittedOrders[order.getID()] = order;
+        m_submittedOrdersSize++;
     }
 
     return m_fixInitiator->submitOrder(order, m_username);
@@ -113,8 +118,7 @@ shift::PortfolioItem shift::CoreClient::getPortfolioItem(const std::string& symb
 
 int shift::CoreClient::getSubmittedOrdersSize()
 {
-    std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
-    return static_cast<int>(m_submittedOrdersIDs.size());
+    return m_submittedOrdersSize;
 }
 
 std::vector<shift::Order> shift::CoreClient::getSubmittedOrders()
@@ -129,8 +133,7 @@ std::vector<shift::Order> shift::CoreClient::getSubmittedOrders()
 
 int shift::CoreClient::getWaitingListSize()
 {
-    std::lock_guard<std::mutex> lk(m_mutex_waitingList);
-    return static_cast<int>(m_waitingList.size());
+    return m_waitingListSize;
 }
 
 std::vector<shift::Order> shift::CoreClient::getWaitingList()
@@ -587,6 +590,7 @@ void shift::CoreClient::storeWaitingList(std::vector<shift::Order> waitingList)
 {
     std::lock_guard<std::mutex> lock(m_mutex_waitingList);
     m_waitingList = std::move(waitingList);
+    m_waitingListSize = m_waitingList.size();
 }
 
 void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)
