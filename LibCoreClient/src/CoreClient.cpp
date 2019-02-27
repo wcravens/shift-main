@@ -388,7 +388,7 @@ bool shift::CoreClient::cancelAllSamplePricesRequests()
     bool success = false;
 
     {
-        std::lock_guard<std::mutex> lsamplePricesFlagsGuard(m_mutex_samplePricesFlags);
+        std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
 
         for (auto& kv : m_samplePricesFlags) {
             if (kv.second) {
