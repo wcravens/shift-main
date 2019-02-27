@@ -55,9 +55,9 @@ public:
     void connectClientComputers(const std::string& configFile, bool verbose = false);
     void disconnectClientComputers();
 
-    void sendPortfolioSummary(const std::string& userName, const PortfolioSummary& summary);
-    void sendPortfolioItem(const std::string& userName, const PortfolioItem& item);
-    void sendQuoteHistory(const std::string& userName, const std::unordered_map<std::string, Quote>& quotes);
+    void sendPortfolioSummary(const std::string& username, const PortfolioSummary& summary);
+    void sendPortfolioItem(const std::string& username, const PortfolioItem& item);
+    void sendQuoteHistory(const std::string& username, const std::unordered_map<std::string, Quote>& quotes);
     void sendConfirmationReport(const Report& report); // send quote conformation report
 
     void sendLastPrice2All(const Transaction& transac);

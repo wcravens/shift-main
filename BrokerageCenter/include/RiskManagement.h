@@ -18,7 +18,7 @@
 class RiskManagement {
 private:
     // int m_userID; // internal use
-    std::string m_userName;
+    std::string m_username;
 
     PortfolioSummary m_porfolioSummary;
     std::unordered_map<std::string, PortfolioItem> m_portfolioItems; // Symbol, PortfolioItem
@@ -46,9 +46,9 @@ private:
     std::promise<void> m_quitFlagExec;
 
 public:
-    RiskManagement(std::string userName, double buyingPower);
-    RiskManagement(std::string userName, double buyingPower, int totalShares); //> For default use, i.e. portfolio summary's Holding Balance/Borrowed Balance/Total P&L == 0.
-    RiskManagement(std::string userName, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio summary.
+    RiskManagement(std::string username, double buyingPower);
+    RiskManagement(std::string username, double buyingPower, int totalShares); //> For default use, i.e. portfolio summary's Holding Balance/Borrowed Balance/Total P&L == 0.
+    RiskManagement(std::string username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio summary.
 
     ~RiskManagement();
 
@@ -65,8 +65,8 @@ public:
     bool verifyAndSendQuote(const Quote& quote);
 
     static void s_sendQuoteToME(const Quote& quote);
-    static void s_sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary);
-    static void s_sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item);
+    static void s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary);
+    static void s_sendPortfolioItemToClient(const std::string& username, const PortfolioItem& item);
     void sendPortfolioHistory();
     void sendQuoteHistory() const;
     double getMarketBuyPrice(const std::string& symbol);

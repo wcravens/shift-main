@@ -47,10 +47,10 @@ public:
     void spawn();
     // void stop();
 
-    void registerUserInStock(const std::string& userName);
-    void unregisterUserInStock(const std::string& userName);
+    void registerUserInStock(const std::string& username);
+    void unregisterUserInStock(const std::string& username);
 
-    void broadcastWholeOrderBookToOne(const std::string& userName);
+    void broadcastWholeOrderBookToOne(const std::string& username);
     void broadcastWholeOrderBookToAll();
     void broadcastSingleUpdateToAll(const OrderBookEntry& update);
 

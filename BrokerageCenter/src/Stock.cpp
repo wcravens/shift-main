@@ -88,30 +88,30 @@ void Stock::spawn()
 }
 
 /**
-*   @brief  Thread-safely registers a user to the list by user name.
-*	@param	userName: The name of the user to be registered.
+*   @brief  Thread-safely registers a user to the list by username.
+*	@param	username: The name of the user to be registered.
 *   @return nothing
 */
-void Stock::registerUserInStock(const std::string& userName)
+void Stock::registerUserInStock(const std::string& username)
 {
-    broadcastWholeOrderBookToOne(userName);
+    broadcastWholeOrderBookToOne(username);
     {
         std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-        if (std::find(m_stockUserList.begin(), m_stockUserList.end(), userName) == m_stockUserList.end())
-            m_stockUserList.push_back(userName);
+        if (std::find(m_stockUserList.begin(), m_stockUserList.end(), username) == m_stockUserList.end())
+            m_stockUserList.push_back(username);
     }
-    BCDocuments::getInstance()->addOrderBookSymbolToUser(userName, m_symbol);
+    BCDocuments::getInstance()->addOrderBookSymbolToUser(username, m_symbol);
 }
 
 /**
-*   @brief  Thread-safely unregisters a user from the list by user name.
-*	@param	userName: The user name of the user.
+*   @brief  Thread-safely unregisters a user from the list by username.
+*	@param	username: The username of the user.
 *   @return nothing
 */
-void Stock::unregisterUserInStock(const std::string& userName)
+void Stock::unregisterUserInStock(const std::string& username)
 {
     std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-    const auto pos = std::find(m_stockUserList.begin(), m_stockUserList.end(), userName);
+    const auto pos = std::find(m_stockUserList.begin(), m_stockUserList.end(), username);
     // fast removal:
     std::swap(*pos, m_stockUserList.back());
     m_stockUserList.pop_back();
@@ -162,13 +162,13 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 
 /**
 *   @brief  Thread-safely sends complete order books to one user user.
-*	@param	userName: The user user to be sent to.
+*	@param	username: The user user to be sent to.
 *   @return nothing
 */
-void Stock::broadcastWholeOrderBookToOne(const std::string& userName)
+void Stock::broadcastWholeOrderBookToOne(const std::string& username)
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
-    const std::vector<std::string> userList{ userName };
+    const std::vector<std::string> userList{ username };
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
     std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);

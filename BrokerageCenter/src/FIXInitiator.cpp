@@ -103,7 +103,7 @@ void FIXInitiator::sendQuote(const Quote& quote)
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_CLIENTID);
-    idGroup.set(FIX::PartyID(quote.getUserName()));
+    idGroup.set(FIX::PartyID(quote.getUsername()));
     message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
@@ -177,17 +177,17 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
         FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
         FIX::PartyRole role;
-        FIX::PartyID userName;
+        FIX::PartyID username;
         for (int i = 1; i <= numOfGroup; i++) {
             message.getGroup(i, idGroup);
             idGroup.get(role);
             if (role == 3) { // 3 -> formerly FIX 4.2 ClientID
-                idGroup.get(userName);
+                idGroup.get(username);
             }
         }
 
         Report report{
-            userName,
+            username,
             orderID,
             orderStatus,
             symbol,
@@ -199,7 +199,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         };
 
         cout << "ConfirmRepo: "
-             << userName << "\t"
+             << username << "\t"
              << orderID << "\t"
              << orderStatus << "\t"
              << serverTime.getString() << "\t"
@@ -208,7 +208,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << orderType << "\t"
              << price << "\t"
              << shareSize << endl;
-        BCDocuments::getInstance()->addReportToUserRiskManagement(userName, report);
+        BCDocuments::getInstance()->addReportToUserRiskManagement(username, report);
 
     } else { // For execution report
         static FIX::OrderID orderID1;
@@ -223,8 +223,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         static FIX::EffectiveTime execTime;
 
         static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-        static FIX::PartyID userName1;
-        static FIX::PartyID userName2;
+        static FIX::PartyID username1;
+        static FIX::PartyID username2;
         static FIX::PartyID destination;
 
         // #pragma GCC diagnostic ignored ....
@@ -241,8 +241,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::EffectiveTime* pExecTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
-        FIX::PartyID* pUserName1;
-        FIX::PartyID* pUserName2;
+        FIX::PartyID* pUsername1;
+        FIX::PartyID* pUsername2;
         FIX::PartyID* pDestination;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
@@ -264,8 +264,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pServerTime = &serverTime;
             pExecTime = &execTime;
             pIDGroup = &idGroup;
-            pUserName1 = &userName1;
-            pUserName2 = &userName2;
+            pUsername1 = &username1;
+            pUsername2 = &username2;
             pDestination = &destination;
         } else {
             // note: important precondition of the correctness of the following code is: std::operator new() is thread-safe.
@@ -280,8 +280,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pServerTime = new decltype(serverTime);
             pExecTime = new decltype(execTime);
             pIDGroup = new decltype(idGroup);
-            pUserName1 = new decltype(userName1);
-            pUserName2 = new decltype(userName2);
+            pUsername1 = new decltype(username1);
+            pUsername2 = new decltype(username2);
             pDestination = new decltype(destination);
         }
 
@@ -305,15 +305,15 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         }
 
         message.getGroup(1, *pIDGroup);
-        pIDGroup->get(*pUserName1);
+        pIDGroup->get(*pUsername1);
         message.getGroup(2, *pIDGroup);
-        pIDGroup->get(*pUserName2);
+        pIDGroup->get(*pUsername2);
         message.getGroup(3, *pIDGroup);
         pIDGroup->get(*pDestination);
 
-        auto printRpts = [](bool rpt1or2, auto pUserName, auto pOrderID, auto orderStatus, auto pServerTime, auto pExecTime, auto pSymbol, auto pOrderType, auto pPrice, auto pShareSize) {
+        auto printRpts = [](bool rpt1or2, auto pUsername, auto pOrderID, auto orderStatus, auto pServerTime, auto pExecTime, auto pSymbol, auto pOrderType, auto pPrice, auto pShareSize) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
-                 << *pUserName << "\t"
+                 << *pUsername << "\t"
                  << *pOrderID << "\t"
                  << orderStatus << "\t"
                  << pServerTime->getString() << "\t"
@@ -328,7 +328,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         case FIX::ExecType_FILL:
         case FIX::ExecType_CANCELED: {
             Transaction transac = {
-                *pUserName1,
+                *pUsername1,
                 *pSymbol,
                 orderStatus,
                 *pOrderID1,
@@ -343,7 +343,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
             if (FIX::ExecType_FILL == orderStatus) { // TRADE
                 Report report1{
-                    *pUserName1,
+                    *pUsername1,
                     *pOrderID1,
                     orderStatus,
                     *pSymbol,
@@ -355,7 +355,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 };
 
                 Report report2{
-                    *pUserName2,
+                    *pUsername2,
                     *pOrderID2,
                     orderStatus,
                     *pSymbol,
@@ -366,13 +366,13 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     pExecTime->getValue()
                 };
 
-                printRpts(true, pUserName1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
-                printRpts(false, pUserName2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
+                printRpts(true, pUsername1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
+                printRpts(false, pUsername2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
 
                 auto* docs = BCDocuments::getInstance();
                 docs->addTransacToCandlestickData(*pSymbol, transac);
-                docs->addReportToUserRiskManagement(*pUserName1, report1);
-                docs->addReportToUserRiskManagement(*pUserName2, report2);
+                docs->addReportToUserRiskManagement(*pUsername1, report1);
+                docs->addReportToUserRiskManagement(*pUsername2, report2);
             } else { // TRTH TRADE
                 BCDocuments::getInstance()->addTransacToCandlestickData(*pSymbol, transac);
             }
@@ -381,7 +381,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         } break;
         case FIX::ExecType_EXPIRED: { // CANCEL
             Report report2{
-                *pUserName2,
+                *pUsername2,
                 *pOrderID2,
                 orderStatus,
                 *pSymbol,
@@ -392,9 +392,9 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pExecTime->getValue()
             };
 
-            BCDocuments::getInstance()->addReportToUserRiskManagement(*pUserName2, report2);
-            printRpts(true, pUserName1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
-            printRpts(false, pUserName2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
+            BCDocuments::getInstance()->addReportToUserRiskManagement(*pUsername2, report2);
+            printRpts(true, pUsername1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
+            printRpts(false, pUsername2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
         } break;
         } // switch
 
@@ -402,8 +402,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             delete pSymbol;
             delete pOrderID1;
             delete pOrderID2;
-            delete pUserName1;
-            delete pUserName2;
+            delete pUsername1;
+            delete pUsername2;
             delete pOrderType1;
             delete pOrderType2;
             delete pShareSize;

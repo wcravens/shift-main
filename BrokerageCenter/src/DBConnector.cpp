@@ -90,13 +90,13 @@ bool DBConnector::createUsers(const std::string& symbol)
         cout << "holdings_" + symbol + ": " << PQnfields(res2) << endl;
 
         for (int i = 0; i < nTup; i++) {
-            std::string userName = PQgetvalue(res1, i, 0);
+            std::string username = PQgetvalue(res1, i, 0);
             auto buyingPower = atof(PQgetvalue(res1, i, 1));
             auto shares = atoi(PQgetvalue(res2, i, 1));
             auto price = atof(PQgetvalue(res2, i, 2));
 
-            BCDocuments::getInstance()->addRiskManagementToUserLockedExplicit(userName, buyingPower, shares, price, symbol);
-            cout << userName << '\n';
+            BCDocuments::getInstance()->addRiskManagementToUserLockedExplicit(username, buyingPower, shares, price, symbol);
+            cout << username << '\n';
         }
         cout << endl;
     }

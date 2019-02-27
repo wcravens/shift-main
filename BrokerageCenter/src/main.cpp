@@ -89,7 +89,7 @@ int main(int ac, char* av[])
         } timer;
         bool isVerbose;
         struct { // user creation settings
-            std::string userName; // needs also password & info
+            std::string username; // needs also password & info
             std::string password;
             std::vector<std::string> info;
         } user;
@@ -181,7 +181,7 @@ int main(int ac, char* av[])
             return 3;
         }
 
-        params.user.userName = vm[CSTR_USERNAME].as<std::string>();
+        params.user.username = vm[CSTR_USERNAME].as<std::string>();
 
         std::istringstream iss(vm[CSTR_PASSWORD].as<std::string>());
         shift::crypto::Encryptor enc;
@@ -228,19 +228,19 @@ int main(int ac, char* av[])
                 const auto& lname = params.user.info[1];
                 const auto& email = params.user.info[2];
 
-                const auto res = shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + params.user.userName + "';");
+                const auto res = shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + params.user.username + "';");
                 if (res.size()) {
-                    cout << COLOR_WARNING "The user " << params.user.userName << " already exists!" NO_COLOR << endl;
+                    cout << COLOR_WARNING "The user " << params.user.username << " already exists!" NO_COLOR << endl;
                     return 1;
                 }
 
                 const auto insert = "INSERT INTO traders (username, password, firstname, lastname, email, super) VALUES ('"
-                    + params.user.userName + "','"
+                    + params.user.username + "','"
                     + params.user.password + "','"
                     + fname + "','" + lname + "','" + email // info
                     + (vm.count(CSTR_SUPER) > 0 ? "',TRUE);" : "',FALSE);");
                 if (DBConnector::getInstance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!\n" NO_COLOR)) {
-                    cout << COLOR "User " << params.user.userName << " was successfully inserted." NO_COLOR << endl;
+                    cout << COLOR "User " << params.user.username << " was successfully inserted." NO_COLOR << endl;
                     return 0;
                 }
 

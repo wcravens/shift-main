@@ -16,10 +16,10 @@ struct Quote {
     };
 
     Quote();
-    Quote(std::string symbol, std::string userName, std::string orderID, double price, int shareSize, ORDER_TYPE orderType); // for the server to receive
+    Quote(std::string symbol, std::string username, std::string orderID, double price, int shareSize, ORDER_TYPE orderType); // for the server to receive
 
     const std::string& getSymbol() const;
-    const std::string& getUserName() const;
+    const std::string& getUsername() const;
     const std::string& getOrderID() const;
     void setPrice(double price);
     double getPrice() const;
@@ -29,7 +29,7 @@ struct Quote {
 
 private:
     std::string m_symbol; ///<The stock name of quote
-    std::string m_userName; ///<The user name of quote
+    std::string m_username; ///<The username of quote
     std::string m_orderID; ///<The order ID of quote
     double m_price; ///<The price of quote
     int m_shareSize; ///<The size of quote

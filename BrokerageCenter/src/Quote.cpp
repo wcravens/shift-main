@@ -8,15 +8,15 @@ Quote::Quote() = default;
 /**
 *   @brief  Constructs with corresponding parameters.
 *   @param  symbol: The stock name of quote
-*   @param  userName： The user name of quote
+*   @param  username： The username of quote
 *   @param  orderID: The order ID of quote
 *   @param  price: The price of quote
 *   @param  shareSize: The size of quote
 *   @param  orderType: The order type of quotes
 */
-Quote::Quote(std::string symbol, std::string userName, std::string orderID, double price, int shareSize, ORDER_TYPE orderType)
+Quote::Quote(std::string symbol, std::string username, std::string orderID, double price, int shareSize, ORDER_TYPE orderType)
     : m_symbol(std::move(symbol))
-    , m_userName(std::move(userName))
+    , m_username(std::move(username))
     , m_orderID(std::move(orderID))
     , m_price{ price }
     , m_shareSize(shareSize)
@@ -34,12 +34,12 @@ const std::string& Quote::getSymbol() const
 }
 
 /**
-*   @brief  Getter of user name.
-*   @return The user name.
+*   @brief  Getter of username.
+*   @return The username.
 */
-const std::string& Quote::getUserName() const
+const std::string& Quote::getUsername() const
 {
-    return m_userName;
+    return m_username;
 }
 
 /**

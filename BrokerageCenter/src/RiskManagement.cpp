@@ -11,22 +11,22 @@
 #include <shift/miscutils/concurrency/Consumer.h>
 #include <shift/miscutils/terminal/Common.h>
 
-RiskManagement::RiskManagement(std::string userName, double buyingPower)
-    : m_userName(std::move(userName))
+RiskManagement::RiskManagement(std::string username, double buyingPower)
+    : m_username(std::move(username))
     , m_porfolioSummary{ buyingPower }
     , m_pendingShortCashAmount{ 0.0 }
 {
 }
 
-RiskManagement::RiskManagement(std::string userName, double buyingPower, int totalShares)
-    : m_userName(std::move(userName))
+RiskManagement::RiskManagement(std::string username, double buyingPower, int totalShares)
+    : m_username(std::move(username))
     , m_porfolioSummary{ buyingPower, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
 }
 
-RiskManagement::RiskManagement(std::string userName, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
-    : m_userName(std::move(userName))
+RiskManagement::RiskManagement(std::string username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
+    : m_username(std::move(username))
     , m_porfolioSummary{ buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
@@ -69,14 +69,14 @@ void RiskManagement::enqueueExecRpt(const Report& report)
     FIXInitiator::getInstance()->sendQuote(quote);
 }
 
-/*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& userName, const PortfolioSummary& summary)
+/*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary)
 {
-    FIXAcceptor::getInstance()->sendPortfolioSummary(userName, summary);
+    FIXAcceptor::getInstance()->sendPortfolioSummary(username, summary);
 }
 
-/*static*/ inline void RiskManagement::s_sendPortfolioItemToClient(const std::string& userName, const PortfolioItem& item)
+/*static*/ inline void RiskManagement::s_sendPortfolioItemToClient(const std::string& username, const PortfolioItem& item)
 {
-    FIXAcceptor::getInstance()->sendPortfolioItem(userName, item);
+    FIXAcceptor::getInstance()->sendPortfolioItem(username, item);
 }
 
 void RiskManagement::sendPortfolioHistory()
@@ -84,17 +84,17 @@ void RiskManagement::sendPortfolioHistory()
     std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
     std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-    s_sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
+    s_sendPortfolioSummaryToClient(m_username, m_porfolioSummary);
 
     for (auto& i : m_portfolioItems)
-        s_sendPortfolioItemToClient(m_userName, i.second);
+        s_sendPortfolioItemToClient(m_username, i.second);
 }
 
 void RiskManagement::sendQuoteHistory() const
 {
     std::lock_guard<std::mutex> guard(m_mtxQuoteHistory);
     if (!m_quoteHistory.empty())
-        FIXAcceptor::getInstance()->sendQuoteHistory(m_userName, m_quoteHistory);
+        FIXAcceptor::getInstance()->sendQuoteHistory(m_username, m_quoteHistory);
 }
 
 void RiskManagement::updateQuoteHistory(const Report& report)
@@ -154,7 +154,7 @@ void RiskManagement::processQuote()
 
             if (!DBConnector::s_isPortfolioDBReadOnly) {
                 auto lock{ DBConnector::getInstance()->lockPSQL() };
-                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_userName + "'), '" + quotePtr->getSymbol() + "');", "");
+                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_username + "'), '" + quotePtr->getSymbol() + "');", "");
             }
         }
 
@@ -364,8 +364,8 @@ void RiskManagement::processExecRpt()
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-            s_sendPortfolioSummaryToClient(m_userName, m_porfolioSummary);
-            s_sendPortfolioItemToClient(m_userName, m_portfolioItems[reportPtr->symbol]);
+            s_sendPortfolioSummaryToClient(m_username, m_porfolioSummary);
+            s_sendPortfolioItemToClient(m_username, m_portfolioItems[reportPtr->symbol]);
 
             wasPortfolioSent = true;
         }
@@ -386,8 +386,8 @@ void RiskManagement::processExecRpt()
                     + "\n" // PK == (id, symbol):
                       "WHERE symbol = '"
                     + reportPtr->symbol + "' AND id = (SELECT id FROM traders WHERE username = '"
-                    + m_userName + "');",
-                COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_userName + "]!\n" NO_COLOR);
+                    + m_username + "');",
+                COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_username + "]!\n" NO_COLOR);
 
             DBConnector::getInstance()->doQuery(
                 "UPDATE portfolio_summary" // presume that we have got the user's uuid already in it
@@ -400,8 +400,8 @@ void RiskManagement::processExecRpt()
                     + ", total_shares = " + std::to_string(m_porfolioSummary.getTotalShares())
                     + "\n" // PK == id:
                       "WHERE id = (SELECT id FROM traders WHERE username = '"
-                    + m_userName + "');",
-                COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_userName + "]!\n" NO_COLOR);
+                    + m_username + "');",
+                COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_username + "]!\n" NO_COLOR);
         }
 
         updateQuoteHistory(*reportPtr);

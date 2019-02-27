@@ -45,15 +45,15 @@ public:
     ~CandlestickData();
 
     void sendCurrentCandlestickData(const TempCandlestickData& tmpCandle);
-    void sendHistory(const std::string userName);
+    void sendHistory(const std::string username);
 
     const std::string& getSymbol() const;
 
     static std::time_t s_nowUnixTimestamp() noexcept;
     static std::time_t s_toUnixTimestamp(const std::string& time) noexcept;
 
-    void registerUserInCandlestickData(const std::string& userName);
-    void unregisterUserInCandlestickData(const std::string& userName);
+    void registerUserInCandlestickData(const std::string& username);
+    void unregisterUserInCandlestickData(const std::string& username);
     void enqueueTransaction(const Transaction& t);
     void process();
     void spawn();

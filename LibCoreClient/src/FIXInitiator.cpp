@@ -551,10 +551,10 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
     while (!m_connected)
         ;
 
-    FIX50SP2::PositionReport::NoPartyIDs userNameGroup;
-    FIX::PartyID userName;
-    message.getGroup(1, userNameGroup);
-    userNameGroup.get(userName);
+    FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
+    FIX::PartyID username;
+    message.getGroup(1, usernameGroup);
+    usernameGroup.get(username);
 
     FIX::SecurityType type;
     message.get(type);
@@ -581,8 +581,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         qtyGroup.get(shortQty);
 
         try {
-            getClient(userName)->storePortfolioItem(symbol, longQty, shortQty, longPrice, shortPrice, realizedPL);
-            getClient(userName)->receivePortfolioItem(symbol);
+            getClient(username)->storePortfolioItem(symbol, longQty, shortQty, longPrice, shortPrice, realizedPL);
+            getClient(username)->receivePortfolioItem(symbol);
         } catch (...) {
             return;
         }
@@ -603,8 +603,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         buyingPowerGroup.get(totalBuyingPower);
 
         try {
-            getClient(userName)->storePortfolioSummary(totalBuyingPower, totalShares, totalRealizedPL);
-            getClient(userName)->receivePortfolioSummary();
+            getClient(username)->storePortfolioSummary(totalBuyingPower, totalShares, totalRealizedPL);
+            getClient(username)->receivePortfolioSummary();
         } catch (...) {
             return;
         }
