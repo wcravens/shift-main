@@ -46,6 +46,7 @@ public:
     std::vector<CoreClient*> getAttachedClients();
 
     void submitOrder(const shift::Order& order);
+    void submitCancellation(shift::Order order);
 
     // Portfolio methods
     PortfolioSummary getPortfolioSummary();

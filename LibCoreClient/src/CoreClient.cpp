@@ -79,7 +79,7 @@ std::vector<shift::CoreClient*> shift::CoreClient::getAttachedClients()
 }
 
 /**
- * @brief Method to submit order from Core Client to Brokerage Center.
+ * @brief Method to submit orders from Core Client to Brokerage Center.
  * @param order as a shift::Order object contains all required information.
  */
 void shift::CoreClient::submitOrder(const shift::Order& order)
@@ -93,6 +93,29 @@ void shift::CoreClient::submitOrder(const shift::Order& order)
         m_submittedOrdersIDs.push_back(order.getID());
         m_submittedOrders[order.getID()] = order;
         m_submittedOrdersSize++;
+    }
+
+    return m_fixInitiator->submitOrder(order, m_username);
+}
+
+/**
+ * @brief Method to submit cancel orders from Core Client to Brokerage Center.
+ * @param order as a shift::Order object contains all required information.
+ */
+void shift::CoreClient::submitCancellation(shift::Order order)
+{
+    if (!isConnected()) {
+        return;
+    }
+
+    if (order.getType() == shift::Order::MARKET_BUY || order.getType() == shift::Order::MARKET_SELL) {
+        return;
+    }
+
+    if (order.getType() == shift::Order::LIMIT_BUY) {
+        order.setType(shift::Order::CANCEL_BID);
+    } else if (order.getType() == shift::Order::LIMIT_SELL) {
+        order.setType(shift::Order::CANCEL_ASK);
     }
 
     return m_fixInitiator->submitOrder(order, m_username);
@@ -145,13 +168,7 @@ std::vector<shift::Order> shift::CoreClient::getWaitingList()
 void shift::CoreClient::cancelAllPendingOrders()
 {
     for (auto order : getWaitingList()) {
-        if (order.getType() == shift::Order::LIMIT_BUY) {
-            order.setType(shift::Order::CANCEL_BID);
-            submitOrder(order);
-        } else if (order.getType() == shift::Order::LIMIT_SELL) {
-            order.setType(shift::Order::CANCEL_ASK);
-            submitOrder(order);
-        }
+        submitCancellation(order);
     }
 
     // Wait to make sure cancellation went through
