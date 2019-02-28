@@ -38,7 +38,7 @@ double shift::OrderBook::getBestPrice()
     if (!m_entries.empty())
         return m_entries.begin()->getPrice();
 
-    return 0;
+    return 0.0;
 }
 
 /**

@@ -1045,10 +1045,10 @@ shift::BestPrice shift::FIXInitiator::getBestPrice(const std::string& symbol)
         m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID]->getBestSize(),
         m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]->getBestPrice(),
         m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]->getBestSize(),
-        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID]->getBestPrice(),
-        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_BID]->getBestSize(),
-        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]->getBestPrice(),
-        m_orderBooks[symbol][shift::OrderBook::Type::GLOBAL_ASK]->getBestSize());
+        m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_BID]->getBestPrice(),
+        m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_BID]->getBestSize(),
+        m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_ASK]->getBestPrice(),
+        m_orderBooks[symbol][shift::OrderBook::Type::LOCAL_ASK]->getBestSize());
 
     return bp;
 }
