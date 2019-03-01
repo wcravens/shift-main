@@ -115,6 +115,9 @@ if (isset($_GET['username'])) {
               <a href="../submittedorders.php">Submitted Orders</a>
             </li>
             <li>
+              <a href="../changepwd.php">Change Password</a>
+            </li>
+            <li>
               <a href="../logout.php">Sign Out</a>
             </li>
           </ul>

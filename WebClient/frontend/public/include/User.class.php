@@ -78,6 +78,32 @@ class User
         return $rows[0];
     }
 
+    public function change_password($cur_password, $new_password, $confirm_new_password)
+    {
+
+        $user = $this->is_login();
+        $username = $user['username'];
+        $encrypted_pwd = $user['password'];
+
+        // validate old password
+        if (sha1($cur_password) != $encrypted_pwd) {
+            return $_SESSION['err'] = 'Your password is incorrect. Try again.';
+        }
+
+        // validate confirm_new_password and new_password
+        if ($confirm_new_password != $new_password) {
+            return $_SESSION['err'] = 'Provided passwords do not match.';
+        }
+        $dbh = DB::get_dbh();
+        $sql = 'UPDATE traders SET password = ? WHERE username = ?';
+        $sth = $dbh->prepare($sql);
+        $is_succ = $sth->execute(array(sha1($new_password), $username));
+        if (is_succ == false) {
+            return $_SESSION['err'] = 'Looks like we\'re having some server issues. Please try again later.';
+        }
+
+        return true; 
+    }
 
     public function create_sessionid()
     {
