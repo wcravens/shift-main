@@ -64,7 +64,7 @@ public:
     void sendOrderBook(const std::vector<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
     static void s_setAddGroupIntoOrderAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry);
     void sendOrderBookUpdate(const std::vector<std::string>& userList, const OrderBookEntry& update); // send order book update to users
-    void sendCandlestickData(const std::vector<std::string>& userList, const CandlestickDataPoint& tmpCandle); // for candlestick data
+    void sendCandlestickData(const std::vector<std::string>& userList, const CandlestickDataPoint& cdPoint); // for candlestick data
 
 private:
     FIXAcceptor() = default;

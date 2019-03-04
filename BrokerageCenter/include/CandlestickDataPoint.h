@@ -5,20 +5,20 @@
 
 class CandlestickDataPoint {
     std::string m_symbol;
-    std::time_t m_tempTimeFrom;
-    double m_tempOpenPrice;
-    double m_tempClosePrice;
-    double m_tempHighPrice;
-    double m_tempLowPrice;
+    std::time_t m_timeFrom;
+    double m_openPrice;
+    double m_closePrice;
+    double m_highPrice;
+    double m_lowPrice;
 
 public:
     CandlestickDataPoint();
-    CandlestickDataPoint(std::string symbol, double tempOpenPrice, double tempClosePrice, double tempHighPrice, double tempLowPrice, std::time_t tempTimeFrom);
+    CandlestickDataPoint(std::string symbol, double openPrice, double closePrice, double highPrice, double lowPrice, std::time_t timeFrom);
 
-    std::time_t getTempTimeFrom() const;
+    std::time_t getTimeFrom() const;
     const std::string& getSymbol() const;
-    double getTempOpenPrice() const;
-    double getTempClosePrice() const;
-    double getTempHighPrice() const;
-    double getTempLowPrice() const;
+    double getOpenPrice() const;
+    double getClosePrice() const;
+    double getHighPrice() const;
+    double getLowPrice() const;
 };
