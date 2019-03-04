@@ -1,8 +1,8 @@
 #pragma once
 
 #include "CandlestickData.h"
+#include "Order.h"
 #include "OrderBookEntry.h"
-#include "Quote.h"
 #include "Report.h"
 #include "RiskManagement.h"
 #include "Stock.h"
@@ -58,7 +58,7 @@ public:
     void attachCandlestickDataToSymbol(const std::string& symbol);
     void addTransacToCandlestickData(const std::string& symbol, const Transaction& transac);
     void addRiskManagementToUserLockedExplicit(const std::string& username, double buyingPower, int shares, double price, const std::string& symbol);
-    void addQuoteToUserRiskManagement(const std::string& username, const Quote& quote);
+    void addOrderToUserRiskManagement(const std::string& username, const Order& order);
     void addReportToUserRiskManagement(const std::string& username, const Report& report);
 
     void registerUserInDoc(const std::string& username, const std::string& targetID); // for connection

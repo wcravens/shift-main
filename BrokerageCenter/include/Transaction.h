@@ -9,7 +9,7 @@ struct Transaction {
     std::string symbol;
     char orderDecision;
     std::string orderID;
-    char orderType; // see Quote::ORDER_TYPE
+    char orderType; // see Order::ORDER_TYPE
     double execQty;
     double leftQty;
     double price;

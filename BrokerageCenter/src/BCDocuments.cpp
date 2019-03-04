@@ -116,11 +116,11 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& username) -> 
     return res.first;
 }
 
-void BCDocuments::addQuoteToUserRiskManagement(const std::string& username, const Quote& quote)
+void BCDocuments::addOrderToUserRiskManagement(const std::string& username, const Order& order)
 {
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
     addRiskManagementToUserNoLock(username);
-    m_riskManagementByName[username]->enqueueQuote(quote);
+    m_riskManagementByName[username]->enqueueOrder(order);
 }
 
 void BCDocuments::addReportToUserRiskManagement(const std::string& username, const Report& report)
@@ -207,7 +207,7 @@ int BCDocuments::sendHistoryToUser(const std::string& username)
         res = 1;
     }
     pos->second->sendPortfolioHistory();
-    pos->second->sendQuoteHistory();
+    pos->second->sendOrderHistory();
 
     return res;
 }

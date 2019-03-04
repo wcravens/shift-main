@@ -9,7 +9,7 @@ struct Report {
     std::string orderID; //server_order_id
     char status; //order status: http://fixwiki.org/fixwiki/OrdStatus
     std::string symbol;
-    char orderType; // see Quote::ORDER_TYPE
+    char orderType; // see Order::ORDER_TYPE
     double price;
     double shareSize;
     FIX::UtcTimeStamp execTime;

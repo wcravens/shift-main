@@ -36,23 +36,23 @@ RiskManagement::~RiskManagement()
 {
     shift::concurrency::notifyConsumerThreadToQuit(m_quitFlagExec, m_cvExecRpt, *m_execRptThread);
     m_execRptThread = nullptr;
-    shift::concurrency::notifyConsumerThreadToQuit(m_quitFlagQuote, m_cvQuote, *m_quoteThread);
-    m_quoteThread = nullptr;
+    shift::concurrency::notifyConsumerThreadToQuit(m_quitFlagOrder, m_cvOrder, *m_orderThread);
+    m_orderThread = nullptr;
 }
 
 void RiskManagement::spawn()
 {
-    m_quoteThread.reset(new std::thread(&RiskManagement::processQuote, this));
+    m_orderThread.reset(new std::thread(&RiskManagement::processOrder, this));
     m_execRptThread.reset(new std::thread(&RiskManagement::processExecRpt, this));
 }
 
-void RiskManagement::enqueueQuote(const Quote& quote)
+void RiskManagement::enqueueOrder(const Order& order)
 {
     {
-        std::lock_guard<std::mutex> guard(m_mtxQuote);
-        m_quoteBuffer.push(quote);
+        std::lock_guard<std::mutex> guard(m_mtxOrder);
+        m_orderBuffer.push(order);
     }
-    m_cvQuote.notify_one();
+    m_cvOrder.notify_one();
 }
 
 void RiskManagement::enqueueExecRpt(const Report& report)
@@ -64,9 +64,9 @@ void RiskManagement::enqueueExecRpt(const Report& report)
     m_cvExecRpt.notify_one();
 }
 
-/*static*/ inline void RiskManagement::s_sendQuoteToME(const Quote& quote)
+/*static*/ inline void RiskManagement::s_sendOrderToME(const Order& order)
 {
-    FIXInitiator::getInstance()->sendQuote(quote);
+    FIXInitiator::getInstance()->sendOrder(order);
 }
 
 /*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary)
@@ -90,32 +90,32 @@ void RiskManagement::sendPortfolioHistory()
         s_sendPortfolioItemToClient(m_username, i.second);
 }
 
-void RiskManagement::sendQuoteHistory() const
+void RiskManagement::sendOrderHistory() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxQuoteHistory);
-    if (!m_quoteHistory.empty())
-        FIXAcceptor::getInstance()->sendQuoteHistory(m_username, m_quoteHistory);
+    std::lock_guard<std::mutex> guard(m_mtxOrderHistory);
+    if (!m_orderHistory.empty())
+        FIXAcceptor::getInstance()->sendOrderHistory(m_username, m_orderHistory);
 }
 
-void RiskManagement::updateQuoteHistory(const Report& report)
+void RiskManagement::updateOrderHistory(const Report& report)
 {
     if (report.status == FIX::OrdStatus_NEW)
         return;
 
-    std::lock_guard<std::mutex> guard(m_mtxQuoteHistory);
-    auto it = m_quoteHistory.find(report.orderID);
-    if (m_quoteHistory.end() == it)
+    std::lock_guard<std::mutex> guard(m_mtxOrderHistory);
+    auto it = m_orderHistory.find(report.orderID);
+    if (m_orderHistory.end() == it)
         return;
 
-    auto& quote = it->second;
-    if (quote.getShareSize() > report.shareSize) {
-        quote.setShareSize(quote.getShareSize() - report.shareSize);
+    auto& order = it->second;
+    if (order.getShareSize() > report.shareSize) {
+        order.setShareSize(order.getShareSize() - report.shareSize);
     } else {
-        if (m_quoteHistory.size() == 1) {
-            quote.setShareSize(0);
-            quote.setPrice(0.0);
+        if (m_orderHistory.size() == 1) {
+            order.setShareSize(0);
+            order.setPrice(0.0);
         } else {
-            m_quoteHistory.erase(it);
+            m_orderHistory.erase(it);
         }
     }
 }
@@ -136,47 +136,47 @@ inline double RiskManagement::getMarketSellPrice(const std::string& symbol)
     return BCDocuments::getInstance()->getStockOrderBookMarketFirstPrice(false, symbol);
 }
 
-void RiskManagement::processQuote()
+void RiskManagement::processOrder()
 {
-    using QOT = Quote::ORDER_TYPE;
+    using QOT = Order::ORDER_TYPE;
 
-    thread_local auto quitFut = m_quitFlagQuote.get_future();
+    thread_local auto quitFut = m_quitFlagOrder.get_future();
 
     while (true) {
-        std::unique_lock<std::mutex> lock(m_mtxQuote);
-        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvQuote, lock, [this] { return !m_quoteBuffer.empty(); }))
+        std::unique_lock<std::mutex> lock(m_mtxOrder);
+        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOrder, lock, [this] { return !m_orderBuffer.empty(); }))
             return;
 
-        auto quotePtr = &m_quoteBuffer.front();
+        auto orderPtr = &m_orderBuffer.front();
 
-        if (m_portfolioItems.find(quotePtr->getSymbol()) == m_portfolioItems.end()) { // add new portfolio item ?
-            insertPortfolioItem(quotePtr->getSymbol(), quotePtr->getSymbol());
+        if (m_portfolioItems.find(orderPtr->getSymbol()) == m_portfolioItems.end()) { // add new portfolio item ?
+            insertPortfolioItem(orderPtr->getSymbol(), orderPtr->getSymbol());
 
             if (!DBConnector::s_isPortfolioDBReadOnly) {
                 auto lock{ DBConnector::getInstance()->lockPSQL() };
-                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_username + "'), '" + quotePtr->getSymbol() + "');", "");
+                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_username + "'), '" + orderPtr->getSymbol() + "');", "");
             }
         }
 
-        if (verifyAndSendQuote(*quotePtr)) {
+        if (verifyAndSendOrder(*orderPtr)) {
             {
-                std::lock_guard<std::mutex> guard(m_mtxQuoteHistory);
-                if (quotePtr->getOrderType() != QOT::CANCEL_BID && quotePtr->getOrderType() != QOT::CANCEL_ASK) {
-                    m_quoteHistory[quotePtr->getOrderID()] = *quotePtr;
+                std::lock_guard<std::mutex> guard(m_mtxOrderHistory);
+                if (orderPtr->getOrderType() != QOT::CANCEL_BID && orderPtr->getOrderType() != QOT::CANCEL_ASK) {
+                    m_orderHistory[orderPtr->getOrderID()] = *orderPtr;
                 }
             }
 
-            sendQuoteHistory();
+            sendOrderHistory();
         }
 
-        quotePtr = nullptr;
-        m_quoteBuffer.pop();
+        orderPtr = nullptr;
+        m_orderBuffer.pop();
     }
 }
 
 void RiskManagement::processExecRpt()
 {
-    using QOT = Quote::ORDER_TYPE;
+    using QOT = Order::ORDER_TYPE;
 
     thread_local auto quitFut = m_quitFlagExec.get_future();
 
@@ -197,7 +197,7 @@ void RiskManagement::processExecRpt()
             case QOT::LIMIT_BUY: {
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
                 std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
-                std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
+                std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
                 auto& item = m_portfolioItems[reportPtr->symbol];
 
@@ -258,7 +258,7 @@ void RiskManagement::processExecRpt()
             case QOT::LIMIT_SELL: {
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
                 std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
-                std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
+                std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
                 auto& item = m_portfolioItems[reportPtr->symbol];
 
@@ -326,7 +326,7 @@ void RiskManagement::processExecRpt()
 
         case FIX::ExecType_EXPIRED: { // cancellation report
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
-            std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
+            std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
             const int cancelShares = reportPtr->shareSize * 100;
 
@@ -404,51 +404,51 @@ void RiskManagement::processExecRpt()
                 COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_username + "]!\n" NO_COLOR);
         }
 
-        updateQuoteHistory(*reportPtr);
-        sendQuoteHistory();
+        updateOrderHistory(*reportPtr);
+        sendOrderHistory();
 
         reportPtr = nullptr;
         m_execRptBuffer.pop();
     } // while
 }
 
-bool RiskManagement::verifyAndSendQuote(const Quote& quote)
+bool RiskManagement::verifyAndSendOrder(const Order& order)
 {
-    using QOT = Quote::ORDER_TYPE;
+    using QOT = Order::ORDER_TYPE;
 
     bool success = false;
-    double price = quote.getPrice();
+    double price = order.getPrice();
 
     // the usable buying power is the buying power minus the cash amount reserved for pending short orders
     double usableBuyingPower = 0.0;
     {
         std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
-        std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
+        std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
         usableBuyingPower = m_porfolioSummary.getBuyingPower() - m_pendingShortCashAmount;
     }
 
-    switch (quote.getOrderType()) {
+    switch (order.getOrderType()) {
     case QOT::MARKET_BUY: {
-        price = getMarketSellPrice(quote.getSymbol()); // use market price
+        price = getMarketSellPrice(order.getSymbol()); // use market price
     } // the rest is the same as in limit orders
     case QOT::LIMIT_BUY: {
         if (price == 0.0)
             break;
 
         std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
-        std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
+        std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
-        if (price * quote.getShareSize() * 100 < usableBuyingPower) {
-            m_porfolioSummary.holdBalance(price * quote.getShareSize() * 100);
+        if (price * order.getShareSize() * 100 < usableBuyingPower) {
+            m_porfolioSummary.holdBalance(price * order.getShareSize() * 100);
 
-            m_pendingBidOrders[quote.getOrderID()] = quote; // store the pending transaction
-            m_pendingBidOrders[quote.getOrderID()].setPrice(price); // update the price of the saved pending transaction (necessary for market orders)
+            m_pendingBidOrders[order.getOrderID()] = order; // store the pending transaction
+            m_pendingBidOrders[order.getOrderID()].setPrice(price); // update the price of the saved pending transaction (necessary for market orders)
 
             success = true;
         }
     } break;
     case QOT::MARKET_SELL: {
-        price = getMarketBuyPrice(quote.getSymbol()); // use market price
+        price = getMarketBuyPrice(order.getSymbol()); // use market price
     } // the rest is the same as in limit orders
     case QOT::LIMIT_SELL: {
         if (price == 0.0)
@@ -456,25 +456,25 @@ bool RiskManagement::verifyAndSendQuote(const Quote& quote)
 
         std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
         std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
-        std::lock_guard<std::mutex> qpGuard(m_mtxQuoteProcessing);
+        std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
         // the number of available shares is the total of long shares minus the share amount reserved for pending sell orders
-        int availableShares = m_portfolioItems[quote.getSymbol()].getLongShares() - m_pendingShortUnitAmount[quote.getSymbol()];
-        int shortShares = quote.getShareSize() * 100 - availableShares; // this is the amount of shares that need to be shorted
+        int availableShares = m_portfolioItems[order.getSymbol()].getLongShares() - m_pendingShortUnitAmount[order.getSymbol()];
+        int shortShares = order.getShareSize() * 100 - availableShares; // this is the amount of shares that need to be shorted
 
         if (shortShares <= 0) { // no short positions are necessary
-            m_pendingShortUnitAmount[quote.getSymbol()] += quote.getShareSize() * 100; // reserve all shares of this order
-            m_pendingAskOrders[quote.getOrderID()] = std::make_pair(quote, quote.getShareSize() * 100); // store the pending transaction along with reserved shares
-            m_pendingAskOrders[quote.getOrderID()].first.setPrice(price);
+            m_pendingShortUnitAmount[order.getSymbol()] += order.getShareSize() * 100; // reserve all shares of this order
+            m_pendingAskOrders[order.getOrderID()] = std::make_pair(order, order.getShareSize() * 100); // store the pending transaction along with reserved shares
+            m_pendingAskOrders[order.getOrderID()].first.setPrice(price);
 
             success = true;
         } else if ((m_porfolioSummary.getBorrowedBalance() < usableBuyingPower) && (price * shortShares < usableBuyingPower)) {
             // m_porfolioSummary.getBorrowedBalance() < usableBuyingPower means it is still possible to "recover" from all short positions
             // i.e. the user still has enough money to buy everything back
             m_pendingShortCashAmount += price * shortShares; // reserve the necessary cash amount for this order
-            m_pendingShortUnitAmount[quote.getSymbol()] += availableShares; // reserve remaining shares for this order
-            m_pendingAskOrders[quote.getOrderID()] = std::make_pair(quote, availableShares); // store the pending transaction along with reserved shares
-            m_pendingAskOrders[quote.getOrderID()].first.setPrice(price);
+            m_pendingShortUnitAmount[order.getSymbol()] += availableShares; // reserve remaining shares for this order
+            m_pendingAskOrders[order.getOrderID()] = std::make_pair(order, availableShares); // store the pending transaction along with reserved shares
+            m_pendingAskOrders[order.getOrderID()].first.setPrice(price);
 
             success = true;
         }
@@ -490,7 +490,7 @@ bool RiskManagement::verifyAndSendQuote(const Quote& quote)
     }
 
     if (success) {
-        s_sendQuoteToME(quote);
+        s_sendOrderToME(order);
     }
 
     return success;
