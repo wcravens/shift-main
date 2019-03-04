@@ -207,7 +207,7 @@ int BCDocuments::sendHistoryToUser(const std::string& username)
         res = 1;
     }
     pos->second->sendPortfolioHistory();
-    pos->second->sendOrderHistory();
+    pos->second->sendWaitingList();
 
     return res;
 }

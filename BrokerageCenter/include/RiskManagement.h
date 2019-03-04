@@ -22,7 +22,7 @@ private:
 
     PortfolioSummary m_porfolioSummary;
     std::unordered_map<std::string, PortfolioItem> m_portfolioItems; // Symbol, PortfolioItem
-    std::unordered_map<std::string, Order> m_orderHistory; // OrderID, Order
+    std::unordered_map<std::string, Order> m_waitingList; // OrderID, Order
     std::queue<Order> m_orderBuffer;
     std::queue<Report> m_execRptBuffer;
 
@@ -33,7 +33,7 @@ private:
 
     mutable std::mutex m_mtxPortfolioSummary;
     mutable std::mutex m_mtxPortfolioItems;
-    mutable std::mutex m_mtxOrderHistory;
+    mutable std::mutex m_mtxWaitingList;
     mutable std::mutex m_mtxOrder;
     mutable std::mutex m_mtxExecRpt;
 
@@ -60,7 +60,7 @@ public:
     void processExecRpt();
 
     void insertPortfolioItem(const std::string& symbol, const PortfolioItem& portfolioItem);
-    void updateOrderHistory(const Report& report);
+    void updateWaitingList(const Report& report);
 
     bool verifyAndSendOrder(const Order& order);
 
@@ -68,7 +68,7 @@ public:
     static void s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary);
     static void s_sendPortfolioItemToClient(const std::string& username, const PortfolioItem& item);
     void sendPortfolioHistory();
-    void sendOrderHistory() const;
+    void sendWaitingList() const;
     double getMarketBuyPrice(const std::string& symbol);
     double getMarketSellPrice(const std::string& symbol);
 };

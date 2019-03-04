@@ -5,12 +5,12 @@
 
 #pragma once
 
+#include "CandlestickDataPoint.h"
 #include "Order.h"
 #include "OrderBookEntry.h"
 #include "PortfolioItem.h"
 #include "PortfolioSummary.h"
 #include "Report.h"
-#include "CandlestickDataPoint.h"
 #include "Transaction.h"
 
 #include <map>
@@ -57,7 +57,7 @@ public:
 
     void sendPortfolioSummary(const std::string& username, const PortfolioSummary& summary);
     void sendPortfolioItem(const std::string& username, const PortfolioItem& item);
-    void sendOrderHistory(const std::string& username, const std::unordered_map<std::string, Order>& orders);
+    void sendWaitingList(const std::string& username, const std::unordered_map<std::string, Order>& orders);
     void sendConfirmationReport(const Report& report); // send order conformation report
 
     void sendLastPrice2All(const Transaction& transac);

@@ -90,32 +90,32 @@ void RiskManagement::sendPortfolioHistory()
         s_sendPortfolioItemToClient(m_username, i.second);
 }
 
-void RiskManagement::sendOrderHistory() const
+void RiskManagement::sendWaitingList() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxOrderHistory);
-    if (!m_orderHistory.empty())
-        FIXAcceptor::getInstance()->sendOrderHistory(m_username, m_orderHistory);
+    std::lock_guard<std::mutex> guard(m_mtxWaitingList);
+    if (!m_waitingList.empty())
+        FIXAcceptor::getInstance()->sendWaitingList(m_username, m_waitingList);
 }
 
-void RiskManagement::updateOrderHistory(const Report& report)
+void RiskManagement::updateWaitingList(const Report& report)
 {
     if (report.status == FIX::OrdStatus_NEW)
         return;
 
-    std::lock_guard<std::mutex> guard(m_mtxOrderHistory);
-    auto it = m_orderHistory.find(report.orderID);
-    if (m_orderHistory.end() == it)
+    std::lock_guard<std::mutex> guard(m_mtxWaitingList);
+    auto it = m_waitingList.find(report.orderID);
+    if (m_waitingList.end() == it)
         return;
 
     auto& order = it->second;
     if (order.getShareSize() > report.shareSize) {
         order.setShareSize(order.getShareSize() - report.shareSize);
     } else {
-        if (m_orderHistory.size() == 1) {
+        if (m_waitingList.size() == 1) {
             order.setShareSize(0);
             order.setPrice(0.0);
         } else {
-            m_orderHistory.erase(it);
+            m_waitingList.erase(it);
         }
     }
 }
@@ -160,13 +160,13 @@ void RiskManagement::processOrder()
 
         if (verifyAndSendOrder(*orderPtr)) {
             {
-                std::lock_guard<std::mutex> guard(m_mtxOrderHistory);
+                std::lock_guard<std::mutex> guard(m_mtxWaitingList);
                 if (orderPtr->getOrderType() != QOT::CANCEL_BID && orderPtr->getOrderType() != QOT::CANCEL_ASK) {
-                    m_orderHistory[orderPtr->getOrderID()] = *orderPtr;
+                    m_waitingList[orderPtr->getOrderID()] = *orderPtr;
                 }
             }
 
-            sendOrderHistory();
+            sendWaitingList();
         }
 
         orderPtr = nullptr;
@@ -404,8 +404,8 @@ void RiskManagement::processExecRpt()
                 COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_username + "]!\n" NO_COLOR);
         }
 
-        updateOrderHistory(*reportPtr);
-        sendOrderHistory();
+        updateWaitingList(*reportPtr);
+        sendWaitingList();
 
         reportPtr = nullptr;
         m_execRptBuffer.pop();
