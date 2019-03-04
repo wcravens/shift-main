@@ -481,7 +481,7 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
     cout << COLOR_WARNING "[User] " NO_COLOR << username << endl;
     BCDocuments::getInstance()->unregisterUserInDoc(username); // this shall come first to timely affect other acceptor parts that are sending things aside
     BCDocuments::getInstance()->removeUserFromCandles(username);
-    BCDocuments::getInstance()->removeUserFromStocks(username);
+    BCDocuments::getInstance()->removeUserFromOrderBooks(username);
     cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
          << endl;
 }
@@ -636,7 +636,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
     relatedSymGroup.get(symbol);
 
     const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(sessionID.getTargetCompID());
-    BCDocuments::getInstance()->manageUsersInStockOrderBook('1' == isSubscribed, symbol, username);
+    BCDocuments::getInstance()->manageUsersInOrderBook('1' == isSubscribed, symbol, username);
 }
 
 /*

@@ -31,18 +31,18 @@ bool BCDocuments::hasSymbol(const std::string& symbol) const
     return m_symbols.find(symbol) != m_symbols.end();
 }
 
-void BCDocuments::attachStockToSymbol(const std::string& symbol)
+void BCDocuments::attachOrderBookToSymbol(const std::string& symbol)
 {
-    auto& stockPtr = m_stockBySymbol[symbol]; // insert new
-    stockPtr.reset(new Stock(symbol));
-    stockPtr->spawn();
+    auto& orderBookPtr = m_orderBookBySymbol[symbol]; // insert new
+    orderBookPtr.reset(new OrderBook(symbol));
+    orderBookPtr->spawn();
 }
 
-void BCDocuments::addOrderBookEntryToStock(const std::string& symbol, const OrderBookEntry& entry)
+void BCDocuments::addOrderBookEntryToOrderBook(const std::string& symbol, const OrderBookEntry& entry)
 {
     while (!s_isSecurityListReady)
         std::this_thread::sleep_for(500ms);
-    m_stockBySymbol[symbol]->enqueueOrderBook(entry);
+    m_orderBookBySymbol[symbol]->enqueueOrderBook(entry);
 }
 
 void BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
@@ -131,13 +131,13 @@ void BCDocuments::addReportToUserRiskManagement(const std::string& username, con
     m_riskManagementByName[username]->enqueueExecRpt(report);
 }
 
-double BCDocuments::getStockOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const
+double BCDocuments::getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const
 {
     double global_price = 0.0;
     double local_price = 0.0;
 
-    auto pos = m_stockBySymbol.find(symbol);
-    if (m_stockBySymbol.end() == pos)
+    auto pos = m_orderBookBySymbol.find(symbol);
+    if (m_orderBookBySymbol.end() == pos)
         return 0.0;
 
     if (isBuy) {
@@ -155,14 +155,14 @@ double BCDocuments::getStockOrderBookMarketFirstPrice(bool isBuy, const std::str
     }
 }
 
-bool BCDocuments::manageUsersInStockOrderBook(bool isRegister, const std::string& symbol, const std::string& username) const
+bool BCDocuments::manageUsersInOrderBook(bool isRegister, const std::string& symbol, const std::string& username) const
 {
-    auto pos = m_stockBySymbol.find(symbol);
-    if (m_stockBySymbol.end() != pos) {
+    auto pos = m_orderBookBySymbol.find(symbol);
+    if (m_orderBookBySymbol.end() != pos) {
         if (isRegister)
-            pos->second->registerUserInStock(username);
+            pos->second->registerUserInOrderBook(username);
         else // unregister
-            pos->second->unregisterUserInStock(username);
+            pos->second->unregisterUserInOrderBook(username);
         return true;
     }
 
@@ -271,14 +271,14 @@ void BCDocuments::addOrderBookSymbolToUser(const std::string& username, const st
     m_orderBookSymbolsByName[username].insert(symbol);
 }
 
-void BCDocuments::removeUserFromStocks(const std::string& username)
+void BCDocuments::removeUserFromOrderBooks(const std::string& username)
 {
     std::lock_guard<std::mutex> guardOSBN(m_mtxOrderBookSymbolsByName);
 
     auto pos = m_orderBookSymbolsByName.find(username);
     if (m_orderBookSymbolsByName.end() != pos) {
         for (const auto& symbol : pos->second) {
-            m_stockBySymbol[symbol]->unregisterUserInStock(username);
+            m_orderBookBySymbol[symbol]->unregisterUserInOrderBook(username);
         }
         m_orderBookSymbolsByName.erase(pos);
     }
@@ -307,11 +307,11 @@ void BCDocuments::removeCandleSymbolFromUser(const std::string& username, const 
     }
 }
 
-void BCDocuments::broadcastStocks() const
+void BCDocuments::broadcastOrderBooks() const
 {
-    for (const auto& kv : m_stockBySymbol) {
-        auto& stock = *kv.second;
-        stock.broadcastWholeOrderBookToAll();
+    for (const auto& kv : m_orderBookBySymbol) {
+        auto& orderBook = *kv.second;
+        orderBook.broadcastWholeOrderBookToAll();
     }
 }
 

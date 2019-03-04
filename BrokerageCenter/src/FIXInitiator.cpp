@@ -525,7 +525,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pDaytime->getValue()
     };
 
-    BCDocuments::getInstance()->addOrderBookEntryToStock(*pSymbol, update);
+    BCDocuments::getInstance()->addOrderBookEntryToOrderBook(*pSymbol, update);
 
     if (prevCnt) { // > 1 threads
         delete pEntryGroup;
@@ -568,7 +568,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
         relatedSymGroup.get(symbol);
 
         docs->addSymbol(symbol);
-        docs->attachStockToSymbol(symbol);
+        docs->attachOrderBookToSymbol(symbol);
         docs->attachCandlestickDataToSymbol(symbol);
     }
 

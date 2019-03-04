@@ -1,4 +1,4 @@
-#include "Stock.h"
+#include "OrderBook.h"
 
 #include "BCDocuments.h"
 #include "FIXAcceptor.h"
@@ -8,22 +8,22 @@
 #include <shift/miscutils/concurrency/Consumer.h>
 
 /**
-*   @brief  Default constructs an Stock instance.
+*   @brief  Default constructs an OrderBook instance.
 */
-Stock::Stock() = default;
+OrderBook::OrderBook() = default;
 
 /**
-*   @brief  Constructs Stock instance with stock name.
+*   @brief  Constructs OrderBook instance with stock name.
 *	@param	name: The stock name.
 */
-Stock::Stock(std::string name)
+OrderBook::OrderBook(std::string name)
     : m_symbol(std::move(name))
 {
 }
 
-Stock::~Stock()
+OrderBook::~OrderBook()
 {
-    shift::concurrency::notifyConsumerThreadToQuit(m_quitFlag, m_cvOdrBkBuff, *m_th);
+    shift::concurrency::notifyConsumerThreadToQuit(m_quitFlag, m_cvOBEBuff, *m_th);
     m_th = nullptr;
 }
 
@@ -32,49 +32,49 @@ Stock::~Stock()
 *	@param	entry: The OrderBookEntry to be enqueue the buffer.
 *   @return nothing
 */
-void Stock::enqueueOrderBook(const OrderBookEntry& entry)
+void OrderBook::enqueueOrderBook(const OrderBookEntry& entry)
 {
     {
-        std::lock_guard<std::mutex> guard(m_mtxOdrBkBuff);
-        m_odrBkBuff.push(entry);
+        std::lock_guard<std::mutex> guard(m_mtxOBEBuff);
+        m_obeBuff.push(entry);
     }
-    m_cvOdrBkBuff.notify_one();
+    m_cvOBEBuff.notify_one();
 }
 
 /**
 *   @brief  Thread-safely save the OrderBookEntry items correspondingly with respect to their order book type.
 *   @return nothing
 */
-void Stock::process()
+void OrderBook::process()
 {
     thread_local auto quitFut = m_quitFlag.get_future();
 
     while (true) {
-        std::unique_lock<std::mutex> buffLock(m_mtxOdrBkBuff);
-        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOdrBkBuff, buffLock, [this] { return !m_odrBkBuff.empty(); }))
+        std::unique_lock<std::mutex> buffLock(m_mtxOBEBuff);
+        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOBEBuff, buffLock, [this] { return !m_obeBuff.empty(); }))
             return;
 
         using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
 
-        switch (m_odrBkBuff.front().getType()) {
+        switch (m_obeBuff.front().getType()) {
         case OBT::GLB_ASK:
-            saveOrderBookGlobalAsk(m_odrBkBuff.front());
+            saveOrderBookGlobalAsk(m_obeBuff.front());
             break;
         case OBT::LOC_ASK:
-            saveOrderBookLocalAsk(m_odrBkBuff.front());
+            saveOrderBookLocalAsk(m_obeBuff.front());
             break;
         case OBT::GLB_BID:
-            saveOrderBookGlobalBid(m_odrBkBuff.front());
+            saveOrderBookGlobalBid(m_obeBuff.front());
             break;
         case OBT::LOC_BID:
-            saveOrderBookLocalBid(m_odrBkBuff.front());
+            saveOrderBookLocalBid(m_obeBuff.front());
             break;
         default:
             break;
         }
 
-        broadcastSingleUpdateToAll(m_odrBkBuff.front());
-        m_odrBkBuff.pop();
+        broadcastSingleUpdateToAll(m_obeBuff.front());
+        m_obeBuff.pop();
     } // while
 }
 
@@ -82,9 +82,9 @@ void Stock::process()
 *   @brief  Spawns and launch the process thread.
 *   @return nothing
 */
-void Stock::spawn()
+void OrderBook::spawn()
 {
-    m_th.reset(new std::thread(&Stock::process, this));
+    m_th.reset(new std::thread(&OrderBook::process, this));
 }
 
 /**
@@ -92,13 +92,13 @@ void Stock::spawn()
 *	@param	username: The name of the user to be registered.
 *   @return nothing
 */
-void Stock::registerUserInStock(const std::string& username)
+void OrderBook::registerUserInOrderBook(const std::string& username)
 {
     broadcastWholeOrderBookToOne(username);
     {
-        std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-        if (std::find(m_stockUserList.begin(), m_stockUserList.end(), username) == m_stockUserList.end())
-            m_stockUserList.push_back(username);
+        std::lock_guard<std::mutex> guard(m_mtxOrderBookUserList);
+        if (std::find(m_orderBookUserList.begin(), m_orderBookUserList.end(), username) == m_orderBookUserList.end())
+            m_orderBookUserList.push_back(username);
     }
     BCDocuments::getInstance()->addOrderBookSymbolToUser(username, m_symbol);
 }
@@ -108,13 +108,13 @@ void Stock::registerUserInStock(const std::string& username)
 *	@param	username: The username of the user.
 *   @return nothing
 */
-void Stock::unregisterUserInStock(const std::string& username)
+void OrderBook::unregisterUserInOrderBook(const std::string& username)
 {
-    std::lock_guard<std::mutex> guard(m_mtxStockUserList);
-    const auto pos = std::find(m_stockUserList.begin(), m_stockUserList.end(), username);
+    std::lock_guard<std::mutex> guard(m_mtxOrderBookUserList);
+    const auto pos = std::find(m_orderBookUserList.begin(), m_orderBookUserList.end(), username);
     // fast removal:
-    std::swap(*pos, m_stockUserList.back());
-    m_stockUserList.pop_back();
+    std::swap(*pos, m_orderBookUserList.back());
+    m_orderBookUserList.pop_back();
 }
 
 /**
@@ -122,14 +122,14 @@ void Stock::unregisterUserInStock(const std::string& username)
 *	@param	update: The order book update record to be sent.
 *   @return nothing
 */
-void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
+void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 {
-    std::unique_lock<std::mutex> ulSUL(m_mtxStockUserList);
-    if (m_stockUserList.empty())
+    std::unique_lock<std::mutex> ulOBUL(m_mtxOrderBookUserList);
+    if (m_orderBookUserList.empty())
         return;
 
-    auto sulCopy(m_stockUserList);
-    ulSUL.unlock();
+    auto obulCopy(m_orderBookUserList);
+    ulOBUL.unlock();
 
     using ulock_t = std::unique_lock<std::mutex>;
     ulock_t lock;
@@ -157,7 +157,7 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
         return;
     }
 
-    FIXAcceptor::getInstance()->sendOrderBookUpdate(sulCopy, update);
+    FIXAcceptor::getInstance()->sendOrderBookUpdate(obulCopy, update);
 }
 
 /**
@@ -165,7 +165,7 @@ void Stock::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 *	@param	username: The user user to be sent to.
 *   @return nothing
 */
-void Stock::broadcastWholeOrderBookToOne(const std::string& username)
+void OrderBook::broadcastWholeOrderBookToOne(const std::string& username)
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     const std::vector<std::string> userList{ username };
@@ -189,16 +189,16 @@ void Stock::broadcastWholeOrderBookToOne(const std::string& username)
 *   @brief  Thread-safely sends complete order books to all users.
 *   @return nothing
 */
-void Stock::broadcastWholeOrderBookToAll()
+void OrderBook::broadcastWholeOrderBookToAll()
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
 
-    std::unique_lock<std::mutex> ulSUL(m_mtxStockUserList);
-    if (m_stockUserList.empty())
+    std::unique_lock<std::mutex> ulOBUL(m_mtxOrderBookUserList);
+    if (m_orderBookUserList.empty())
         return;
 
-    auto sulCopy(m_stockUserList);
-    ulSUL.unlock();
+    auto obulCopy(m_orderBookUserList);
+    ulOBUL.unlock();
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
     std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
@@ -206,13 +206,13 @@ void Stock::broadcastWholeOrderBookToAll()
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(sulCopy, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook(obulCopy, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(sulCopy, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook(obulCopy, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(sulCopy, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook(obulCopy, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(sulCopy, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook(obulCopy, m_odrBkLocalBid);
 }
 
 /**
@@ -220,7 +220,7 @@ void Stock::broadcastWholeOrderBookToAll()
 *   @param	entry: The order book entry to be saved.
 *   @return nothing
 */
-void Stock::saveOrderBookGlobalBid(const OrderBookEntry& entry)
+void OrderBook::saveOrderBookGlobalBid(const OrderBookEntry& entry)
 {
     double price = entry.getPrice();
     std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalBid);
@@ -235,7 +235,7 @@ void Stock::saveOrderBookGlobalBid(const OrderBookEntry& entry)
 *   @param	entry: The order book entry to be saved.
 *   @return nothing
 */
-void Stock::saveOrderBookGlobalAsk(const OrderBookEntry& entry)
+void OrderBook::saveOrderBookGlobalAsk(const OrderBookEntry& entry)
 {
     double price = entry.getPrice();
     std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalAsk);
@@ -265,7 +265,7 @@ static void s_saveOdrBkLocal(const OrderBookEntry& entry, std::mutex& mtxOdrBkLo
 *   @param	entry: The order book entry to be saved.
 *   @return nothing
 */
-inline void Stock::saveOrderBookLocalBid(const OrderBookEntry& entry)
+inline void OrderBook::saveOrderBookLocalBid(const OrderBookEntry& entry)
 {
     ::s_saveOdrBkLocal(entry, m_mtxOdrBkLocalBid, m_odrBkLocalBid);
 }
@@ -275,12 +275,12 @@ inline void Stock::saveOrderBookLocalBid(const OrderBookEntry& entry)
 *   @param	entry: The order book entry to be saved.
 *   @return nothing
 */
-inline void Stock::saveOrderBookLocalAsk(const OrderBookEntry& entry)
+inline void OrderBook::saveOrderBookLocalAsk(const OrderBookEntry& entry)
 {
     ::s_saveOdrBkLocal(entry, m_mtxOdrBkLocalAsk, m_odrBkLocalAsk);
 }
 
-double Stock::getGlobalBidOrderBookFirstPrice() const
+double OrderBook::getGlobalBidOrderBookFirstPrice() const
 {
     std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalBid);
     if (!m_odrBkGlobalBid.empty())
@@ -289,7 +289,7 @@ double Stock::getGlobalBidOrderBookFirstPrice() const
         return 0.0;
 }
 
-double Stock::getGlobalAskOrderBookFirstPrice() const
+double OrderBook::getGlobalAskOrderBookFirstPrice() const
 {
     std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalAsk);
     if (!m_odrBkGlobalAsk.empty())
@@ -298,7 +298,7 @@ double Stock::getGlobalAskOrderBookFirstPrice() const
         return 0.0;
 }
 
-double Stock::getLocalBidOrderBookFirstPrice() const
+double OrderBook::getLocalBidOrderBookFirstPrice() const
 {
     std::lock_guard<std::mutex> guard(m_mtxOdrBkLocalBid);
     if (!m_odrBkLocalBid.empty())
@@ -307,7 +307,7 @@ double Stock::getLocalBidOrderBookFirstPrice() const
         return 0.0;
 }
 
-double Stock::getLocalAskOrderBookFirstPrice() const
+double OrderBook::getLocalAskOrderBookFirstPrice() const
 {
     std::lock_guard<std::mutex> guard(m_mtxOdrBkLocalAsk);
     if (!m_odrBkLocalAsk.empty())

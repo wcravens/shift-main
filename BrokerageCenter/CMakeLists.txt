@@ -38,7 +38,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/Order.h
     ${PROJECT_SOURCE_DIR}/include/Report.h
     ${PROJECT_SOURCE_DIR}/include/RiskManagement.h
-    ${PROJECT_SOURCE_DIR}/include/Stock.h
+    ${PROJECT_SOURCE_DIR}/include/OrderBook.h
     ${PROJECT_SOURCE_DIR}/include/CandlestickData.h
     ${PROJECT_SOURCE_DIR}/include/TempCandlestickData.h
     ${PROJECT_SOURCE_DIR}/include/TokenPool.h
@@ -56,7 +56,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/PortfolioSummary.cpp
     ${PROJECT_SOURCE_DIR}/src/Order.cpp
     ${PROJECT_SOURCE_DIR}/src/RiskManagement.cpp
-    ${PROJECT_SOURCE_DIR}/src/Stock.cpp
+    ${PROJECT_SOURCE_DIR}/src/OrderBook.cpp
     ${PROJECT_SOURCE_DIR}/src/CandlestickData.cpp
     ${PROJECT_SOURCE_DIR}/src/TempCandlestickData.cpp
 )

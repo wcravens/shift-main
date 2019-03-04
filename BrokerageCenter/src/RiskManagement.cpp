@@ -128,12 +128,12 @@ void RiskManagement::insertPortfolioItem(const std::string& symbol, const Portfo
 
 inline double RiskManagement::getMarketBuyPrice(const std::string& symbol)
 {
-    return BCDocuments::getInstance()->getStockOrderBookMarketFirstPrice(true, symbol);
+    return BCDocuments::getInstance()->getOrderBookMarketFirstPrice(true, symbol);
 }
 
 inline double RiskManagement::getMarketSellPrice(const std::string& symbol)
 {
-    return BCDocuments::getInstance()->getStockOrderBookMarketFirstPrice(false, symbol);
+    return BCDocuments::getInstance()->getOrderBookMarketFirstPrice(false, symbol);
 }
 
 void RiskManagement::processOrder()

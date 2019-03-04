@@ -2,10 +2,10 @@
 
 #include "CandlestickData.h"
 #include "Order.h"
+#include "OrderBook.h"
 #include "OrderBookEntry.h"
 #include "Report.h"
 #include "RiskManagement.h"
-#include "Stock.h"
 #include "Transaction.h"
 
 #include <mutex>
@@ -35,8 +35,8 @@ class BCDocuments {
     std::unordered_map<std::string, std::string> m_mapTarID2Name; // map from Target Computer ID to Username
     std::unordered_map<std::string, std::string> m_mapName2TarID; // map from Username to Target Computer ID
 
-    std::unordered_map<std::string, std::unique_ptr<Stock>> m_stockBySymbol; // symbol, Stock; contains 4 types of order book for each stock
-    std::unordered_map<std::string, std::unique_ptr<CandlestickData>> m_candleBySymbol; // symbol, StockSummery; contains current price and candle data history for each stock
+    std::unordered_map<std::string, std::unique_ptr<OrderBook>> m_orderBookBySymbol; // symbol, OrderBook; contains 4 types of order book for each stock
+    std::unordered_map<std::string, std::unique_ptr<CandlestickData>> m_candleBySymbol; // symbol, CandlestickData; contains current price and candle data history for each stock
     std::unordered_map<std::string, std::unique_ptr<RiskManagement>> m_riskManagementByName; // Username, RiskManagement
     std::unordered_map<std::string, std::unordered_set<std::string>> m_orderBookSymbolsByName; // Username, symbols; for order book subscription
     std::unordered_map<std::string, std::unordered_set<std::string>> m_candleSymbolsByName; // Username, symbols; for candle stick data subscription
@@ -48,13 +48,13 @@ public:
 
     static BCDocuments* getInstance();
 
-    double getStockOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const;
-    bool manageUsersInStockOrderBook(bool isRegister, const std::string& symbol, const std::string& username) const;
+    double getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const;
+    bool manageUsersInOrderBook(bool isRegister, const std::string& symbol, const std::string& username) const;
     bool manageUsersInCandlestickData(bool isRegister, const std::string& username, const std::string& symbol);
     int sendHistoryToUser(const std::string& username);
 
-    void attachStockToSymbol(const std::string& symbol);
-    void addOrderBookEntryToStock(const std::string& symbol, const OrderBookEntry& ob);
+    void attachOrderBookToSymbol(const std::string& symbol);
+    void addOrderBookEntryToOrderBook(const std::string& symbol, const OrderBookEntry& ob);
     void attachCandlestickDataToSymbol(const std::string& symbol);
     void addTransacToCandlestickData(const std::string& symbol, const Transaction& transac);
     void addRiskManagementToUserLockedExplicit(const std::string& username, double buyingPower, int shares, double price, const std::string& symbol);
@@ -67,7 +67,7 @@ public:
     std::unordered_map<std::string, std::string> getConnectedTargetIDsMap(); // Target Computer ID, Username
 
     void addOrderBookSymbolToUser(const std::string& username, const std::string& symbol);
-    void removeUserFromStocks(const std::string& username);
+    void removeUserFromOrderBooks(const std::string& username);
     void removeUserFromCandles(const std::string& username);
     void removeCandleSymbolFromUser(const std::string& username, const std::string& symbol);
 
@@ -79,5 +79,5 @@ public:
     std::string getTargetIDByUsername(const std::string& username);
     std::string getUsernameByTargetID(const std::string& targetID);
 
-    void broadcastStocks() const;
+    void broadcastOrderBooks() const;
 };
