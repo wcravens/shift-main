@@ -7,4 +7,4 @@ Name: libshift_miscutils-d
 Version: 1.0.0.0
 Description: SHIFT LibMiscUtils debug
 Libs: -L${libdir} -lshift_miscutils-d 
-Cflags: -I/usr/local/SHIFT/LibMiscUtils/include
+Cflags: -I/usr/local/include/shift/miscutils/
