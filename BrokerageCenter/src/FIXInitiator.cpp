@@ -83,7 +83,7 @@ void FIXInitiator::disconnectMatchingEngine()
 /**
  * @brief Sending the order to the server
  */
-void FIXInitiator::sendQuote(const Quote& quote)
+void FIXInitiator::sendOrder(const Order& order)
 {
     FIX::Message message;
 
@@ -93,17 +93,17 @@ void FIXInitiator::sendQuote(const Quote& quote)
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
 
-    message.setField(FIX::ClOrdID(quote.getOrderID()));
-    message.setField(FIX::Symbol(quote.getSymbol()));
-    message.setField(FIX::Side(quote.getOrderType())); // FIXME: separate Side and OrdType
+    message.setField(FIX::ClOrdID(order.getOrderID()));
+    message.setField(FIX::Symbol(order.getSymbol()));
+    message.setField(FIX::Side(order.getOrderType())); // FIXME: separate Side and OrdType
     message.setField(FIX::TransactTime(6));
-    message.setField(FIX::OrderQty(quote.getShareSize()));
-    message.setField(FIX::OrdType(quote.getOrderType())); // FIXME: separate Side and OrdType
-    message.setField(FIX::Price(quote.getPrice()));
+    message.setField(FIX::OrderQty(order.getShareSize()));
+    message.setField(FIX::OrdType(order.getOrderType())); // FIXME: separate Side and OrdType
+    message.setField(FIX::Price(order.getPrice()));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_CLIENTID);
-    idGroup.set(FIX::PartyID(quote.getUsername()));
+    idGroup.set(FIX::PartyID(order.getUsername()));
     message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
@@ -158,7 +158,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             return;
         }
 
-        // For confirmation report // sendQuoteConfirms
+        // For confirmation report // sendOrderConfirms
         FIX::OrderID orderID;
         FIX::Symbol symbol;
         FIX::Side orderType;
@@ -525,7 +525,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pDaytime->getValue()
     };
 
-    BCDocuments::getInstance()->addOrderBookEntryToStock(*pSymbol, update);
+    BCDocuments::getInstance()->addOrderBookEntryToOrderBook(*pSymbol, update);
 
     if (prevCnt) { // > 1 threads
         delete pEntryGroup;
@@ -568,7 +568,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
         relatedSymGroup.get(symbol);
 
         docs->addSymbol(symbol);
-        docs->attachStockToSymbol(symbol);
+        docs->attachOrderBookToSymbol(symbol);
         docs->attachCandlestickDataToSymbol(symbol);
     }
 

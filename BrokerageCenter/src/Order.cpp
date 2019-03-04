@@ -1,20 +1,20 @@
-#include "Quote.h"
+#include "Order.h"
 
 /**
-*   @brief  Default constructor of Quote.
+*   @brief  Default constructor of Order.
 */
-Quote::Quote() = default;
+Order::Order() = default;
 
 /**
 *   @brief  Constructs with corresponding parameters.
-*   @param  symbol: The stock name of quote
-*   @param  username： The username of quote
-*   @param  orderID: The order ID of quote
-*   @param  price: The price of quote
-*   @param  shareSize: The size of quote
-*   @param  orderType: The order type of quotes
+*   @param  symbol: The stock name of order
+*   @param  username： The username of order
+*   @param  orderID: The order ID of order
+*   @param  price: The price of order
+*   @param  shareSize: The size of order
+*   @param  orderType: The order type of orders
 */
-Quote::Quote(std::string symbol, std::string username, std::string orderID, double price, int shareSize, ORDER_TYPE orderType)
+Order::Order(std::string symbol, std::string username, std::string orderID, double price, int shareSize, ORDER_TYPE orderType)
     : m_symbol(std::move(symbol))
     , m_username(std::move(username))
     , m_orderID(std::move(orderID))
@@ -28,7 +28,7 @@ Quote::Quote(std::string symbol, std::string username, std::string orderID, doub
 *   @brief  Getter of stock name.
 *   @return The symbol.
 */
-const std::string& Quote::getSymbol() const
+const std::string& Order::getSymbol() const
 {
     return m_symbol;
 }
@@ -37,7 +37,7 @@ const std::string& Quote::getSymbol() const
 *   @brief  Getter of username.
 *   @return The username.
 */
-const std::string& Quote::getUsername() const
+const std::string& Order::getUsername() const
 {
     return m_username;
 }
@@ -46,16 +46,16 @@ const std::string& Quote::getUsername() const
 *   @brief  Getter of order ID.
 *   @return The order ID.
 */
-const std::string& Quote::getOrderID() const
+const std::string& Order::getOrderID() const
 {
     return m_orderID;
 }
 
 /**
-*   @brief  Setter of price of the quote.
+*   @brief  Setter of price of the order.
 *   @return nothing
 */
-void Quote::setPrice(double price)
+void Order::setPrice(double price)
 {
     m_price = price;
 }
@@ -64,16 +64,16 @@ void Quote::setPrice(double price)
 *   @brief  Getter of price.
 *   @return The price.
 */
-double Quote::getPrice() const
+double Order::getPrice() const
 {
     return m_price;
 }
 
 /**
-*   @brief  Setter of share size of the quote.
+*   @brief  Setter of share size of the order.
 *   @return nothing
 */
-void Quote::setShareSize(int shareSize)
+void Order::setShareSize(int shareSize)
 {
     m_shareSize = shareSize;
 }
@@ -82,7 +82,7 @@ void Quote::setShareSize(int shareSize)
 *   @brief  Getter of share size.
 *   @return The share size.
 */
-int Quote::getShareSize() const
+int Order::getShareSize() const
 {
     return m_shareSize;
 }
@@ -91,7 +91,7 @@ int Quote::getShareSize() const
 *   @brief  Getter of order type.
 *   @return The order type.
 */
-auto Quote::getOrderType() const -> ORDER_TYPE
+auto Order::getOrderType() const -> ORDER_TYPE
 {
     return m_orderType;
 }

@@ -85,9 +85,9 @@ void CandlestickData::process()
 {
     thread_local auto quitFut = m_quitFlag.get_future();
 
-    auto writeCandlestickDataHistory = [this](const TempCandlestickData& tmpCandle) {
+    auto writeCandlestickDataHistory = [this](const CandlestickDataPoint& cdPoint) {
         std::lock_guard<std::mutex> guard(m_mtxHistory);
-        m_history[m_currOpenTime] = tmpCandle;
+        m_history[m_currOpenTime] = cdPoint;
     };
 
     while (true) {
@@ -132,9 +132,9 @@ void CandlestickData::process()
 
                     m_currOpenTime++;
 
-                    TempCandlestickData tmpCandle(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
-                    sendCurrentCandlestickData(tmpCandle);
-                    writeCandlestickDataHistory(tmpCandle);
+                    CandlestickDataPoint cdPoint(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
+                    sendPoint(cdPoint);
+                    writeCandlestickDataHistory(cdPoint);
                 }
             }
 
@@ -175,9 +175,9 @@ void CandlestickData::process()
             DEBUG_PERFORMANCE_COUNTER(pc6, "notsent2")
             // finish and send current window
 
-            TempCandlestickData tmpCandle(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
-            sendCurrentCandlestickData(tmpCandle);
-            writeCandlestickDataHistory(tmpCandle);
+            CandlestickDataPoint cdPoint(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
+            sendPoint(cdPoint);
+            writeCandlestickDataHistory(cdPoint);
 
             m_lastTransacSent = true;
         }
@@ -189,7 +189,7 @@ void CandlestickData::spawn()
     m_th.reset(new std::thread(&CandlestickData::process, this));
 }
 
-void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpCandle)
+void CandlestickData::sendPoint(const CandlestickDataPoint& cdPoint)
 {
     std::unique_lock<std::mutex> ulCUL(m_mtxCandleUserList);
     if (m_candleUserList.empty())
@@ -198,18 +198,20 @@ void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpC
     auto culCopy(m_candleUserList);
     ulCUL.unlock();
 
-    FIXAcceptor::getInstance()->sendCandlestickData(culCopy, tmpCandle);
+    FIXAcceptor::getInstance()->sendCandlestickData(culCopy, cdPoint);
 }
 
-void CandlestickData::sendHistory(const std::string username)
+void CandlestickData::sendHistory(std::string username)
 {
-    std::map<std::time_t, TempCandlestickData> history;
+    std::map<std::time_t, CandlestickDataPoint> histCopy;
     {
         std::lock_guard<std::mutex> guard(m_mtxHistory);
-        history = m_history;
+        histCopy = m_history;
     }
-    for (const auto& i : history) {
-        FIXAcceptor::getInstance()->sendCandlestickData({ username }, i.second);
+    const std::vector<std::string> userList{ std::move(username) };
+
+    for (const auto& i : histCopy) {
+        FIXAcceptor::getInstance()->sendCandlestickData(userList, i.second);
     }
 }
 

@@ -8,4 +8,4 @@ Version: 1.0.0.0
 Description: SHIFT LibCoreClient debug
 Requires: libshift_miscutils-d
 Libs: -L${libdir} -lshift_coreclient-d 
-Cflags: -I/usr/local/SHIFT/LibCoreClient/include
+Cflags: -I/usr/local/include/shift/coreclient/

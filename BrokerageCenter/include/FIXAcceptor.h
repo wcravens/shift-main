@@ -5,12 +5,12 @@
 
 #pragma once
 
+#include "CandlestickDataPoint.h"
+#include "Order.h"
 #include "OrderBookEntry.h"
 #include "PortfolioItem.h"
 #include "PortfolioSummary.h"
-#include "Quote.h"
 #include "Report.h"
-#include "TempCandlestickData.h"
 #include "Transaction.h"
 
 #include <map>
@@ -57,14 +57,14 @@ public:
 
     void sendPortfolioSummary(const std::string& username, const PortfolioSummary& summary);
     void sendPortfolioItem(const std::string& username, const PortfolioItem& item);
-    void sendQuoteHistory(const std::string& username, const std::unordered_map<std::string, Quote>& quotes);
-    void sendConfirmationReport(const Report& report); // send quote conformation report
+    void sendWaitingList(const std::string& username, const std::unordered_map<std::string, Order>& orders);
+    void sendConfirmationReport(const Report& report); // send order conformation report
 
     void sendLastPrice2All(const Transaction& transac);
     void sendOrderBook(const std::vector<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
-    static void s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry);
+    static void s_setAddGroupIntoOrderAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry);
     void sendOrderBookUpdate(const std::vector<std::string>& userList, const OrderBookEntry& update); // send order book update to users
-    void sendCandlestickData(const std::vector<std::string>& userList, const TempCandlestickData& tmpCandle); // for candlestick data
+    void sendCandlestickData(const std::vector<std::string>& userList, const CandlestickDataPoint& cdPoint); // for candlestick data
 
 private:
     FIXAcceptor() = default;

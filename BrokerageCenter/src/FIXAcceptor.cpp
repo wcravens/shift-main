@@ -18,9 +18,7 @@
 
 // Predefined constant FIX message (To avoid recalculations):
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1");
-static const auto& FIXFIELD_MSGTY_MASSQUOTEACK = FIX::MsgType(FIX::MsgType_MassQuoteAcknowledgement);
 static const auto& FIXFIELD_QUOTESTAT = FIX::QuoteStatus(0); // 0 = Accepted
-static const auto& FIXFIELD_TXT_QH = FIX::Text("quoteHistory");
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
 static const auto& FIXFIELD_EXECBROKER = FIX::PartyRole(1); // 1 = ExecBroker in FIX4.2
 static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New
@@ -195,11 +193,11 @@ void FIXAcceptor::sendPortfolioItem(const std::string& username, const Portfolio
 /**
  * @brief
  */
-void FIXAcceptor::sendQuoteHistory(const std::string& username, const std::unordered_map<std::string, Quote>& quotes)
+void FIXAcceptor::sendWaitingList(const std::string& username, const std::unordered_map<std::string, Order>& orders)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
     if (::STDSTR_NULL == targetID) {
-        cout << "sendQuoteHistory(): ";
+        cout << "sendWaitingList(): ";
         cout << username << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
@@ -210,22 +208,21 @@ void FIXAcceptor::sendQuoteHistory(const std::string& username, const std::unord
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
-    header.setField(::FIXFIELD_MSGTY_MASSQUOTEACK);
+    header.setField(FIX::MsgType(FIX::MsgType_MassQuoteAcknowledgement));
 
     message.setField(::FIXFIELD_QUOTESTAT); // Required by FIX
-    message.setField(::FIXFIELD_TXT_QH);
     message.setField(FIX::Account(username));
 
-    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
-    for (const auto& i : quotes) {
-        auto& quote = i.second;
-        quoteSetGroup.setField(FIX::QuoteSetID(targetID));
-        quoteSetGroup.setField(FIX::UnderlyingSecurityID(quote.getOrderID()));
-        quoteSetGroup.setField(FIX::UnderlyingSymbol(quote.getSymbol()));
-        quoteSetGroup.setField(FIX::UnderlyingStrikePrice(quote.getPrice()));
-        quoteSetGroup.setField(FIX::UnderlyingSymbolSfx(std::to_string(quote.getShareSize()))); // FIXME: replaceb by other field
-        quoteSetGroup.setField(FIX::UnderlyingIssuer(std::to_string(quote.getOrderType())));
-        message.addGroup(quoteSetGroup);
+    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets orderSetGroup;
+    for (const auto& i : orders) {
+        auto& order = i.second;
+        orderSetGroup.setField(FIX::QuoteSetID(targetID));
+        orderSetGroup.setField(FIX::UnderlyingSecurityID(order.getOrderID()));
+        orderSetGroup.setField(FIX::UnderlyingSymbol(order.getSymbol()));
+        orderSetGroup.setField(FIX::UnderlyingStrikePrice(order.getPrice()));
+        orderSetGroup.setField(FIX::UnderlyingSymbolSfx(std::to_string(order.getShareSize()))); // FIXME: replaceb by other field
+        orderSetGroup.setField(FIX::UnderlyingIssuer(std::to_string(order.getOrderType())));
+        message.addGroup(orderSetGroup);
     }
 
     FIX::Session::sendToTarget(message);
@@ -339,12 +336,12 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& userList, const 
     if (obt == OBT::GLB_BID || obt == OBT::LOC_BID) { //reverse the Bid/bid order book order
         for (auto ri = orderBookName.crbegin(); ri != orderBookName.crend(); ++ri) {
             for (const auto& j : ri->second)
-                s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
+                s_setAddGroupIntoOrderAckMsg(message, entryGroup, j.second);
         }
     } else { // *_ASK
         for (const auto& i : orderBookName) {
             for (const auto& j : i.second)
-                s_setAddGroupIntoQuoteAckMsg(message, entryGroup, j.second);
+                s_setAddGroupIntoOrderAckMsg(message, entryGroup, j.second);
         }
     }
 
@@ -358,7 +355,7 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& userList, const 
     }
 }
 
-/*static*/ inline void FIXAcceptor::s_setAddGroupIntoQuoteAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry)
+/*static*/ inline void FIXAcceptor::s_setAddGroupIntoOrderAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry)
 {
     entryGroup.setField(FIX::MDEntryType((char)entry.getType()));
     entryGroup.setField(FIX::MDEntryPx(entry.getPrice()));
@@ -414,7 +411,7 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& userList, 
     }
 }
 
-void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& userList, const TempCandlestickData& tmpCandle)
+void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& userList, const CandlestickDataPoint& cdPoint)
 {
     FIX::Message message;
 
@@ -423,12 +420,12 @@ void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& userList, 
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
 
-    message.setField(FIX::Symbol(tmpCandle.getSymbol()));
-    message.setField(FIX::Text(std::to_string(tmpCandle.getTempTimeFrom()))); // no need for timestamp
-    message.setField(FIX::StrikePrice(tmpCandle.getTempOpenPrice())); // Open price
-    message.setField(FIX::HighPx(tmpCandle.getTempHighPrice())); // High price
-    message.setField(FIX::LowPx(tmpCandle.getTempLowPrice())); // Low price
-    message.setField(FIX::LastPx(tmpCandle.getTempClosePrice())); // Close price
+    message.setField(FIX::Symbol(cdPoint.getSymbol()));
+    message.setField(FIX::Text(std::to_string(cdPoint.getTimeFrom()))); // no need for timestamp
+    message.setField(FIX::StrikePrice(cdPoint.getOpenPrice())); // Open price
+    message.setField(FIX::HighPx(cdPoint.getHighPrice())); // High price
+    message.setField(FIX::LowPx(cdPoint.getLowPrice())); // Low price
+    message.setField(FIX::LastPx(cdPoint.getClosePrice())); // Close price
 
     for (const auto& username : userList) {
         const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
@@ -481,7 +478,7 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
     cout << COLOR_WARNING "[User] " NO_COLOR << username << endl;
     BCDocuments::getInstance()->unregisterUserInDoc(username); // this shall come first to timely affect other acceptor parts that are sending things aside
     BCDocuments::getInstance()->removeUserFromCandles(username);
-    BCDocuments::getInstance()->removeUserFromStocks(username);
+    BCDocuments::getInstance()->removeUserFromOrderBooks(username);
     cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
          << endl;
 }
@@ -572,7 +569,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
          << "\n\torderType: " << orderType << endl;
 
     // Order validation
-    const auto qot = Quote::ORDER_TYPE(char(orderType));
+    const auto qot = Order::ORDER_TYPE(char(orderType));
 
     if (username.getLength() == 0) {
         cout << "username is empty" << endl;
@@ -610,7 +607,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    BCDocuments::getInstance()->addQuoteToUserRiskManagement(username, Quote{ symbol, username, orderID, price, int(shareSize), qot });
+    BCDocuments::getInstance()->addOrderToUserRiskManagement(username, Order{ symbol, username, orderID, price, int(shareSize), qot });
 }
 
 /*
@@ -636,7 +633,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
     relatedSymGroup.get(symbol);
 
     const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(sessionID.getTargetCompID());
-    BCDocuments::getInstance()->manageUsersInStockOrderBook('1' == isSubscribed, symbol, username);
+    BCDocuments::getInstance()->manageUsersInOrderBook('1' == isSubscribed, symbol, username);
 }
 
 /*

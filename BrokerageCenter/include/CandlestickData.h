@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TempCandlestickData.h"
+#include "CandlestickDataPoint.h"
 #include "Transaction.h"
 
 #include <atomic>
@@ -29,7 +29,7 @@ private:
     std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
 
     std::vector<std::string> m_candleUserList; // names of registered users for this CandlestickData
-    std::map<std::time_t, TempCandlestickData> m_history;
+    std::map<std::time_t, CandlestickDataPoint> m_history;
 
     mutable std::mutex m_mtxTransacBuff;
     mutable std::mutex m_mtxCandleUserList;
@@ -44,8 +44,8 @@ public:
     CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime);
     ~CandlestickData();
 
-    void sendCurrentCandlestickData(const TempCandlestickData& tmpCandle);
-    void sendHistory(const std::string username);
+    void sendPoint(const CandlestickDataPoint& cdPoint);
+    void sendHistory(std::string username);
 
     const std::string& getSymbol() const;
 

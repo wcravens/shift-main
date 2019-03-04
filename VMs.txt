@@ -5,5 +5,5 @@ Release         155.246.104.29      16 / 8          100GB       Ubuntu 18.04    
                 155.246.104.38      16 / 8          200GB       Ubuntu 18.04    OK              FSCRESEARCHVM29     1
 Development     155.246.104.45      16 / 8          100GB       Ubuntu 18.04                    FSCSHIFT01          1
                 155.246.104.60      16 / 8          100GB       Ubuntu 18.04                    FSCSHIFT07          1
-Research        155.246.104.32      16 / 8          100GB       Ubuntu 18.04    OK              FSCSHIFT04          1
+Research        155.246.104.32      16 / 64         100GB       Ubuntu 18.04    OK              FSCSHIFT04          1
                 155.246.104.93      16 / 8          100GB       Ubuntu 18.04    OK              FSCSHIFT02          1

@@ -710,7 +710,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     FIX::UnderlyingSecurityID orderID;
     FIX::UnderlyingStrikePrice price;
     FIX::UnderlyingIssuer orderType;
-    // FIX::ExecType orderType;
 
     std::vector<shift::Order> waitingList;
 
@@ -872,14 +871,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     }
 
     try {
-        // getMainClient()->receiveCandleData(symbol, open, high, low, close, timestamp);
-        getMainClient()->receiveCandlestickData(
-            symbol,
-            open,
-            high,
-            low,
-            close,
-            timestamp);
+        getMainClient()->receiveCandlestickData(symbol, open, high, low, close, timestamp);
     } catch (...) {
         return;
     }

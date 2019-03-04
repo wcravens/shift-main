@@ -35,12 +35,12 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/OrderBookEntry.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioItem.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioSummary.h
-    ${PROJECT_SOURCE_DIR}/include/Quote.h
+    ${PROJECT_SOURCE_DIR}/include/Order.h
     ${PROJECT_SOURCE_DIR}/include/Report.h
     ${PROJECT_SOURCE_DIR}/include/RiskManagement.h
-    ${PROJECT_SOURCE_DIR}/include/Stock.h
+    ${PROJECT_SOURCE_DIR}/include/OrderBook.h
     ${PROJECT_SOURCE_DIR}/include/CandlestickData.h
-    ${PROJECT_SOURCE_DIR}/include/TempCandlestickData.h
+    ${PROJECT_SOURCE_DIR}/include/CandlestickDataPoint.h
     ${PROJECT_SOURCE_DIR}/include/TokenPool.h
     ${PROJECT_SOURCE_DIR}/include/Transaction.h
 )
@@ -54,11 +54,11 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/OrderBookEntry.cpp
     ${PROJECT_SOURCE_DIR}/src/PortfolioItem.cpp
     ${PROJECT_SOURCE_DIR}/src/PortfolioSummary.cpp
-    ${PROJECT_SOURCE_DIR}/src/Quote.cpp
+    ${PROJECT_SOURCE_DIR}/src/Order.cpp
     ${PROJECT_SOURCE_DIR}/src/RiskManagement.cpp
-    ${PROJECT_SOURCE_DIR}/src/Stock.cpp
+    ${PROJECT_SOURCE_DIR}/src/OrderBook.cpp
     ${PROJECT_SOURCE_DIR}/src/CandlestickData.cpp
-    ${PROJECT_SOURCE_DIR}/src/TempCandlestickData.cpp
+    ${PROJECT_SOURCE_DIR}/src/CandlestickDataPoint.cpp
 )
 
 set(OTHER

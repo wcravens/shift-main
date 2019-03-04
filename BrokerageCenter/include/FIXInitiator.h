@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "Quote.h"
+#include "Order.h"
 
 #include <memory>
 #include <string>
@@ -40,7 +40,7 @@ public:
     void connectMatchingEngine(const std::string& configFile, bool verbose = false);
     void disconnectMatchingEngine();
 
-    void sendQuote(const Quote& quote); // Send order to ME
+    void sendOrder(const Order& order); // Send order to ME
 
 private:
     FIXInitiator() = default;
