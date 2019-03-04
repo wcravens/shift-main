@@ -21,7 +21,7 @@ ChartDialog::ChartDialog(QWidget* parent)
 
     // maximum
     setWindowFlags(Qt::Window);
-    this->setWindowTitle("Candlestick Chart - SHIFT Alpha");
+    this->setWindowTitle("Candlestick Chart - SHIFT");
 
     ui->ChartLayout->addWidget(m_candle_plot);
     ui->ChartLayout->addWidget(m_navigation_plot);
