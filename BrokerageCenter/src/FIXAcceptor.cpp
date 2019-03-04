@@ -414,7 +414,7 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& userList, 
     }
 }
 
-void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& userList, const TempCandlestickData& tmpCandle)
+void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& userList, const CandlestickDataPoint& tmpCandle)
 {
     FIX::Message message;
 

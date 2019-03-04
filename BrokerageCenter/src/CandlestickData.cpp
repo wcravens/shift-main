@@ -85,7 +85,7 @@ void CandlestickData::process()
 {
     thread_local auto quitFut = m_quitFlag.get_future();
 
-    auto writeCandlestickDataHistory = [this](const TempCandlestickData& tmpCandle) {
+    auto writeCandlestickDataHistory = [this](const CandlestickDataPoint& tmpCandle) {
         std::lock_guard<std::mutex> guard(m_mtxHistory);
         m_history[m_currOpenTime] = tmpCandle;
     };
@@ -132,7 +132,7 @@ void CandlestickData::process()
 
                     m_currOpenTime++;
 
-                    TempCandlestickData tmpCandle(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
+                    CandlestickDataPoint tmpCandle(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
                     sendCurrentCandlestickData(tmpCandle);
                     writeCandlestickDataHistory(tmpCandle);
                 }
@@ -175,7 +175,7 @@ void CandlestickData::process()
             DEBUG_PERFORMANCE_COUNTER(pc6, "notsent2")
             // finish and send current window
 
-            TempCandlestickData tmpCandle(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
+            CandlestickDataPoint tmpCandle(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
             sendCurrentCandlestickData(tmpCandle);
             writeCandlestickDataHistory(tmpCandle);
 
@@ -189,7 +189,7 @@ void CandlestickData::spawn()
     m_th.reset(new std::thread(&CandlestickData::process, this));
 }
 
-void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpCandle)
+void CandlestickData::sendCurrentCandlestickData(const CandlestickDataPoint& tmpCandle)
 {
     std::unique_lock<std::mutex> ulCUL(m_mtxCandleUserList);
     if (m_candleUserList.empty())
@@ -203,7 +203,7 @@ void CandlestickData::sendCurrentCandlestickData(const TempCandlestickData& tmpC
 
 void CandlestickData::sendHistory(const std::string username)
 {
-    std::map<std::time_t, TempCandlestickData> history;
+    std::map<std::time_t, CandlestickDataPoint> history;
     {
         std::lock_guard<std::mutex> guard(m_mtxHistory);
         history = m_history;

@@ -3,7 +3,7 @@
 #include <ctime>
 #include <string>
 
-class TempCandlestickData {
+class CandlestickDataPoint {
     std::string m_symbol;
     std::time_t m_tempTimeFrom;
     double m_tempOpenPrice;
@@ -12,8 +12,8 @@ class TempCandlestickData {
     double m_tempLowPrice;
 
 public:
-    TempCandlestickData();
-    TempCandlestickData(std::string symbol, double tempOpenPrice, double tempClosePrice, double tempHighPrice, double tempLowPrice, std::time_t tempTimeFrom);
+    CandlestickDataPoint();
+    CandlestickDataPoint(std::string symbol, double tempOpenPrice, double tempClosePrice, double tempHighPrice, double tempLowPrice, std::time_t tempTimeFrom);
 
     std::time_t getTempTimeFrom() const;
     const std::string& getSymbol() const;
