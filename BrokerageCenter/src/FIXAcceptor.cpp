@@ -18,9 +18,7 @@
 
 // Predefined constant FIX message (To avoid recalculations):
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1");
-static const auto& FIXFIELD_MSGTY_MASSQUOTEACK = FIX::MsgType(FIX::MsgType_MassQuoteAcknowledgement);
 static const auto& FIXFIELD_QUOTESTAT = FIX::QuoteStatus(0); // 0 = Accepted
-static const auto& FIXFIELD_TXT_WL = FIX::Text("waitingList");
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
 static const auto& FIXFIELD_EXECBROKER = FIX::PartyRole(1); // 1 = ExecBroker in FIX4.2
 static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New
@@ -210,10 +208,9 @@ void FIXAcceptor::sendWaitingList(const std::string& username, const std::unorde
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
-    header.setField(::FIXFIELD_MSGTY_MASSQUOTEACK);
+    header.setField(FIX::MsgType(FIX::MsgType_MassQuoteAcknowledgement));
 
     message.setField(::FIXFIELD_QUOTESTAT); // Required by FIX
-    message.setField(::FIXFIELD_TXT_WL);
     message.setField(FIX::Account(username));
 
     FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets orderSetGroup;
