@@ -44,8 +44,8 @@ public:
     CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime);
     ~CandlestickData();
 
-    void sendCurrentCandlestickData(const CandlestickDataPoint& tmpCandle);
-    void sendHistory(const std::string username);
+    void sendPoint(const CandlestickDataPoint& cdPoint);
+    void sendHistory(std::string username);
 
     const std::string& getSymbol() const;
 
