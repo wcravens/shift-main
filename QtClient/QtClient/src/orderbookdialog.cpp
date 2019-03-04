@@ -13,7 +13,7 @@ OrderBookDialog::OrderBookDialog(QWidget* parent)
     , m_stock_list_model(new QStringListModel(this))
     , m_filter_model(new StocklistFilterModel())
 {
-    this->setWindowTitle("Order Book - SHIFT");
+    this->setWindowTitle("Order Book - SHIFT Beta");
 
     ui->setupUi(this);
     ui->GlobalAskTable->setModel(&m_global_ask_data);

@@ -19,7 +19,7 @@ LoginDialog::LoginDialog(QWidget* parent)
     styleFile.close();
 
     ui->setupUi(this);
-    this->setWindowTitle("SHIFT");
+    this->setWindowTitle("SHIFT Beta");
 }
 
 LoginDialog::~LoginDialog()

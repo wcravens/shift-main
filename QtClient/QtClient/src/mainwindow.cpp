@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
     ui->SymbolComboBox->setHidden(true);
-    this->setWindowTitle("Overview - SHIFT");
+    this->setWindowTitle("Overview - SHIFT Beta");
     this->setAttribute(Qt::WA_QuitOnClose);
     this->setTheme(":/theme/dark.theme");
 
