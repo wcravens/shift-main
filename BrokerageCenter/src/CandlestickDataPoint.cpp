@@ -2,19 +2,19 @@
 
 CandlestickDataPoint::CandlestickDataPoint() = default;
 
-CandlestickDataPoint::CandlestickDataPoint(std::string symbol, double tempOpenPrice, double tempClosePrice, double tempHighPrice, double tempLowPrice, std::time_t tempTimeFrom)
+CandlestickDataPoint::CandlestickDataPoint(std::string symbol, double openPrice, double closePrice, double highPrice, double lowPrice, std::time_t timeFrom)
     : m_symbol(std::move(symbol))
-    , m_tempTimeFrom{ tempTimeFrom }
-    , m_tempOpenPrice{ tempOpenPrice }
-    , m_tempClosePrice{ tempClosePrice }
-    , m_tempHighPrice{ tempHighPrice }
-    , m_tempLowPrice{ tempLowPrice }
+    , m_timeFrom{ timeFrom }
+    , m_openPrice{ openPrice }
+    , m_closePrice{ closePrice }
+    , m_highPrice{ highPrice }
+    , m_lowPrice{ lowPrice }
 {
 }
 
-std::time_t CandlestickDataPoint::getTempTimeFrom() const
+std::time_t CandlestickDataPoint::getTimeFrom() const
 {
-    return m_tempTimeFrom;
+    return m_timeFrom;
 }
 
 const std::string& CandlestickDataPoint::getSymbol() const
@@ -22,22 +22,22 @@ const std::string& CandlestickDataPoint::getSymbol() const
     return m_symbol;
 }
 
-double CandlestickDataPoint::getTempOpenPrice() const
+double CandlestickDataPoint::getOpenPrice() const
 {
-    return m_tempOpenPrice;
+    return m_openPrice;
 }
 
-double CandlestickDataPoint::getTempClosePrice() const
+double CandlestickDataPoint::getClosePrice() const
 {
-    return m_tempClosePrice;
+    return m_closePrice;
 }
 
-double CandlestickDataPoint::getTempHighPrice() const
+double CandlestickDataPoint::getHighPrice() const
 {
-    return m_tempHighPrice;
+    return m_highPrice;
 }
 
-double CandlestickDataPoint::getTempLowPrice() const
+double CandlestickDataPoint::getLowPrice() const
 {
-    return m_tempLowPrice;
+    return m_lowPrice;
 }

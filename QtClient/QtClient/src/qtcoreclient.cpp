@@ -1,12 +1,11 @@
 #include "include/qtcoreclient.h"
 
 #include <QDebug>
+#include <QRegExp>
 #include <QString>
 #include <QVector>
-#include <QRegExp>
 
 using namespace std::chrono_literals;
-
 
 QStringList QtCoreClient::getStocklist()
 {
@@ -15,19 +14,15 @@ QStringList QtCoreClient::getStocklist()
 
 void QtCoreClient::receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp)
 {
-    emit updateCandleChart(QString::fromStdString(symbol)
-                           , QString::fromStdString(timestamp).toLongLong(nullptr, 10) * 1000
-                           , open
-                           , high
-                           , low
-                           , close);
+    emit updateCandleChart(QString::fromStdString(symbol), QString::fromStdString(timestamp).toLongLong(nullptr, 10) * 1000, open, high, low, close);
 }
 
 /**
  * @brief Method to loop through the entire stocklist and subscribe them all to their orderbook.
  * @param const std::vector<std::string>&: the target stocklist.
  */
-void QtCoreClient::adaptStocklist() {
+void QtCoreClient::adaptStocklist()
+{
     std::vector<std::string> stocklist = getStockList();
     m_stocklist.clear();
 
@@ -37,16 +32,7 @@ void QtCoreClient::adaptStocklist() {
 
     if (is_first_time) {
         this->subAllOrderBook();
-
-        std::thread(
-            [this] {
-                while (!this->subAllCandleData())
-                {
-                    qDebug()<< "still doing subAllCandleData";
-                    std::this_thread::sleep_for(1s);
-                }
-            })
-            .detach();
+        this->subAllCandleData();
 
         is_first_time = false;
     }
@@ -56,7 +42,8 @@ void QtCoreClient::adaptStocklist() {
     emit stocklistReady();
 }
 
-void QtCoreClient::receiveLastPrice(const std::string& symbol) {
+void QtCoreClient::receiveLastPrice(const std::string& symbol)
+{
     // TODO
 }
 
