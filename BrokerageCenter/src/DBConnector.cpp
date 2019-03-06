@@ -74,38 +74,6 @@ void DBConnector::disconnectDB()
     m_pConn = nullptr;
 }
 
-bool DBConnector::createUsers(const std::string& symbol)
-{
-    PGresult* res1 = PQexec(m_pConn, "SELECT * FROM buying_power;");
-    PGresult* res2 = PQexec(m_pConn, ("SELECT * FROM holdings_" + symbol + ";").c_str());
-    bool res = true;
-
-    if ((PQresultStatus(res1) != PGRES_TUPLES_OK) || (PQresultStatus(res2) != PGRES_TUPLES_OK)) {
-        cout << PQerrorMessage(m_pConn) << endl;
-        res = false;
-    } else {
-        auto nTup = PQntuples(res1);
-
-        cout << "buying_power: " << nTup << " " << PQnfields(res1) << endl;
-        cout << "holdings_" + symbol + ": " << PQnfields(res2) << endl;
-
-        for (int i = 0; i < nTup; i++) {
-            std::string username = PQgetvalue(res1, i, 0);
-            auto buyingPower = atof(PQgetvalue(res1, i, 1));
-            auto shares = atoi(PQgetvalue(res2, i, 1));
-            auto price = atof(PQgetvalue(res2, i, 2));
-
-            BCDocuments::getInstance()->addRiskManagementToUserLockedExplicit(username, buyingPower, shares, price, symbol);
-            cout << username << '\n';
-        }
-        cout << endl;
-    }
-
-    PQclear(res2);
-    PQclear(res1);
-    return res;
-}
-
 bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
 {
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);

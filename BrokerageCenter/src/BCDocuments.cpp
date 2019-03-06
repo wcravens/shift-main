@@ -59,19 +59,6 @@ void BCDocuments::addTransacToCandlestickData(const std::string& symbol, const T
     m_candleBySymbol[symbol]->enqueueTransaction(transac);
 }
 
-void BCDocuments::addRiskManagementToUserLockedExplicit(const std::string& username, double buyingPower, int shares, double price, const std::string& symbol)
-{ // for low frequency client use
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-
-    auto res = m_riskManagementByName.emplace(username, nullptr);
-    if (res.second) {
-        auto& rmPtr = res.first->second;
-        rmPtr.reset(new RiskManagement(username, buyingPower, shares));
-        rmPtr->insertPortfolioItem(symbol, { symbol, shares, price });
-        rmPtr->spawn();
-    }
-}
-
 auto BCDocuments::addRiskManagementToUserNoLock(const std::string& username) -> decltype(m_riskManagementByName)::iterator
 {
     auto res = m_riskManagementByName.emplace(username, nullptr);
