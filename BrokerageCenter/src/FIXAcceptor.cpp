@@ -487,23 +487,24 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
 {
     if (FIX::MsgType_Logon != message.getHeader().getField(FIX::FIELD::MsgType))
         return;
+    // Incoming a new connection to BC:
 
-    std::string adminName, adminPsw;
+    std::string adminName, adminPsw; // super user's info to qualify the connection
     const auto& targetID = static_cast<std::string>(sessionID.getTargetCompID());
 
     FIXT11::Logon::NoMsgTypes msgTypeGroup;
     message.getGroup(1, msgTypeGroup);
     adminName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
-
     message.getGroup(2, msgTypeGroup);
     adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
     const auto pswCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT password FROM traders WHERE username = '" + adminName + "';"));
     if (pswCol.size() && pswCol.front() == adminPsw) {
+        // grant the connection to this super user
         BCDocuments::getInstance()->registerUserInDoc(adminName, targetID);
-        cout << COLOR_PROMPT "Authentication successful for " << targetID << ':' << adminName << NO_COLOR << endl;
+        cout << COLOR_PROMPT "Authentication successful for [" << targetID << ':' << adminName << "]." NO_COLOR << endl;
     } else {
-        cout << COLOR_WARNING "Username or password was wrong for " << targetID << ':' << adminName << NO_COLOR << endl;
+        cout << COLOR_ERROR "ERROR: @fromAdmin(): Password of the admin [" << targetID << ':' << adminName << "] is inconsistent with the one recorded in database (in SHA1 format).\nPlease make sure the client-side send matched password to BC reliably." NO_COLOR << endl;
         throw FIX::RejectLogon();
     }
 }
