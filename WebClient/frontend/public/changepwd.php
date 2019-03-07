@@ -6,7 +6,7 @@ if (isset($_POST['change-password-submit'])) {
     $isSucc = $userModel->change_password($_POST['cur_password'], $_POST['new_password'], $_POST['confirm_new_password']);
     if ($isSucc === true) {
         echo '<script>console.log("isSucc")</script>';
-        header("location: /index.php");
+        header("location: /myprofile.php");
     }
 }
 

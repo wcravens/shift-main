@@ -64,15 +64,15 @@ body {
 }
 
 .btn-login {
-    background-color: #59B2E0;
-    outline: none;
-    color: #fff;
-    font-size: 14px;
-    height: auto;
-    font-weight: normal;
-    padding: 14px 0;
+    background-color: #59B2E0 !important;
+    outline: none !important;
+    color: #fff !important;
+    font-size: 14px !important;
+    height: auto !important;
+    font-weight: normal !important;
+    padding: 14px 0 !important;
     /*text-transform: uppercase;*/
-    border-color: #59B2E6;
+    border-color: #59B2E6 !important;
 }
 
 .btn-login:hover,
