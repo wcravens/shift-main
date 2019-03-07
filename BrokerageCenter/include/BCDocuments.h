@@ -61,13 +61,13 @@ public:
     void addReportToUserRiskManagement(const std::string& username, const Report& report);
 
     void registerUserInDoc(const std::string& username, const std::string& targetID); // for connection
-    void unregisterUserInDoc(const std::string& username); // for connection
+    void unregisterUserFromDoc(const std::string& username); // for connection
     void registerWebUserInDoc(const std::string& username, const std::string& targetID); // for connection
     std::unordered_map<std::string, std::string> getConnectedTargetIDsMap(); // Target Computer ID, Username
 
     void addOrderBookSymbolToUser(const std::string& username, const std::string& symbol);
-    void removeUserFromOrderBooks(const std::string& username);
-    void removeUserFromCandles(const std::string& username);
+    void unregisterUserFromOrderBooks(const std::string& username);
+    void unregisterUserFromCandles(const std::string& username);
     void removeCandleSymbolFromUser(const std::string& username, const std::string& symbol);
 
     void addTransacToUser(const Transaction& t, const std::string& username);

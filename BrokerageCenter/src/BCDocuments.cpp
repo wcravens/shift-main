@@ -212,7 +212,7 @@ void BCDocuments::registerUserInDoc(const std::string& username, const std::stri
     m_mapName2TarID[username] = targetID;
 }
 
-void BCDocuments::unregisterUserInDoc(const std::string& username)
+void BCDocuments::unregisterUserFromDoc(const std::string& username)
 {
     std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
 
@@ -258,7 +258,7 @@ void BCDocuments::addOrderBookSymbolToUser(const std::string& username, const st
     m_orderBookSymbolsByName[username].insert(symbol);
 }
 
-void BCDocuments::removeUserFromOrderBooks(const std::string& username)
+void BCDocuments::unregisterUserFromOrderBooks(const std::string& username)
 {
     std::lock_guard<std::mutex> guardOSBN(m_mtxOrderBookSymbolsByName);
 
@@ -271,7 +271,7 @@ void BCDocuments::removeUserFromOrderBooks(const std::string& username)
     }
 }
 
-void BCDocuments::removeUserFromCandles(const std::string& username)
+void BCDocuments::unregisterUserFromCandles(const std::string& username)
 {
     std::lock_guard<std::mutex> guardCSBN(m_mtxCandleSymbolsByName);
 
