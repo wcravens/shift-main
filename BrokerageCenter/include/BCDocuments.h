@@ -57,7 +57,6 @@ public:
     void addOrderBookEntryToOrderBook(const std::string& symbol, const OrderBookEntry& ob);
     void attachCandlestickDataToSymbol(const std::string& symbol);
     void addTransacToCandlestickData(const std::string& symbol, const Transaction& transac);
-    void addRiskManagementToUserLockedExplicit(const std::string& username, double buyingPower, int shares, double price, const std::string& symbol);
     void addOrderToUserRiskManagement(const std::string& username, const Order& order);
     void addReportToUserRiskManagement(const std::string& username, const Report& report);
 

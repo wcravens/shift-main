@@ -251,8 +251,6 @@ int main(int ac, char* av[])
         }
     }
 
-    DBConnector::getInstance()->createUsers("XYZ");
-
     /*
      * @brief   Try to connect Matching Engine
      */

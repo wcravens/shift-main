@@ -563,6 +563,12 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         FIX::Symbol symbol;
         message.get(symbol);
 
+        // m_originalName_symbol shall be always thread-safe-readonly once after being initialized, so we shall prevent it from accidental insertion here
+        if (m_originalName_symbol.find(symbol) == m_originalName_symbol.end()) {
+            cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << symbol << "], skipped." NO_COLOR << endl;
+            return; //
+        }
+
         symbol = m_originalName_symbol[symbol];
 
         FIX::SettlPrice longPrice;
