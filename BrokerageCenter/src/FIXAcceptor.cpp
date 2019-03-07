@@ -447,23 +447,29 @@ void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
     /* SenderID: BROKERAGECENTER */
 }
 
+/**
+ * @brief When super user connect to BC
+ */
 void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 {
     auto& targetID = sessionID.getTargetCompID();
-    const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(targetID); // TODO
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
+
+    const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(targetID); // TODO: this is always super user
     if (::STDSTR_NULL == username) {
         cout << "onLogon(): ";
-        cout << targetID << " does not have an associated admin!" << endl;
+        cout << targetID << " does not have an associated super user!" << endl;
         return;
     }
+    cout << COLOR_PROMPT "[Super User] " NO_COLOR << username << '\n'
+         << endl;
 
-    // send security list of all stocks to user when he login
     sendSymbols(targetID, BCDocuments::getInstance()->getSymbols());
-
-    BCDocuments::getInstance()->sendHistoryToUser(username);
 }
 
+/**
+ * @brief When super user disconnect from BC
+ */
 void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 {
     auto& targetID = sessionID.getTargetCompID();
@@ -471,24 +477,29 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 
     const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(targetID);
     if (::STDSTR_NULL == username) {
-        cout << "onLogon(): ";
-        cout << targetID << " does not have an associated admin!" << endl;
+        cout << "onLogout(): ";
+        cout << targetID << " does not have an associated super user!" << endl;
         return;
     }
-    cout << COLOR_WARNING "[User] " NO_COLOR << username << endl;
-    BCDocuments::getInstance()->unregisterUserInDoc(username); // this shall come first to timely affect other acceptor parts that are sending things aside
-    BCDocuments::getInstance()->removeUserFromCandles(username);
-    BCDocuments::getInstance()->removeUserFromOrderBooks(username);
-    cout << COLOR_WARNING "[Session] " NO_COLOR << sessionID << '\n'
+    cout << COLOR_WARNING "[Super User] " NO_COLOR << username << '\n'
          << endl;
+
+    // TODO: shall unregister for not only super user
+    BCDocuments::getInstance()->unregisterUserFromDoc(username); // this shall come first to timely affect other acceptor parts that are sending things aside
+    BCDocuments::getInstance()->unregisterUserFromCandles(username);
+    BCDocuments::getInstance()->unregisterUserFromOrderBooks(username);
 }
 
+/**
+ * @brief Events from the admin/super user
+ */
 void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override
 {
     if (FIX::MsgType_Logon != message.getHeader().getField(FIX::FIELD::MsgType))
         return;
-    // Incoming a new connection to BC:
-
+    /* Incoming a new connection/logon from super user to BC;
+        The complete actions: fromAdmin => onLogon => onMessage(UserRequest)
+    */
     std::string adminName, adminPsw; // super user's info to qualify the connection
     const auto& targetID = static_cast<std::string>(sessionID.getTargetCompID());
 
@@ -500,12 +511,13 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
 
     const auto pswCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT password FROM traders WHERE username = '" + adminName + "';"));
     if (pswCol.size() && pswCol.front() == adminPsw) {
-        // grant the connection to this super user
+        // Grants the connection to this super user
         BCDocuments::getInstance()->registerUserInDoc(adminName, targetID);
-        cout << COLOR_PROMPT "Authentication successful for [" << targetID << ':' << adminName << "]." NO_COLOR << endl;
+        cout << COLOR_PROMPT "Authentication successful for super user [" << targetID << ':' << adminName << "]." NO_COLOR << endl;
     } else {
-        cout << COLOR_ERROR "ERROR: @fromAdmin(): Password of the admin [" << targetID << ':' << adminName << "] is inconsistent with the one recorded in database (in SHA1 format).\nPlease make sure the client-side send matched password to BC reliably." NO_COLOR << endl;
-        throw FIX::RejectLogon();
+        cout << COLOR_ERROR "ERROR: @fromAdmin(): Password of the super user [" << targetID << ':' << adminName << "] is inconsistent with the one recorded in database (in SHA1 format).\nPlease make sure the client-side send matched password to BC reliably." NO_COLOR << endl;
+
+        throw FIX::RejectLogon(); // will disconnect the counterparty
     }
 }
 
@@ -518,13 +530,16 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
 #endif
 }
 
+/**
+ * @brief General handler for incoming super & ordinal web users
+ */
 void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
 {
     FIX::Username username; // WebClient username
     message.get(username);
     BCDocuments::getInstance()->registerWebUserInDoc(username, sessionID.getTargetCompID());
     BCDocuments::getInstance()->sendHistoryToUser(username.getString());
-    cout << COLOR_PROMPT "Web user [ " NO_COLOR << username << COLOR_PROMPT " ] was registered.\n" NO_COLOR << endl;
+    cout << COLOR_PROMPT "Web user [" NO_COLOR << username << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
 }
 
 /**
