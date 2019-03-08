@@ -328,16 +328,10 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         case FIX::ExecType_FILL:
         case FIX::ExecType_CANCELED: {
             Transaction transac = {
-                *pUsername1,
                 *pSymbol,
-                orderStatus,
-                *pOrderID1,
-                *pOrderType1,
-                *pShareSize,
-                *pLeftQty,
                 *pPrice,
+                int(*pShareSize),
                 *pDestination,
-                pServerTime->getValue(),
                 pExecTime->getValue()
             };
 
