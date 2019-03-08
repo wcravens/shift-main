@@ -28,6 +28,8 @@ public:
         CANCEL_ASK = '6',
     };
 
+    static double s_decimalTruncate(double value, int precision);
+
     Order();
     Order(Type type, const std::string& symbol, int size, double price = 0.0, const std::string& id = "");
 

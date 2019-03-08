@@ -39,6 +39,14 @@ static const auto& FIXFIELD_ENTRY_BID = FIX::MDEntryType('0'); // Type of market
 static const auto& FIXFIELD_ENTRY_OFFER = FIX::MDEntryType('1'); // Type of market data entry, 1 = Offer
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
 
+/*static*/ inline std::chrono::system_clock::time_point shift::FIXInitiator::s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
+{
+    return std::chrono::system_clock::from_time_t(date.getTimeT()
+        + time.getHour() * 3600
+        + time.getMinute() * 60
+        + time.getSecond());
+}
+
 /**
  * @brief Default constructor for FIXInitiator object.
  */
@@ -474,20 +482,15 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 
         symbol = m_originalName_symbol[symbol];
 
-        /***** ASK ABOUT DARK POOL PRICE *****/
-        // ignore dark pool price
-        double price100 = price * 100;
-        int priceInt = std::round(price100);
-        if (std::abs(price100 - priceInt) < 0.000001) {
-            m_lastTrades[symbol].first = price;
-            m_lastTrades[symbol].second = (int)size;
-            m_lastTradeTime = std::chrono::system_clock::from_time_t(execTime.getValue().getTimeT());
-            try {
-                getMainClient()->receiveLastPrice(symbol);
-            } catch (...) {
-                return;
-            }
+        m_lastTrades[symbol].first = price;
+        m_lastTrades[symbol].second = (int)size;
+        m_lastTradeTime = std::chrono::system_clock::from_time_t(execTime.getValue().getTimeT());
+        try {
+            getMainClient()->receiveLastPrice(symbol);
+        } catch (...) {
+            return;
         }
+
         return;
     }
 
@@ -617,14 +620,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
     }
 }
 
-static inline std::chrono::system_clock::time_point s_convertToTimePoint(FIX::UtcDateOnly date, FIX::UtcTimeOnly time)
-{
-    return std::chrono::system_clock::from_time_t(date.getTimeT()
-        + time.getHour() * 3600
-        + time.getMinute() * 60
-        + time.getSecond());
-}
-
 /**
  * @brief Method to receive Global/Local orders from Brokerage Center.
  *
@@ -680,7 +675,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         orderBook.push_back({ (double)price,
             (int)size,
             destination,
-            ::s_convertToTimePoint(date.getValue(), daytime.getValue()) });
+            s_convertToTimePoint(date.getValue(), daytime.getValue()) });
     }
 
     try {
@@ -788,7 +783,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     entryGroup.getField(daytime);
 
     symbol = m_originalName_symbol[symbol];
-    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, ::s_convertToTimePoint(date.getValue(), daytime.getValue()) });
+    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, s_convertToTimePoint(date.getValue(), daytime.getValue()) });
 }
 
 /**

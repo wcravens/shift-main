@@ -63,6 +63,8 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
+    static std::chrono::system_clock::time_point s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time);
+
     ~FIXInitiator() override;
 
     static FIXInitiator& getInstance();
