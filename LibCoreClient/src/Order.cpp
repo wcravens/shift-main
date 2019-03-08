@@ -28,13 +28,18 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
     , m_price(price)
     , m_id(id)
     , m_timestamp(std::chrono::system_clock::now())
+    , m_status(Status::PENDING_NEW)
 {
+    if (m_type == Type::CANCEL_BID || m_type == Type::CANCEL_ASK) {
+        m_status = Status::PENDING_CANCEL;
+    }
+
     if (m_price <= 0.0) {
         m_price = 0.0;
-        if (m_type == shift::Order::Type::LIMIT_BUY) {
-            m_type = shift::Order::Type::MARKET_BUY;
-        } else if (m_type == shift::Order::Type::LIMIT_SELL) {
-            m_type = shift::Order::Type::MARKET_SELL;
+        if (m_type == Type::LIMIT_BUY) {
+            m_type = Type::MARKET_BUY;
+        } else if (m_type == Type::LIMIT_SELL) {
+            m_type = Type::MARKET_SELL;
         }
     } else {
         m_price = s_decimalTruncate(m_price, 2);
@@ -47,7 +52,7 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
 
 /**
  * @brief Getter to get the type of Order.
- * @return Type of the Order as a char.
+ * @return Type of the Order as a shift::Order::Type.
  */
 shift::Order::Type shift::Order::getType() const
 {
@@ -100,12 +105,25 @@ const std::chrono::system_clock::time_point& shift::Order::getTimestamp() const
 }
 
 /**
+ * @brief Getter to get the status of Order.
+ * @return Status of the Order as a shift::Order::Status.
+ */
+shift::Order::Status shift::Order::getStatus() const
+{
+    return m_status;
+}
+
+/**
  * @brief Setter to set order type into m_type.
- * @param type as Type
+ * @param type as shift::Order::Type
  */
 void shift::Order::setType(Type type)
 {
     m_type = type;
+
+    if (m_type == Type::CANCEL_BID || m_type == Type::CANCEL_ASK) {
+        m_status = Status::PENDING_CANCEL;
+    }
 }
 
 /**
@@ -150,4 +168,21 @@ void shift::Order::setID(const std::string& id)
 void shift::Order::setTimestamp()
 {
     m_timestamp = std::chrono::system_clock::now();
+}
+
+/**
+ * @brief Setter to set order status into m_status.
+ * @param status as shift::Order::Status
+ */
+void shift::Order::setStatus(Status status)
+{
+    m_status = status;
+
+    if (m_status == Status::PENDING_CANCEL) {
+        if (m_type == Type::LIMIT_BUY) {
+            m_type = Type::CANCEL_BID;
+        } else if (m_type == Type::LIMIT_SELL) {
+            m_type = Type::CANCEL_ASK;
+        }
+    }
 }

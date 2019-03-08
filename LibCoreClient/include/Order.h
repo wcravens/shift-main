@@ -28,6 +28,16 @@ public:
         CANCEL_ASK = '6',
     };
 
+    enum Status : char { // See FIX::OrdStatus
+        PENDING_NEW = 'A',
+        NEW = '0',
+        PARTIALLY_FILLED = '1',
+        FILLED = '2',
+        CANCELED = '4',
+        PENDING_CANCEL = '6',
+        REJECTED = '8',
+    };
+
     static double s_decimalTruncate(double value, int precision);
 
     Order();
@@ -40,6 +50,7 @@ public:
     double getPrice() const;
     const std::string& getID() const;
     const std::chrono::system_clock::time_point& getTimestamp() const;
+    Status getStatus() const;
 
     // Setters
     void setType(Type type);
@@ -48,6 +59,7 @@ public:
     void setPrice(double price);
     void setID(const std::string& id);
     void setTimestamp();
+    void setStatus(Status status);
 
 private:
     Type m_type;
@@ -56,6 +68,7 @@ private:
     double m_price;
     std::string m_id;
     std::chrono::system_clock::time_point m_timestamp;
+    Status m_status;
 };
 
 } // shift
