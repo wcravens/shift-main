@@ -39,6 +39,14 @@ static const auto& FIXFIELD_ENTRY_BID = FIX::MDEntryType('0'); // Type of market
 static const auto& FIXFIELD_ENTRY_OFFER = FIX::MDEntryType('1'); // Type of market data entry, 1 = Offer
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
 
+/*static*/ inline std::chrono::system_clock::time_point shift::FIXInitiator::s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
+{
+    return std::chrono::system_clock::from_time_t(date.getTimeT()
+        + time.getHour() * 3600
+        + time.getMinute() * 60
+        + time.getSecond());
+}
+
 /**
  * @brief Default constructor for FIXInitiator object.
  */
@@ -425,6 +433,46 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
 }
 
 /**
+ * @brief Method to receive Last Price from
+ * Brokerage Center.
+ *
+ * @param message as a Advertisement type object
+ * contains the last price information.
+ *
+ * @param sessionID as the SessionID for the current
+ * communication.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, const FIX::SessionID& sessionID) // override
+{
+    if (m_connected) {
+        FIX::Symbol symbol;
+        FIX::Quantity size;
+        FIX::Price price;
+        FIX::TransactTime simulationTime;
+        FIX::LastMkt destination;
+
+        message.get(symbol);
+        message.get(size);
+        message.get(price);
+        message.get(simulationTime);
+        message.get(destination);
+
+        symbol = m_originalName_symbol[symbol];
+
+        m_lastTrades[symbol].first = price;
+        m_lastTrades[symbol].second = int(size);
+        m_lastTradeTime = std::chrono::system_clock::from_time_t(simulationTime.getValue().getTimeT());
+        try {
+            getMainClient()->receiveLastPrice(symbol);
+        } catch (...) {
+            return;
+        }
+
+        return;
+    }
+}
+
+/**
  * @brief Method to receive LatestStockPrice from
  * Brokerage Center.
  *
@@ -436,61 +484,6 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) // override
 {
-    FIX::ExecType execType;
-    message.get(execType);
-
-    if (execType == ::FIXFIELD_EXECTYPE_TRADE && m_connected) {
-        FIX::NoPartyIDs numOfGroup;
-        message.get(numOfGroup);
-        if (numOfGroup < 2) {
-            cout << "Can't find the Parties in ExecutionReport!" << endl;
-            return;
-        }
-
-        FIX::OrderID orderID;
-        FIX::Symbol symbol;
-        FIX::OrdType orderType;
-        FIX::Price price;
-        FIX::CumQty size;
-        FIX::TransactTime serverTime;
-        FIX::EffectiveTime execTime;
-
-        FIX50SP2::ExecutionReport::NoPartyIDs partyGroup;
-        FIX::PartyID clientID;
-        FIX::PartyID destination;
-
-        message.get(orderID);
-        message.get(symbol);
-        message.get(orderType);
-        message.get(price);
-        message.get(size);
-        message.get(serverTime);
-        message.get(execTime);
-
-        message.getGroup(1, partyGroup);
-        partyGroup.get(clientID);
-        message.getGroup(2, partyGroup);
-        partyGroup.get(destination);
-
-        symbol = m_originalName_symbol[symbol];
-
-        /***** ASK ABOUT DARK POOL PRICE *****/
-        // ignore dark pool price
-        double price100 = price * 100;
-        int priceInt = std::round(price100);
-        if (std::abs(price100 - priceInt) < 0.000001) {
-            m_lastTrades[symbol].first = price;
-            m_lastTrades[symbol].second = (int)size;
-            m_lastTradeTime = std::chrono::system_clock::from_time_t(execTime.getValue().getTimeT());
-            try {
-                getMainClient()->receiveLastPrice(symbol);
-            } catch (...) {
-                return;
-            }
-        }
-        return;
-    }
-
     // FIX::OrdStatus orderStatus;
     // message.get(orderStatus);
     // if (orderStatus == '1') {
@@ -617,14 +610,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
     }
 }
 
-static inline std::chrono::system_clock::time_point s_convertToTimePoint(FIX::UtcDateOnly date, FIX::UtcTimeOnly time)
-{
-    return std::chrono::system_clock::from_time_t(date.getTimeT()
-        + time.getHour() * 3600
-        + time.getMinute() * 60
-        + time.getSecond());
-}
-
 /**
  * @brief Method to receive Global/Local orders from Brokerage Center.
  *
@@ -678,9 +663,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         partyGroup.getField(destination);
 
         orderBook.push_back({ (double)price,
-            (int)size,
+            int(size),
             destination,
-            ::s_convertToTimePoint(date.getValue(), daytime.getValue()) });
+            s_convertToTimePoint(date.getValue(), daytime.getValue()) });
     }
 
     try {
@@ -788,7 +773,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     entryGroup.getField(daytime);
 
     symbol = m_originalName_symbol[symbol];
-    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, (int)size, destination, ::s_convertToTimePoint(date.getValue(), daytime.getValue()) });
+    m_orderBooks[symbol][(OrderBook::Type)(char)type]->update({ price, int(size), destination, s_convertToTimePoint(date.getValue(), daytime.getValue()) });
 }
 
 /**

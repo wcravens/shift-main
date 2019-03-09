@@ -35,7 +35,6 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
     <head>
         <title>SHIFT Beta</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <!-- <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css"> -->
         <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
         <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-theme.min.css">
         <?php
@@ -99,10 +98,10 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
                                 <div class="col-lg-12">
                                     <form id="login-form" action="/login.php" method="post" role="form" style="display: block;">
                                         <div class="form-group">
-                                            <input type="text" name="username" id="username-login" tabindex="1" class="form-control" placeholder="Username" value="">
+                                            <input type="text" name="username" id="username-login" tabindex="1" class="form-control" placeholder="Username" value="" required>
                                         </div>
                                         <div class="form-group">
-                                            <input type="password" name="password" id="password-login" tabindex="2" class="form-control" placeholder="Password">
+                                            <input type="password" name="password" id="password-login" tabindex="2" class="form-control" placeholder="Password" required>
                                         </div>
                                         <div class="form-group text-center">
                                             <input type="checkbox" tabindex="3" class="" name="remember" id="remember">
@@ -127,22 +126,22 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
                                     </form>
                                     <form id="register-form" action="/register.php" method="post" role="form" style="display: none;">
                                         <div class="form-group">
-                                            <input type="text" name="username" id="username-reg" tabindex="1" class="form-control" placeholder="Username" value="">
+                                            <input type="text" name="username" id="username-reg" tabindex="1" class="form-control" placeholder="Username" value="" required>
                                         </div>
                                         <div class="form-group">
-                                            <input type="text" name="firstname" id="firstname" tabindex="1" class="form-control" placeholder="First Name" value="">
+                                            <input type="text" name="firstname" id="firstname" tabindex="1" class="form-control" placeholder="First Name" value="" required>
                                         </div>
                                         <div class="form-group">
-                                            <input type="text" name="lastname" id="lastname" tabindex="1" class="form-control" placeholder="Last Name" value="">
+                                            <input type="text" name="lastname" id="lastname" tabindex="1" class="form-control" placeholder="Last Name" value="" required>
                                         </div>
                                         <div class="form-group">
-                                            <input type="email" name="email" id="email" tabindex="1" class="form-control" placeholder="Email Address" value="">
+                                            <input type="email" name="email" id="email" tabindex="1" class="form-control" placeholder="Email Address" value="" required>
                                         </div>
                                         <div class="form-group">
-                                            <input type="password" name="password" id="password-reg" tabindex="2" class="form-control" placeholder="Password">
+                                            <input type="password" name="password" id="password-reg" tabindex="2" class="form-control" placeholder="Password" required>
                                         </div>
                                         <div class="form-group">
-                                            <input type="password" name="confirm_password" id="confirm-password-reg" tabindex="2" class="form-control" placeholder="Confirm Password">
+                                            <input type="password" name="confirm_password" id="confirm-password-reg" tabindex="2" class="form-control" placeholder="Confirm Password" required>
                                         </div>
                                         <div class="form-group">
                                             <div class="row">

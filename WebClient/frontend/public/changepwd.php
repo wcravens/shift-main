@@ -21,13 +21,22 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
 <html lang="en">
     <head>
         <title>Change Password - SHIFT Beta</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
-        <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-theme.min.css">
+        <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+        <script src="/static/jquery-3.1.1.min.js"></script>
+        <script src="/static/autobahn.min.js"></script>
+        <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+        <script type="text/javascript">
+            var php_stockList_json = JSON.parse('<?php echo json_encode($stockList);?>');
+            var php_server_ip= "<?php echo $server_ip;?>";
+            var php_username="<?php echo $username;?>"
+        </script>
+        <?php
+            echo '<script src="/scripts/verifications.js?version='.$SHIFT_version.'"></script>';
+            echo '<script src="/scripts/keymapping.js?version='.$SHIFT_version.'"></script>';
+        ?> 
         <?php
             echo '<link rel="stylesheet" href="/style/login.css?version='.$SHIFT_version.'"></script>';
-        ?> 
-        <script src="/static/jquery-3.1.1.min.js"></script>  
+        ?>
 
         <script>
             $(function () {

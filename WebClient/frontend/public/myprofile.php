@@ -19,8 +19,6 @@ require_once(getenv('SITE_ROOT').'/public/include/init.php');
         <?php
             echo '<script src="/scripts/verifications.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/keymapping.js?version='.$SHIFT_version.'"></script>';
-            echo '<script src="/scripts/lastprice.js?version='.$SHIFT_version.'"></script>';
-            echo '<script src="/scripts/submittedorders.js?version='.$SHIFT_version.'"></script>';
         ?> 
     </head>
     <body>

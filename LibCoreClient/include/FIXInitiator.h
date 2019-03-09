@@ -27,6 +27,7 @@
 #include <quickfix/SocketInitiator.h>
 
 // Receiving Message Types
+#include <quickfix/fix50sp2/Advertisement.h>
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
 #include <quickfix/fix50sp2/MassQuoteAcknowledgement.h>
@@ -63,6 +64,8 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
+    static std::chrono::system_clock::time_point s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time);
+
     ~FIXInitiator() override;
 
     static FIXInitiator& getInstance();
@@ -97,6 +100,7 @@ protected:
     R_FIXINIT void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override {}
     R_FIXINIT void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     R_FIXINIT void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
+    R_FIXINIT void onMessage(const FIX50SP2::Advertisement& message, const FIX::SessionID& sessionID) override;
     R_FIXINIT void onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) override;
     R_FIXINIT void onMessage(const FIX50SP2::PositionReport& message, const FIX::SessionID& sessionID) override;
     R_FIXINIT void onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID& sessionID) override; // for testing when receiving order book
