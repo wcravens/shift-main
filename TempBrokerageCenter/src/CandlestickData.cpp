@@ -191,47 +191,36 @@ void CandlestickData::spawn()
 
 void CandlestickData::sendPoint(const CandlestickDataPoint& cdPoint)
 {
-    std::unique_lock<std::mutex> ulCUL(m_mtxCandleUserList);
-    if (m_candleUserList.empty())
+    auto targetList = getTargetList();
+    if (targetList.empty())
         return;
 
-    auto culCopy(m_candleUserList);
-    ulCUL.unlock();
-
-    FIXAcceptor::getInstance()->sendCandlestickData(culCopy, cdPoint);
+    FIXAcceptor::getInstance()->sendCandlestickData(targetList, cdPoint);
 }
 
-void CandlestickData::sendHistory(std::string username)
+void CandlestickData::sendHistory(std::string targetID)
 {
     std::map<std::time_t, CandlestickDataPoint> histCopy;
     {
         std::lock_guard<std::mutex> guard(m_mtxHistory);
         histCopy = m_history;
     }
-    const std::vector<std::string> userList{ std::move(username) };
+    const std::vector<std::string> targetList{ std::move(targetID) };
 
     for (const auto& i : histCopy) {
-        FIXAcceptor::getInstance()->sendCandlestickData(userList, i.second);
+        FIXAcceptor::getInstance()->sendCandlestickData(targetList, i.second);
     }
 }
 
-void CandlestickData::registerUserInCandlestickData(const std::string& username)
+void CandlestickData::registerUserInCandlestickData(const std::string& targetID)
 {
-    std::thread(&CandlestickData::sendHistory, this, username).detach(); // this takes time, so let run on side
-    {
-        std::lock_guard<std::mutex> guard(m_mtxCandleUserList);
-        if (std::find(m_candleUserList.begin(), m_candleUserList.end(), username) == m_candleUserList.end())
-            m_candleUserList.push_back(username);
-    }
+    std::thread(&CandlestickData::sendHistory, this, targetID).detach(); // this takes time, so let run on side
+    increaseTargetRefCount(targetID);
 }
 
-void CandlestickData::unregisterUserInCandlestickData(const std::string& username)
+void CandlestickData::unregisterUserInCandlestickData(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guard(m_mtxCandleUserList);
-    const auto pos = std::find(m_candleUserList.begin(), m_candleUserList.end(), username);
-    // fast removal:
-    std::swap(*pos, m_candleUserList.back());
-    m_candleUserList.pop_back();
+    decreaseTargetRefCount(targetID);
 }
 
 //----------------------------------------------------------------------------

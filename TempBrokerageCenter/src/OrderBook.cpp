@@ -87,12 +87,6 @@ void OrderBook::spawn()
     m_th.reset(new std::thread(&OrderBook::process, this));
 }
 
-void OrderBook::increaseSubscription(const std::string& targetID)
-{
-    std::lock_guard<std::mutex> guard(m_mtxOrderBookTargetList);
-    m_orderBookTargetList[targetID]++;
-}
-
 /**
 *   @brief  Record the target ID that subscribes this OrderBook and send the 
 *	@param	username: The name of the user to be registered.
@@ -101,7 +95,7 @@ void OrderBook::increaseSubscription(const std::string& targetID)
 void OrderBook::onSubscribeOrderBook(const std::string& targetID)
 {
     broadcastWholeOrderBookToOne(targetID);
-    increaseSubscription(targetID);
+    increaseTargetRefCount(targetID);
 }
 
 /**
@@ -111,14 +105,7 @@ void OrderBook::onSubscribeOrderBook(const std::string& targetID)
 */
 void OrderBook::onUnsubscribeInOrderBook(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guard(m_mtxOrderBookTargetList);
-
-    auto pos = m_orderBookTargetList.find(targetID);
-    if (m_orderBookTargetList.end() == pos)
-        return;
-
-    if (--pos->second <= 0)
-        m_orderBookTargetList.erase(pos);
+    decreaseTargetRefCount(targetID);
 }
 
 /**
@@ -128,15 +115,9 @@ void OrderBook::onUnsubscribeInOrderBook(const std::string& targetID)
 */
 void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 {
-    std::unique_lock<std::mutex> ulOBTL(m_mtxOrderBookTargetList);
-    if (m_orderBookTargetList.empty())
+    auto targetList = getTargetList();
+    if (targetList.empty())
         return;
-
-    std::vector<std::string> obtlCopy;
-    for (auto& kv : m_orderBookTargetList)
-        obtlCopy.push_back(kv.first);
-
-    ulOBTL.unlock();
 
     using ulock_t = std::unique_lock<std::mutex>;
     ulock_t lock;
@@ -164,7 +145,7 @@ void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
         return;
     }
 
-    FIXAcceptor::getInstance()->sendOrderBookUpdate(obtlCopy, update);
+    FIXAcceptor::getInstance()->sendOrderBookUpdate(targetList, update);
 }
 
 /**
@@ -199,16 +180,9 @@ void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
 void OrderBook::broadcastWholeOrderBookToAll()
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
-
-    std::unique_lock<std::mutex> ulOBTL(m_mtxOrderBookTargetList);
-    if (m_orderBookTargetList.empty())
+    auto targetList = getTargetList();
+    if (targetList.empty())
         return;
-
-    std::vector<std::string> obtlCopy;
-    for (auto& kv : m_orderBookTargetList)
-        obtlCopy.push_back(kv.first);
-
-    ulOBTL.unlock();
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
     std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
@@ -216,13 +190,13 @@ void OrderBook::broadcastWholeOrderBookToAll()
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(obtlCopy, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(obtlCopy, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook(targetList, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(obtlCopy, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(obtlCopy, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook(targetList, m_odrBkLocalBid);
 }
 
 /**

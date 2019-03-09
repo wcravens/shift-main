@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Interfaces.h"
 #include "OrderBookEntry.h"
 
 #include <condition_variable>
@@ -14,12 +15,11 @@
 /**
 *  @brief Class that asynchronosly receives and/or broadcasts order books for a specific stock.
 */
-class OrderBook {
+class OrderBook : public ITargetsInfo {
 private:
     std::string m_symbol; ///> The stock name of this OrderBook instance.
 
     mutable std::mutex m_mtxOBEBuff; ///> Mutex for m_obeBuff.
-    mutable std::mutex m_mtxOrderBookTargetList;
     mutable std::mutex m_mtxOdrBkGlobalAsk;
     mutable std::mutex m_mtxOdrBkGlobalBid;
     mutable std::mutex m_mtxOdrBkLocalAsk;
@@ -35,7 +35,6 @@ private:
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalBid;
 
     std::queue<OrderBookEntry> m_obeBuff;
-    std::unordered_map<std::string, int> m_orderBookTargetList; // (Target Computer ID, # of users from this ID)
 
 public:
     OrderBook();

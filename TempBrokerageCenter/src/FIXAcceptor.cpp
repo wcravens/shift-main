@@ -414,11 +414,7 @@ void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& targetList
     message.setField(FIX::LowPx(cdPoint.getLowPrice())); // Low price
     message.setField(FIX::LastPx(cdPoint.getClosePrice())); // Close price
 
-    for (const auto& username : userList) {
-        const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
-        if (::STDSTR_NULL == targetID) {
-            continue;
-        }
+    for (const auto& targetID : targetList) {
         header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
