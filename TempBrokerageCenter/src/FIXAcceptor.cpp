@@ -25,7 +25,8 @@ static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New
 static const auto& FIXFIELD_SIDE_BUY = FIX::Side('1'); // 1 = Buy
 static const auto& FIXFIELD_LEAVQTY_100 = FIX::LeavesQty(100); // Quantity open for further execution
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
-static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
+static const auto& FIXFIELD_ADVTRANSTYPE_NEW = FIX::AdvTransType(FIX::AdvTransType_NEW);
+static const auto& FIXFIELD_ADVSIDE_TRADE = FIX::AdvSide('T'); // T = Trade
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
 static const auto& FIXFIELD_MSGTY_POSIREPORT = FIX::MsgType(FIX::MsgType_PositionReport);
 
@@ -283,30 +284,16 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
     FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
+    header.setField(FIX::MsgType(FIX::MsgType_Advertisement)); // TODO: add all fixed fields as static constants everywhere
 
-    message.setField(FIX::OrderID(transac.orderID));
-    message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_EXECTYPE_TRADE);
-    message.setField(FIX::OrdStatus(transac.orderDecision));
+    message.setField(FIX::AdvId(shift::crossguid::newGuid().str()));
+    message.setField(::FIXFIELD_ADVTRANSTYPE_NEW);
     message.setField(FIX::Symbol(transac.symbol));
-    message.setField(FIX::Side(transac.orderType));
-    message.setField(FIX::OrdType(transac.orderType));
+    message.setField(::FIXFIELD_ADVSIDE_TRADE);
+    message.setField(FIX::Quantity(transac.size));
     message.setField(FIX::Price(transac.price));
-    message.setField(::FIXFIELD_LEAVQTY_0);
-    message.setField(FIX::CumQty(transac.execQty));
-    message.setField(FIX::EffectiveTime(transac.execTime, 6));
-    message.setField(FIX::TransactTime(transac.serverTime, 6));
-
-    FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    idGroup.setField(::FIXFIELD_CLIENTID);
-    idGroup.setField(FIX::PartyID(transac.traderID));
-    message.addGroup(idGroup);
-
-    FIX50SP2::ExecutionReport::NoPartyIDs brokerGroup;
-    brokerGroup.setField(::FIXFIELD_EXECBROKER);
-    brokerGroup.setField(FIX::PartyID(transac.destination));
-    message.addGroup(brokerGroup);
+    message.setField(FIX::TransactTime(transac.simulationTime, 6)); // TODO: use simulationTime (execTime) and realTime (serverTime) everywhere
+    message.setField(FIX::LastMkt(transac.destination)); // TODO: Use this field and FIX::MDMkt for destination everywhere
 
     for (const auto& targetID : BCDocuments::getInstance()->getConnectedTargetIDsCopy()) {
         header.setField(FIX::TargetCompID(targetID));

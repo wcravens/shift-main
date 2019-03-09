@@ -100,7 +100,7 @@ void CandlestickData::process()
         m_tranBufSizeAtom = m_transacBuff.size();
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
-        const auto currExecTime = transac.execTime.getTimeT();
+        const auto currExecTime = transac.simulationTime.getTimeT();
 
         if (std::time_t{} == m_currOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup status ?
             m_symbol = std::move(transac.symbol);
