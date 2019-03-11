@@ -32,9 +32,6 @@ shift::CoreClient::CoreClient(const std::string& username)
 {
 }
 
-/**
- * @brief Default destructor for CoreClient object.
- */
 shift::CoreClient::~CoreClient(void)
 {
 }
@@ -54,11 +51,6 @@ bool shift::CoreClient::isConnected()
     return (m_fixInitiator && m_fixInitiator->isConnected());
 }
 
-/** 
- * @brief Method to set username and password for current session.
- * @param username The username to be set as type string.
- * @param password The password to be set as type string.
- */
 void shift::CoreClient::setUsername(const std::string& username)
 {
     m_username = username;

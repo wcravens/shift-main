@@ -58,6 +58,7 @@ class CORECLIENT_EXPORTS FIXInitiator
     : public FIX::Application,
       public FIX::MessageCracker {
 
+    //! The source of all evils
     friend class CoreClient;
 
 public:
@@ -70,11 +71,11 @@ public:
 
     static FIXInitiator& getInstance();
 
-    void connectBrokerageCenter(const std::string& cfgFile, CoreClient* pmc, const std::string& password, bool verbose = false, int timeout = 1000);
+    void connectBrokerageCenter(const std::string& cfgFile, CoreClient* client, const std::string& passwd, bool verbose = false, int timeout = 1000);
     void disconnectBrokerageCenter();
 
     // Call this function to attach both ways
-    R_REMOVE void attach(shift::CoreClient* pcc, const std::string& password = "NA", int timeout = 0);
+    R_REMOVE void attach(shift::CoreClient* c, const std::string& password = "NA", int timeout = 0);
 
     // call this function to send webClient username to and register at BC
     void webClientSendUsername(const std::string& username);
@@ -156,32 +157,32 @@ private:
     R_FIXINIT std::atomic<bool> m_connected;
     R_FIXINIT std::atomic<bool> m_verbose;
     R_FIXINIT std::atomic<bool> m_logonSuccess;
-    R_FIXINIT std::mutex m_mutex_logon;
-    R_FIXINIT std::condition_variable m_cv_logon;
+    R_FIXINIT std::mutex m_mutexLogon;
+    R_FIXINIT std::condition_variable m_cvLogon;
 
     // FIXInitiator - Subscriber management
-    R_FIXINIT std::mutex m_mutex_username_client;
-    R_FIXINIT std::unordered_map<std::string, CoreClient*> m_username_client;
+    R_FIXINIT std::mutex m_mutexUsernameClient;
+    R_FIXINIT std::unordered_map<std::string, CoreClient*> m_usernameClientMap;
 
     R_TODO std::atomic<bool> m_openPricesReady;
-    R_TODO std::mutex m_mutex_openPrices;
+    R_FIXSUB std::mutex m_mutexOpenPrices;
     R_FIXSUB std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value
     R_FIXSUB std::unordered_map<std::string, std::pair<double, int>> m_lastTrades; //!< Map with stock symbol as key and a pair with their last price and size as value.
     R_FIXSUB std::chrono::system_clock::time_point m_lastTradeTime;
 
     R_FIXSUB std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
 
-    std::mutex m_mutex_stockList;
-    std::condition_variable m_cv_stockList;
+    std::mutex m_mutexStockList;
+    std::condition_variable m_cvStockList;
     std::vector<std::string> m_stockList; //!< Vector of string saved names of all requested stock.
-    std::unordered_map<std::string, std::string> m_symbol_originalName;
-    std::unordered_map<std::string, std::string> m_originalName_symbol;
-    R_FIXSUB std::mutex m_mutex_companyNames;
+    std::unordered_map<std::string, std::string> m_symbolOriginalName;
+    std::unordered_map<std::string, std::string> m_originalNameSymbol;
+    R_FIXSUB std::mutex m_mutexCompanyNames;
     R_FIXSUB std::map<std::string, std::string> m_companyNames;
 
-    R_TODO std::mutex m_mutex_subscribedOrderBookSet; //!< Mutex for the subscribed order book list
+    R_TODO std::mutex m_mutexSubscribedOrderBookSet; //!< Mutex for the subscribed order book list
     R_TODO std::set<std::string> m_subscribedOrderBookSet; //!< Set of stock symbols whose orderbook has been subscribed.
-    R_TODO std::mutex m_mutex_subscribedCandleStickSet; //!< Mutex for the subscribed candle stick list
+    R_TODO std::mutex m_mutexSubscribedCandleStickSet; //!< Mutex for the subscribed candle stick list
     R_TODO std::set<std::string> m_subscribedCandleStickSet; //!< Set of stock symbols whose candlestick data has been subscribed.
 };
 

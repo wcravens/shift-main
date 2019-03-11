@@ -1,8 +1,6 @@
 #include "BestPrice.h"
 
-/**
- * @brief Default constructor for BestPrice object.
- */
+
 shift::BestPrice::BestPrice()
     : m_globalBidPrice(0.0)
     , m_globalBidSize(0)
@@ -15,17 +13,6 @@ shift::BestPrice::BestPrice()
 {
 }
 
-/**
- * @brief Constructor with all members preset.
- * @param globalBidPrice double value to set in m_globalBidPrice
- * @param globalBidSize int value to set in m_globalBidSize
- * @param globalAskPrice double value to set in m_globalAskPrice
- * @param globalAskSize int value to set in m_globalAskSize
- * @param localBidPrice double value to set in m_localBidPrice
- * @param localBidSize int value to set in m_localBidSize
- * @param localAskPrice double value to set in m_localAskPrice
- * @param localAskSize int value to set in m_localAskSize
- */
 shift::BestPrice::BestPrice(double globalBidPrice, int globalBidSize, double globalAskPrice, int globalAskSize,
     double localBidPrice, int localBidSize, double localAskPrice, int localAskSize)
     : m_globalBidPrice(globalBidPrice)
@@ -101,73 +88,41 @@ int shift::BestPrice::getAskSize() const
     return m_globalAskSize + m_localAskSize;
 }
 
-/**
- * @brief Getter for the global bid price.
- * @return Global bid price as a double.
- */
 double shift::BestPrice::getGlobalBidPrice() const
 {
     return m_globalBidPrice;
 }
 
-/**
- * @brief Getter for the global bid size.
- * @return Global bid size as an int.
- */
 int shift::BestPrice::getGlobalBidSize() const
 {
     return m_globalBidSize;
 }
 
-/**
- * @brief Getter for the global ask price.
- * @return Global ask price as a double.
- */
 double shift::BestPrice::getGlobalAskPrice() const
 {
     return m_globalAskPrice;
 }
 
-/**
- * @brief Getter for the global ask size.
- * @return Global ask size as an int.
- */
 int shift::BestPrice::getGlobalAskSize() const
 {
     return m_globalAskSize;
 }
 
-/**
- * @brief Getter for the local bid price.
- * @return Local bid price as a double.
- */
 double shift::BestPrice::getLocalBidPrice() const
 {
     return m_localBidPrice;
 }
 
-/**
- * @brief Getter for the local bid size.
- * @return Local bid size as an int.
- */
 int shift::BestPrice::getLocalBidSize() const
 {
     return m_localBidSize;
 }
 
-/**
- * @brief Getter for the local ask price.
- * @return Local ask price as a double.
- */
 double shift::BestPrice::getLocalAskPrice() const
 {
     return m_localAskPrice;
 }
 
-/**
- * @brief Getter for the local ask size.
- * @return Local ask size as an int.
- */
 int shift::BestPrice::getLocalAskSize() const
 {
     return m_localAskSize;
