@@ -1,6 +1,5 @@
 #include "OrderBookEntry.h"
 
-
 shift::OrderBookEntry::OrderBookEntry()
     : m_price(0.0)
     , m_size(0)

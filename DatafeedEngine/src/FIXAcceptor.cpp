@@ -197,11 +197,11 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
  * @brief Receiving one action record and save to 
  *        database as one trading record.
  */
-void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) // override
+void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
     FIX::NoPartyIDs numOfPartyGroup;
     message.get(numOfPartyGroup);
-    if (numOfPartyGroup < 3) {
+    if (numOfPartyGroup < 2) {
         cout << "Cant find Group: NoPartyIDs\n";
         return;
     }
@@ -219,15 +219,15 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     FIX::Symbol symbol;
     FIX::Side orderType1;
     FIX::OrdType orderType2;
-    FIX::CumQty size;
     FIX::Price price;
-    FIX::TransactTime serverTime;
     FIX::EffectiveTime utc_exetime;
+    FIX::LastMkt destination;
+    FIX::CumQty size;
+    FIX::TransactTime serverTime;
 
     FIX50SP2::ExecutionReport::NoPartyIDs partyGroup;
     FIX::PartyID traderID1;
     FIX::PartyID traderID2;
-    FIX::PartyID destination;
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup;
     FIX::TrdRegTimestamp utc_time1;
@@ -239,17 +239,16 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     message.get(symbol);
     message.get(orderType1);
     message.get(orderType2);
-    message.get(size);
     message.get(price);
-    message.get(serverTime);
     message.get(utc_exetime);
+    message.get(destination);
+    message.get(size);
+    message.get(serverTime);
 
     message.getGroup(1, partyGroup);
     partyGroup.get(traderID1);
     message.getGroup(2, partyGroup);
     partyGroup.get(traderID2);
-    message.getGroup(3, partyGroup);
-    partyGroup.get(destination);
 
     message.getGroup(1, timeGroup);
     timeGroup.get(utc_time1);

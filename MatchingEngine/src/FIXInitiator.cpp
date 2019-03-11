@@ -150,17 +150,18 @@ void FIXInitiator::sendMarketDataRequest()
 
     message.setField(FIX::OrderID(actions.order_id1));
     message.setField(FIX::SecondaryOrderID(actions.order_id2));
+    message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
     message.setField(FIX::OrdStatus(actions.decision));
     message.setField(FIX::Symbol(actions.stockname));
     message.setField(FIX::Side(actions.order_type1));
     message.setField(FIX::OrdType(actions.order_type2));
-    message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
+    message.setField(FIX::Price(actions.price));
+    message.setField(FIX::EffectiveTime(actions.exetime, 6));
+    message.setField(FIX::LastMkt(actions.destination));
     message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
     message.setField(FIX::CumQty(actions.size));
-    message.setField(FIX::Price(actions.price));
     message.setField(FIX::TransactTime(6));
-    message.setField(FIX::EffectiveTime(actions.exetime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
     idGroup1.setField(::FIXFIELD_CLIENTID);
@@ -171,11 +172,6 @@ void FIXInitiator::sendMarketDataRequest()
     idGroup2.setField(::FIXFIELD_CLIENTID);
     idGroup2.setField(FIX::PartyID(actions.trader_id2));
     message.addGroup(idGroup2);
-
-    FIX50SP2::ExecutionReport::NoPartyIDs brokerGroup;
-    brokerGroup.set(::FIXFIELD_EXECBROKER);
-    brokerGroup.set(FIX::PartyID(actions.destination));
-    message.addGroup(brokerGroup);
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
     timeGroup1.setField(FIX::TrdRegTimestamp(actions.time1, 6));
@@ -245,7 +241,7 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
 /**
  * @brief Deal with the incoming message which type is QuoteAcknowledgement
  */
-void FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID& sessionID) // override
+void FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID&) // override
 {
     FIX::QuoteID error;
     message.get(error);
@@ -256,7 +252,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, 
  * @brief Receive message to notify that 
  * the requested works have been done.
  */
-void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID& sessionID) // override
+void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID&) // override
 {
     FIX::NoLinesOfText numOfGroup;
     message.get(numOfGroup);
@@ -281,7 +277,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
 /**
  * @brief Server Receiving Rawdata from Database
  */
-void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID& sessionID) // override
+void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID&) // override
 {
     FIX::QuoteType ordType; // 0 for quote / 1 for trade
     message.get(ordType);

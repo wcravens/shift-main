@@ -293,7 +293,7 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
     message.setField(FIX::Quantity(transac.size));
     message.setField(FIX::Price(transac.price));
     message.setField(FIX::TransactTime(transac.simulationTime, 6)); // TODO: use simulationTime (execTime) and realTime (serverTime) everywhere
-    message.setField(FIX::LastMkt(transac.destination)); // TODO: Use this field and FIX::MDMkt for destination everywhere
+    message.setField(FIX::LastMkt(transac.destination));
 
     for (const auto& kv : BCDocuments::getInstance()->getConnectedTargetIDsMap()) {
         header.setField(FIX::TargetCompID(kv.first));
@@ -349,11 +349,7 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& userList, const 
     entryGroup.setField(FIX::MDEntrySize(entry.getSize()));
     entryGroup.setField(FIX::MDEntryDate(entry.getDate()));
     entryGroup.setField(FIX::MDEntryTime(entry.getTime()));
-
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
-    partyGroup.setField(FIXFIELD_EXECBROKER);
-    partyGroup.setField(FIX::PartyID(entry.getDestination()));
-    entryGroup.addGroup(partyGroup);
+    entryGroup.setField(FIX::MDMkt(entry.getDestination()));
 
     message.addGroup(entryGroup);
 }
@@ -380,11 +376,7 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& userList, 
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));
     entryGroup.setField(FIX::MDEntryDate(update.getDate()));
     entryGroup.setField(FIX::MDEntryTime(update.getTime()));
-
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
-    partyGroup.setField(::FIXFIELD_EXECBROKER);
-    partyGroup.setField(FIX::PartyID(update.getDestination()));
-    entryGroup.addGroup(partyGroup);
+    entryGroup.setField(FIX::MDMkt(update.getDestination()));
 
     message.addGroup(entryGroup);
 

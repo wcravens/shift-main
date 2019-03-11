@@ -1,6 +1,5 @@
 #include "BestPrice.h"
 
-
 shift::BestPrice::BestPrice()
     : m_globalBidPrice(0.0)
     , m_globalBidSize(0)

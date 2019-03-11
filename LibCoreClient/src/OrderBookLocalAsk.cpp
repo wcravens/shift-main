@@ -1,8 +1,7 @@
-#include <cmath>
-#include <limits>
-
 #include "OrderBookLocalAsk.h"
 
+#include <cmath>
+#include <limits>
 
 shift::OrderBookLocalAsk::OrderBookLocalAsk(const std::string& symbol)
     : OrderBook(symbol, shift::OrderBook::Type::LOCAL_ASK)

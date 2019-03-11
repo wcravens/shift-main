@@ -39,8 +39,7 @@ static const auto& FIXFIELD_ENTRY_BID = FIX::MDEntryType('0'); // Type of market
 static const auto& FIXFIELD_ENTRY_OFFER = FIX::MDEntryType('1'); // Type of market data entry, 1 = Offer
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
 
-//! @note Static
-inline std::chrono::system_clock::time_point shift::FIXInitiator::s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
+/*static*/ inline std::chrono::system_clock::time_point shift::FIXInitiator::s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
 {
     return std::chrono::system_clock::from_time_t(date.getTimeT()
         + time.getHour() * 3600
@@ -71,7 +70,7 @@ shift::FIXInitiator::~FIXInitiator() // override
                 delete pair_type_orderBook.second;
 
     {
-        std::lock_guard<std::mutex> ucGuard(m_mutexUsernameClient);
+        std::lock_guard<std::mutex> ucGuard(m_mtxUsernameClientMap);
         m_usernameClientMap.clear();
     }
 
@@ -87,13 +86,13 @@ shift::FIXInitiator& shift::FIXInitiator::getInstance()
     return fixInitiator;
 }
 
-void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, CoreClient* client, const std::string& passwd, bool verbose, int timeout)
+void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, CoreClient* client, const std::string& password, bool verbose, int timeout)
 {
     disconnectBrokerageCenter();
 
     m_username = client->getUsername();
 
-    std::istringstream iss{ passwd };
+    std::istringstream iss{ password };
     shift::crypto::Encryptor enc;
     iss >> enc >> m_password;
 
@@ -127,14 +126,14 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     m_pSocketInitiator->start();
 
     auto t1 = std::chrono::steady_clock::now();
-    std::unique_lock<std::mutex> lsUniqueLock(m_mutexLogon);
+    std::unique_lock<std::mutex> lsUniqueLock(m_mtxLogon);
     // Gets notify from fromAdmin() or onLogon()
     m_cvLogon.wait_for(lsUniqueLock, timeout * 1ms);
     auto t2 = std::chrono::steady_clock::now();
     timeout -= std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
     if (m_logonSuccess) {
-        std::unique_lock<std::mutex> slUniqueLock(m_mutexStockList);
+        std::unique_lock<std::mutex> slUniqueLock(m_mtxStockList);
         // Gets notify when security list is ready
         m_cvStockList.wait_for(slUniqueLock, timeout * 1ms);
 
@@ -183,24 +182,24 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
     // Stock list is only updated when first connecting,
     // so this allows its update after a disconnection
     {
-        std::lock_guard<std::mutex> slGuard(m_mutexStockList);
+        std::lock_guard<std::mutex> slGuard(m_mtxStockList);
         m_stockList.clear();
-        m_originalNameSymbol.clear();
-        m_symbolOriginalName.clear();
+        m_originalName_symbol.clear();
+        m_symbol_originalName.clear();
     }
     {
-        std::lock_guard<std::mutex> cnGuard(m_mutexCompanyNames);
+        std::lock_guard<std::mutex> cnGuard(m_mtxCompanyNames);
         m_companyNames.clear();
     }
 
     // Subscriptions will reset automatically when disconnecting,
     // but we still need to clean up these sets
     {
-        std::lock_guard<std::mutex> soblGuard(m_mutexSubscribedOrderBookSet);
+        std::lock_guard<std::mutex> soblGuard(m_mtxSubscribedOrderBookSet);
         m_subscribedOrderBookSet.clear();
     }
     {
-        std::lock_guard<std::mutex> scslGuard(m_mutexSubscribedCandleStickSet);
+        std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
         m_subscribedCandleStickSet.clear();
     }
 }
@@ -209,17 +208,17 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
  * @section WARNING
  * Don't call this function directly
  */
-void shift::FIXInitiator::attach(shift::CoreClient* c, const std::string& password, int timeout)
+void shift::FIXInitiator::attach(shift::CoreClient* client, const std::string& password, int timeout)
 {
     // TODO: add auth in BC and add lock after successful logon; use password to auth
-    webClientSendUsername(c->getUsername());
+    webClientSendUsername(client->getUsername());
 
     {
-        std::lock_guard<std::mutex> ucGuard(m_mutexUsernameClient);
-        m_usernameClientMap[c->getUsername()] = c;
+        std::lock_guard<std::mutex> ucGuard(m_mtxUsernameClientMap);
+        m_usernameClientMap[client->getUsername()] = client;
     }
 
-    c->attach(*this);
+    client->attach(*this);
 }
 
 /**
@@ -249,7 +248,7 @@ std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
 {
     std::vector<shift::CoreClient*> clientsVector;
 
-    std::lock_guard<std::mutex> ucGuard(m_mutexUsernameClient);
+    std::lock_guard<std::mutex> ucGuard(m_mtxUsernameClientMap);
 
     for (auto it = m_usernameClientMap.begin(); it != m_usernameClientMap.end(); ++it) {
         if (it->first != m_username) { // skip MainClient
@@ -272,13 +271,15 @@ shift::CoreClient* shift::FIXInitiator::getMainClient()
  */
 shift::CoreClient* shift::FIXInitiator::getClient(const std::string& name)
 {
-    std::lock_guard<std::mutex> ucGuard(m_mutexUsernameClient);
+    std::lock_guard<std::mutex> ucGuard(m_mtxUsernameClientMap);
 
     if (m_usernameClientMap.find(name) != m_usernameClientMap.end()) {
         return m_usernameClientMap[name];
     } else {
         throw std::range_error("Name not found: " + name);
     }
+
+    return nullptr;
 }
 
 bool shift::FIXInitiator::isConnected()
@@ -286,6 +287,11 @@ bool shift::FIXInitiator::isConnected()
     return m_connected;
 }
 
+/**
+ * @brief Method to print log messages.
+ *
+ * @param message: a string to be print.
+ */
 inline void shift::FIXInitiator::debugDump(const std::string& message)
 {
     if (m_verbose) {
@@ -301,10 +307,10 @@ inline void shift::FIXInitiator::debugDump(const std::string& message)
 inline void shift::FIXInitiator::createSymbolMap()
 {
     for (auto& originalName : m_stockList) {
-        m_originalNameSymbol[originalName] = originalName.substr(0, originalName.find_last_of('.'));
-        m_symbolOriginalName[m_originalNameSymbol[originalName]] = originalName;
+        m_originalName_symbol[originalName] = originalName.substr(0, originalName.find_last_of('.'));
+        m_symbol_originalName[m_originalName_symbol[originalName]] = originalName;
         // Substitute the old name with new symbol
-        originalName = m_originalNameSymbol[originalName];
+        originalName = m_originalName_symbol[originalName];
     }
 }
 
@@ -319,7 +325,7 @@ inline void shift::FIXInitiator::initializePrices()
         m_lastTrades[symbol].second = 0;
     }
 
-    std::lock_guard<std::mutex> opGuard(m_mutexOpenPrices);
+    std::lock_guard<std::mutex> opGuard(m_mtxOpenPrices);
     m_openPrices.clear();
 }
 
@@ -427,14 +433,9 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
 }
 
 /**
- * @brief Method to receive Last Price from
- * Brokerage Center.
+ * @brief Method to receive Last Price from Brokerage Center.
  *
- * @param message as a Advertisement type object
- * contains the last price information.
- *
- * @param sessionID as the SessionID for the current
- * communication.
+ * @param message as a Advertisement type object contains the last price information.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, const FIX::SessionID&) // override
 {
@@ -451,10 +452,10 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
         message.get(simulationTime);
         message.get(destination);
 
-        symbol = m_originalNameSymbol[symbol];
+        symbol = m_originalName_symbol[symbol];
 
         m_lastTrades[symbol].first = price;
-        m_lastTrades[symbol].second = int(size);
+        m_lastTrades[symbol].second = static_cast<int>(size);
         m_lastTradeTime = std::chrono::system_clock::from_time_t(simulationTime.getValue().getTimeT());
         try {
             getMainClient()->receiveLastPrice(symbol);
@@ -467,16 +468,11 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
 }
 
 /**
- * @brief Method to receive LatestStockPrice from
- * Brokerage Center.
+ * @brief Method to receive LatestStockPrice from Brokerage Center.
  *
- * @param message as a ExecutionReport type object
- * contains the last price information.
- *
- * @param sessionID as the SessionID for the current
- * communication.
+ * @param message as a ExecutionReport type object contains the last price information.
  */
-void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) // override
+void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
     // FIX::OrdStatus orderStatus;
     // message.get(orderStatus);
@@ -551,12 +547,12 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         message.get(symbol);
 
         // m_originalName_symbol shall be always thread-safe-readonly once after being initialized, so we shall prevent it from accidental insertion here
-        if (m_originalNameSymbol.find(symbol) == m_originalNameSymbol.end()) {
+        if (m_originalName_symbol.find(symbol) == m_originalName_symbol.end()) {
             cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << symbol << "], skipped." NO_COLOR << endl;
             return; //
         }
 
-        symbol = m_originalNameSymbol[symbol];
+        symbol = m_originalName_symbol[symbol];
 
         FIX::SettlPrice longPrice;
         FIX::PriorSettlPrice shortPrice;
@@ -608,8 +604,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
  * @brief Method to receive Global/Local orders from Brokerage Center.
  *
  * @param message as a MarketDataSnapshotFullRefresh type object contains the current accepting order information.
- *
- * @param sessionID as the SessionID for the current communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID&) // override
 {
@@ -627,39 +621,29 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     FIX::MDEntryType type;
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
-    FIX::MDEntryDate date;
-    FIX::MDEntryTime daytime;
-
-    FIX::NoPartyIDs numOfParty;
-    FIX::PartyID destination;
+    FIX::MDEntryDate simulationDate;
+    FIX::MDEntryTime simulationTime;
+    FIX::MDMkt destination;
 
     std::list<shift::OrderBookEntry> orderBook;
 
     message.getField(symbol);
-    symbol = m_originalNameSymbol[symbol];
+    symbol = m_originalName_symbol[symbol];
 
     for (int i = 1; i <= numOfEntry; i++) {
-        message.getGroup(static_cast<unsigned int>(i), entryGroup);
+        message.getGroup(i, entryGroup);
 
         entryGroup.getField(type);
         entryGroup.getField(price);
         entryGroup.getField(size);
-        entryGroup.getField(date);
-        entryGroup.getField(daytime);
-
-        entryGroup.getField(numOfParty);
-        if (!numOfParty) {
-            cout << "Cannot find PartyID in NoMDEntries!" << endl;
-            return;
-        }
-
-        entryGroup.getGroup(1, partyGroup);
-        partyGroup.getField(destination);
+        entryGroup.getField(simulationDate);
+        entryGroup.getField(simulationTime);
+        entryGroup.getField(destination);
 
         orderBook.push_back({ static_cast<double>(price),
-            int(size),
+            static_cast<int>(size),
             destination,
-            s_convertToTimePoint(date.getValue(), daytime.getValue()) });
+            s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
     }
 
     try {
@@ -673,8 +657,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
  * @brief Method to receive portfolio update from Brokerage Center.
  *
  * @param message as a QuoteAcknowledgement type object contains the current accepting order information.
- *
- * @param sessionID as the SessionID for the current communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID&) // override
 {
@@ -708,9 +690,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
         quoteSetGroup.get(price);
         quoteSetGroup.get(orderType);
 
-        symbol = m_originalNameSymbol[symbol];
+        symbol = m_originalName_symbol[symbol];
         int size = atoi((std::string(orderSize)).c_str());
-        shift::Order::Type type = shift::Order::Type(char(atoi(orderType.getString().c_str())));
+        shift::Order::Type type = shift::Order::Type(static_cast<char>(atoi(orderType.getString().c_str())));
 
         if (size != 0) {
             waitingList.push_back({ type, symbol, size, price, orderID });
@@ -745,36 +727,30 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     }
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
     message.getGroup(1, entryGroup);
-    entryGroup.getGroup(1, partyGroup);
 
     FIX::MDEntryType type;
     FIX::Symbol symbol;
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
-    FIX::PartyID destination;
-    FIX::MDEntryDate date;
-    FIX::MDEntryTime daytime;
+    FIX::MDEntryDate simulationDate;
+    FIX::MDEntryTime simulationTime;
+    FIX::MDMkt destination;
 
     entryGroup.getField(type);
     entryGroup.getField(symbol);
     entryGroup.getField(price);
     entryGroup.getField(size);
-    partyGroup.getField(destination);
-    entryGroup.getField(date);
-    entryGroup.getField(daytime);
+    entryGroup.getField(simulationDate);
+    entryGroup.getField(simulationTime);
+    entryGroup.getField(destination);
 
-    symbol = m_originalNameSymbol[symbol];
-    m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(type))]->update({ price, int(size), destination, s_convertToTimePoint(date.getValue(), daytime.getValue()) });
+    symbol = m_originalName_symbol[symbol];
+    m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(type))]->update({ price, static_cast<int>(size), destination, s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
 }
 
 /**
  * @brief Receive the security list of all stock from BrokerageCenter.
- *
- * @param The list of names for the receiving stock list.
- *
- * @param SessionID for the current communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
 {
@@ -786,7 +762,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
     }
 
     if (m_stockList.size() == 0) {
-        std::lock_guard<std::mutex> slGuard(m_mutexStockList);
+        std::lock_guard<std::mutex> slGuard(m_mtxStockList);
 
         FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
         FIX::Symbol symbol;
@@ -820,8 +796,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
  * @brief Method to receive open/close/high/low for a specific ticker at a specific time (Data for candlestick chart).
  *
  * @param message as a SecurityStatus type object contains symbol, open, close, high, low, timestamp information.
- *
- * @param sessionID as the SessionID for the current communication.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID&) // override
 {
@@ -839,13 +813,13 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     message.get(close);
     message.get(timestamp);
 
-    symbol = m_originalNameSymbol[symbol];
+    symbol = m_originalName_symbol[symbol];
 
     /**
      * @brief Logic for storing open price and check if ready. Open price stores the very first candle data open price for each ticker
      */
     if (!m_openPricesReady) {
-        std::lock_guard<std::mutex> opGuard(m_mutexOpenPrices);
+        std::lock_guard<std::mutex> opGuard(m_mtxOpenPrices);
         if (m_openPrices.find(symbol.getString()) == m_openPrices.end()) {
             m_openPrices[symbol.getString()] = open;
             if (m_openPrices.size() == getStockList().size()) {
@@ -941,7 +915,7 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
 
     message.setField(FIX::ClOrdID(order.getID()));
-    message.setField(FIX::Symbol(m_symbolOriginalName[order.getSymbol()]));
+    message.setField(FIX::Symbol(m_symbol_originalName[order.getSymbol()]));
     message.setField(FIX::Side(order.getType())); // FIXME: separate Side and OrdType
     message.setField(FIX::TransactTime(6));
     message.setField(FIX::OrderQty(order.getSize()));
@@ -968,7 +942,7 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
  */
 double shift::FIXInitiator::getOpenPrice(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> opGuard(m_mutexOpenPrices);
+    std::lock_guard<std::mutex> opGuard(m_mtxOpenPrices);
     if (m_openPrices.find(symbol) != m_openPrices.end()) {
         return m_openPrices[symbol];
     } else {
@@ -1075,7 +1049,7 @@ std::vector<shift::OrderBookEntry> shift::FIXInitiator::getOrderBookWithDestinat
  */
 std::vector<std::string> shift::FIXInitiator::getStockList()
 {
-    std::lock_guard<std::mutex> slGuard(m_mutexStockList);
+    std::lock_guard<std::mutex> slGuard(m_mtxStockList);
     return m_stockList;
 }
 
@@ -1137,7 +1111,7 @@ void shift::FIXInitiator::fetchCompanyName(const std::string tickerName)
     companyName = std::regex_replace(companyName, std::regex("&amp;"), "&");
     companyName = std::regex_replace(companyName, std::regex("&#x27;"), "'");
 
-    std::lock_guard<std::mutex> cnGuard(m_mutexCompanyNames);
+    std::lock_guard<std::mutex> cnGuard(m_mtxCompanyNames);
     m_companyNames[tickerName] = companyName;
 }
 
@@ -1150,25 +1124,25 @@ void shift::FIXInitiator::requestCompanyNames()
 
 std::map<std::string, std::string> shift::FIXInitiator::getCompanyNames()
 {
-    std::lock_guard<std::mutex> cnGuard(m_mutexCompanyNames);
+    std::lock_guard<std::mutex> cnGuard(m_mtxCompanyNames);
     return m_companyNames;
 }
 
 std::string shift::FIXInitiator::getCompanyName(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> cnGuard(m_mutexCompanyNames);
+    std::lock_guard<std::mutex> cnGuard(m_mtxCompanyNames);
     return m_companyNames[symbol];
 }
 
 void shift::FIXInitiator::subOrderBook(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> soblGuard(m_mutexSubscribedOrderBookSet);
+    std::lock_guard<std::mutex> soblGuard(m_mtxSubscribedOrderBookSet);
 
     // It's ok to send repeated subscription requests.
     // A test to see if it is already included in the set here is bad because
     // it would cause resubscription attempts during reconnections to fail.
     m_subscribedOrderBookSet.insert(symbol);
-    sendOrderBookRequest(m_symbolOriginalName[symbol], true);
+    sendOrderBookRequest(m_symbol_originalName[symbol], true);
 }
 
 /**
@@ -1176,11 +1150,11 @@ void shift::FIXInitiator::subOrderBook(const std::string& symbol)
  */
 void shift::FIXInitiator::unsubOrderBook(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> soblGuard(m_mutexSubscribedOrderBookSet);
+    std::lock_guard<std::mutex> soblGuard(m_mtxSubscribedOrderBookSet);
 
     if (m_subscribedOrderBookSet.find(symbol) != m_subscribedOrderBookSet.end()) {
         m_subscribedOrderBookSet.erase(symbol);
-        sendOrderBookRequest(m_symbolOriginalName[symbol], false);
+        sendOrderBookRequest(m_symbol_originalName[symbol], false);
     }
 }
 
@@ -1206,7 +1180,7 @@ void shift::FIXInitiator::unsubAllOrderBook()
  */
 std::vector<std::string> shift::FIXInitiator::getSubscribedOrderBookList()
 {
-    std::lock_guard<std::mutex> soblGuard(m_mutexSubscribedOrderBookSet);
+    std::lock_guard<std::mutex> soblGuard(m_mtxSubscribedOrderBookSet);
 
     std::vector<std::string> subscriptionList;
 
@@ -1219,22 +1193,22 @@ std::vector<std::string> shift::FIXInitiator::getSubscribedOrderBookList()
 
 void shift::FIXInitiator::subCandleData(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> scslGuard(m_mutexSubscribedCandleStickSet);
+    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
 
     // It's ok to send repeated subscription requests.
     // A test to see if it is already included in the set here is bad because
     // it would cause resubscription attempts during reconnections to fail.
     m_subscribedCandleStickSet.insert(symbol);
-    sendCandleDataRequest(m_symbolOriginalName[symbol], true);
+    sendCandleDataRequest(m_symbol_originalName[symbol], true);
 }
 
 void shift::FIXInitiator::unsubCandleData(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> scslGuard(m_mutexSubscribedCandleStickSet);
+    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
 
     if (m_subscribedCandleStickSet.find(symbol) != m_subscribedCandleStickSet.end()) {
         m_subscribedCandleStickSet.erase(symbol);
-        sendCandleDataRequest(m_symbolOriginalName[symbol], false);
+        sendCandleDataRequest(m_symbol_originalName[symbol], false);
     }
 }
 
@@ -1260,7 +1234,7 @@ void shift::FIXInitiator::unsubAllCandleData()
  */
 std::vector<std::string> shift::FIXInitiator::getSubscribedCandlestickList()
 {
-    std::lock_guard<std::mutex> scslGuard(m_mutexSubscribedCandleStickSet);
+    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
 
     std::vector<std::string> subscriptionList;
 
