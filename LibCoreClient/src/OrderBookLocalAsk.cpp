@@ -1,9 +1,8 @@
 #include "OrderBookLocalAsk.h"
 
-/**
- * @brief Constructor with all members preset.
- * @param symbol string value to be set in m_symbol
- */
+#include <cmath>
+#include <limits>
+
 shift::OrderBookLocalAsk::OrderBookLocalAsk(const std::string& symbol)
     : OrderBook(symbol, shift::OrderBook::Type::LOCAL_ASK)
 {
@@ -23,7 +22,7 @@ void shift::OrderBookLocalAsk::update(const shift::OrderBookEntry& entry)
         if (it->getPrice() > entry.getPrice())
             break;
 
-        if (it->getPrice() == entry.getPrice()) {
+        if (std::fabs(it->getPrice() - entry.getPrice()) < std::numeric_limits<double>::epsilon()) {
             if (!entry.getSize())
                 it = m_entries.erase(it);
             else

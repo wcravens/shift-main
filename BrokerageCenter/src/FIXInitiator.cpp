@@ -163,17 +163,17 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::Symbol symbol;
         FIX::Side orderType;
         FIX::Price price;
+        FIX::EffectiveTime confirmTime;
         FIX::LeavesQty shareSize;
         FIX::TransactTime serverTime;
-        FIX::EffectiveTime confirmTime;
 
         message.get(orderID);
         message.get(symbol);
         message.get(orderType);
         message.get(price);
+        message.get(confirmTime);
         message.get(shareSize);
         message.get(serverTime);
-        message.get(confirmTime);
 
         FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
         FIX::PartyRole role;
@@ -216,16 +216,16 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         static FIX::Symbol symbol;
         static FIX::Side orderType1;
         static FIX::OrdType orderType2;
+        static FIX::Price price;
+        static FIX::EffectiveTime execTime;
+        static FIX::LastMkt destination;
         static FIX::LeavesQty leftQty;
         static FIX::CumQty shareSize;
-        static FIX::Price price;
         static FIX::TransactTime serverTime;
-        static FIX::EffectiveTime execTime;
 
         static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
         static FIX::PartyID username1;
         static FIX::PartyID username2;
-        static FIX::PartyID destination;
 
         // #pragma GCC diagnostic ignored ....
 
@@ -234,16 +234,16 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::SecondaryOrderID* pOrderID2;
         FIX::Side* pOrderType1;
         FIX::OrdType* pOrderType2;
-        FIX::CumQty* pShareSize;
         FIX::Price* pPrice;
-        FIX::LeavesQty* pLeftQty;
-        FIX::TransactTime* pServerTime;
         FIX::EffectiveTime* pExecTime;
+        FIX::LastMkt* pDestination;
+        FIX::LeavesQty* pLeftQty;
+        FIX::CumQty* pShareSize;
+        FIX::TransactTime* pServerTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
         FIX::PartyID* pUsername1;
         FIX::PartyID* pUsername2;
-        FIX::PartyID* pDestination;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
         unsigned int prevCnt = 0;
@@ -258,15 +258,15 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pOrderType1 = &orderType1;
             pOrderID2 = &orderID2;
             pOrderType2 = &orderType2;
-            pShareSize = &shareSize;
             pPrice = &price;
-            pLeftQty = &leftQty;
-            pServerTime = &serverTime;
+            pDestination = &destination;
             pExecTime = &execTime;
+            pLeftQty = &leftQty;
+            pShareSize = &shareSize;
+            pServerTime = &serverTime;
             pIDGroup = &idGroup;
             pUsername1 = &username1;
             pUsername2 = &username2;
-            pDestination = &destination;
         } else {
             // note: important precondition of the correctness of the following code is: std::operator new() is thread-safe.
             pSymbol = new decltype(symbol);
@@ -274,15 +274,15 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pOrderType1 = new decltype(orderType1);
             pOrderID2 = new decltype(orderID2);
             pOrderType2 = new decltype(orderType2);
-            pShareSize = new decltype(shareSize);
             pPrice = new decltype(price);
-            pLeftQty = new decltype(leftQty);
-            pServerTime = new decltype(serverTime);
+            pDestination = new decltype(destination);
             pExecTime = new decltype(execTime);
+            pLeftQty = new decltype(leftQty);
+            pShareSize = new decltype(shareSize);
+            pServerTime = new decltype(serverTime);
             pIDGroup = new decltype(idGroup);
             pUsername1 = new decltype(username1);
             pUsername2 = new decltype(username2);
-            pDestination = new decltype(destination);
         }
 
         message.get(*pSymbol);
@@ -290,16 +290,17 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         message.get(*pOrderType1);
         message.get(*pOrderID2);
         message.get(*pOrderType2);
-        message.get(*pShareSize);
         message.get(*pPrice);
-        message.get(*pLeftQty);
-        message.get(*pServerTime);
+        message.get(*pDestination);
         message.get(*pExecTime);
+        message.get(*pLeftQty);
+        message.get(*pShareSize);
+        message.get(*pServerTime);
 
-        // Update Version: ClientID and ExecBroker has been replaced by PartyRole and PartyID
+        // Update Version: ClientID has been replaced by PartyRole and PartyID
         FIX::NoPartyIDs numOfGroup;
         message.get(numOfGroup);
-        if (numOfGroup < 3) {
+        if (numOfGroup < 2) {
             cout << "Cannot find all ClientID in ExecutionReport !" << endl;
             return;
         }
@@ -308,8 +309,6 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         pIDGroup->get(*pUsername1);
         message.getGroup(2, *pIDGroup);
         pIDGroup->get(*pUsername2);
-        message.getGroup(3, *pIDGroup);
-        pIDGroup->get(*pDestination);
 
         auto printRpts = [](bool rpt1or2, auto pUsername, auto pOrderID, auto orderStatus, auto pServerTime, auto pExecTime, auto pSymbol, auto pOrderType, auto pPrice, auto pShareSize) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
@@ -436,7 +435,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
  * fields only if there are multiple onMessage threads
  * are running at the time.
  */
-void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) // override
+void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
 {
     FIX::NoMDEntries numOfEntry;
     message.get(numOfEntry);
@@ -446,28 +445,26 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     }
 
     static FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    static FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
 
     static FIX::MDEntryType bookType;
     static FIX::Symbol symbol;
     static FIX::MDEntryPx price;
     static FIX::MDEntrySize size;
-    static FIX::PartyID destination;
     static FIX::MDEntryDate date;
     static FIX::MDEntryTime daytime;
+    static FIX::MDMkt destination;
 
     // #pragma GCC diagnostic ignored ....
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries* pEntryGroup;
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs* pPartyGroup;
 
     FIX::MDEntryType* pBookType;
     FIX::Symbol* pSymbol;
     FIX::MDEntryPx* pPrice;
     FIX::MDEntrySize* pSize;
-    FIX::PartyID* pDestination;
     FIX::MDEntryDate* pDate;
     FIX::MDEntryTime* pDaytime;
+    FIX::MDMkt* pDestination;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
     unsigned int prevCnt = 0;
@@ -478,7 +475,6 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 
     if (0 == prevCnt) { // sequential case; optimized:
         pEntryGroup = &entryGroup;
-        pPartyGroup = &partyGroup;
         pBookType = &bookType;
         pSymbol = &symbol;
         pPrice = &price;
@@ -488,7 +484,6 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pDaytime = &daytime;
     } else { // > 1 threads; always safe way:
         pEntryGroup = new decltype(entryGroup);
-        pPartyGroup = new decltype(partyGroup);
         pBookType = new decltype(bookType);
         pSymbol = new decltype(symbol);
         pPrice = new decltype(price);
@@ -505,9 +500,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     pEntryGroup->get(*pSize);
     pEntryGroup->get(*pDate);
     pEntryGroup->get(*pDaytime);
-
-    pEntryGroup->getGroup(1, *pPartyGroup);
-    pPartyGroup->get(*pDestination);
+    pEntryGroup->get(*pDestination);
 
     OrderBookEntry update{
         OrderBookEntry::s_toOrderBookType(*pBookType),
@@ -523,7 +516,6 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 
     if (prevCnt) { // > 1 threads
         delete pEntryGroup;
-        delete pPartyGroup;
         delete pBookType;
         delete pSymbol;
         delete pPrice;
@@ -540,7 +532,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 /*
  * @brief Receive security list from ME. Only run once each system session.
  */
-void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
+void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
 {
     // This test is required because if there is a disconnection between ME and BC,
     // the ME will send the security list again during the reconnection procedure.

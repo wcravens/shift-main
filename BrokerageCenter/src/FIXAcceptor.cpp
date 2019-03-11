@@ -20,7 +20,6 @@
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1");
 static const auto& FIXFIELD_QUOTESTAT = FIX::QuoteStatus(0); // 0 = Accepted
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
-static const auto& FIXFIELD_EXECBROKER = FIX::PartyRole(1); // 1 = ExecBroker in FIX4.2
 static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New
 static const auto& FIXFIELD_SIDE_BUY = FIX::Side('1'); // 1 = Buy
 static const auto& FIXFIELD_LEAVQTY_100 = FIX::LeavesQty(100); // Quantity open for further execution
@@ -28,7 +27,6 @@ static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FI
 static const auto& FIXFIELD_ADVTRANSTYPE_NEW = FIX::AdvTransType(FIX::AdvTransType_NEW);
 static const auto& FIXFIELD_ADVSIDE_TRADE = FIX::AdvSide('T'); // T = Trade
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
-static const auto& FIXFIELD_MSGTY_POSIREPORT = FIX::MsgType(FIX::MsgType_PositionReport);
 
 FIXAcceptor::~FIXAcceptor() // override
 {
@@ -333,7 +331,7 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& username, const Portfo
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIXFIELD_MSGTY_POSIREPORT);
+    header.setField(FIX::MsgType(FIX::MsgType_PositionReport));
 
     message.setField(FIX::PosMaintRptID(shift::crossguid::newGuid().str()));
     message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
@@ -379,7 +377,7 @@ void FIXAcceptor::sendPortfolioItem(const std::string& username, const Portfolio
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIXFIELD_MSGTY_POSIREPORT);
+    header.setField(FIX::MsgType(FIX::MsgType_PositionReport));
 
     message.setField(FIX::PosMaintRptID(shift::crossguid::newGuid().str()));
     message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
@@ -492,7 +490,7 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
     FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGSTR);
     header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::MsgType(FIX::MsgType_Advertisement)); // TODO: add all fixed fields as static constants everywhere
+    header.setField(FIX::MsgType(FIX::MsgType_Advertisement));
 
     message.setField(FIX::AdvId(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_ADVTRANSTYPE_NEW);
@@ -501,7 +499,7 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
     message.setField(FIX::Quantity(transac.size));
     message.setField(FIX::Price(transac.price));
     message.setField(FIX::TransactTime(transac.simulationTime, 6)); // TODO: use simulationTime (execTime) and realTime (serverTime) everywhere
-    message.setField(FIX::LastMkt(transac.destination)); // TODO: Use this field and FIX::MDMkt for destination everywhere
+    message.setField(FIX::LastMkt(transac.destination));
 
     for (const auto& targetID : BCDocuments::getInstance()->getTargetList()) {
         header.setField(FIX::TargetCompID(targetID));
@@ -553,11 +551,7 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
     entryGroup.setField(FIX::MDEntrySize(entry.getSize()));
     entryGroup.setField(FIX::MDEntryDate(entry.getDate()));
     entryGroup.setField(FIX::MDEntryTime(entry.getTime()));
-
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
-    partyGroup.setField(FIXFIELD_EXECBROKER);
-    partyGroup.setField(FIX::PartyID(entry.getDestination()));
-    entryGroup.addGroup(partyGroup);
+    entryGroup.setField(FIX::MDMkt(entry.getDestination()));
 
     message.addGroup(entryGroup);
 }
@@ -582,11 +576,7 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& targetList
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));
     entryGroup.setField(FIX::MDEntryDate(update.getDate()));
     entryGroup.setField(FIX::MDEntryTime(update.getTime()));
-
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
-    partyGroup.setField(::FIXFIELD_EXECBROKER);
-    partyGroup.setField(FIX::PartyID(update.getDestination()));
-    entryGroup.addGroup(partyGroup);
+    entryGroup.setField(FIX::MDMkt(update.getDestination()));
 
     message.addGroup(entryGroup);
 

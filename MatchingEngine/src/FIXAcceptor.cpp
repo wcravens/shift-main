@@ -18,7 +18,6 @@ extern std::map<std::string, Stock> stocklist;
 // Predefined constant FIX fields (To avoid recalculations):
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1"); // FIX BeginString
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
-static const auto& FIXFIELD_EXECBROKER = FIX::PartyRole(1); // 1 = ExecBroker in FIX4.2
 static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
@@ -120,15 +119,10 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
     entryGroup.setField(FIX::Symbol(update.getsymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getprice()));
     entryGroup.setField(FIX::MDEntrySize(update.getsize()));
-    entryGroup.setField(FIX::Text("NULL")); // FIXME: FIX Required
     auto utc = update.getutctime();
     entryGroup.setField(FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())));
     entryGroup.setField(FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)));
-
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries::NoPartyIDs partyGroup;
-    partyGroup.setField(FIXFIELD_EXECBROKER);
-    partyGroup.setField(FIX::PartyID(update.getdestination()));
-    entryGroup.addGroup(partyGroup);
+    entryGroup.setField(FIX::MDMkt(update.getdestination()));
 
     message.addGroup(entryGroup);
 
@@ -159,18 +153,18 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
 
     message.setField(FIX::OrderID(actions.order_id1));
     message.setField(FIX::SecondaryOrderID(actions.order_id2));
+    message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
     message.setField(FIX::OrdStatus(actions.decision));
     message.setField(FIX::Symbol(actions.stockname));
     message.setField(FIX::Side(actions.order_type1));
     message.setField(FIX::OrdType(actions.order_type2));
-    message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
+    message.setField(FIX::Price(actions.price));
+    message.setField(FIX::EffectiveTime(actions.exetime, 6));
+    message.setField(FIX::LastMkt(actions.destination));
     message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
     message.setField(FIX::CumQty(actions.size));
-    message.setField(FIX::Price(actions.price));
-
     message.setField(FIX::TransactTime(6));
-    message.setField(FIX::EffectiveTime(actions.exetime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
     idGroup1.set(::FIXFIELD_CLIENTID);
@@ -181,11 +175,6 @@ void FIXAcceptor::sendSecurityList(const std::string& clientID)
     idGroup2.set(::FIXFIELD_CLIENTID);
     idGroup2.set(FIX::PartyID(actions.trader_id2));
     message.addGroup(idGroup2);
-
-    FIX50SP2::ExecutionReport::NoPartyIDs brokerGroup;
-    brokerGroup.set(::FIXFIELD_EXECBROKER);
-    brokerGroup.set(FIX::PartyID(actions.destination));
-    message.addGroup(brokerGroup);
 
     FIX::Session::sendToTarget(message);
 }
@@ -222,8 +211,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     sendSecurityList(clientid);
 }
 
-void FIXAcceptor::fromApp(const FIX::Message& message,
-    const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
+void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
 {
     crack(message, sessionID);
 }
@@ -231,7 +219,7 @@ void FIXAcceptor::fromApp(const FIX::Message& message,
 /**
  * @brief Deal with the incoming messages which type are NewOrderSingle
  */
-void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) // override
+void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID&) // override
 {
     FIX::NoPartyIDs numOfGroup;
     message.get(numOfGroup);
@@ -350,10 +338,10 @@ void FIXAcceptor::sendQuoteConfirmation(QuoteConfirm& confirm)
     message.setField(FIX::Symbol(confirm.symbol));
     message.setField(FIX::Side(confirm.ordertype));
     message.setField(FIX::Price(confirm.price));
+    message.setField(FIX::EffectiveTime(confirm.time, 6));
     message.setField(FIX::LeavesQty(confirm.size));
     message.setField(::FIXFIELD_CUMQTY_0); // Required by FIX
     message.setField(FIX::TransactTime(6));
-    message.setField(FIX::EffectiveTime(confirm.time, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_CLIENTID);

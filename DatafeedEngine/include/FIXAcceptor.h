@@ -48,17 +48,17 @@ private:
     FIXAcceptor();
 
     // QuickFIX methods
-    void onCreate(const FIX::SessionID& sessionID) override;
-    void onLogon(const FIX::SessionID& sessionID) override;
-    void onLogout(const FIX::SessionID& sessionID) override;
-    void toAdmin(FIX::Message& message, const FIX::SessionID& sessionID) override {}
-    void toApp(FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::DoNotSend) override {}
-    void fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
-    void fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
+    void onCreate(const FIX::SessionID&) override;
+    void onLogon(const FIX::SessionID&) override;
+    void onLogout(const FIX::SessionID&) override;
+    void toAdmin(FIX::Message&, const FIX::SessionID&) override {}
+    void toApp(FIX::Message&, const FIX::SessionID&) throw(FIX::DoNotSend) override {}
+    void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
+    void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     // Receive execution report and save it into database
-    void onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) override;
-    void onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) override;
-    void onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) override;
+    void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override;
+    void onMessage(const FIX50SP2::MarketDataRequest&, const FIX::SessionID&) override;
+    void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
