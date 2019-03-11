@@ -31,7 +31,6 @@ using namespace std::chrono_literals;
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1");
 static const auto& FIXFIELD_UQ_ACTION = FIX::UserRequestType(1); // Action required by a UserRequest, 1 = Log On User
 static const auto& FIXFIELD_SUBTYPE_SUB = FIX::SubscriptionRequestType('1'); // Subscription Request Type, 1 = Snapshot + Updates (Subscribe)
-static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
 static const auto& FIXFIELD_SUBTYPE_UNSUB = FIX::SubscriptionRequestType('2'); // Subscription Request Type, 2 = Disable previous Snapshot + Update Request (Unsubscribe)
 static const auto& FIXFIELD_UPDTYPE_INCRE = FIX::MDUpdateType(1); // Type of Market Data update, 1 = Incremental refresh
 static const auto& FIXFIELD_DOM_FULL = FIX::MarketDepth(0); // Depth of market for Book Snapshot, 0 = full book depth

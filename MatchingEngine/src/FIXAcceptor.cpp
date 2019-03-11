@@ -18,7 +18,6 @@ extern std::map<std::string, Stock> stocklist;
 // Predefined constant FIX fields (To avoid recalculations):
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1"); // FIX BeginString
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
-static const auto& FIXFIELD_EXECBROKER = FIX::PartyRole(1); // 1 = ExecBroker in FIX4.2
 static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
