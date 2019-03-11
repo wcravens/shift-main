@@ -38,7 +38,7 @@ void BCDocuments::attachOrderBookToSymbol(const std::string& symbol)
     orderBookPtr->spawn();
 }
 
-void BCDocuments::addOrderBookEntryToOrderBook(const std::string& symbol, const OrderBookEntry& entry)
+void BCDocuments::onNewOBEntryForOrderBook(const std::string& symbol, const OrderBookEntry& entry)
 {
     while (!s_isSecurityListReady)
         std::this_thread::sleep_for(500ms);
@@ -52,7 +52,7 @@ void BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
     candlePtr->spawn();
 }
 
-void BCDocuments::addTransacToCandlestickData(const std::string& symbol, const Transaction& transac)
+void BCDocuments::onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac)
 {
     while (!s_isSecurityListReady)
         std::this_thread::sleep_for(500ms);
@@ -103,14 +103,14 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& username) -> 
     return res.first;
 }
 
-void BCDocuments::addOrderToUserRiskManagement(const std::string& username, const Order& order)
+void BCDocuments::onNewOrderForUserRiskManagement(const std::string& username, const Order& order)
 {
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
     addRiskManagementToUserNoLock(username);
     m_riskManagementByName[username]->enqueueOrder(order);
 }
 
-void BCDocuments::addReportToUserRiskManagement(const std::string& username, const Report& report)
+void BCDocuments::onNewReportForUserRiskManagement(const std::string& username, const Report& report)
 {
     if ("TR" == username)
         return;
@@ -142,27 +142,30 @@ double BCDocuments::getOrderBookMarketFirstPrice(bool isBuy, const std::string& 
     }
 }
 
-bool BCDocuments::manageUsersInOrderBook(bool isRegister, const std::string& symbol, const std::string& username) const
-{
-    auto pos = m_orderBookBySymbol.find(symbol);
-    if (m_orderBookBySymbol.end() != pos) {
-        if (isRegister)
-            pos->second->registerUserInOrderBook(username);
-        else // unregister
-            pos->second->unregisterUserInOrderBook(username);
-        return true;
-    }
-
-    return false;
-}
-
-bool BCDocuments::manageUsersInCandlestickData(bool isRegister, const std::string& username, const std::string& symbol)
+bool BCDocuments::manageSubscriptionInOrderBook(bool isSubscribe, const std::string& symbol, const std::string& targetID)
 {
     assert(s_isSecurityListReady);
-    /*  ||
-       \||/
-        \/
-        I do write assert(...) here instead of explicitly writting busy waiting loop because that
+
+    auto pos = m_orderBookBySymbol.find(symbol);
+    if (m_orderBookBySymbol.end() == pos)
+        return false; // unknown RIC
+
+    if (isSubscribe) {
+        pos->second->onSubscribeOrderBook(targetID);
+
+        std::lock_guard<std::mutex> guard(m_mtxOrderBookSymbolsByTargetID);
+        m_orderBookSymbolsByTargetID[targetID].insert(symbol);
+    } else { // unsubscribe
+        pos->second->onUnsubscribeOrderBook(targetID);
+    }
+
+    return true;
+}
+
+bool BCDocuments::manageSubscriptionInCandlestickData(bool isSubscribe, const std::string& symbol, const std::string& targetID)
+{
+    assert(s_isSecurityListReady);
+    /*  I do write assert(...) here instead of explicitly writting busy waiting loop because that
         assert() assumes that the dependency logics are implied and preconditions are guarenteed by the
         implementation somewhere, whereas a waiting loop assumes nothing.
         Hence, the assert() here is reasonable because this function is invoked only after we connected to the user, at which security list must be ready.
@@ -170,13 +173,13 @@ bool BCDocuments::manageUsersInCandlestickData(bool isRegister, const std::strin
 
     auto pos = m_candleBySymbol.find(symbol);
     if (m_candleBySymbol.end() != pos) {
-        if (isRegister) {
-            pos->second->registerUserInCandlestickData(username);
+        if (isSubscribe) {
+            pos->second->registerUserInCandlestickData(targetID);
 
-            std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByName);
-            m_candleSymbolsByName[username].insert(symbol);
+            std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByTargetID);
+            m_candleSymbolsByTargetID[targetID].insert(symbol);
         } else
-            pos->second->unregisterUserInCandlestickData(username);
+            pos->second->unregisterUserInCandlestickData(targetID);
         return true;
     }
 
@@ -189,7 +192,7 @@ int BCDocuments::sendHistoryToUser(const std::string& username)
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
 
     auto pos = m_riskManagementByName.find(username);
-    if (m_riskManagementByName.end() == pos) { // newly joined user ?
+    if (m_riskManagementByName.end() == pos) { // newly joined user ? (TODO)
         pos = addRiskManagementToUserNoLock(username);
         res = 1;
     }
@@ -199,40 +202,32 @@ int BCDocuments::sendHistoryToUser(const std::string& username)
     return res;
 }
 
-std::unordered_map<std::string, std::string> BCDocuments::getConnectedTargetIDsMap()
+void BCDocuments::registerUserInDoc(const std::string& targetID, const std::string& username)
 {
-    std::lock_guard<std::mutex> guard(m_mtxMapsBetweenNamesAndTargetIDs);
-    return m_mapTarID2Name;
-}
-
-void BCDocuments::registerUserInDoc(const std::string& username, const std::string& targetID)
-{
-    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
-    m_mapTarID2Name[targetID] = username;
+    std::lock_guard<std::mutex> guard(m_mtxUserTargetInfo);
     m_mapName2TarID[username] = targetID;
+    m_targetList.insert(targetID);
 }
 
-void BCDocuments::unregisterUserFromDoc(const std::string& username)
+// removes all users affiliated to the target computer ID
+void BCDocuments::unregisterTargetFromDoc(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
+    std::lock_guard<std::mutex> guard(m_mtxUserTargetInfo);
 
-    auto posN2ID = m_mapName2TarID.find(username);
-    if (m_mapName2TarID.end() != posN2ID) {
-        const auto& tarID = posN2ID->second;
-        m_mapTarID2Name.erase(tarID);
-        m_mapName2TarID.erase(posN2ID);
-    }
+    m_targetList.erase(targetID);
+
+    std::vector<std::string> usernames;
+    for (auto& kv : m_mapName2TarID)
+        if (targetID == kv.second)
+            usernames.push_back(kv.first);
+
+    for (auto& name : usernames)
+        m_mapName2TarID.erase(name);
 }
 
-void BCDocuments::registerWebUserInDoc(const std::string& username, const std::string& targetID)
+std::string BCDocuments::getTargetIDByUsername(const std::string& username) const
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
-    m_mapName2TarID[username] = targetID;
-}
-
-std::string BCDocuments::getTargetIDByUsername(const std::string& username)
-{
-    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
+    std::lock_guard<std::mutex> guard(m_mtxUserTargetInfo);
 
     auto pos = m_mapName2TarID.find(username);
     if (m_mapName2TarID.end() == pos)
@@ -241,56 +236,41 @@ std::string BCDocuments::getTargetIDByUsername(const std::string& username)
     return pos->second;
 }
 
-std::string BCDocuments::getUsernameByTargetID(const std::string& targetID)
+std::vector<std::string> BCDocuments::getTargetList() const
 {
-    std::lock_guard<std::mutex> guardID2N(m_mtxMapsBetweenNamesAndTargetIDs);
-
-    auto pos = m_mapTarID2Name.find(targetID);
-    if (m_mapTarID2Name.end() == pos)
-        return ::STDSTR_NULL;
-
-    return pos->second;
+    std::vector<std::string> copy(m_targetList.begin(), m_targetList.end());
+    return copy;
 }
 
-void BCDocuments::addOrderBookSymbolToUser(const std::string& username, const std::string& symbol)
+void BCDocuments::unregisterTargetFromOrderBooks(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guard(m_mtxOrderBookSymbolsByName);
-    m_orderBookSymbolsByName[username].insert(symbol);
-}
+    std::unique_lock<std::mutex> lock(m_mtxOrderBookSymbolsByTargetID);
+    auto pos = m_orderBookSymbolsByTargetID.find(targetID);
+    if (m_orderBookSymbolsByTargetID.end() == pos)
+        return;
 
-void BCDocuments::unregisterUserFromOrderBooks(const std::string& username)
-{
-    std::lock_guard<std::mutex> guardOSBN(m_mtxOrderBookSymbolsByName);
+    std::vector<std::string> symbolsCopy(pos->second.begin(), pos->second.end());
+    m_orderBookSymbolsByTargetID.erase(pos);
+    lock.unlock();
 
-    auto pos = m_orderBookSymbolsByName.find(username);
-    if (m_orderBookSymbolsByName.end() != pos) {
-        for (const auto& symbol : pos->second) {
-            m_orderBookBySymbol[symbol]->unregisterUserInOrderBook(username);
-        }
-        m_orderBookSymbolsByName.erase(pos);
+    for (const auto& symbol : symbolsCopy) {
+        m_orderBookBySymbol[symbol]->onUnsubscribeOrderBook(targetID);
     }
 }
 
-void BCDocuments::unregisterUserFromCandles(const std::string& username)
+void BCDocuments::unregisterTargetFromCandles(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guardCSBN(m_mtxCandleSymbolsByName);
+    std::unique_lock<std::mutex> lock(m_mtxCandleSymbolsByTargetID);
+    auto pos = m_candleSymbolsByTargetID.find(targetID);
+    if (m_candleSymbolsByTargetID.end() == pos)
+        return;
 
-    auto pos = m_candleSymbolsByName.find(username);
-    if (m_candleSymbolsByName.end() != pos) {
-        for (const auto& symbol : pos->second) {
-            m_candleBySymbol[symbol]->unregisterUserInCandlestickData(username);
-        }
-        m_candleSymbolsByName.erase(pos);
-    }
-}
+    std::vector<std::string> symbolsCopy(pos->second.begin(), pos->second.end());
+    m_candleSymbolsByTargetID.erase(pos);
+    lock.unlock();
 
-void BCDocuments::removeCandleSymbolFromUser(const std::string& username, const std::string& symbol)
-{
-    std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByName);
-
-    auto pos = m_candleSymbolsByName.find(username);
-    if (m_candleSymbolsByName.end() != pos) {
-        pos->second.erase(symbol);
+    for (const auto& symbol : symbolsCopy) {
+        m_candleBySymbol[symbol]->unregisterUserInCandlestickData(targetID);
     }
 }
 

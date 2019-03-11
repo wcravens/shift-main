@@ -21,7 +21,7 @@ OrderBook::OrderBook(std::string name)
 {
 }
 
-OrderBook::~OrderBook()
+OrderBook::~OrderBook() /*override*/
 {
     shift::concurrency::notifyConsumerThreadToQuit(m_quitFlag, m_cvOBEBuff, *m_th);
     m_th = nullptr;
@@ -88,48 +88,34 @@ void OrderBook::spawn()
 }
 
 /**
-*   @brief  Thread-safely registers a user to the list by username.
-*	@param	username: The name of the user to be registered.
+*   @brief  Record the target ID that subscribes this OrderBook and send the
 *   @return nothing
 */
-void OrderBook::registerUserInOrderBook(const std::string& username)
+void OrderBook::onSubscribeOrderBook(const std::string& targetID)
 {
-    broadcastWholeOrderBookToOne(username);
-    {
-        std::lock_guard<std::mutex> guard(m_mtxOrderBookUserList);
-        if (std::find(m_orderBookUserList.begin(), m_orderBookUserList.end(), username) == m_orderBookUserList.end())
-            m_orderBookUserList.push_back(username);
-    }
-    BCDocuments::getInstance()->addOrderBookSymbolToUser(username, m_symbol);
+    broadcastWholeOrderBookToOne(targetID);
+    increaseTargetRefCount(targetID);
 }
 
 /**
 *   @brief  Thread-safely unregisters a user from the list by username.
-*	@param	username: The username of the user.
 *   @return nothing
 */
-void OrderBook::unregisterUserInOrderBook(const std::string& username)
+void OrderBook::onUnsubscribeOrderBook(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guard(m_mtxOrderBookUserList);
-    const auto pos = std::find(m_orderBookUserList.begin(), m_orderBookUserList.end(), username);
-    // fast removal:
-    std::swap(*pos, m_orderBookUserList.back());
-    m_orderBookUserList.pop_back();
+    decreaseTargetRefCount(targetID);
 }
 
 /**
-*   @brief  Thread-safely sends an order book's single update to all users.
+*   @brief  Thread-safely sends an order book's single update to all targets.
 *	@param	update: The order book update record to be sent.
 *   @return nothing
 */
 void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 {
-    std::unique_lock<std::mutex> ulOBUL(m_mtxOrderBookUserList);
-    if (m_orderBookUserList.empty())
+    auto targetList = getTargetList();
+    if (targetList.empty())
         return;
-
-    auto obulCopy(m_orderBookUserList);
-    ulOBUL.unlock();
 
     using ulock_t = std::unique_lock<std::mutex>;
     ulock_t lock;
@@ -157,18 +143,17 @@ void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
         return;
     }
 
-    FIXAcceptor::getInstance()->sendOrderBookUpdate(obulCopy, update);
+    FIXAcceptor::getInstance()->sendOrderBookUpdate(targetList, update);
 }
 
 /**
 *   @brief  Thread-safely sends complete order books to one user user.
-*	@param	username: The user user to be sent to.
 *   @return nothing
 */
-void OrderBook::broadcastWholeOrderBookToOne(const std::string& username)
+void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
-    const std::vector<std::string> userList{ username };
+    const std::vector<std::string> targetList{ targetID };
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
     std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
@@ -176,29 +161,25 @@ void OrderBook::broadcastWholeOrderBookToOne(const std::string& username)
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(userList, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(userList, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook(targetList, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(userList, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(userList, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook(targetList, m_odrBkLocalBid);
 }
 
 /**
-*   @brief  Thread-safely sends complete order books to all users.
+*   @brief  Thread-safely sends complete order books to all targets.
 *   @return nothing
 */
 void OrderBook::broadcastWholeOrderBookToAll()
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
-
-    std::unique_lock<std::mutex> ulOBUL(m_mtxOrderBookUserList);
-    if (m_orderBookUserList.empty())
+    auto targetList = getTargetList();
+    if (targetList.empty())
         return;
-
-    auto obulCopy(m_orderBookUserList);
-    ulOBUL.unlock();
 
     std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
     std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
@@ -206,19 +187,17 @@ void OrderBook::broadcastWholeOrderBookToAll()
     std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
 
     if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(obulCopy, m_odrBkGlobalAsk);
+        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalAsk);
     if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(obulCopy, m_odrBkLocalAsk);
+        toWCPtr->sendOrderBook(targetList, m_odrBkLocalAsk);
     if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(obulCopy, m_odrBkGlobalBid);
+        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalBid);
     if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(obulCopy, m_odrBkLocalBid);
+        toWCPtr->sendOrderBook(targetList, m_odrBkLocalBid);
 }
 
 /**
 *   @brief  Thread-safely saves the latest order book entry to global bid order book, as the ceiling of all hitherto bid prices.
-*   @param	entry: The order book entry to be saved.
-*   @return nothing
 */
 void OrderBook::saveOrderBookGlobalBid(const OrderBookEntry& entry)
 {
@@ -232,8 +211,6 @@ void OrderBook::saveOrderBookGlobalBid(const OrderBookEntry& entry)
 
 /**
 *   @brief  Thread-safely saves the latest order book entry to global ask order book, as the bottom of all hitherto ask prices.
-*   @param	entry: The order book entry to be saved.
-*   @return nothing
 */
 void OrderBook::saveOrderBookGlobalAsk(const OrderBookEntry& entry)
 {

@@ -43,7 +43,8 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/CandlestickDataPoint.h
     ${PROJECT_SOURCE_DIR}/include/TokenPool.h
     ${PROJECT_SOURCE_DIR}/include/Transaction.h
-)
+    ${PROJECT_SOURCE_DIR}/include/Interfaces.h
+    )
 
 set(SRC
     ${PROJECT_SOURCE_DIR}/src/BCDocuments.cpp
@@ -59,6 +60,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/OrderBook.cpp
     ${PROJECT_SOURCE_DIR}/src/CandlestickData.cpp
     ${PROJECT_SOURCE_DIR}/src/CandlestickDataPoint.cpp
+    ${PROJECT_SOURCE_DIR}/src/Interfaces.cpp
 )
 
 set(OTHER

@@ -61,13 +61,15 @@ public:
     void sendConfirmationReport(const Report& report); // send order conformation report
 
     void sendLastPrice2All(const Transaction& transac);
-    void sendOrderBook(const std::vector<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
+    void sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
     static void s_setAddGroupIntoOrderAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry);
-    void sendOrderBookUpdate(const std::vector<std::string>& userList, const OrderBookEntry& update); // send order book update to users
-    void sendCandlestickData(const std::vector<std::string>& userList, const CandlestickDataPoint& cdPoint); // for candlestick data
+    void sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update);
+    void sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
 
 private:
     FIXAcceptor() = default;
+
+    void sendSymbols(const std::string& targetID, const std::unordered_set<std::string>& symbols);
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID& sessionID) override;
@@ -81,8 +83,6 @@ private:
     void onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) override;
     void onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) override;
     void onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) override;
-
-    void sendSymbols(const std::string& targetID, const std::unordered_set<std::string>& symbols);
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;

@@ -208,7 +208,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << orderType << "\t"
              << price << "\t"
              << shareSize << endl;
-        BCDocuments::getInstance()->addReportToUserRiskManagement(username, report);
+        BCDocuments::getInstance()->onNewReportForUserRiskManagement(username, report);
 
     } else { // For execution report
         static FIX::OrderID orderID1;
@@ -364,11 +364,11 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 printRpts(false, pUsername2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
 
                 auto* docs = BCDocuments::getInstance();
-                docs->addTransacToCandlestickData(*pSymbol, transac);
-                docs->addReportToUserRiskManagement(*pUsername1, report1);
-                docs->addReportToUserRiskManagement(*pUsername2, report2);
+                docs->onNewTransacForCandlestickData(*pSymbol, transac);
+                docs->onNewReportForUserRiskManagement(*pUsername1, report1);
+                docs->onNewReportForUserRiskManagement(*pUsername2, report2);
             } else { // TRTH TRADE
-                BCDocuments::getInstance()->addTransacToCandlestickData(*pSymbol, transac);
+                BCDocuments::getInstance()->onNewTransacForCandlestickData(*pSymbol, transac);
             }
 
             FIXAcceptor::getInstance()->sendLastPrice2All(transac);
@@ -386,7 +386,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pExecTime->getValue()
             };
 
-            BCDocuments::getInstance()->addReportToUserRiskManagement(*pUsername2, report2);
+            BCDocuments::getInstance()->onNewReportForUserRiskManagement(*pUsername2, report2);
             printRpts(true, pUsername1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
             printRpts(false, pUsername2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
         } break;
@@ -519,7 +519,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pDaytime->getValue()
     };
 
-    BCDocuments::getInstance()->addOrderBookEntryToOrderBook(*pSymbol, update);
+    BCDocuments::getInstance()->onNewOBEntryForOrderBook(*pSymbol, update);
 
     if (prevCnt) { // > 1 threads
         delete pEntryGroup;

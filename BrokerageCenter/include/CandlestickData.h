@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CandlestickDataPoint.h"
+#include "Interfaces.h"
 #include "Transaction.h"
 
 #include <atomic>
@@ -14,7 +15,7 @@
 #include <string>
 #include <thread>
 
-class CandlestickData {
+class CandlestickData : public ITargetsInfo {
 private:
     std::string m_symbol;
     double m_currPrice;
@@ -28,11 +29,9 @@ private:
     std::queue<Transaction> m_transacBuff;
     std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
 
-    std::vector<std::string> m_candleUserList; // names of registered users for this CandlestickData
     std::map<std::time_t, CandlestickDataPoint> m_history;
 
     mutable std::mutex m_mtxTransacBuff;
-    mutable std::mutex m_mtxCandleUserList;
     mutable std::mutex m_mtxHistory;
 
     std::unique_ptr<std::thread> m_th;
@@ -42,18 +41,18 @@ private:
 public:
     CandlestickData(); //> This will postpone initializing of valid startup status (e.g. symbol is not empty and open time is not 0) to first time processing a transaction.
     CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime);
-    ~CandlestickData();
+    ~CandlestickData() override;
 
     void sendPoint(const CandlestickDataPoint& cdPoint);
-    void sendHistory(std::string username);
+    void sendHistory(std::string targetID);
 
     const std::string& getSymbol() const;
 
     static std::time_t s_nowUnixTimestamp() noexcept;
     static std::time_t s_toUnixTimestamp(const std::string& time) noexcept;
 
-    void registerUserInCandlestickData(const std::string& username);
-    void unregisterUserInCandlestickData(const std::string& username);
+    void registerUserInCandlestickData(const std::string& targetID);
+    void unregisterUserInCandlestickData(const std::string& targetID);
     void enqueueTransaction(const Transaction& t);
     void process();
     void spawn();

@@ -57,7 +57,7 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
     for (const auto& tarID : targetIDs) {
         FIX::SessionID sid(commonDict.getString("BeginString"), commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER
             ,
-            ::toUpper(tarID) // e.g. WEBCLIENT
+            ::toUpper(tarID) // (TODO); e.g. WEBCLIENT
         );
         FIX::Dictionary dict;
 
@@ -102,6 +102,217 @@ void FIXAcceptor::disconnectClientComputers()
     m_acceptorPtr = nullptr;
     m_messageStoreFactoryPtr = nullptr;
     m_logFactoryPtr = nullptr;
+}
+
+void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
+{
+    crack(message, sessionID);
+#if SHOW_INPUT_MSG
+    cout << endl
+         << "IN: " << message << endl;
+#endif
+}
+
+/**
+ * @brief Events from the admin/super user
+ */
+void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override
+{
+    if (FIX::MsgType_Logon != message.getHeader().getField(FIX::FIELD::MsgType))
+        return;
+    /* Incoming a new connection/logon from super user to BC;
+        The complete actions: fromAdmin => onLogon => onMessage(UserRequest)
+    */
+    std::string adminName, adminPsw; // super user's info to qualify the connection
+    const auto& targetID = static_cast<std::string>(sessionID.getTargetCompID());
+
+    FIXT11::Logon::NoMsgTypes msgTypeGroup;
+    message.getGroup(1, msgTypeGroup);
+    adminName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
+    message.getGroup(2, msgTypeGroup);
+    adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
+
+    const auto pswCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT password FROM traders WHERE username = '" + adminName + "';"));
+    if (pswCol.size() && pswCol.front() == adminPsw) {
+        // Grants the connection rights to this super user.
+        cout << COLOR_PROMPT "Authentication successful for super user [" << targetID << ':' << adminName << "]." NO_COLOR << endl;
+    } else {
+        cout << COLOR_ERROR "ERROR: @fromAdmin(): Password of the super user [" << targetID << ':' << adminName << "] is inconsistent with the one recorded in database (in SHA1 format).\nPlease make sure the client-side send matched password to BC reliably." NO_COLOR << endl;
+
+        throw FIX::RejectLogon(); // will disconnect the counterparty
+    }
+}
+
+/**
+ * @brief When super user connect to BC
+ */
+void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
+{
+    auto& targetID = sessionID.getTargetCompID();
+    cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
+
+    sendSymbols(targetID, BCDocuments::getInstance()->getSymbols());
+}
+
+/**
+ * @brief When super user disconnect from BC
+ */
+void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
+{
+    auto& targetID = sessionID.getTargetCompID();
+    cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
+
+    BCDocuments::getInstance()->unregisterTargetFromDoc(targetID); // this shall come first to timely affect other acceptor parts that are sending things aside
+    BCDocuments::getInstance()->unregisterTargetFromCandles(targetID);
+    BCDocuments::getInstance()->unregisterTargetFromOrderBooks(targetID);
+}
+
+/**
+ * @brief General handler for incoming super & ordinal web users
+ */
+void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
+{
+    FIX::Username username; // WebClient's
+    message.get(username);
+    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID(), username);
+    BCDocuments::getInstance()->sendHistoryToUser(username.getString());
+
+    cout << COLOR_PROMPT "Web user [" NO_COLOR << username << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
+}
+
+/**
+ * @brief Deal with incoming orders from clients
+ */
+void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID&) // override
+{
+    FIX::NoPartyIDs numOfGroup;
+    message.get(numOfGroup);
+    if (numOfGroup < 1) {
+        cout << "Cannot find username in NewOrderSingle !" << endl;
+        return;
+    }
+
+    FIX::ClOrdID orderID;
+    FIX::Symbol symbol;
+    FIX::OrderQty shareSize;
+    FIX::OrdType orderType;
+    FIX::Price price;
+
+    message.get(orderID);
+    message.get(symbol);
+    message.get(shareSize);
+    message.get(orderType);
+    message.get(price);
+
+    FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
+    FIX::PartyRole role;
+    FIX::PartyID username;
+    for (int i = 1; i <= numOfGroup; i++) {
+        message.getGroup(i, idGroup);
+        idGroup.get(role);
+        if (::FIXFIELD_CLIENTID == role) {
+            idGroup.get(username);
+        }
+    }
+
+    cout << COLOR_PROMPT "--------------------------------------\n" NO_COLOR;
+    cout << "Order ID: " << orderID
+         << "\nUsername: " << username
+         << "\n\tSymbol: " << symbol
+         << "\n\tPrice: " << price
+         << "\n\tShare Size: " << shareSize
+         << "\n\tOrder Type: " << orderType << endl;
+
+    // Order validation
+    const auto qot = Order::ORDER_TYPE(char(orderType));
+
+    if (username.getLength() == 0) {
+        cout << "username is empty" << endl;
+        return;
+    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(username)) {
+        cout << COLOR_ERROR "This username is not register in the Brokerage Center" NO_COLOR << endl;
+        return;
+    }
+
+    if (symbol.getLength() == 0) {
+        cout << "symbol is empty" << endl;
+        return;
+    } else if (!BCDocuments::getInstance()->hasSymbol(symbol)) {
+        cout << COLOR_ERROR "This symbol is not register in the Brokerage Center" NO_COLOR << endl;
+        return;
+    }
+
+    if (orderID.getLength() == 0) {
+        cout << "orderID is empty" << endl;
+        return;
+    }
+
+    if (price < 0.0) {
+        cout << "price is empty" << endl;
+        return;
+    }
+
+    if (int(shareSize) <= 0) {
+        cout << "shareSize is empty" << endl;
+        return;
+    }
+
+    if (::isblank(int(qot))) {
+        cout << "orderType is empty" << endl;
+        return;
+    }
+
+    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(username, Order{ symbol, username, orderID, price, int(shareSize), qot });
+}
+
+/*
+ * @brief Receive order book subscription request from LC
+ */
+void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
+{
+    FIX::NoRelatedSym numOfGroup;
+    message.get(numOfGroup);
+
+    if (numOfGroup < 1) {
+        cout << "Cannot find Symbol in MarketDataRequest!" << endl;
+        return;
+    }
+
+    FIX::SubscriptionRequestType isSubscribed;
+    message.get(isSubscribed);
+
+    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
+    message.getGroup(1, relatedSymGroup);
+
+    FIX::Symbol symbol;
+    relatedSymGroup.get(symbol);
+
+    BCDocuments::getInstance()->manageSubscriptionInOrderBook('1' == isSubscribed, symbol, sessionID.getTargetCompID());
+}
+
+/*
+ * @brief Receive candlestick data subscription request from LC
+ */
+void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) // override
+{
+    FIX::NoRelatedSym numOfGroup;
+    message.get(numOfGroup);
+
+    if (numOfGroup < 1) { // make sure there is a symbol in group
+        cout << "Cannot find Symbol in RFQRequest" << endl;
+        return;
+    }
+
+    FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
+    message.getGroup(1, relatedSymGroup);
+
+    FIX::Symbol symbol;
+    relatedSymGroup.get(symbol);
+
+    FIX::SubscriptionRequestType isSubscribed;
+    message.get(isSubscribed);
+
+    BCDocuments::getInstance()->manageSubscriptionInCandlestickData('1' == isSubscribed, symbol, sessionID.getTargetCompID());
 }
 
 /**
@@ -191,9 +402,6 @@ void FIXAcceptor::sendPortfolioItem(const std::string& username, const Portfolio
     FIX::Session::sendToTarget(message);
 }
 
-/**
- * @brief
- */
 void FIXAcceptor::sendWaitingList(const std::string& username, const std::unordered_map<std::string, Order>& orders)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
@@ -215,8 +423,8 @@ void FIXAcceptor::sendWaitingList(const std::string& username, const std::unorde
     message.setField(FIX::Account(username));
 
     FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets orderSetGroup;
-    for (const auto& i : orders) {
-        auto& order = i.second;
+    for (const auto& kv : orders) {
+        auto& order = kv.second;
         orderSetGroup.setField(FIX::QuoteSetID(targetID));
         orderSetGroup.setField(FIX::UnderlyingSecurityID(order.getOrderID()));
         orderSetGroup.setField(FIX::UnderlyingSymbol(order.getSymbol()));
@@ -295,8 +503,8 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
     message.setField(FIX::TransactTime(transac.simulationTime, 6)); // TODO: use simulationTime (execTime) and realTime (serverTime) everywhere
     message.setField(FIX::LastMkt(transac.destination)); // TODO: Use this field and FIX::MDMkt for destination everywhere
 
-    for (const auto& kv : BCDocuments::getInstance()->getConnectedTargetIDsMap()) {
-        header.setField(FIX::TargetCompID(kv.first));
+    for (const auto& targetID : BCDocuments::getInstance()->getTargetList()) {
+        header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
 }
@@ -304,7 +512,7 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
 /**
  * @brief Send complete order book by type
  */
-void FIXAcceptor::sendOrderBook(const std::vector<std::string>& userList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
+void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -332,11 +540,7 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& userList, const 
         }
     }
 
-    for (const auto& username : userList) {
-        const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
-        if (::STDSTR_NULL == targetID) {
-            continue;
-        }
+    for (const auto& targetID : targetList) {
         header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
@@ -360,10 +564,8 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& userList, const 
 
 /**
  * @brief   Send order book update to one client
- * @param   userList as a vector to provide the name of clients
- * @param   update as an OrderBookEntry object to provide price and others
  */
-void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& userList, const OrderBookEntry& update)
+void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -388,17 +590,13 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& userList, 
 
     message.addGroup(entryGroup);
 
-    for (const auto& username : userList) {
-        const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
-        if (::STDSTR_NULL == targetID) {
-            continue;
-        }
+    for (const auto& targetID : targetList) {
         header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
 }
 
-void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& userList, const CandlestickDataPoint& cdPoint)
+void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint)
 {
     FIX::Message message;
 
@@ -414,11 +612,7 @@ void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& userList, 
     message.setField(FIX::LowPx(cdPoint.getLowPrice())); // Low price
     message.setField(FIX::LastPx(cdPoint.getClosePrice())); // Close price
 
-    for (const auto& username : userList) {
-        const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
-        if (::STDSTR_NULL == targetID) {
-            continue;
-        }
+    for (const auto& targetID : targetList) {
         header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
@@ -432,237 +626,6 @@ void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
 {
     s_senderID = sessionID.getSenderCompID();
     /* SenderID: BROKERAGECENTER */
-}
-
-/**
- * @brief When super user connect to BC
- */
-void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
-{
-    auto& targetID = sessionID.getTargetCompID();
-    cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
-
-    const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(targetID); // TODO: this is always super user
-    if (::STDSTR_NULL == username) {
-        cout << "onLogon(): ";
-        cout << targetID << " does not have an associated super user!" << endl;
-        return;
-    }
-    cout << COLOR_PROMPT "[Super User] " NO_COLOR << username << '\n'
-         << endl;
-
-    sendSymbols(targetID, BCDocuments::getInstance()->getSymbols());
-}
-
-/**
- * @brief When super user disconnect from BC
- */
-void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
-{
-    auto& targetID = sessionID.getTargetCompID();
-    cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
-
-    const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(targetID);
-    if (::STDSTR_NULL == username) {
-        cout << "onLogout(): ";
-        cout << targetID << " does not have an associated super user!" << endl;
-        return;
-    }
-    cout << COLOR_WARNING "[Super User] " NO_COLOR << username << '\n'
-         << endl;
-
-    // TODO: shall unregister for not only super user
-    BCDocuments::getInstance()->unregisterUserFromDoc(username); // this shall come first to timely affect other acceptor parts that are sending things aside
-    BCDocuments::getInstance()->unregisterUserFromCandles(username);
-    BCDocuments::getInstance()->unregisterUserFromOrderBooks(username);
-}
-
-/**
- * @brief Events from the admin/super user
- */
-void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override
-{
-    if (FIX::MsgType_Logon != message.getHeader().getField(FIX::FIELD::MsgType))
-        return;
-    /* Incoming a new connection/logon from super user to BC;
-        The complete actions: fromAdmin => onLogon => onMessage(UserRequest)
-    */
-    std::string adminName, adminPsw; // super user's info to qualify the connection
-    const auto& targetID = static_cast<std::string>(sessionID.getTargetCompID());
-
-    FIXT11::Logon::NoMsgTypes msgTypeGroup;
-    message.getGroup(1, msgTypeGroup);
-    adminName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
-    message.getGroup(2, msgTypeGroup);
-    adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
-
-    const auto pswCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT password FROM traders WHERE username = '" + adminName + "';"));
-    if (pswCol.size() && pswCol.front() == adminPsw) {
-        // Grants the connection to this super user
-        BCDocuments::getInstance()->registerUserInDoc(adminName, targetID);
-        cout << COLOR_PROMPT "Authentication successful for super user [" << targetID << ':' << adminName << "]." NO_COLOR << endl;
-    } else {
-        cout << COLOR_ERROR "ERROR: @fromAdmin(): Password of the super user [" << targetID << ':' << adminName << "] is inconsistent with the one recorded in database (in SHA1 format).\nPlease make sure the client-side send matched password to BC reliably." NO_COLOR << endl;
-
-        throw FIX::RejectLogon(); // will disconnect the counterparty
-    }
-}
-
-void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
-{
-    crack(message, sessionID);
-#if SHOW_INPUT_MSG
-    cout << endl
-         << "IN: " << message << endl;
-#endif
-}
-
-/**
- * @brief General handler for incoming super & ordinal web users
- */
-void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
-{
-    FIX::Username username; // WebClient username
-    message.get(username);
-    BCDocuments::getInstance()->registerWebUserInDoc(username, sessionID.getTargetCompID());
-    BCDocuments::getInstance()->sendHistoryToUser(username.getString());
-    cout << COLOR_PROMPT "Web user [" NO_COLOR << username << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
-}
-
-/**
- * @brief Deal with incoming orders from clients
- */
-void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID&) // override
-{
-    FIX::NoPartyIDs numOfGroup;
-    message.get(numOfGroup);
-    if (numOfGroup < 1) {
-        cout << "Cannot find username in NewOrderSingle !" << endl;
-        return;
-    }
-
-    FIX::ClOrdID orderID;
-    FIX::Symbol symbol;
-    FIX::OrderQty shareSize;
-    FIX::OrdType orderType;
-    FIX::Price price;
-
-    message.get(orderID);
-    message.get(symbol);
-    message.get(shareSize);
-    message.get(orderType);
-    message.get(price);
-
-    FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    FIX::PartyRole role;
-    FIX::PartyID username;
-    for (int i = 1; i <= numOfGroup; i++) {
-        message.getGroup(i, idGroup);
-        idGroup.get(role);
-        if (::FIXFIELD_CLIENTID == role) {
-            idGroup.get(username);
-        }
-    }
-
-    cout << "username: " << username
-         << "\n\tsymbol: " << symbol
-         << "\n\torderID: " << orderID
-         << "\n\tprice: " << price
-         << "\n\tshareSize: " << shareSize
-         << "\n\torderType: " << orderType << endl;
-
-    // Order validation
-    const auto qot = Order::ORDER_TYPE(char(orderType));
-
-    if (username.getLength() == 0) {
-        cout << "username is empty" << endl;
-        return;
-    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(username)) {
-        cout << COLOR_ERROR "This username is not register in the Brokerage Center" NO_COLOR << endl;
-        return;
-    }
-
-    if (symbol.getLength() == 0) {
-        cout << "symbol is empty" << endl;
-        return;
-    } else if (!BCDocuments::getInstance()->hasSymbol(symbol)) {
-        cout << COLOR_ERROR "This symbol is not register in the Brokerage Center" NO_COLOR << endl;
-        return;
-    }
-
-    if (orderID.getLength() == 0) {
-        cout << "orderID is empty" << endl;
-        return;
-    }
-
-    if (price < 0.0) {
-        cout << "price is empty" << endl;
-        return;
-    }
-
-    if (int(shareSize) <= 0) {
-        cout << "shareSize is empty" << endl;
-        return;
-    }
-
-    if (::isblank(int(qot))) {
-        cout << "orderType is empty" << endl;
-        return;
-    }
-
-    BCDocuments::getInstance()->addOrderToUserRiskManagement(username, Order{ symbol, username, orderID, price, int(shareSize), qot });
-}
-
-/*
- * @brief Receive order book subscription request from LC
- */
-void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
-{
-    FIX::NoRelatedSym numOfGroup;
-    message.get(numOfGroup);
-
-    if (numOfGroup < 1) {
-        cout << "Cannot find Symbol in MarketDataRequest!" << endl;
-        return;
-    }
-
-    FIX::SubscriptionRequestType isSubscribed;
-    message.get(isSubscribed);
-
-    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
-    message.getGroup(1, relatedSymGroup);
-
-    FIX::Symbol symbol;
-    relatedSymGroup.get(symbol);
-
-    const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(sessionID.getTargetCompID());
-    BCDocuments::getInstance()->manageUsersInOrderBook('1' == isSubscribed, symbol, username);
-}
-
-/*
- * @brief Receive candlestick data subscription request from LC
- */
-void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) // override
-{
-    FIX::NoRelatedSym numOfGroup;
-    message.get(numOfGroup);
-
-    if (numOfGroup < 1) { // make sure there is a symbol in group
-        cout << "Cannot find Symbol in RFQRequest" << endl;
-        return;
-    }
-
-    FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
-    message.getGroup(1, relatedSymGroup);
-
-    FIX::Symbol symbol;
-    relatedSymGroup.get(symbol);
-
-    FIX::SubscriptionRequestType isSubscribed;
-    message.get(isSubscribed);
-
-    const auto& username = BCDocuments::getInstance()->getUsernameByTargetID(sessionID.getTargetCompID());
-    BCDocuments::getInstance()->manageUsersInCandlestickData('1' == isSubscribed, username, symbol);
 }
 
 /*

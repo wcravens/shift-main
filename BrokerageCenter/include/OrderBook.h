@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Interfaces.h"
 #include "OrderBookEntry.h"
 
 #include <condition_variable>
@@ -14,12 +15,11 @@
 /**
 *  @brief Class that asynchronosly receives and/or broadcasts order books for a specific stock.
 */
-class OrderBook {
+class OrderBook : public ITargetsInfo {
 private:
     std::string m_symbol; ///> The stock name of this OrderBook instance.
 
     mutable std::mutex m_mtxOBEBuff; ///> Mutex for m_obeBuff.
-    mutable std::mutex m_mtxOrderBookUserList;
     mutable std::mutex m_mtxOdrBkGlobalAsk;
     mutable std::mutex m_mtxOdrBkGlobalBid;
     mutable std::mutex m_mtxOdrBkLocalAsk;
@@ -35,20 +35,19 @@ private:
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalBid;
 
     std::queue<OrderBookEntry> m_obeBuff;
-    std::vector<std::string> m_orderBookUserList; // names of registered users for this OrderBook
 
 public:
     OrderBook();
     OrderBook(std::string name);
-    ~OrderBook();
+    ~OrderBook() override;
 
     void enqueueOrderBook(const OrderBookEntry& entry);
     void process();
     void spawn();
     // void stop();
 
-    void registerUserInOrderBook(const std::string& username);
-    void unregisterUserInOrderBook(const std::string& username);
+    void onSubscribeOrderBook(const std::string& username);
+    void onUnsubscribeOrderBook(const std::string& username);
 
     void broadcastWholeOrderBookToOne(const std::string& username);
     void broadcastWholeOrderBookToAll();
