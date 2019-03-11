@@ -39,6 +39,7 @@ static const auto& FIXFIELD_ENTRY_BID = FIX::MDEntryType('0'); // Type of market
 static const auto& FIXFIELD_ENTRY_OFFER = FIX::MDEntryType('1'); // Type of market data entry, 1 = Offer
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
 
+//! @note Static
 inline std::chrono::system_clock::time_point shift::FIXInitiator::s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
 {
     return std::chrono::system_clock::from_time_t(date.getTimeT()
