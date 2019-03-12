@@ -158,21 +158,23 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             return;
         }
 
-        // For confirmation report // sendOrderConfirms
+        // For confirmation report
         FIX::OrderID orderID;
-        FIX::Symbol symbol;
+        FIX::Symbol orderSymbol;
         FIX::Side orderType;
-        FIX::Price price;
+        FIX::Price orderPrice;
         FIX::EffectiveTime confirmTime;
-        FIX::LeavesQty shareSize;
+        FIX::LastMkt destination;
+        FIX::LeavesQty orderSize;
         FIX::TransactTime serverTime;
 
         message.get(orderID);
-        message.get(symbol);
+        message.get(orderSymbol);
         message.get(orderType);
-        message.get(price);
+        message.get(orderPrice);
         message.get(confirmTime);
-        message.get(shareSize);
+        message.get(destination);
+        message.get(orderSize);
         message.get(serverTime);
 
         FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
@@ -189,11 +191,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         Report report{
             username,
             orderID,
-            orderStatus,
-            symbol,
-            orderType,
-            price,
-            shareSize,
+            static_cast<Order::Type>(static_cast<char>(orderType)),
+            orderSymbol,
+            static_cast<int>(orderSize),
+            orderPrice,
+            static_cast<char>(orderStatus),
+            destination,
             serverTime.getValue(),
             confirmTime.getValue()
         };
@@ -201,26 +204,26 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         cout << "ConfirmRepo: "
              << username << "\t"
              << orderID << "\t"
-             << orderStatus << "\t"
-             << serverTime.getString() << "\t"
-             << confirmTime.getString() << "\t"
-             << symbol << "\t"
              << orderType << "\t"
-             << price << "\t"
-             << shareSize << endl;
+             << orderSymbol << "\t"
+             << orderSize << "\t"
+             << orderPrice << "\t"
+             << orderStatus << "\t"
+             << destination << "\t"
+             << serverTime.getString() << "\t"
+             << confirmTime.getString() << endl;
         BCDocuments::getInstance()->onNewReportForUserRiskManagement(username, report);
 
     } else { // For execution report
         static FIX::OrderID orderID1;
         static FIX::SecondaryOrderID orderID2;
-        static FIX::Symbol symbol;
+        static FIX::Symbol orderSymbol;
         static FIX::Side orderType1;
         static FIX::OrdType orderType2;
-        static FIX::Price price;
+        static FIX::Price orderPrice;
         static FIX::EffectiveTime execTime;
         static FIX::LastMkt destination;
-        static FIX::LeavesQty leftQty;
-        static FIX::CumQty shareSize;
+        static FIX::CumQty orderSize;
         static FIX::TransactTime serverTime;
 
         static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
@@ -229,16 +232,15 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
         // #pragma GCC diagnostic ignored ....
 
-        FIX::Symbol* pSymbol;
         FIX::OrderID* pOrderID1;
         FIX::SecondaryOrderID* pOrderID2;
+        FIX::Symbol* pOrderSymbol;
         FIX::Side* pOrderType1;
         FIX::OrdType* pOrderType2;
-        FIX::Price* pPrice;
+        FIX::Price* pOrderPrice;
         FIX::EffectiveTime* pExecTime;
         FIX::LastMkt* pDestination;
-        FIX::LeavesQty* pLeftQty;
-        FIX::CumQty* pShareSize;
+        FIX::CumQty* pOrderSize;
         FIX::TransactTime* pServerTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
@@ -253,48 +255,47 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         assert(s_cntAtom > 0);
 
         if (0 == prevCnt) {
-            pSymbol = &symbol;
             pOrderID1 = &orderID1;
-            pOrderType1 = &orderType1;
             pOrderID2 = &orderID2;
+            pOrderSymbol = &orderSymbol;
+            pOrderType1 = &orderType1;
             pOrderType2 = &orderType2;
-            pPrice = &price;
-            pDestination = &destination;
+            pOrderPrice = &orderPrice;
             pExecTime = &execTime;
-            pLeftQty = &leftQty;
-            pShareSize = &shareSize;
+            pDestination = &destination;
+            pOrderSize = &orderSize;
             pServerTime = &serverTime;
+
             pIDGroup = &idGroup;
             pUsername1 = &username1;
             pUsername2 = &username2;
         } else {
             // note: important precondition of the correctness of the following code is: std::operator new() is thread-safe.
-            pSymbol = new decltype(symbol);
             pOrderID1 = new decltype(orderID1);
-            pOrderType1 = new decltype(orderType1);
             pOrderID2 = new decltype(orderID2);
+            pOrderSymbol = new decltype(orderSymbol);
+            pOrderType1 = new decltype(orderType1);
             pOrderType2 = new decltype(orderType2);
-            pPrice = new decltype(price);
-            pDestination = new decltype(destination);
+            pOrderPrice = new decltype(orderPrice);
             pExecTime = new decltype(execTime);
-            pLeftQty = new decltype(leftQty);
-            pShareSize = new decltype(shareSize);
+            pDestination = new decltype(destination);
+            pOrderSize = new decltype(orderSize);
             pServerTime = new decltype(serverTime);
+
             pIDGroup = new decltype(idGroup);
             pUsername1 = new decltype(username1);
             pUsername2 = new decltype(username2);
         }
 
-        message.get(*pSymbol);
         message.get(*pOrderID1);
-        message.get(*pOrderType1);
         message.get(*pOrderID2);
+        message.get(*pOrderSymbol);
+        message.get(*pOrderType1);
         message.get(*pOrderType2);
-        message.get(*pPrice);
-        message.get(*pDestination);
+        message.get(*pOrderPrice);
         message.get(*pExecTime);
-        message.get(*pLeftQty);
-        message.get(*pShareSize);
+        message.get(*pDestination);
+        message.get(*pOrderSize);
         message.get(*pServerTime);
 
         // Update Version: ClientID has been replaced by PartyRole and PartyID
@@ -310,26 +311,27 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         message.getGroup(2, *pIDGroup);
         pIDGroup->get(*pUsername2);
 
-        auto printRpts = [](bool rpt1or2, auto pUsername, auto pOrderID, auto orderStatus, auto pServerTime, auto pExecTime, auto pSymbol, auto pOrderType, auto pPrice, auto pShareSize) {
+        auto printRpts = [](bool rpt1or2, auto pUsername, auto pOrderID, auto pOrderType, auto pOrderSymbol, auto pOrderSize, auto pOrderPrice, auto orderStatus, auto pDestination, auto pServerTime, auto pExecTime) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
                  << *pUsername << "\t"
                  << *pOrderID << "\t"
-                 << orderStatus << "\t"
-                 << pServerTime->getString() << "\t"
-                 << pExecTime->getString() << "\t"
-                 << *pSymbol << "\t"
                  << *pOrderType << "\t"
-                 << *pPrice << "\t"
-                 << *pShareSize << endl;
+                 << *pOrderSymbol << "\t"
+                 << *pOrderSize << "\t"
+                 << *pOrderPrice << "\t"
+                 << orderStatus << "\t"
+                 << *pDestination << "\t"
+                 << pServerTime->getString() << "\t"
+                 << pExecTime->getString() << endl;
         };
 
         switch (orderStatus) {
         case FIX::ExecType_FILL:
         case FIX::ExecType_CANCELED: {
             Transaction transac = {
-                *pSymbol,
-                *pPrice,
-                static_cast<int>(*pShareSize),
+                *pOrderSymbol,
+                static_cast<int>(*pOrderSize),
+                *pOrderPrice,
                 *pDestination,
                 pExecTime->getValue()
             };
@@ -338,11 +340,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 Report report1{
                     *pUsername1,
                     *pOrderID1,
-                    orderStatus,
-                    *pSymbol,
-                    *pOrderType1,
-                    *pPrice,
-                    *pShareSize,
+                    static_cast<Order::Type>(static_cast<char>(*pOrderType1)),
+                    *pOrderSymbol,
+                    static_cast<int>(*pOrderSize),
+                    *pOrderPrice,
+                    static_cast<char>(orderStatus),
+                    *pDestination,
                     pServerTime->getValue(),
                     pExecTime->getValue()
                 };
@@ -350,24 +353,25 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 Report report2{
                     *pUsername2,
                     *pOrderID2,
-                    orderStatus,
-                    *pSymbol,
-                    *pOrderType2,
-                    *pPrice,
-                    *pShareSize,
+                    static_cast<Order::Type>(static_cast<char>(*pOrderType2)),
+                    *pOrderSymbol,
+                    static_cast<int>(*pOrderSize),
+                    *pOrderPrice,
+                    static_cast<char>(orderStatus),
+                    *pDestination,
                     pServerTime->getValue(),
                     pExecTime->getValue()
                 };
 
-                printRpts(true, pUsername1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
-                printRpts(false, pUsername2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
+                printRpts(true, pUsername1, pOrderID1, pOrderType1, pOrderSymbol, pOrderSize, pOrderPrice, orderStatus, pDestination, pServerTime, pExecTime);
+                printRpts(false, pUsername2, pOrderID2, pOrderType2, pOrderSymbol, pOrderSize, pOrderPrice, orderStatus, pDestination, pServerTime, pExecTime);
 
                 auto* docs = BCDocuments::getInstance();
-                docs->onNewTransacForCandlestickData(*pSymbol, transac);
+                docs->onNewTransacForCandlestickData(*pOrderSymbol, transac);
                 docs->onNewReportForUserRiskManagement(*pUsername1, report1);
                 docs->onNewReportForUserRiskManagement(*pUsername2, report2);
             } else { // TRTH TRADE
-                BCDocuments::getInstance()->onNewTransacForCandlestickData(*pSymbol, transac);
+                BCDocuments::getInstance()->onNewTransacForCandlestickData(*pOrderSymbol, transac);
             }
 
             FIXAcceptor::getInstance()->sendLastPrice2All(transac);
@@ -376,35 +380,37 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             Report report2{
                 *pUsername2,
                 *pOrderID2,
-                orderStatus,
-                *pSymbol,
-                *pOrderType2,
-                *pPrice,
-                *pShareSize,
+                static_cast<Order::Type>(static_cast<char>(*pOrderType2)),
+                *pOrderSymbol,
+                static_cast<int>(*pOrderSize),
+                *pOrderPrice,
+                static_cast<char>(orderStatus),
+                *pDestination,
                 pServerTime->getValue(),
                 pExecTime->getValue()
             };
 
             BCDocuments::getInstance()->onNewReportForUserRiskManagement(*pUsername2, report2);
-            printRpts(true, pUsername1, pOrderID1, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType1, pPrice, pShareSize);
-            printRpts(false, pUsername2, pOrderID2, orderStatus, pServerTime, pExecTime, pSymbol, pOrderType2, pPrice, pShareSize);
+            printRpts(true, pUsername1, pOrderID1, pOrderType1, pOrderSymbol, pOrderSize, pOrderPrice, orderStatus, pDestination, pServerTime, pExecTime);
+            printRpts(false, pUsername2, pOrderID2, pOrderType2, pOrderSymbol, pOrderSize, pOrderPrice, orderStatus, pDestination, pServerTime, pExecTime);
         } break;
         } // switch
 
         if (prevCnt) { // > 1 threads
-            delete pSymbol;
             delete pOrderID1;
             delete pOrderID2;
-            delete pUsername1;
-            delete pUsername2;
+            delete pOrderSymbol;
             delete pOrderType1;
             delete pOrderType2;
-            delete pShareSize;
-            delete pPrice;
-            delete pLeftQty;
-            delete pServerTime;
+            delete pOrderPrice;
             delete pExecTime;
             delete pDestination;
+            delete pOrderSize;
+            delete pServerTime;
+
+            delete pIDGroup;
+            delete pUsername1;
+            delete pUsername2;
         }
 
         s_cntAtom--;

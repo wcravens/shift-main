@@ -26,11 +26,9 @@ static const auto& FIXFIELD_SECURITYTYPE_CS = FIX::SecurityType("CS");
 static const auto& FIXFIELD_QUOTESTAT = FIX::QuoteStatus(0); // 0 = Accepted
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
 static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New
-static const auto& FIXFIELD_SIDE_BUY = FIX::Side('1'); // 1 = Buy
-static const auto& FIXFIELD_LEAVQTY_100 = FIX::LeavesQty(100); // Quantity open for further execution
+static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
 static const auto& FIXFIELD_ADVTRANSTYPE_NEW = FIX::AdvTransType(FIX::AdvTransType_NEW);
 static const auto& FIXFIELD_ADVSIDE_TRADE = FIX::AdvSide('T'); // T = Trade
-static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
 
 FIXAcceptor::~FIXAcceptor() // override
 {
@@ -226,7 +224,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
          << "\n\tPrice: " << price << endl;
 
     // Order validation
-    const auto type = Order::Type(static_cast<char>(orderType));
+    const auto type = static_cast<Order::Type>(static_cast<char>(orderType));
     int size = static_cast<int>(orderQty);
 
     if (orderID.getLength() == 0) {
@@ -466,15 +464,16 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     message.setField(FIX::ClOrdID(report.username));
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_NEW); // Required by FIX
-    message.setField(FIX::OrdStatus(report.status));
-    message.setField(FIX::Symbol(report.symbol));
-    message.setField(::FIXFIELD_SIDE_BUY); // Required by FIX
-    message.setField(FIX::OrdType(report.orderType));
-    message.setField(::FIXFIELD_LEAVQTY_100); // Required by FIX
-    message.setField(FIX::CumQty(report.shareSize));
-    message.setField(FIX::AvgPx(report.price)); //report.getAvgPx()
-    message.setField(FIX::TransactTime(report.serverTime, 6));
+    message.setField(FIX::OrdStatus(report.orderStatus));
+    message.setField(FIX::Symbol(report.orderSymbol));
+    message.setField(FIX::Side(report.orderType)); // FIXME: separate Side and OrdType
+    message.setField(FIX::OrdType(report.orderType)); // FIXME: separate Side and OrdType
+    message.setField(FIX::Price(report.orderPrice));
     message.setField(FIX::EffectiveTime(report.execTime, 6));
+    message.setField(FIX::LastMkt(report.destination));
+    message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
+    message.setField(FIX::CumQty(report.orderSize));
+    message.setField(FIX::TransactTime(report.serverTime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     idGroup.setField(::FIXFIELD_CLIENTID);

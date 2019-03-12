@@ -6,12 +6,13 @@
 
 struct Report {
     std::string username;
-    std::string orderID; //server_order_id
-    char status; //order status: http://fixwiki.org/fixwiki/OrdStatus
-    std::string symbol;
-    char orderType; // see Order::ORDER_TYPE
-    double price;
-    double shareSize;
+    std::string orderID;
+    Order::Type orderType;
+    std::string orderSymbol;
+    int orderSize;
+    double orderPrice;
+    char orderStatus;
+    std::string destination;
     FIX::UtcTimeStamp execTime;
     FIX::UtcTimeStamp serverTime;
 };

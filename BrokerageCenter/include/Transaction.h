@@ -6,8 +6,8 @@
 
 struct Transaction {
     std::string symbol;
-    double price;
     int size;
+    double price;
     std::string destination;
     FIX::UtcTimeStamp simulationTime;
 };
