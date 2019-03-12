@@ -21,14 +21,14 @@ void BCDocuments::addSymbol(const std::string& symbol)
     m_symbols.insert(symbol);
 }
 
-const std::unordered_set<std::string>& BCDocuments::getSymbols() const
-{
-    return m_symbols;
-}
-
 bool BCDocuments::hasSymbol(const std::string& symbol) const
 {
     return m_symbols.find(symbol) != m_symbols.end();
+}
+
+const std::unordered_set<std::string>& BCDocuments::getSymbols() const
+{
+    return m_symbols;
 }
 
 void BCDocuments::attachOrderBookToSymbol(const std::string& symbol)
