@@ -32,8 +32,8 @@ FIXInitiator::~FIXInitiator() // override
 
 /*static*/ FIXInitiator* FIXInitiator::getInstance()
 {
-    static FIXInitiator s_FIXIniInst;
-    return &s_FIXIniInst;
+    static FIXInitiator s_FIXInitInst;
+    return &s_FIXInitInst;
 }
 
 void FIXInitiator::connectDatafeedEngine(const std::string& configFile)
