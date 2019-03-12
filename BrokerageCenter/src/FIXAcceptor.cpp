@@ -18,12 +18,16 @@
 
 // Predefined constant FIX message (To avoid recalculations):
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1");
+static const auto& FIXFIELD_CLEARINGBUSINESSDATE = FIX::ClearingBusinessDate("20181217");
+static const auto& FIXFIELD_SYMBOL_CASH = FIX::Symbol("CASH");
+static const auto& FIXFIELD_SECURITYTYPE_CASH = FIX::SecurityType("CASH");
+static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
+static const auto& FIXFIELD_SECURITYTYPE_CS = FIX::SecurityType("CS");
 static const auto& FIXFIELD_QUOTESTAT = FIX::QuoteStatus(0); // 0 = Accepted
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
 static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New
 static const auto& FIXFIELD_SIDE_BUY = FIX::Side('1'); // 1 = Buy
 static const auto& FIXFIELD_LEAVQTY_100 = FIX::LeavesQty(100); // Quantity open for further execution
-static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
 static const auto& FIXFIELD_ADVTRANSTYPE_NEW = FIX::AdvTransType(FIX::AdvTransType_NEW);
 static const auto& FIXFIELD_ADVSIDE_TRADE = FIX::AdvSide('T'); // T = Trade
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
@@ -192,13 +196,13 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 
     FIX::ClOrdID orderID;
     FIX::Symbol symbol;
-    FIX::OrderQty shareSize;
+    FIX::OrderQty orderQty;
     FIX::OrdType orderType;
     FIX::Price price;
 
     message.get(orderID);
     message.get(symbol);
-    message.get(shareSize);
+    message.get(orderQty);
     message.get(orderType);
     message.get(price);
 
@@ -216,19 +220,30 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     cout << COLOR_PROMPT "--------------------------------------\n" NO_COLOR;
     cout << "Order ID: " << orderID
          << "\nUsername: " << username
+         << "\n\tType: " << orderType
          << "\n\tSymbol: " << symbol
-         << "\n\tPrice: " << price
-         << "\n\tShare Size: " << shareSize
-         << "\n\tOrder Type: " << orderType << endl;
+         << "\n\tSize: " << orderQty
+         << "\n\tPrice: " << price << endl;
 
     // Order validation
-    const auto qot = Order::ORDER_TYPE(char(orderType));
+    const auto type = Order::Type(static_cast<char>(orderType));
+    int size = static_cast<int>(orderQty);
+
+    if (orderID.getLength() == 0) {
+        cout << "orderID is empty" << endl;
+        return;
+    }
 
     if (username.getLength() == 0) {
         cout << "username is empty" << endl;
         return;
     } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(username)) {
         cout << COLOR_ERROR "This username is not register in the Brokerage Center" NO_COLOR << endl;
+        return;
+    }
+
+    if (::isblank(static_cast<int>(type))) {
+        cout << "type is empty" << endl;
         return;
     }
 
@@ -240,8 +255,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    if (orderID.getLength() == 0) {
-        cout << "orderID is empty" << endl;
+    if (size <= 0) {
+        cout << "size is empty" << endl;
         return;
     }
 
@@ -250,17 +265,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    if (int(shareSize) <= 0) {
-        cout << "shareSize is empty" << endl;
-        return;
-    }
-
-    if (::isblank(int(qot))) {
-        cout << "orderType is empty" << endl;
-        return;
-    }
-
-    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(username, Order{ symbol, username, orderID, price, int(shareSize), qot });
+    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(username, Order{ type, symbol, size, price, orderID, username });
 }
 
 /*
@@ -334,9 +339,9 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& username, const Portfo
     header.setField(FIX::MsgType(FIX::MsgType_PositionReport));
 
     message.setField(FIX::PosMaintRptID(shift::crossguid::newGuid().str()));
-    message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
-    message.setField(FIX::Symbol("CASH"));
-    message.setField(FIX::SecurityType("CASH"));
+    message.setField(::FIXFIELD_CLEARINGBUSINESSDATE); // Required by FIX
+    message.setField(::FIXFIELD_SYMBOL_CASH);
+    message.setField(::FIXFIELD_SECURITYTYPE_CASH);
     message.setField(FIX::PriceDelta(summary.getTotalPL()));
 
     FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
@@ -380,9 +385,9 @@ void FIXAcceptor::sendPortfolioItem(const std::string& username, const Portfolio
     header.setField(FIX::MsgType(FIX::MsgType_PositionReport));
 
     message.setField(FIX::PosMaintRptID(shift::crossguid::newGuid().str()));
-    message.setField(FIX::ClearingBusinessDate("20181102")); // Required by FIX
+    message.setField(::FIXFIELD_CLEARINGBUSINESSDATE); // Required by FIX
     message.setField(FIX::Symbol(item.getSymbol()));
-    message.setField(FIX::SecurityType("CS"));
+    message.setField(::FIXFIELD_SECURITYTYPE_CS);
     message.setField(FIX::SettlPrice(item.getLongPrice()));
     message.setField(FIX::PriorSettlPrice(item.getShortPrice()));
     message.setField(FIX::PriceDelta(item.getPL()));
@@ -424,11 +429,11 @@ void FIXAcceptor::sendWaitingList(const std::string& username, const std::unorde
     for (const auto& kv : orders) {
         auto& order = kv.second;
         orderSetGroup.setField(FIX::QuoteSetID(targetID));
-        orderSetGroup.setField(FIX::UnderlyingSecurityID(order.getOrderID()));
+        orderSetGroup.setField(FIX::UnderlyingSecurityID(order.getID()));
         orderSetGroup.setField(FIX::UnderlyingSymbol(order.getSymbol()));
         orderSetGroup.setField(FIX::UnderlyingStrikePrice(order.getPrice()));
-        orderSetGroup.setField(FIX::UnderlyingSymbolSfx(std::to_string(order.getShareSize()))); // FIXME: replaceb by other field
-        orderSetGroup.setField(FIX::UnderlyingIssuer(std::to_string(order.getOrderType())));
+        orderSetGroup.setField(FIX::UnderlyingSymbolSfx(std::to_string(order.getSize()))); // FIXME: replace with other field
+        orderSetGroup.setField(FIX::UnderlyingIssuer(std::to_string(order.getType())));
         message.addGroup(orderSetGroup);
     }
 
@@ -570,7 +575,7 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& targetList
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
     entryGroup.setField(::FIXFIELD_MDUPDATE_CHANGE); // Required by FIX
-    entryGroup.setField(FIX::MDEntryType(char(update.getType())));
+    entryGroup.setField(FIX::MDEntryType(static_cast<char>(update.getType())));
     entryGroup.setField(FIX::Symbol(update.getSymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));

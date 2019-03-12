@@ -7,10 +7,6 @@ inline double shift::Order::s_decimalTruncate(double value, int precision)
     return std::trunc(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
 }
 
-shift::Order::Order()
-{
-}
-
 shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size, double price, const std::string& id)
     : m_type(type)
     , m_symbol(symbol)

@@ -3,10 +3,10 @@
 #include <string>
 
 /**
-*   @brief The "Waiting List" item of the user's portfolio, maintains an instance of order, and provides options-contract related controls.
-*/
+ *  @brief A class contains all information for an order.
+ */
 struct Order {
-    enum ORDER_TYPE : char {
+    enum Type : char {
         LIMIT_BUY = '1',
         LIMIT_SELL = '2',
         MARKET_BUY = '3',
@@ -15,23 +15,40 @@ struct Order {
         CANCEL_ASK = '6',
     };
 
-    Order();
-    Order(std::string symbol, std::string username, std::string orderID, double price, int shareSize, ORDER_TYPE orderType); // for the server to receive
+    enum Status : char { // See FIX::OrdStatus
+        PENDING_NEW = 'A',
+        NEW = '0',
+        PARTIALLY_FILLED = '1',
+        FILLED = '2',
+        CANCELED = '4',
+        PENDING_CANCEL = '6',
+        REJECTED = '8',
+    };
 
+    Order() = default;
+    Order(Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& username);
+
+    // Getters
+    Type getType() const;
     const std::string& getSymbol() const;
-    const std::string& getUsername() const;
-    const std::string& getOrderID() const;
-    void setPrice(double price);
+    int getSize() const;
     double getPrice() const;
-    void setShareSize(int shareSize);
-    int getShareSize() const;
-    ORDER_TYPE getOrderType() const;
+    const std::string& getID() const;
+    const std::string& getUsername() const;
+
+    // Setters
+    void setType(Type type);
+    void setSymbol(const std::string& symbol);
+    void setSize(int size);
+    void setPrice(double price);
+    void setID(const std::string& id);
+    void setUsername(const std::string& username);
 
 private:
-    std::string m_symbol; ///<The stock name of order
-    std::string m_username; ///<The username of order
-    std::string m_orderID; ///<The order ID of order
-    double m_price; ///<The price of order
-    int m_shareSize; ///<The size of order
-    ORDER_TYPE m_orderType; ///<1:LimitBuy 2:LimitSell 3:MarketBuy 4:MarketSell 5:CancelBid 6:CancelAsk
+    Type m_type;
+    std::string m_symbol;
+    int m_size;
+    double m_price;
+    std::string m_id;
+    std::string m_username;
 };

@@ -18,13 +18,6 @@ RiskManagement::RiskManagement(std::string username, double buyingPower)
 {
 }
 
-RiskManagement::RiskManagement(std::string username, double buyingPower, int totalShares)
-    : m_username(std::move(username))
-    , m_porfolioSummary{ buyingPower, totalShares }
-    , m_pendingShortCashAmount{ 0.0 }
-{
-}
-
 RiskManagement::RiskManagement(std::string username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
     : m_username(std::move(username))
     , m_porfolioSummary{ buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares }
@@ -108,11 +101,11 @@ void RiskManagement::updateWaitingList(const Report& report)
         return;
 
     auto& order = it->second;
-    if (order.getShareSize() > report.shareSize) {
-        order.setShareSize(order.getShareSize() - report.shareSize);
+    if (order.getSize() > report.shareSize) {
+        order.setSize(order.getSize() - report.shareSize);
     } else {
         if (m_waitingList.size() == 1) {
-            order.setShareSize(0);
+            order.setSize(0);
             order.setPrice(0.0);
         } else {
             m_waitingList.erase(it);
@@ -138,8 +131,6 @@ inline double RiskManagement::getMarketSellPrice(const std::string& symbol)
 
 void RiskManagement::processOrder()
 {
-    using QOT = Order::ORDER_TYPE;
-
     thread_local auto quitFut = m_quitFlagOrder.get_future();
 
     while (true) {
@@ -161,8 +152,8 @@ void RiskManagement::processOrder()
         if (verifyAndSendOrder(*orderPtr)) {
             {
                 std::lock_guard<std::mutex> guard(m_mtxWaitingList);
-                if (orderPtr->getOrderType() != QOT::CANCEL_BID && orderPtr->getOrderType() != QOT::CANCEL_ASK) {
-                    m_waitingList[orderPtr->getOrderID()] = *orderPtr;
+                if (orderPtr->getType() != Order::Type::CANCEL_BID && orderPtr->getType() != Order::Type::CANCEL_ASK) {
+                    m_waitingList[orderPtr->getID()] = *orderPtr;
                 }
             }
 
@@ -176,8 +167,6 @@ void RiskManagement::processOrder()
 
 void RiskManagement::processExecRpt()
 {
-    using QOT = Order::ORDER_TYPE;
-
     thread_local auto quitFut = m_quitFlagExec.get_future();
 
     while (true) {
@@ -193,8 +182,8 @@ void RiskManagement::processExecRpt()
         } break;
         case FIX::ExecType_FILL: { // execution report
             switch (reportPtr->orderType) {
-            case QOT::MARKET_BUY:
-            case QOT::LIMIT_BUY: {
+            case Order::Type::MARKET_BUY:
+            case Order::Type::LIMIT_BUY: {
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
                 std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
                 std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
@@ -243,9 +232,9 @@ void RiskManagement::processExecRpt()
                 // but pending transaction price is returned (also updating total holding balance)
                 m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * buyShares);
 
-                m_pendingBidOrders[reportPtr->orderID].setShareSize(m_pendingBidOrders[reportPtr->orderID].getShareSize() - (buyShares / 100));
+                m_pendingBidOrders[reportPtr->orderID].setSize(m_pendingBidOrders[reportPtr->orderID].getSize() - (buyShares / 100));
 
-                if (m_pendingBidOrders[reportPtr->orderID].getShareSize() == 0) { // if pending transaction is completely fulfilled
+                if (m_pendingBidOrders[reportPtr->orderID].getSize() == 0) { // if pending transaction is completely fulfilled
                     m_pendingBidOrders.erase(reportPtr->orderID); // it can be deleted
                 }
 
@@ -254,8 +243,8 @@ void RiskManagement::processExecRpt()
                 m_porfolioSummary.addTotalShares(buyShares); // update total trade shares
             } break;
 
-            case QOT::MARKET_SELL:
-            case QOT::LIMIT_SELL: {
+            case Order::Type::MARKET_SELL:
+            case Order::Type::LIMIT_SELL: {
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
                 std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
                 std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
@@ -311,9 +300,9 @@ void RiskManagement::processExecRpt()
                     }
                 }
 
-                m_pendingAskOrders[reportPtr->orderID].first.setShareSize(m_pendingAskOrders[reportPtr->orderID].first.getShareSize() - (sellShares / 100));
+                m_pendingAskOrders[reportPtr->orderID].first.setSize(m_pendingAskOrders[reportPtr->orderID].first.getSize() - (sellShares / 100));
 
-                if (m_pendingAskOrders[reportPtr->orderID].first.getShareSize() == 0) { // if pending transaction is completely fulfilled
+                if (m_pendingAskOrders[reportPtr->orderID].first.getSize() == 0) { // if pending transaction is completely fulfilled
                     m_pendingAskOrders.erase(reportPtr->orderID); // it can be deleted
                 }
 
@@ -330,17 +319,17 @@ void RiskManagement::processExecRpt()
 
             const int cancelShares = reportPtr->shareSize * 100;
 
-            if (reportPtr->orderType == QOT::CANCEL_BID) {
+            if (reportPtr->orderType == Order::Type::CANCEL_BID) {
                 // pending transaction price is returned
                 m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * cancelShares);
 
-                m_pendingBidOrders[reportPtr->orderID].setShareSize(m_pendingBidOrders[reportPtr->orderID].getShareSize() - (cancelShares / 100));
+                m_pendingBidOrders[reportPtr->orderID].setSize(m_pendingBidOrders[reportPtr->orderID].getSize() - (cancelShares / 100));
 
-                if (m_pendingBidOrders[reportPtr->orderID].getShareSize() == 0) { // if pending transaction is completely cancelled
+                if (m_pendingBidOrders[reportPtr->orderID].getSize() == 0) { // if pending transaction is completely cancelled
                     m_pendingBidOrders.erase(reportPtr->orderID); // it can be deleted
                 }
-            } else if (reportPtr->orderType == QOT::CANCEL_ASK) {
-                const int shortShares = m_pendingAskOrders[reportPtr->orderID].first.getShareSize() * 100 - m_pendingAskOrders[reportPtr->orderID].second;
+            } else if (reportPtr->orderType == Order::Type::CANCEL_ASK) {
+                const int shortShares = m_pendingAskOrders[reportPtr->orderID].first.getSize() * 100 - m_pendingAskOrders[reportPtr->orderID].second;
 
                 if (cancelShares < shortShares) {
                     m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * cancelShares;
@@ -350,9 +339,9 @@ void RiskManagement::processExecRpt()
                     m_pendingAskOrders[reportPtr->orderID].second -= (cancelShares - shortShares);
                 }
 
-                m_pendingAskOrders[reportPtr->orderID].first.setShareSize(m_pendingAskOrders[reportPtr->orderID].first.getShareSize() - (cancelShares / 100));
+                m_pendingAskOrders[reportPtr->orderID].first.setSize(m_pendingAskOrders[reportPtr->orderID].first.getSize() - (cancelShares / 100));
 
-                if (m_pendingAskOrders[reportPtr->orderID].first.getShareSize() == 0) { // if pending transaction is completely cancelled
+                if (m_pendingAskOrders[reportPtr->orderID].first.getSize() == 0) { // if pending transaction is completely cancelled
                     m_pendingAskOrders.erase(reportPtr->orderID); // it can be deleted
                 }
             }
@@ -414,8 +403,6 @@ void RiskManagement::processExecRpt()
 
 bool RiskManagement::verifyAndSendOrder(const Order& order)
 {
-    using QOT = Order::ORDER_TYPE;
-
     bool success = false;
     double price = order.getPrice();
 
@@ -427,30 +414,30 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
         usableBuyingPower = m_porfolioSummary.getBuyingPower() - m_pendingShortCashAmount;
     }
 
-    switch (order.getOrderType()) {
-    case QOT::MARKET_BUY: {
+    switch (order.getType()) {
+    case Order::Type::MARKET_BUY: {
         price = getMarketSellPrice(order.getSymbol()); // use market price
     } // the rest is the same as in limit orders
-    case QOT::LIMIT_BUY: {
+    case Order::Type::LIMIT_BUY: {
         if (price == 0.0)
             break;
 
         std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
         std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
-        if (price * order.getShareSize() * 100 < usableBuyingPower) {
-            m_porfolioSummary.holdBalance(price * order.getShareSize() * 100);
+        if (price * order.getSize() * 100 < usableBuyingPower) {
+            m_porfolioSummary.holdBalance(price * order.getSize() * 100);
 
-            m_pendingBidOrders[order.getOrderID()] = order; // store the pending transaction
-            m_pendingBidOrders[order.getOrderID()].setPrice(price); // update the price of the saved pending transaction (necessary for market orders)
+            m_pendingBidOrders[order.getID()] = order; // store the pending transaction
+            m_pendingBidOrders[order.getID()].setPrice(price); // update the price of the saved pending transaction (necessary for market orders)
 
             success = true;
         }
     } break;
-    case QOT::MARKET_SELL: {
+    case Order::Type::MARKET_SELL: {
         price = getMarketBuyPrice(order.getSymbol()); // use market price
     } // the rest is the same as in limit orders
-    case QOT::LIMIT_SELL: {
+    case Order::Type::LIMIT_SELL: {
         if (price == 0.0)
             break;
 
@@ -460,12 +447,12 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
 
         // the number of available shares is the total of long shares minus the share amount reserved for pending sell orders
         int availableShares = m_portfolioItems[order.getSymbol()].getLongShares() - m_pendingShortUnitAmount[order.getSymbol()];
-        int shortShares = order.getShareSize() * 100 - availableShares; // this is the amount of shares that need to be shorted
+        int shortShares = order.getSize() * 100 - availableShares; // this is the amount of shares that need to be shorted
 
         if (shortShares <= 0) { // no short positions are necessary
-            m_pendingShortUnitAmount[order.getSymbol()] += order.getShareSize() * 100; // reserve all shares of this order
-            m_pendingAskOrders[order.getOrderID()] = std::make_pair(order, order.getShareSize() * 100); // store the pending transaction along with reserved shares
-            m_pendingAskOrders[order.getOrderID()].first.setPrice(price);
+            m_pendingShortUnitAmount[order.getSymbol()] += order.getSize() * 100; // reserve all shares of this order
+            m_pendingAskOrders[order.getID()] = std::make_pair(order, order.getSize() * 100); // store the pending transaction along with reserved shares
+            m_pendingAskOrders[order.getID()].first.setPrice(price);
 
             success = true;
         } else if ((m_porfolioSummary.getBorrowedBalance() < usableBuyingPower) && (price * shortShares < usableBuyingPower)) {
@@ -473,16 +460,16 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
             // i.e. the user still has enough money to buy everything back
             m_pendingShortCashAmount += price * shortShares; // reserve the necessary cash amount for this order
             m_pendingShortUnitAmount[order.getSymbol()] += availableShares; // reserve remaining shares for this order
-            m_pendingAskOrders[order.getOrderID()] = std::make_pair(order, availableShares); // store the pending transaction along with reserved shares
-            m_pendingAskOrders[order.getOrderID()].first.setPrice(price);
+            m_pendingAskOrders[order.getID()] = std::make_pair(order, availableShares); // store the pending transaction along with reserved shares
+            m_pendingAskOrders[order.getID()].first.setPrice(price);
 
             success = true;
         }
     } break;
-    case QOT::CANCEL_BID: {
+    case Order::Type::CANCEL_BID: {
         success = true;
     } break;
-    case QOT::CANCEL_ASK: {
+    case Order::Type::CANCEL_ASK: {
         success = true;
     } break;
     default: {

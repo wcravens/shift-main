@@ -93,12 +93,12 @@ void FIXInitiator::sendOrder(const Order& order)
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
 
-    message.setField(FIX::ClOrdID(order.getOrderID()));
+    message.setField(FIX::ClOrdID(order.getID()));
     message.setField(FIX::Symbol(order.getSymbol()));
-    message.setField(FIX::Side(order.getOrderType())); // FIXME: separate Side and OrdType
+    message.setField(FIX::Side(order.getType())); // FIXME: separate Side and OrdType
     message.setField(FIX::TransactTime(6));
-    message.setField(FIX::OrderQty(order.getShareSize()));
-    message.setField(FIX::OrdType(order.getOrderType())); // FIXME: separate Side and OrdType
+    message.setField(FIX::OrderQty(order.getSize()));
+    message.setField(FIX::OrdType(order.getType())); // FIXME: separate Side and OrdType
     message.setField(FIX::Price(order.getPrice()));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
@@ -329,7 +329,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             Transaction transac = {
                 *pSymbol,
                 *pPrice,
-                int(*pShareSize),
+                static_cast<int>(*pShareSize),
                 *pDestination,
                 pExecTime->getValue()
             };
