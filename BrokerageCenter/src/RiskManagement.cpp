@@ -16,6 +16,10 @@ RiskManagement::RiskManagement(std::string username, double buyingPower)
     , m_porfolioSummary{ buyingPower }
     , m_pendingShortCashAmount{ 0.0 }
 {
+    // Create "empty" waiting list:
+    // This is required to be able to send empty waiting lists to clients,
+    // which will ignore any orders in the waiting list with size 0.
+    m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", username };
 }
 
 RiskManagement::RiskManagement(std::string username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
@@ -23,6 +27,10 @@ RiskManagement::RiskManagement(std::string username, double buyingPower, double 
     , m_porfolioSummary{ buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares }
     , m_pendingShortCashAmount{ 0.0 }
 {
+    // Create "empty" waiting list:
+    // This is required to be able to send empty waiting lists to clients,
+    // which will ignore any orders in the waiting list with size 0.
+    m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", username };
 }
 
 RiskManagement::~RiskManagement()
@@ -101,12 +109,7 @@ void RiskManagement::updateWaitingList(const Report& report)
     if (order.getSize() > report.orderSize) {
         order.setSize(order.getSize() - report.orderSize);
     } else {
-        if (m_waitingList.size() == 1) {
-            order.setSize(0);
-            order.setPrice(0.0);
-        } else {
-            m_waitingList.erase(it);
-        }
+        m_waitingList.erase(it);
     }
 }
 
@@ -469,11 +472,12 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
             success = true;
         }
     } break;
-    case Order::Type::CANCEL_BID: {
-        success = true;
-    } break;
+    case Order::Type::CANCEL_BID:
     case Order::Type::CANCEL_ASK: {
-        success = true;
+        std::lock_guard<std::mutex> guard(m_mtxWaitingList);
+        auto it = m_waitingList.find(order.getID());
+        if (m_waitingList.end() != it)
+            success = true;
     } break;
     default: {
     } break;
