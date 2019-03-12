@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-
 inline double shift::Order::s_decimalTruncate(double value, int precision)
 {
     return std::trunc(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
@@ -21,10 +20,6 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
     , m_timestamp(std::chrono::system_clock::now())
     , m_status(Status::PENDING_NEW)
 {
-    if (m_type == Type::CANCEL_BID || m_type == Type::CANCEL_ASK) {
-        m_status = Status::PENDING_CANCEL;
-    }
-
     if (m_price <= 0.0) {
         m_price = 0.0;
         if (m_type == Type::LIMIT_BUY) {
@@ -79,10 +74,6 @@ shift::Order::Status shift::Order::getStatus() const
 void shift::Order::setType(Type type)
 {
     m_type = type;
-
-    if (m_type == Type::CANCEL_BID || m_type == Type::CANCEL_ASK) {
-        m_status = Status::PENDING_CANCEL;
-    }
 }
 
 void shift::Order::setSymbol(const std::string& symbol)
@@ -113,12 +104,4 @@ void shift::Order::setTimestamp()
 void shift::Order::setStatus(Status status)
 {
     m_status = status;
-
-    if (m_status == Status::PENDING_CANCEL) {
-        if (m_type == Type::LIMIT_BUY) {
-            m_type = Type::CANCEL_BID;
-        } else if (m_type == Type::LIMIT_SELL) {
-            m_type = Type::CANCEL_ASK;
-        }
-    }
 }
