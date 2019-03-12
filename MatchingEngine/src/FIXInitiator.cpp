@@ -30,6 +30,12 @@ FIXInitiator::~FIXInitiator() // override
     disconnectDatafeedEngine();
 }
 
+/*static*/ FIXInitiator* FIXInitiator::getInstance()
+{
+    static FIXInitiator s_FIXIniInst;
+    return &s_FIXIniInst;
+}
+
 void FIXInitiator::connectDatafeedEngine(const std::string& configFile)
 {
     disconnectDatafeedEngine();
@@ -78,9 +84,9 @@ void FIXInitiator::disconnectDatafeedEngine()
 }
 
 /**
- * @brief Send security list and timestamp to DE 
+ * @brief Send security list and timestamps to DatafeedEngine 
  */
-void FIXInitiator::sendSecurityList(const std::string& request_id, const boost::posix_time::ptime& start_time, const boost::posix_time::ptime& end_time, const std::vector<std::string>& symbols)
+void FIXInitiator::sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols)
 {
     FIX::Message message;
 
@@ -90,9 +96,9 @@ void FIXInitiator::sendSecurityList(const std::string& request_id, const boost::
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_SecurityList));
 
-    message.setField(FIX::SecurityResponseID(request_id));
-    message.setField(FIX::SecurityListID(to_iso_string(start_time)));
-    message.setField(FIX::SecurityListRefID(to_iso_string(end_time)));
+    message.setField(FIX::SecurityResponseID(requestID));
+    message.setField(FIX::SecurityListID(to_iso_string(startTime)));
+    message.setField(FIX::SecurityListRefID(to_iso_string(endTime)));
 
     for (size_t i = 0; i < symbols.size(); i++) {
         FIX50SP2::SecurityList::NoRelatedSym group;
@@ -104,7 +110,7 @@ void FIXInitiator::sendSecurityList(const std::string& request_id, const boost::
 }
 
 /**
- * @brief send Market Data Request to DE
+ * @brief Send market data request to DatafeedEngine 
  */
 void FIXInitiator::sendMarketDataRequest()
 {
@@ -135,9 +141,9 @@ void FIXInitiator::sendMarketDataRequest()
 }
 
 /**
- * @brief Storing the action records into database
+ * @brief Send execution report to DatafeedEngine
  */
-/* static */ void FIXInitiator::SendActionRecord(action& actions)
+void FIXInitiator::sendExecutionReport(action& report)
 {
     FIX::Message message;
 
@@ -147,47 +153,46 @@ void FIXInitiator::sendMarketDataRequest()
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
 
-    message.setField(FIX::OrderID(actions.order_id1));
-    message.setField(FIX::SecondaryOrderID(actions.order_id2));
+    message.setField(FIX::OrderID(report.order_id1));
+    message.setField(FIX::SecondaryOrderID(report.order_id2));
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
-    message.setField(FIX::OrdStatus(actions.decision));
-    message.setField(FIX::Symbol(actions.stockname));
-    message.setField(FIX::Side(actions.order_type1));
-    message.setField(FIX::OrdType(actions.order_type2));
-    message.setField(FIX::Price(actions.price));
-    message.setField(FIX::EffectiveTime(actions.exetime, 6));
-    message.setField(FIX::LastMkt(actions.destination));
+    message.setField(FIX::OrdStatus(report.decision));
+    message.setField(FIX::Symbol(report.stockname));
+    message.setField(FIX::Side(report.order_type1));
+    message.setField(FIX::OrdType(report.order_type2));
+    message.setField(FIX::Price(report.price));
+    message.setField(FIX::EffectiveTime(report.exetime, 6));
+    message.setField(FIX::LastMkt(report.destination));
     message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
-    message.setField(FIX::CumQty(actions.size));
+    message.setField(FIX::CumQty(report.size));
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
     idGroup1.setField(::FIXFIELD_CLIENTID);
-    idGroup1.setField(FIX::PartyID(actions.trader_id1));
+    idGroup1.setField(FIX::PartyID(report.trader_id1));
     message.addGroup(idGroup1);
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup2;
     idGroup2.setField(::FIXFIELD_CLIENTID);
-    idGroup2.setField(FIX::PartyID(actions.trader_id2));
+    idGroup2.setField(FIX::PartyID(report.trader_id2));
     message.addGroup(idGroup2);
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
-    timeGroup1.setField(FIX::TrdRegTimestamp(actions.time1, 6));
+    timeGroup1.setField(FIX::TrdRegTimestamp(report.time1, 6));
     message.addGroup(timeGroup1);
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup2;
-    timeGroup2.setField(FIX::TrdRegTimestamp(actions.time2, 6));
+    timeGroup2.setField(FIX::TrdRegTimestamp(report.time2, 6));
     message.addGroup(timeGroup2);
 
     FIX::Session::sendToTarget(message);
 }
 
-// Quote(string stockname1, string trader_id1, string order_id1, double price1, int size1, string time1, char ordertype1);
 /**
- * @brief Store orders to the Database after confirmed
+ * @brief Store order in DatabaseEngine after confirmed
  */
-/* static */ void FIXInitiator::StoreOrder(Quote& quote)
+/* static */ void FIXInitiator::storeOrder(Quote& order)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -197,17 +202,17 @@ void FIXInitiator::sendMarketDataRequest()
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
 
-    message.setField(FIX::ClOrdID(quote.getorder_id()));
-    message.setField(FIX::Price(quote.getprice()));
-    message.setField(FIX::Symbol(quote.getstockname()));
+    message.setField(FIX::ClOrdID(order.getorder_id()));
+    message.setField(FIX::Price(order.getprice()));
+    message.setField(FIX::Symbol(order.getstockname()));
     message.setField(::FIXFIELD_SIDE_BUY); // Required by FIX
-    message.setField(FIX::OrdType(quote.getordertype()));
-    message.setField(FIX::OrderQty(quote.getsize()));
+    message.setField(FIX::OrdType(order.getordertype()));
+    message.setField(FIX::OrderQty(order.getsize()));
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_CLIENTID);
-    idGroup.set(FIX::PartyID(quote.gettrader_id()));
+    idGroup.set(FIX::PartyID(order.gettrader_id()));
     message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
@@ -256,7 +261,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
     FIX::NoLinesOfText numOfGroup;
     message.get(numOfGroup);
     if (numOfGroup < 1) {
-        cout << "Cannot find Text in Notice\n";
+        cout << "Cannot find Text in Notice!" << endl;
         return;
     }
 
@@ -285,7 +290,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     message.get(numOfPartyGroup);
 
     if ((!ordType && numOfPartyGroup < 2) || numOfPartyGroup < 1) {
-        cout << "Cant find enough Group: NoPartyIDs\n";
+        cout << "Cannot find enough Party IDs!" << endl;
         return;
     }
 
@@ -307,7 +312,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     std::map<std::string, Stock>::iterator stockIt;
     stockIt = stocklist.find(symbol);
     if (stockIt == stocklist.end()) {
-        cout << "Receive error in Global" << endl; // orderQty=0;
+        cout << "Receive error in Global!" << endl; // orderQty=0;
         return;
     }
 

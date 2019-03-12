@@ -242,19 +242,19 @@ void createStockMarket(std::string symbol)
             }
             }
 
-            for_each(stock->second.actions.begin(), stock->second.actions.end(), [](action& trade) {
+            for_each(stock->second.actions.begin(), stock->second.actions.end(), [](action& report) {
                 // send execution report to DatafeedEngine
                 // decision == 4 means this is a trade update from TRTH -> no need to send it to DatafeedEngine
-                if (trade.decision != '4') {
-                    FIXInitiator::SendActionRecord(trade);
+                if (report.decision != '4') {
+                    FIXInitiator::getInstance()->sendExecutionReport(report);
                 }
                 // send execution report to BrokerageCenter
-                FIXAcceptor::SendExecution(trade);
+                FIXAcceptor::getInstance()->sendExecutionReport2All(report);
             });
             stock->second.actions.clear();
 
             for_each(stock->second.orderbookupdate.begin(), stock->second.orderbookupdate.end(),
-                [](Newbook& _newbook) { FIXAcceptor::SendOrderBookUpdate2All(_newbook); });
+                [](Newbook& _newbook) { FIXAcceptor::getInstance()->sendOrderBookUpdate2All(_newbook); });
             stock->second.orderbookupdate.clear();
         }
     }

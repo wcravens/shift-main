@@ -37,19 +37,22 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
-    FIXInitiator() = default;
     ~FIXInitiator() override;
+
+    static FIXInitiator* getInstance();
 
     void connectDatafeedEngine(const std::string& configFile);
     void disconnectDatafeedEngine();
 
-    void sendSecurityList(const std::string& request_id, const boost::posix_time::ptime& start_time, const boost::posix_time::ptime& end_time, const std::vector<std::string>& symbols);
+    void sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
     void sendMarketDataRequest();
 
-    static void SendActionRecord(action& actions);
-    static void StoreOrder(Quote& quote);
+    void sendExecutionReport(action& report);
+    void storeOrder(Quote& order);
 
 private:
+    FIXInitiator() = default;
+
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;
     void onLogon(const FIX::SessionID&) override;

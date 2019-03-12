@@ -114,11 +114,9 @@ int main(int ac, char* av[])
     boost::posix_time::ptime pt_start(boost::posix_time::time_from_string(date + " " + stime));
     boost::posix_time::ptime pt_end(boost::posix_time::time_from_string(date + " " + etime));
     std::string requestID = date + " :: " + std::to_string(symbols.size());
-    //initiate connection to clients
-    FIXAcceptor fixtoclient;
+
     //initiate connection to DB
-    FIXInitiator fixtoDB;
-    fixtoDB.connectDatafeedEngine(params.configDir + "initiator.cfg");
+    FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
     cout << "Please wait for ready" << endl;
     sleep(3);
     getchar();
@@ -127,7 +125,7 @@ int main(int ac, char* av[])
     for (unsigned int i = 0; i < symbols.size(); ++i) {
         std::string symbol;
         symbol = symbols[i];
-        fixtoclient.symbollist.push_back(symbol);
+        FIXAcceptor::getInstance()->addSymbol(symbol);
         Stock newstock;
         newstock.setstockname(symbol);
         //store the new stock into stocklist
@@ -142,13 +140,13 @@ int main(int ac, char* av[])
         cout << "Error in creating Stock to stocklist" << endl;
         return 1;
     }
-    fixtoclient.symbollist.sort();
+
     //send request to DatafeedEngine for TRTH data
-    fixtoDB.sendSecurityList(requestID, pt_start, pt_end, symbols);
+    FIXInitiator::getInstance()->sendSecurityList(requestID, pt_start, pt_end, symbols);
     cout << "Please wait for the database signal until TRTH data ready..." << endl;
     getchar();
     getchar();
-    fixtoDB.sendMarketDataRequest();
+    FIXInitiator::getInstance()->sendMarketDataRequest();
     //option to start the exchange
     cout << endl
          << endl
@@ -191,12 +189,12 @@ int main(int ac, char* av[])
         }
     }
 
-    fixtoclient.connectBrokerageCenter(params.configDir + "acceptor.cfg");
+    FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
     //sleep the main thread for set of time until exchange close time
     pt_start += boost::posix_time::minutes(15);
     while (pt_start < pt_end) {
-        fixtoDB.sendMarketDataRequest();
+        FIXInitiator::getInstance()->sendMarketDataRequest();
         pt_start += boost::posix_time::minutes(15);
         std::this_thread::sleep_for(15min / experiment_speed);
     }
@@ -211,8 +209,8 @@ int main(int ac, char* av[])
     //    timeout=true;
     //}
 
-    fixtoDB.disconnectDatafeedEngine();
-    fixtoclient.disconnectBrokerageCenter();
+    FIXInitiator::getInstance()->disconnectDatafeedEngine();
+    FIXAcceptor::getInstance()->disconnectBrokerageCenter();
     for (int i = 0; i < stocknumber; i++) {
         stockthreadlist[i].join();
     }
