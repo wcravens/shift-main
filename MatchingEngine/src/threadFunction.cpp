@@ -53,7 +53,7 @@ bool fileConfig_mode(std::string file_address, std::string& date, std::string& s
 
 void inputConfig_mode(std::string& date, std::string& stime, std::string& etime, int& experiment_speed, std::vector<std::string>& symbols)
 {
-    cout << "Please input simulation date (format: yyyy-mm-dd, e.g 2014-10-08):" << endl;
+    cout << "Please input simulation date (format: yyyy-mm-dd, e.g 2018-12-17):" << endl;
     cin >> date;
     cout << endl;
 
@@ -176,11 +176,7 @@ void createStockMarket(std::string symbol)
                 stock->second.level();
                 //stock->second.showglobal();
                 if (newquote.getsize() != 0) {
-                    //action(string stock1,double price1,int size1,string trader_id11,string trader_id21,char order_type11,char order_type21,string order_id11,
-                    //string order_id21,string time0,string time11,string time21,char decision1,string destination1);
-                    //decision 4 means this is a trade update from TRTH
-                    // action newaction(newquote.getstockname(), newquote.getprice(), newquote.getsize(), "T1", "T2", '1', '2', "o1", "o2", newquote.gettime(), "t2", "t3", '4', "TRTH", newquote.getutctime(), utc_now, utc_now);
-
+                    //decision 5 means this is a trade update from TRTH
                     auto utc_now = timepara.simulationTimestamp();
                     action newaction(
                         newquote.getstockname(),
@@ -192,7 +188,7 @@ void createStockMarket(std::string symbol)
                         '2',
                         "o1",
                         "o2",
-                        '4',
+                        '5',
                         "TRTH",
                         newquote.gettime(),
                         utc_now,
@@ -221,7 +217,7 @@ void createStockMarket(std::string symbol)
 
                 break;
             }
-            case '9': // bid update from TR
+            case '9': //bid update from TR
             {
                 if (newquote.getdestination() == bidexchange) {
                     if (newquote.getprice() == bidprice && newquote.getsize() == bidsize) {
@@ -244,8 +240,8 @@ void createStockMarket(std::string symbol)
 
             for_each(stock->second.actions.begin(), stock->second.actions.end(), [](action& report) {
                 // send execution report to DatafeedEngine
-                // decision == 4 means this is a trade update from TRTH -> no need to send it to DatafeedEngine
-                if (report.decision != '4') {
+                // decision == 5 means this is a trade update from TRTH -> no need to send it to DatafeedEngine
+                if (report.decision != '5') {
                     FIXInitiator::getInstance()->sendExecutionReport(report);
                 }
                 // send execution report to BrokerageCenter

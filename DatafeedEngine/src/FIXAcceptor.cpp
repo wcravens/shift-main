@@ -256,8 +256,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     timeGroup.get(utc_time2);
 
     // (this test is being done in the MatchingEngine now)
-    // decision == 4 means this is a trade update from TRTH -> no need to store it
-    // if (decision != '4') {
+    // decision == 5 means this is a trade update from TRTH -> no need to store it
+    // if (decision != '5') {
     TradingRecord trade{
         serverTime.getValue(),
         utc_exetime.getValue(),

@@ -270,7 +270,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
         switch (orderStatus) {
         case FIX::ExecType_FILL:
-        case FIX::ExecType_CANCELED: {
+        case FIX::OrdStatus_REPLACED: {
             Transaction transac = {
                 orderSymbol,
                 static_cast<int>(orderSize),
