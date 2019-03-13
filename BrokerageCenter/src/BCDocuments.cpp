@@ -8,6 +8,22 @@
 
 using namespace std::chrono_literals;
 
+std::string toUpper(const std::string& str)
+{
+    std::string upStr;
+    std::transform(str.begin(), str.end(), std::back_inserter(upStr), [](char ch) { return std::toupper(ch); });
+    return upStr;
+}
+
+std::string toLower(const std::string& str)
+{
+    std::string upStr;
+    std::transform(str.begin(), str.end(), std::back_inserter(upStr), [](char ch) { return std::tolower(ch); });
+    return upStr;
+}
+
+//-------------------------------------------------------------------------------------------
+
 /* static */ std::atomic<bool> BCDocuments::s_isSecurityListReady{ false };
 
 /*static*/ BCDocuments* BCDocuments::getInstance()
@@ -280,13 +296,4 @@ void BCDocuments::broadcastOrderBooks() const
         auto& orderBook = *kv.second;
         orderBook.broadcastWholeOrderBookToAll();
     }
-}
-
-//-------------------------------------------------------------------------------------------
-
-std::string toUpper(const std::string& str)
-{
-    std::string upStr;
-    std::transform(str.begin(), str.end(), std::back_inserter(upStr), [](char ch) { return std::toupper(ch); });
-    return upStr;
 }

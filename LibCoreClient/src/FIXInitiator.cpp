@@ -378,6 +378,26 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
 
     m_logonSuccess = true;
     m_cvLogon.notify_one();
+
+    // If there is a problem in the connection (a disconnect),
+    // QuickFIX will manage the reconnection, but we need to
+    // inform the BrokerageCenter "we are back in business":
+    {
+        // Reregister connected web client users in BrokerageCenter
+        for (const auto& client : getAttachedClients()) {
+            webClientSendUsername(client->getUsername());
+        }
+
+        // Resubscribe to all previously subscribed order book data
+        for (const auto& symbol : getSubscribedOrderBookList()) {
+            subOrderBook(symbol);
+        }
+
+        //  Resubscribe to all previously subscribed candle stick data
+        for (const auto& symbol : getSubscribedCandlestickList()) {
+            subCandleData(symbol);
+        }
+    }
 }
 
 /**
@@ -778,16 +798,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
         initializeOrderBooks();
 
         m_cvStockList.notify_one();
-    }
-
-    // Resubscribe to order book data when reconnecting
-    for (const auto& symbol : getSubscribedOrderBookList()) {
-        subOrderBook(symbol);
-    }
-
-    // Resubscribe to candle stick data when reconnecting
-    for (const auto& symbol : getSubscribedCandlestickList()) {
-        subCandleData(symbol);
     }
 }
 

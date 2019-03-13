@@ -57,7 +57,7 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
     for (const auto& tarID : targetIDs) {
         FIX::SessionID sid(commonDict.getString("BeginString"), commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER
             ,
-            ::toUpper(tarID) // (TODO); e.g. WEBCLIENT
+            ::toUpper(tarID) // TODO: e.g. WEBCLIENT
         );
         FIX::Dictionary dict;
 
@@ -151,6 +151,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     auto& targetID = sessionID.getTargetCompID();
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 
+    BCDocuments::getInstance()->registerUserInDoc(targetID, ::toLower(targetID));
     sendSymbols(targetID, BCDocuments::getInstance()->getSymbols());
 }
 
