@@ -151,7 +151,9 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     auto& targetID = sessionID.getTargetCompID();
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 
-    BCDocuments::getInstance()->registerUserInDoc(targetID, ::toLower(targetID));
+    // The following is not necessary as long as the super user also sends a onMessage(UserRequest):
+    // BCDocuments::getInstance()->registerUserInDoc(targetID, ::toLower(targetID));
+    // BCDocuments::getInstance()->sendHistoryToUser(::toLower(targetID));
     sendSymbols(targetID, BCDocuments::getInstance()->getSymbols());
 }
 
@@ -176,7 +178,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
     FIX::Username username; // WebClient's
     message.get(username);
     BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID(), username);
-    BCDocuments::getInstance()->sendHistoryToUser(username.getString());
+    BCDocuments::getInstance()->sendHistoryToUser(username);
 
     cout << COLOR_PROMPT "Web user [" NO_COLOR << username << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
 }
