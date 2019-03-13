@@ -9,9 +9,10 @@ struct Report {
     std::string orderID;
     Order::Type orderType;
     std::string orderSymbol;
-    int orderSize;
+    int currentSize;
+    int executedSize;
     double orderPrice;
-    char orderStatus;
+    Order::Status orderStatus;
     std::string destination;
     FIX::UtcTimeStamp execTime;
     FIX::UtcTimeStamp serverTime;

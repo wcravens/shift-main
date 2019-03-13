@@ -25,8 +25,8 @@ static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FI
 static const auto& FIXFIELD_SECURITYTYPE_CS = FIX::SecurityType("CS");
 static const auto& FIXFIELD_QUOTESTAT = FIX::QuoteStatus(0); // 0 = Accepted
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
-static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // 0 = New
-static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
+static const auto& FIXFIELD_EXECTYPE_ORDER_STATUS = FIX::ExecType(FIX::ExecType_ORDER_STATUS);
+static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType(FIX::ExecType_TRADE);
 static const auto& FIXFIELD_ADVTRANSTYPE_NEW = FIX::AdvTransType(FIX::AdvTransType_NEW);
 static const auto& FIXFIELD_ADVSIDE_TRADE = FIX::AdvSide('T'); // T = Trade
 
@@ -464,9 +464,12 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
 
     message.setField(FIX::OrderID(report.orderID));
-    message.setField(FIX::ClOrdID(report.username));
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_EXECTYPE_NEW); // Required by FIX
+    if (report.orderStatus == Order::Status::NEW || report.orderStatus == Order::Status::PENDING_CANCEL || report.orderStatus == Order::Status::REJECTED) {
+        message.setField(::FIXFIELD_EXECTYPE_ORDER_STATUS); // Required by FIX
+    } else {
+        message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
+    }
     message.setField(FIX::OrdStatus(report.orderStatus));
     message.setField(FIX::Symbol(report.orderSymbol));
     message.setField(FIX::Side(report.orderType)); // FIXME: separate Side and OrdType
@@ -474,8 +477,8 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     message.setField(FIX::Price(report.orderPrice));
     message.setField(FIX::EffectiveTime(report.execTime, 6));
     message.setField(FIX::LastMkt(report.destination));
-    message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
-    message.setField(FIX::CumQty(report.orderSize));
+    message.setField(FIX::LeavesQty(report.currentSize));
+    message.setField(FIX::CumQty(report.executedSize));
     message.setField(FIX::TransactTime(report.serverTime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;

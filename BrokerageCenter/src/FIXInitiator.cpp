@@ -20,7 +20,6 @@ using namespace std::chrono_literals;
 // Predefined constant FIX fields (To avoid recalculations):
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1"); // FIX BeginString
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
-static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType('0'); // '0' = New
 
 FIXInitiator::~FIXInitiator() // override
 {
@@ -144,36 +143,35 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
 void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
     FIX::ExecType execType;
-    FIX::OrdStatus orderStatus;
     message.get(execType);
-    message.get(orderStatus); // actions.decision
 
-    if (execType == ::FIXFIELD_EXECTYPE_NEW) {
+    if (execType == FIX::ExecType_ORDER_STATUS) { // Confirmation Report
         // Update Version: ClientID has been replaced by PartyRole and PartyID
         FIX::NoPartyIDs numOfGroup;
         message.get(numOfGroup);
         if (numOfGroup < 1) {
-            cout << "Cannot find any ClientID in ExecutionReport !" << endl;
+            cout << "Cannot find any ClientID in ExecutionReport!" << endl;
             return;
         }
 
-        // For confirmation report
         FIX::OrderID orderID;
+        FIX::OrdStatus orderStatus;
         FIX::Symbol orderSymbol;
         FIX::Side orderType;
         FIX::Price orderPrice;
         FIX::EffectiveTime confirmTime;
         FIX::LastMkt destination;
-        FIX::LeavesQty orderSize;
+        FIX::LeavesQty currentSize;
         FIX::TransactTime serverTime;
 
         message.get(orderID);
+        message.get(orderStatus);
         message.get(orderSymbol);
         message.get(orderType);
         message.get(orderPrice);
         message.get(confirmTime);
         message.get(destination);
-        message.get(orderSize);
+        message.get(currentSize);
         message.get(serverTime);
 
         FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
@@ -192,9 +190,10 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             orderID,
             static_cast<Order::Type>(static_cast<char>(orderType)),
             orderSymbol,
-            static_cast<int>(orderSize),
+            static_cast<int>(currentSize),
+            0, // executed size
             orderPrice,
-            static_cast<char>(orderStatus),
+            static_cast<Order::Status>(static_cast<char>(orderStatus)),
             destination,
             serverTime.getValue(),
             confirmTime.getValue()
@@ -205,7 +204,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << orderID << "\t"
              << orderType << "\t"
              << orderSymbol << "\t"
-             << orderSize << "\t"
+             << currentSize << "\t"
              << orderPrice << "\t"
              << orderStatus << "\t"
              << destination << "\t"
@@ -213,17 +212,25 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << confirmTime.getString() << endl;
         BCDocuments::getInstance()->onNewReportForUserRiskManagement(username, report);
 
-    } else {
-        // For execution report
+    } else { // FIX::ExecType_TRADE: Execution Report
+        // Update Version: ClientID has been replaced by PartyRole and PartyID
+        FIX::NoPartyIDs numOfGroup;
+        message.get(numOfGroup);
+        if (numOfGroup < 2) {
+            cout << "Cannot find all ClientID in ExecutionReport!" << endl;
+            return;
+        }
+
         FIX::OrderID orderID1;
         FIX::SecondaryOrderID orderID2;
+        FIX::OrdStatus orderStatus;
         FIX::Symbol orderSymbol;
         FIX::Side orderType1;
         FIX::OrdType orderType2;
         FIX::Price orderPrice;
         FIX::EffectiveTime execTime;
         FIX::LastMkt destination;
-        FIX::CumQty orderSize;
+        FIX::CumQty executedSize;
         FIX::TransactTime serverTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
@@ -232,35 +239,28 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
         message.get(orderID1);
         message.get(orderID2);
+        message.get(orderStatus);
         message.get(orderSymbol);
         message.get(orderType1);
         message.get(orderType2);
         message.get(orderPrice);
         message.get(execTime);
         message.get(destination);
-        message.get(orderSize);
+        message.get(executedSize);
         message.get(serverTime);
-
-        // Update Version: ClientID has been replaced by PartyRole and PartyID
-        FIX::NoPartyIDs numOfGroup;
-        message.get(numOfGroup);
-        if (numOfGroup < 2) {
-            cout << "Cannot find all ClientID in ExecutionReport !" << endl;
-            return;
-        }
 
         message.getGroup(1, idGroup);
         idGroup.get(username1);
         message.getGroup(2, idGroup);
         idGroup.get(username2);
 
-        auto printRpts = [](bool rpt1or2, auto username, auto orderID, auto orderType, auto orderSymbol, auto orderSize, auto orderPrice, auto orderStatus, auto destination, auto serverTime, auto execTime) {
+        auto printRpts = [](bool rpt1or2, auto username, auto orderID, auto orderType, auto orderSymbol, auto executedSize, auto orderPrice, auto orderStatus, auto destination, auto serverTime, auto execTime) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
                  << username << "\t"
                  << orderID << "\t"
                  << orderType << "\t"
                  << orderSymbol << "\t"
-                 << orderSize << "\t"
+                 << executedSize << "\t"
                  << orderPrice << "\t"
                  << orderStatus << "\t"
                  << destination << "\t"
@@ -269,25 +269,26 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         };
 
         switch (orderStatus) {
-        case FIX::ExecType_FILL:
+        case FIX::OrdStatus_FILLED:
         case FIX::OrdStatus_REPLACED: {
             Transaction transac = {
                 orderSymbol,
-                static_cast<int>(orderSize),
+                static_cast<int>(executedSize),
                 orderPrice,
                 destination,
                 execTime.getValue()
             };
 
-            if (FIX::ExecType_FILL == orderStatus) { // TRADE
+            if (FIX::OrdStatus_FILLED == orderStatus) { // TRADE
                 Report report1{
                     username1,
                     orderID1,
                     static_cast<Order::Type>(static_cast<char>(orderType1)),
                     orderSymbol,
-                    static_cast<int>(orderSize),
+                    0, // current size: will be added later
+                    static_cast<int>(executedSize),
                     orderPrice,
-                    static_cast<char>(orderStatus),
+                    static_cast<Order::Status>(static_cast<char>(orderStatus)),
                     destination,
                     serverTime.getValue(),
                     execTime.getValue()
@@ -298,44 +299,47 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     orderID2,
                     static_cast<Order::Type>(static_cast<char>(orderType2)),
                     orderSymbol,
-                    static_cast<int>(orderSize),
+                    0, // current size: will be added later
+                    static_cast<int>(executedSize),
                     orderPrice,
-                    static_cast<char>(orderStatus),
+                    static_cast<Order::Status>(static_cast<char>(orderStatus)),
                     destination,
                     serverTime.getValue(),
                     execTime.getValue()
                 };
 
-                printRpts(true, username1, orderID1, orderType1, orderSymbol, orderSize, orderPrice, orderStatus, destination, serverTime, execTime);
-                printRpts(false, username2, orderID2, orderType2, orderSymbol, orderSize, orderPrice, orderStatus, destination, serverTime, execTime);
+                printRpts(true, username1, orderID1, orderType1, orderSymbol, executedSize, orderPrice, orderStatus, destination, serverTime, execTime);
+                printRpts(false, username2, orderID2, orderType2, orderSymbol, executedSize, orderPrice, orderStatus, destination, serverTime, execTime);
 
                 auto* docs = BCDocuments::getInstance();
                 docs->onNewTransacForCandlestickData(orderSymbol, transac);
                 docs->onNewReportForUserRiskManagement(username1, report1);
                 docs->onNewReportForUserRiskManagement(username2, report2);
-            } else { // TRTH TRADE
+            } else { // FIX::OrdStatus_REPLACED: TRTH TRADE
                 BCDocuments::getInstance()->onNewTransacForCandlestickData(orderSymbol, transac);
             }
 
             FIXAcceptor::getInstance()->sendLastPrice2All(transac);
         } break;
-        case FIX::ExecType_EXPIRED: { // CANCEL
+        case FIX::OrdStatus_CANCELED: { // CANCELLATION
             Report report2{
                 username2,
                 orderID2,
                 static_cast<Order::Type>(static_cast<char>(orderType2)),
                 orderSymbol,
-                static_cast<int>(orderSize),
+                0, // current size: will be added later
+                static_cast<int>(executedSize),
                 orderPrice,
-                static_cast<char>(orderStatus),
+                static_cast<Order::Status>(static_cast<char>(orderStatus)),
                 destination,
                 serverTime.getValue(),
                 execTime.getValue()
             };
 
+            printRpts(true, username1, orderID1, orderType1, orderSymbol, executedSize, orderPrice, orderStatus, destination, serverTime, execTime);
+            printRpts(false, username2, orderID2, orderType2, orderSymbol, executedSize, orderPrice, orderStatus, destination, serverTime, execTime);
+
             BCDocuments::getInstance()->onNewReportForUserRiskManagement(username2, report2);
-            printRpts(true, username1, orderID1, orderType1, orderSymbol, orderSize, orderPrice, orderStatus, destination, serverTime, execTime);
-            printRpts(false, username2, orderID2, orderType2, orderSymbol, orderSize, orderPrice, orderStatus, destination, serverTime, execTime);
         } break;
         } // switch
     }
@@ -349,7 +353,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     FIX::NoMDEntries numOfEntry;
     message.get(numOfEntry);
     if (numOfEntry < 1) {
-        cout << "Cannot find the entry group in messge !" << endl;
+        cout << "Cannot find the entry group in messge!" << endl;
         return;
     }
 

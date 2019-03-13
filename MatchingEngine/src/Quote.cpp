@@ -19,7 +19,7 @@ Quote::Quote(std::string stockname1,
     price = price1;
     size = size1;
     ordertype = ordertype1;
-    destination = "Server";
+    destination = "SHIFT";
     time = time1;
 }
 
@@ -58,7 +58,7 @@ Quote::Quote(std::string stockname1,
     price = price1;
     size = size1;
     ordertype = ordertype1;
-    destination = "server";
+    destination = "SHIFT";
 }
 
 /**

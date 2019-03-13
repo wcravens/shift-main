@@ -101,13 +101,14 @@ void RiskManagement::sendWaitingList() const
 void RiskManagement::updateWaitingList(const Report& report)
 {
     std::lock_guard<std::mutex> guard(m_mtxWaitingList);
+
     auto it = m_waitingList.find(report.orderID);
     if (m_waitingList.end() == it)
         return;
 
     auto& order = it->second;
-    if (order.getSize() > report.orderSize) {
-        order.setSize(order.getSize() - report.orderSize);
+    if (order.getSize() > report.executedSize) {
+        order.setSize(order.getSize() - report.executedSize);
     } else {
         m_waitingList.erase(it);
     }
@@ -176,16 +177,17 @@ void RiskManagement::processExecRpt()
 
         auto reportPtr = &m_execRptBuffer.front();
 
-        switch (reportPtr->orderStatus) {
-        case FIX::OrdStatus_NEW: { // confirmation report
+        if (reportPtr->orderStatus == Order::Status::NEW || reportPtr->orderStatus == Order::Status::PENDING_CANCEL) { // confirmation report
             FIXAcceptor::getInstance()->sendConfirmationReport(*reportPtr);
-            return;
-        } break; // case
+            reportPtr = nullptr;
+            m_execRptBuffer.pop();
+            continue;
+        }
 
-        case FIX::ExecType_FILL: { // execution report
-            switch (reportPtr->orderType) {
-            case Order::Type::MARKET_BUY:
-            case Order::Type::LIMIT_BUY: {
+        if (reportPtr->orderStatus == Order::Status::FILLED) { // execution report
+
+            if (reportPtr->orderType == Order::Type::MARKET_BUY || reportPtr->orderType == Order::Type::LIMIT_BUY) {
+
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
                 std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
                 std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
@@ -193,7 +195,7 @@ void RiskManagement::processExecRpt()
                 auto& item = m_portfolioItems[reportPtr->orderSymbol];
 
                 const double price = reportPtr->orderPrice; // NP
-                const int buyShares = reportPtr->orderSize * 100; // NS
+                const int buyShares = reportPtr->executedSize * 100; // NS
 
                 double inc = 0.0;
 
@@ -235,18 +237,20 @@ void RiskManagement::processExecRpt()
                 m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * buyShares);
 
                 m_pendingBidOrders[reportPtr->orderID].setSize(m_pendingBidOrders[reportPtr->orderID].getSize() - (buyShares / 100));
+                reportPtr->currentSize = m_pendingBidOrders[reportPtr->orderID].getSize();
 
                 if (m_pendingBidOrders[reportPtr->orderID].getSize() == 0) { // if pending transaction is completely fulfilled
                     m_pendingBidOrders.erase(reportPtr->orderID); // it can be deleted
+                } else {
+                    reportPtr->orderStatus = Order::Status::PARTIALLY_FILLED;
                 }
 
                 item.addPL(inc); // update instrument P&L
                 m_porfolioSummary.addTotalPL(inc); // update portfolio P&L
                 m_porfolioSummary.addTotalShares(buyShares); // update total trade shares
-            } break; // case
 
-            case Order::Type::MARKET_SELL:
-            case Order::Type::LIMIT_SELL: {
+            } else if (reportPtr->orderType == Order::Type::MARKET_SELL || reportPtr->orderType == Order::Type::LIMIT_SELL) {
+
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
                 std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
                 std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
@@ -254,7 +258,7 @@ void RiskManagement::processExecRpt()
                 auto& item = m_portfolioItems[reportPtr->orderSymbol];
 
                 const double price = reportPtr->orderPrice; // NP
-                const int sellShares = reportPtr->orderSize * 100; // NS
+                const int sellShares = reportPtr->executedSize * 100; // NS
 
                 double inc = 0.0;
 
@@ -303,27 +307,25 @@ void RiskManagement::processExecRpt()
                 }
 
                 m_pendingAskOrders[reportPtr->orderID].first.setSize(m_pendingAskOrders[reportPtr->orderID].first.getSize() - (sellShares / 100));
+                reportPtr->currentSize = m_pendingAskOrders[reportPtr->orderID].first.getSize();
 
                 if (m_pendingAskOrders[reportPtr->orderID].first.getSize() == 0) { // if pending transaction is completely fulfilled
                     m_pendingAskOrders.erase(reportPtr->orderID); // it can be deleted
+                } else {
+                    reportPtr->orderStatus = Order::Status::PARTIALLY_FILLED;
                 }
 
                 item.addPL(inc); // update instrument P&L
                 m_porfolioSummary.addTotalPL(inc); // update portfolio P&L
                 m_porfolioSummary.addTotalShares(sellShares); // update total trade shares
-            } break; // case
+            }
 
-            case Order::Type::CANCEL_BID:
-            case Order::Type::CANCEL_ASK: {
-            } break; // case
-            } // switch
-        } break; // case
+        } else if (reportPtr->orderStatus == Order::Status::CANCELED) { // cancellation report
 
-        case FIX::ExecType_EXPIRED: { // cancellation report
             std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
             std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
-            const int cancelShares = reportPtr->orderSize * 100;
+            const int cancelShares = reportPtr->executedSize * 100;
 
             if (reportPtr->orderType == Order::Type::CANCEL_BID) {
                 // pending transaction price is returned
@@ -351,8 +353,7 @@ void RiskManagement::processExecRpt()
                     m_pendingAskOrders.erase(reportPtr->orderID); // it can be deleted
                 }
             }
-        } break; // case
-        } // switch
+        }
 
         bool wasPortfolioSent = false; // to postpone DB writes until lock guards are released
         {
@@ -398,9 +399,9 @@ void RiskManagement::processExecRpt()
                     + m_username + "');",
                 COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_username + "]!\n" NO_COLOR);
         }
-
         updateWaitingList(*reportPtr);
         sendWaitingList();
+        FIXAcceptor::getInstance()->sendConfirmationReport(*reportPtr);
 
         reportPtr = nullptr;
         m_execRptBuffer.pop();
@@ -486,6 +487,19 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
     if (success) {
         s_sendOrderToME(order);
     }
+    // else {
+    //     Report report{
+    //         m_username,
+    //         order.getID(),
+    //         order.getType(),
+    //         order.getSymbol(),
+    //         order.getSize(),
+    //         0, // executed size
+    //         order.getPrice(),
+    //         Order::Status::REJECTED
+    //     };
+    //     FIXAcceptor::getInstance()->sendConfirmationReport(report);
+    // }
 
     return success;
 }

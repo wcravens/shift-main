@@ -78,7 +78,7 @@ std::string Stock::getstockname()
     return name;
 }
 
-///decision1 can be 'C' means cancel or '2' means trade, record trade or cancel with object actions, size1=thisquote->getsize()-quote2->getsize()
+///decision1 can be '4' means cancel or '2' means trade, record trade or cancel with object actions, size1=thisquote->getsize()-quote2->getsize()
 void Stock::execute(int size1, Quote& newquote, char decision1, std::string destination1)
 {
     int executesize = std::min(thisquote->getsize(), newquote.getsize()); //////#include <algorithm>
@@ -128,7 +128,6 @@ void Stock::executeglobal(int size1, Quote& newquote, char decision1, std::strin
         thisglobal->setsize(size1);
         newquote.setsize(0);
     } else {
-        ;
         thisglobal->setsize(0);
         newquote.setsize(-size1);
     }
@@ -329,7 +328,7 @@ void Stock::docancelask(Quote& newquote, std::string destination1)
         while (thisquote != thisprice->quotes.end()) {
             if (thisquote->getorder_id() == newquote.getorder_id()) {
                 int size1 = thisquote->getsize() - newquote.getsize();
-                execute(size1, newquote, 'C', destination1);
+                execute(size1, newquote, '4', destination1);
 
                 bookupdate('a', name, thisprice->getprice(), thisprice->getsize(),
                     timepara.simulationTimestamp()); //update the new price for broadcasting
@@ -373,7 +372,7 @@ void Stock::docancelbid(Quote& newquote, std::string destination1)
         while (thisquote != thisprice->quotes.end()) {
             if (thisquote->getorder_id() == newquote.getorder_id()) {
                 int size1 = thisquote->getsize() - newquote.getsize();
-                execute(size1, newquote, 'C', destination1);
+                execute(size1, newquote, '4', destination1);
 
                 bookupdate('b', name, thisprice->getprice(), thisprice->getsize(),
                     timepara.simulationTimestamp()); //update the new price for broadcasting

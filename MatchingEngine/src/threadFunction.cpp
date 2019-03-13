@@ -110,7 +110,7 @@ void createStockMarket(std::string symbol)
             switch (type) {
             case '1': //limit buy
             {
-                stock->second.doLocalLimitBuy(newquote, "SERVER");
+                stock->second.doLocalLimitBuy(newquote, "SHIFT");
                 //if(newquote.getsize()!=0) stock->second.checkglobalask(newquote,"limit");
                 if (newquote.getsize() != 0) {
                     stock->second.bid_insert(newquote);
@@ -122,7 +122,7 @@ void createStockMarket(std::string symbol)
             }
             case '2': //limit sell
             {
-                stock->second.doLocalLimitSell(newquote, "SERVER");
+                stock->second.doLocalLimitSell(newquote, "SHIFT");
                 //if(newquote.getsize()!=0) stock->second.checkglobalbid(newquote,"limit");
                 if (newquote.getsize() != 0) {
                     stock->second.ask_insert(newquote);
@@ -134,7 +134,7 @@ void createStockMarket(std::string symbol)
             }
             case '3': //market buy
             {
-                stock->second.doLocalMarketBuy(newquote, "SERVER");
+                stock->second.doLocalMarketBuy(newquote, "SHIFT");
                 //if(newquote.getsize()!=0) stock->second.checkglobalask(newquote,"market");
                 if (newquote.getsize() != 0)
                     stock->second.bid_insert(newquote);
@@ -144,7 +144,7 @@ void createStockMarket(std::string symbol)
             }
             case '4': //market sell
             {
-                stock->second.doLocalMarketSell(newquote, "SERVER");
+                stock->second.doLocalMarketSell(newquote, "SHIFT");
                 //if(newquote.getsize()!=0) stock->second.checkglobalbid(newquote,"market");
                 if (newquote.getsize() != 0)
                     stock->second.ask_insert(newquote);
@@ -154,7 +154,7 @@ void createStockMarket(std::string symbol)
             }
             case '5': //cancel bid
             {
-                stock->second.docancelbid(newquote, "SERVER");
+                stock->second.docancelbid(newquote, "SHIFT");
                 stock->second.level();
                 //stock->second.showglobal();
                 std::cout << "done cancel bid" << endl;
@@ -162,7 +162,7 @@ void createStockMarket(std::string symbol)
             }
             case '6': //cancel ask
             {
-                stock->second.docancelask(newquote, "SERVER");
+                stock->second.docancelask(newquote, "SHIFT");
                 stock->second.level();
                 //stock->second.showglobal();
                 std::cout << "done cancel ask" << endl;
@@ -171,8 +171,8 @@ void createStockMarket(std::string symbol)
             case '7': //trade from TR
             {
                 //cout<<"Global trade update: "<<newquote.getstockname()<<endl;
-                stock->second.dolimitbuy(newquote, "SERVER");
-                stock->second.dolimitsell(newquote, "SERVER");
+                stock->second.dolimitbuy(newquote, "SHIFT");
+                stock->second.dolimitsell(newquote, "SHIFT");
                 stock->second.level();
                 //stock->second.showglobal();
                 if (newquote.getsize() != 0) {
@@ -209,7 +209,7 @@ void createStockMarket(std::string symbol)
                 askexchange = newquote.getdestination();
                 askprice = newquote.getprice();
                 asksize = newquote.getsize();
-                stock->second.dolimitsell(newquote, "SERVER");
+                stock->second.dolimitsell(newquote, "SHIFT");
                 if (newquote.getsize() != 0)
                     stock->second.updateglobalask(newquote);
                 stock->second.level();
@@ -228,7 +228,7 @@ void createStockMarket(std::string symbol)
                 bidexchange = newquote.getdestination();
                 bidprice = newquote.getprice();
                 bidsize = newquote.getsize();
-                stock->second.dolimitbuy(newquote, "SERVER");
+                stock->second.dolimitbuy(newquote, "SHIFT");
                 if (newquote.getsize() != 0)
                     stock->second.updateglobalbid(newquote);
                 stock->second.level();

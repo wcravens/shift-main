@@ -22,7 +22,7 @@ Newbook::Newbook(char _book, std::string _symbol, double _price, int _size, FIX:
     symbol = _symbol;
     price = _price;
     size = _size;
-    destination = "Server";
+    destination = "SHIFT";
     utctime = _utctime;
 }
 

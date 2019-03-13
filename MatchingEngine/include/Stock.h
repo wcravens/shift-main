@@ -86,10 +86,10 @@ public:
     void updateglobalask(Quote newquote);
 
     void execute(int size1, Quote& quote2, char decision1, std::string destination1);
-    //decision, '2' means this is a trade record, 'C' means cancel record;
+    //decision, '2' means this is a trade record, '4' means cancel record;
     void executeglobal(int size1, Quote& quote2, char decision1, std::string destination1);
     void dolimitbuy(Quote& newquote, std::string destination1);
-    //destination, "Server" or thisquote.destination in global order book;
+    //destination, "SHIFT" or thisquote.destination in global order book;
     void domarketbuy(Quote& newquote, std::string destination1);
     void docancelask(Quote& newquote, std::string destination1);
     void dolimitsell(Quote& newquote, std::string destination1);

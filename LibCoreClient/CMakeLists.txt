@@ -37,7 +37,6 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/OrderBookLocalBid.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioItem.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioSummary.h
-    # ${PROJECT_SOURCE_DIR}/include/Report.h
 )
 
 set(PKGCONFIG
@@ -61,7 +60,6 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/OrderBookLocalBid.cpp
     ${PROJECT_SOURCE_DIR}/src/PortfolioItem.cpp
     ${PROJECT_SOURCE_DIR}/src/PortfolioSummary.cpp
-    # ${PROJECT_SOURCE_DIR}/src/Report.cpp
 )
 
 set(OTHER

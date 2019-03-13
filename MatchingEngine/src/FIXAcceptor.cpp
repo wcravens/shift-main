@@ -15,12 +15,11 @@ extern std::map<std::string, Stock> stocklist;
 // Predefined constant FIX fields (To avoid recalculations):
 static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1"); // FIX BeginString
 static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
-static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
+static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType(FIX::ExecType_TRADE);
 static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
 static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
-static const auto& FIXFIELD_EXECTYPE_NEW = FIX::ExecType(FIX::ExecType_NEW);
+static const auto& FIXFIELD_EXECTYPE_ORDER_STATUS = FIX::ExecType(FIX::ExecType_ORDER_STATUS);
 static const auto& FIXFIELD_ORDSTATUS_NEW = FIX::OrdStatus(FIX::OrdStatus_NEW);
-static const auto& FIXFIELD_EXECTYPE_PENDING_CANCEL = FIX::ExecType(FIX::ExecType_PENDING_CANCEL);
 static const auto& FIXFIELD_ORDSTATUS_PENDING_CANCEL = FIX::OrdStatus(FIX::OrdStatus_PENDING_CANCEL);
 static const auto& FIXFIELD_CUMQTY_0 = FIX::CumQty(0);
 
@@ -209,20 +208,17 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Quote
 
     message.setField(FIX::OrderID(confirmation.orderID));
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
+    message.setField(::FIXFIELD_EXECTYPE_ORDER_STATUS); // Required by FIX
     if (confirmation.ordertype != '5' && confirmation.ordertype != '6') { // Not a cancellation
-        message.setField(::FIXFIELD_EXECTYPE_NEW); // Required by FIX
         message.setField(::FIXFIELD_ORDSTATUS_NEW);
     } else {
-        // TODO: Update EXECTYPE and ORDSTATUS after adding verification in the BC
-        // message.setField(::FIXFIELD_EXECTYPE_PENDING_CANCEL); // Required by FIX
-        // message.setField(::FIXFIELD_ORDSTATUS_PENDING_CANCEL);
-        message.setField(::FIXFIELD_EXECTYPE_NEW); // Required by FIX
-        message.setField(::FIXFIELD_ORDSTATUS_NEW);
+        message.setField(::FIXFIELD_ORDSTATUS_PENDING_CANCEL);
     }
     message.setField(FIX::Symbol(confirmation.symbol));
     message.setField(FIX::Side(confirmation.ordertype));
     message.setField(FIX::Price(confirmation.price));
     message.setField(FIX::EffectiveTime(confirmation.time, 6));
+    message.setField(FIX::LastMkt("SHIFT"));
     message.setField(FIX::LeavesQty(confirmation.size));
     message.setField(::FIXFIELD_CUMQTY_0); // Required by FIX
     message.setField(FIX::TransactTime(6));

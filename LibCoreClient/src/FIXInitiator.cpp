@@ -493,56 +493,59 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
-    // FIX::OrdStatus orderStatus;
-    // message.get(orderStatus);
-    // if (orderStatus == '1') {
-    //     FIX::Symbol symbol;
-    //     message.get(symbol);
-    //     FIX::OrderID orderID;
-    //     message.get(orderID);
-    //     FIX::ClientID clientID;
-    //     message.get(clientID);
-    //     FIX::CumQty size;
-    //     message.get(size);
-    //     FIX::AvgPx price;
-    //     message.get(price);
-    //     FIX::ExecType orderType;
-    //     message.get(orderType);
-    //     FIX::Text serverTime;
-    //     message.get(serverTime);
-    //     FIX::ExecID confirmTime;
-    //     message.get(confirmTime);
+    // Update Version: ClientID has been replaced by PartyRole and PartyID
+    FIX::NoPartyIDs numOfGroup;
+    message.get(numOfGroup);
+    if (numOfGroup < 1) {
+        cout << "Cannot find any ClientID in ExecutionReport!" << endl;
+        return;
+    }
 
-    //     // shift::Report report(clientID, orderID, symbol, price, orderType, orderStatus, size,
-    //     //                      confirmTime, serverTime);
-    // } else {
-    //     FIX::Symbol symbol;
-    //     message.get(symbol);
-    //     FIX::ClientID clientID1;
-    //     message.get(clientID1);
-    //     FIX::OrderID orderID1;
-    //     message.get(orderID1);
-    //     FIX::ExecType orderType1;
-    //     message.get(orderType1);
-    //     FIX::ClOrdID clientID2;
-    //     message.get(clientID2);
-    //     FIX::SecondaryOrderID orderID2;
-    //     message.get(orderID2);
-    //     FIX::SettlmntTyp orderType2;
-    //     message.get(orderType2);
-    //     FIX::CumQty size;
-    //     message.get(size);
-    //     FIX::AvgPx price;
-    //     message.get(price);
-    //     FIX::LeavesQty leftQuantity;
-    //     message.get(leftQuantity);
-    //     FIX::Text serverTime;
-    //     message.get(serverTime);
-    //     FIX::ExecID executionTime;
-    //     message.get(executionTime);
-    //     FIX::ExecBroker destination;
-    //     message.get(destination);
-    // }
+    FIX::OrderID orderID;
+    FIX::OrdStatus orderStatus;
+    FIX::Symbol orderSymbol;
+    FIX::Side orderType;
+    FIX::Price orderPrice;
+    FIX::EffectiveTime confirmTime;
+    FIX::LastMkt destination;
+    FIX::LeavesQty currentSize;
+    FIX::CumQty executedSize;
+    FIX::TransactTime serverTime;
+
+    message.get(orderID);
+    message.get(orderStatus);
+    message.get(orderSymbol);
+    message.get(orderType);
+    message.get(orderPrice);
+    message.get(confirmTime);
+    message.get(destination);
+    message.get(currentSize);
+    message.get(executedSize);
+    message.get(serverTime);
+
+    FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
+    FIX::PartyRole role;
+    FIX::PartyID username;
+    for (int i = 1; i <= numOfGroup; i++) {
+        message.getGroup(i, idGroup);
+        idGroup.get(role);
+        if (role == 3) { // 3 -> formerly FIX 4.2 ClientID
+            idGroup.get(username);
+        }
+    }
+
+    // cout << "ConfirmRepo: "
+    //      << username << "\t"
+    //      << orderID << "\t"
+    //      << orderType << "\t"
+    //      << orderSymbol << "\t"
+    //      << currentSize << "\t"
+    //      << executedSize << "\t"
+    //      << orderPrice << "\t"
+    //      << orderStatus << "\t"
+    //      << destination << "\t"
+    //      << serverTime.getString() << "\t"
+    //      << confirmTime.getString() << endl;
 }
 
 /**
