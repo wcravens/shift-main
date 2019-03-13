@@ -525,12 +525,10 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
 
     message.setField(FIX::Symbol(orderBookName.begin()->second.begin()->second.getSymbol()));
 
-    using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
-
     FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
     const auto obt = orderBookName.begin()->second.begin()->second.getType();
 
-    if (obt == OBT::GLB_BID || obt == OBT::LOC_BID) { //reverse the Bid/bid order book order
+    if (obt == OrderBookEntry::Type::GLB_BID || obt == OrderBookEntry::Type::LOC_BID) { // reverse the global/local bid order book order
         for (auto ri = orderBookName.crbegin(); ri != orderBookName.crend(); ++ri) {
             for (const auto& j : ri->second)
                 s_setAddGroupIntoOrderAckMsg(message, entryGroup, j.second);

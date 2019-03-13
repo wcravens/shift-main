@@ -1,6 +1,6 @@
 #include "Order.h"
 
-Order::Order(Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& username)
+Order::Order(Order::Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& username)
     : m_type(type)
     , m_symbol(symbol)
     , m_size(size)
@@ -40,7 +40,7 @@ const std::string& Order::getUsername() const
     return m_username;
 }
 
-void Order::setType(Type type)
+void Order::setType(Order::Type type)
 {
     m_type = type;
 }

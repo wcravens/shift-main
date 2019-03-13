@@ -54,19 +54,17 @@ void OrderBook::process()
         if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOBEBuff, buffLock, [this] { return !m_obeBuff.empty(); }))
             return;
 
-        using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
-
         switch (m_obeBuff.front().getType()) {
-        case OBT::GLB_ASK:
+        case OrderBookEntry::Type::GLB_ASK:
             saveOrderBookGlobalAsk(m_obeBuff.front());
             break;
-        case OBT::LOC_ASK:
+        case OrderBookEntry::Type::LOC_ASK:
             saveOrderBookLocalAsk(m_obeBuff.front());
             break;
-        case OBT::GLB_BID:
+        case OrderBookEntry::Type::GLB_BID:
             saveOrderBookGlobalBid(m_obeBuff.front());
             break;
-        case OBT::LOC_BID:
+        case OrderBookEntry::Type::LOC_BID:
             saveOrderBookLocalBid(m_obeBuff.front());
             break;
         default:
@@ -120,22 +118,20 @@ void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
     using ulock_t = std::unique_lock<std::mutex>;
     ulock_t lock;
 
-    using OBT = OrderBookEntry::ORDER_BOOK_TYPE;
-
     switch (update.getType()) {
-    case OBT::GLB_ASK: {
+    case OrderBookEntry::Type::GLB_ASK: {
         lock = ulock_t(m_mtxOdrBkGlobalAsk);
         break;
     }
-    case OBT::LOC_ASK: {
+    case OrderBookEntry::Type::LOC_ASK: {
         lock = ulock_t(m_mtxOdrBkLocalAsk);
         break;
     }
-    case OBT::GLB_BID: {
+    case OrderBookEntry::Type::GLB_BID: {
         lock = ulock_t(m_mtxOdrBkGlobalBid);
         break;
     }
-    case OBT::LOC_BID: {
+    case OrderBookEntry::Type::LOC_BID: {
         lock = ulock_t(m_mtxOdrBkLocalBid);
         break;
     }

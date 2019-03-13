@@ -1,13 +1,5 @@
 #include "OrderBookEntry.h"
 
-#include <list>
-#include <mutex>
-
-namespace new_book {
-std::list<OrderBookEntry> bookUpdate;
-std::mutex mtxNewBook;
-}
-
 /**
  * @brief   Default constructs an OrderBookEntry instance.
  */
@@ -23,12 +15,12 @@ OrderBookEntry::OrderBookEntry() = default;
  * @param   date: FIX::UtcDateOnly for the date of order
  * @param   time: FIX::UtcTimeOnly for the time of order
  */
-OrderBookEntry::OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, std::string destination, FIX::UtcDateOnly date, FIX::UtcTimeOnly time)
+OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
     : m_type(type)
-    , m_symbol(std::move(symbol))
+    , m_symbol(symbol)
     , m_price{ price }
     , m_size{ size }
-    , m_destination(std::move(destination))
+    , m_destination(destination)
     , m_date(date)
     , m_time(time)
 {
@@ -38,7 +30,7 @@ OrderBookEntry::OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double 
  * @brief   Getter of the order book type.
  * @return  The order book type.
  */
-auto OrderBookEntry::getType() const -> ORDER_BOOK_TYPE
+OrderBookEntry::Type OrderBookEntry::getType() const
 {
     return m_type;
 }
@@ -65,7 +57,7 @@ double OrderBookEntry::getPrice() const
  * @brief   Getter of the contract size.
  * @return  The size.
  */
-double OrderBookEntry::getSize() const
+int OrderBookEntry::getSize() const
 {
     return m_size;
 }
@@ -82,7 +74,7 @@ const std::string& OrderBookEntry::getDestination() const
 /**
  * @brief   Return the date of order(FIX::UtcDateOnly)
  */
-const FIX::UtcDateOnly OrderBookEntry::getDate() const
+const FIX::UtcDateOnly& OrderBookEntry::getDate() const
 {
     return m_date;
 }
@@ -90,28 +82,7 @@ const FIX::UtcDateOnly OrderBookEntry::getDate() const
 /**
  * @brief   Return the time of day of order(FIX::UtcTimeOnly)
  */
-const FIX::UtcTimeOnly OrderBookEntry::getTime() const
+const FIX::UtcTimeOnly& OrderBookEntry::getTime() const
 {
     return m_time;
-}
-
-/**
- * @brief   Convert character to ORDER_BOOK_TYPE
- */
-/*static*/ auto OrderBookEntry::s_toOrderBookType(char c) -> ORDER_BOOK_TYPE
-{
-    using OBT = ORDER_BOOK_TYPE;
-
-    switch (c) {
-    case 'A':
-        return OBT::GLB_ASK;
-    case 'B':
-        return OBT::GLB_BID;
-    case 'a':
-        return OBT::LOC_ASK;
-    case 'b':
-        return OBT::LOC_BID;
-    default:
-        return OBT::OTHER;
-    }
 }

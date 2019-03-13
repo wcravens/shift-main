@@ -10,7 +10,7 @@
  */
 class OrderBookEntry {
 public:
-    enum class ORDER_BOOK_TYPE : char {
+    enum class Type : char {
         GLB_ASK = 'A',
         GLB_BID = 'B',
         LOC_ASK = 'a',
@@ -19,23 +19,21 @@ public:
     };
 
     OrderBookEntry();
-    OrderBookEntry(ORDER_BOOK_TYPE type, std::string symbol, double price, double size, std::string destination, FIX::UtcDateOnly date, FIX::UtcTimeOnly time);
+    OrderBookEntry(Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time);
 
-    ORDER_BOOK_TYPE getType() const;
+    Type getType() const;
     const std::string& getSymbol() const;
     double getPrice() const;
-    double getSize() const;
+    int getSize() const;
     const std::string& getDestination() const;
-    const FIX::UtcDateOnly getDate() const;
-    const FIX::UtcTimeOnly getTime() const;
-
-    static ORDER_BOOK_TYPE s_toOrderBookType(char c);
+    const FIX::UtcDateOnly& getDate() const;
+    const FIX::UtcTimeOnly& getTime() const;
 
 private:
-    ORDER_BOOK_TYPE m_type; // The versioning of the Option Constract of the order book. Update type : a=local ask, b=local bid, A=global ask, B=global bid, smaller ask, bigger bid
+    Type m_type; // The versioning of the Option Constract of the order book. Update type : a=local ask, b=local bid, A=global ask, B=global bid, smaller ask, bigger bid
     std::string m_symbol; // The symbol of the order.
     double m_price; // The price of the order.
-    double m_size; // The size of the order
+    int m_size; // The size of the order
     std::string m_destination; // The destination of the order.
     FIX::UtcDateOnly m_date;
     FIX::UtcTimeOnly m_time;

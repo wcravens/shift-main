@@ -139,8 +139,7 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
 }
 
 /**
- * @brief Deal with the incoming message
- * which type is excution report
+ * @brief Deal with incoming messages which type is Execution Report
  */
 void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
@@ -214,89 +213,33 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << confirmTime.getString() << endl;
         BCDocuments::getInstance()->onNewReportForUserRiskManagement(username, report);
 
-    } else { // For execution report
-        static FIX::OrderID orderID1;
-        static FIX::SecondaryOrderID orderID2;
-        static FIX::Symbol orderSymbol;
-        static FIX::Side orderType1;
-        static FIX::OrdType orderType2;
-        static FIX::Price orderPrice;
-        static FIX::EffectiveTime execTime;
-        static FIX::LastMkt destination;
-        static FIX::CumQty orderSize;
-        static FIX::TransactTime serverTime;
+    } else {
+        // For execution report
+        FIX::OrderID orderID1;
+        FIX::SecondaryOrderID orderID2;
+        FIX::Symbol orderSymbol;
+        FIX::Side orderType1;
+        FIX::OrdType orderType2;
+        FIX::Price orderPrice;
+        FIX::EffectiveTime execTime;
+        FIX::LastMkt destination;
+        FIX::CumQty orderSize;
+        FIX::TransactTime serverTime;
 
-        static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-        static FIX::PartyID username1;
-        static FIX::PartyID username2;
+        FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
+        FIX::PartyID username1;
+        FIX::PartyID username2;
 
-        // #pragma GCC diagnostic ignored ....
-
-        FIX::OrderID* pOrderID1;
-        FIX::SecondaryOrderID* pOrderID2;
-        FIX::Symbol* pOrderSymbol;
-        FIX::Side* pOrderType1;
-        FIX::OrdType* pOrderType2;
-        FIX::Price* pOrderPrice;
-        FIX::EffectiveTime* pExecTime;
-        FIX::LastMkt* pDestination;
-        FIX::CumQty* pOrderSize;
-        FIX::TransactTime* pServerTime;
-
-        FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
-        FIX::PartyID* pUsername1;
-        FIX::PartyID* pUsername2;
-
-        static std::atomic<unsigned int> s_cntAtom{ 0 };
-        unsigned int prevCnt = 0;
-
-        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-            continue;
-        assert(s_cntAtom > 0);
-
-        if (0 == prevCnt) {
-            pOrderID1 = &orderID1;
-            pOrderID2 = &orderID2;
-            pOrderSymbol = &orderSymbol;
-            pOrderType1 = &orderType1;
-            pOrderType2 = &orderType2;
-            pOrderPrice = &orderPrice;
-            pExecTime = &execTime;
-            pDestination = &destination;
-            pOrderSize = &orderSize;
-            pServerTime = &serverTime;
-
-            pIDGroup = &idGroup;
-            pUsername1 = &username1;
-            pUsername2 = &username2;
-        } else {
-            // note: important precondition of the correctness of the following code is: std::operator new() is thread-safe.
-            pOrderID1 = new decltype(orderID1);
-            pOrderID2 = new decltype(orderID2);
-            pOrderSymbol = new decltype(orderSymbol);
-            pOrderType1 = new decltype(orderType1);
-            pOrderType2 = new decltype(orderType2);
-            pOrderPrice = new decltype(orderPrice);
-            pExecTime = new decltype(execTime);
-            pDestination = new decltype(destination);
-            pOrderSize = new decltype(orderSize);
-            pServerTime = new decltype(serverTime);
-
-            pIDGroup = new decltype(idGroup);
-            pUsername1 = new decltype(username1);
-            pUsername2 = new decltype(username2);
-        }
-
-        message.get(*pOrderID1);
-        message.get(*pOrderID2);
-        message.get(*pOrderSymbol);
-        message.get(*pOrderType1);
-        message.get(*pOrderType2);
-        message.get(*pOrderPrice);
-        message.get(*pExecTime);
-        message.get(*pDestination);
-        message.get(*pOrderSize);
-        message.get(*pServerTime);
+        message.get(orderID1);
+        message.get(orderID2);
+        message.get(orderSymbol);
+        message.get(orderType1);
+        message.get(orderType2);
+        message.get(orderPrice);
+        message.get(execTime);
+        message.get(destination);
+        message.get(orderSize);
+        message.get(serverTime);
 
         // Update Version: ClientID has been replaced by PartyRole and PartyID
         FIX::NoPartyIDs numOfGroup;
@@ -306,140 +249,100 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             return;
         }
 
-        message.getGroup(1, *pIDGroup);
-        pIDGroup->get(*pUsername1);
-        message.getGroup(2, *pIDGroup);
-        pIDGroup->get(*pUsername2);
+        message.getGroup(1, idGroup);
+        idGroup.get(username1);
+        message.getGroup(2, idGroup);
+        idGroup.get(username2);
 
-        auto printRpts = [](bool rpt1or2, auto pUsername, auto pOrderID, auto pOrderType, auto pOrderSymbol, auto pOrderSize, auto pOrderPrice, auto orderStatus, auto pDestination, auto pServerTime, auto pExecTime) {
+        auto printRpts = [](bool rpt1or2, auto username, auto orderID, auto orderType, auto orderSymbol, auto orderSize, auto orderPrice, auto orderStatus, auto destination, auto serverTime, auto execTime) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
-                 << *pUsername << "\t"
-                 << *pOrderID << "\t"
-                 << *pOrderType << "\t"
-                 << *pOrderSymbol << "\t"
-                 << *pOrderSize << "\t"
-                 << *pOrderPrice << "\t"
+                 << username << "\t"
+                 << orderID << "\t"
+                 << orderType << "\t"
+                 << orderSymbol << "\t"
+                 << orderSize << "\t"
+                 << orderPrice << "\t"
                  << orderStatus << "\t"
-                 << *pDestination << "\t"
-                 << pServerTime->getString() << "\t"
-                 << pExecTime->getString() << endl;
+                 << destination << "\t"
+                 << serverTime.getString() << "\t"
+                 << execTime.getString() << endl;
         };
 
         switch (orderStatus) {
         case FIX::ExecType_FILL:
         case FIX::ExecType_CANCELED: {
             Transaction transac = {
-                *pOrderSymbol,
-                static_cast<int>(*pOrderSize),
-                *pOrderPrice,
-                *pDestination,
-                pExecTime->getValue()
+                orderSymbol,
+                static_cast<int>(orderSize),
+                orderPrice,
+                destination,
+                execTime.getValue()
             };
 
             if (FIX::ExecType_FILL == orderStatus) { // TRADE
                 Report report1{
-                    *pUsername1,
-                    *pOrderID1,
-                    static_cast<Order::Type>(static_cast<char>(*pOrderType1)),
-                    *pOrderSymbol,
-                    static_cast<int>(*pOrderSize),
-                    *pOrderPrice,
+                    username1,
+                    orderID1,
+                    static_cast<Order::Type>(static_cast<char>(orderType1)),
+                    orderSymbol,
+                    static_cast<int>(orderSize),
+                    orderPrice,
                     static_cast<char>(orderStatus),
-                    *pDestination,
-                    pServerTime->getValue(),
-                    pExecTime->getValue()
+                    destination,
+                    serverTime.getValue(),
+                    execTime.getValue()
                 };
 
                 Report report2{
-                    *pUsername2,
-                    *pOrderID2,
-                    static_cast<Order::Type>(static_cast<char>(*pOrderType2)),
-                    *pOrderSymbol,
-                    static_cast<int>(*pOrderSize),
-                    *pOrderPrice,
+                    username2,
+                    orderID2,
+                    static_cast<Order::Type>(static_cast<char>(orderType2)),
+                    orderSymbol,
+                    static_cast<int>(orderSize),
+                    orderPrice,
                     static_cast<char>(orderStatus),
-                    *pDestination,
-                    pServerTime->getValue(),
-                    pExecTime->getValue()
+                    destination,
+                    serverTime.getValue(),
+                    execTime.getValue()
                 };
 
-                printRpts(true, pUsername1, pOrderID1, pOrderType1, pOrderSymbol, pOrderSize, pOrderPrice, orderStatus, pDestination, pServerTime, pExecTime);
-                printRpts(false, pUsername2, pOrderID2, pOrderType2, pOrderSymbol, pOrderSize, pOrderPrice, orderStatus, pDestination, pServerTime, pExecTime);
+                printRpts(true, username1, orderID1, orderType1, orderSymbol, orderSize, orderPrice, orderStatus, destination, serverTime, execTime);
+                printRpts(false, username2, orderID2, orderType2, orderSymbol, orderSize, orderPrice, orderStatus, destination, serverTime, execTime);
 
                 auto* docs = BCDocuments::getInstance();
-                docs->onNewTransacForCandlestickData(*pOrderSymbol, transac);
-                docs->onNewReportForUserRiskManagement(*pUsername1, report1);
-                docs->onNewReportForUserRiskManagement(*pUsername2, report2);
+                docs->onNewTransacForCandlestickData(orderSymbol, transac);
+                docs->onNewReportForUserRiskManagement(username1, report1);
+                docs->onNewReportForUserRiskManagement(username2, report2);
             } else { // TRTH TRADE
-                BCDocuments::getInstance()->onNewTransacForCandlestickData(*pOrderSymbol, transac);
+                BCDocuments::getInstance()->onNewTransacForCandlestickData(orderSymbol, transac);
             }
 
             FIXAcceptor::getInstance()->sendLastPrice2All(transac);
         } break;
         case FIX::ExecType_EXPIRED: { // CANCEL
             Report report2{
-                *pUsername2,
-                *pOrderID2,
-                static_cast<Order::Type>(static_cast<char>(*pOrderType2)),
-                *pOrderSymbol,
-                static_cast<int>(*pOrderSize),
-                *pOrderPrice,
+                username2,
+                orderID2,
+                static_cast<Order::Type>(static_cast<char>(orderType2)),
+                orderSymbol,
+                static_cast<int>(orderSize),
+                orderPrice,
                 static_cast<char>(orderStatus),
-                *pDestination,
-                pServerTime->getValue(),
-                pExecTime->getValue()
+                destination,
+                serverTime.getValue(),
+                execTime.getValue()
             };
 
-            BCDocuments::getInstance()->onNewReportForUserRiskManagement(*pUsername2, report2);
-            printRpts(true, pUsername1, pOrderID1, pOrderType1, pOrderSymbol, pOrderSize, pOrderPrice, orderStatus, pDestination, pServerTime, pExecTime);
-            printRpts(false, pUsername2, pOrderID2, pOrderType2, pOrderSymbol, pOrderSize, pOrderPrice, orderStatus, pDestination, pServerTime, pExecTime);
+            BCDocuments::getInstance()->onNewReportForUserRiskManagement(username2, report2);
+            printRpts(true, username1, orderID1, orderType1, orderSymbol, orderSize, orderPrice, orderStatus, destination, serverTime, execTime);
+            printRpts(false, username2, orderID2, orderType2, orderSymbol, orderSize, orderPrice, orderStatus, destination, serverTime, execTime);
         } break;
         } // switch
-
-        if (prevCnt) { // > 1 threads
-            delete pOrderID1;
-            delete pOrderID2;
-            delete pOrderSymbol;
-            delete pOrderType1;
-            delete pOrderType2;
-            delete pOrderPrice;
-            delete pExecTime;
-            delete pDestination;
-            delete pOrderSize;
-            delete pServerTime;
-
-            delete pIDGroup;
-            delete pUsername1;
-            delete pUsername2;
-        }
-
-        s_cntAtom--;
-        assert(s_cntAtom >= 0);
     }
 }
 
 /**
- * @brief receive order book updates
- *
- * @section OPTIMIZATION FOR THREAD-SAFE BASED ON
- * LOCK-FREE TECHNOLOGY
- *
- * Since we are using various FIX fields,
- * which are all class objects, as "containers" to
- * get value(and then pass them somewhere else),
- * there is NO need to repetitively initialize
- * (i.e. call default constructors) those fields
- * WHEN onMessage is executing sequentially.
- * Also, onMessage is being called very frequently,
- * hence it will accumulate significant initialization
- * time if we define each field locally in sequential
- * onMessage.
- * To eliminate that wastes, here we define fields
- * as local static, which are initialized only once
- * and shared between multithreaded onMessage instances,
- * if any, and creates and initializes their own(local)
- * fields only if there are multiple onMessage threads
- * are running at the time.
+ * @brief Receive order book updates
  */
 void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
 {
@@ -450,89 +353,36 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         return;
     }
 
-    static FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
+    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
 
-    static FIX::MDEntryType bookType;
-    static FIX::Symbol symbol;
-    static FIX::MDEntryPx price;
-    static FIX::MDEntrySize size;
-    static FIX::MDEntryDate date;
-    static FIX::MDEntryTime daytime;
-    static FIX::MDMkt destination;
+    FIX::MDEntryType bookType;
+    FIX::Symbol symbol;
+    FIX::MDEntryPx price;
+    FIX::MDEntrySize size;
+    FIX::MDEntryDate date;
+    FIX::MDEntryTime daytime;
+    FIX::MDMkt destination;
 
-    // #pragma GCC diagnostic ignored ....
-
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries* pEntryGroup;
-
-    FIX::MDEntryType* pBookType;
-    FIX::Symbol* pSymbol;
-    FIX::MDEntryPx* pPrice;
-    FIX::MDEntrySize* pSize;
-    FIX::MDEntryDate* pDate;
-    FIX::MDEntryTime* pDaytime;
-    FIX::MDMkt* pDestination;
-
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
-
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
-    assert(s_cntAtom > 0);
-
-    if (0 == prevCnt) { // sequential case; optimized:
-        pEntryGroup = &entryGroup;
-        pBookType = &bookType;
-        pSymbol = &symbol;
-        pPrice = &price;
-        pSize = &size;
-        pDestination = &destination;
-        pDate = &date;
-        pDaytime = &daytime;
-    } else { // > 1 threads; always safe way:
-        pEntryGroup = new decltype(entryGroup);
-        pBookType = new decltype(bookType);
-        pSymbol = new decltype(symbol);
-        pPrice = new decltype(price);
-        pSize = new decltype(size);
-        pDestination = new decltype(destination);
-        pDate = new decltype(date);
-        pDaytime = new decltype(daytime);
-    }
-
-    message.getGroup(1, *pEntryGroup);
-    pEntryGroup->get(*pBookType);
-    pEntryGroup->get(*pSymbol);
-    pEntryGroup->get(*pPrice);
-    pEntryGroup->get(*pSize);
-    pEntryGroup->get(*pDate);
-    pEntryGroup->get(*pDaytime);
-    pEntryGroup->get(*pDestination);
+    message.getGroup(1, entryGroup);
+    entryGroup.get(bookType);
+    entryGroup.get(symbol);
+    entryGroup.get(price);
+    entryGroup.get(size);
+    entryGroup.get(date);
+    entryGroup.get(daytime);
+    entryGroup.get(destination);
 
     OrderBookEntry update{
-        OrderBookEntry::s_toOrderBookType(*pBookType),
-        pSymbol->getString(),
-        double{ *pPrice },
-        double{ *pSize },
-        pDestination->getString(),
-        pDate->getValue(),
-        pDaytime->getValue()
+        static_cast<OrderBookEntry::Type>(static_cast<char>(bookType)),
+        symbol,
+        price,
+        static_cast<int>(size),
+        destination,
+        date.getValue(),
+        daytime.getValue()
     };
 
-    BCDocuments::getInstance()->onNewOBEntryForOrderBook(*pSymbol, update);
-
-    if (prevCnt) { // > 1 threads
-        delete pEntryGroup;
-        delete pBookType;
-        delete pSymbol;
-        delete pPrice;
-        delete pSize;
-        delete pDestination;
-        delete pDate;
-        delete pDaytime;
-    }
-
-    s_cntAtom--;
-    assert(s_cntAtom >= 0);
+    BCDocuments::getInstance()->onNewOBEntryForOrderBook(symbol, update);
 }
 
 /*
