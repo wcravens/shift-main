@@ -92,7 +92,7 @@ void OrderBook::spawn()
 void OrderBook::onSubscribeOrderBook(const std::string& targetID)
 {
     broadcastWholeOrderBookToOne(targetID);
-    increaseTargetRefCount(targetID);
+    registerTarget(targetID);
 }
 
 /**
@@ -101,7 +101,7 @@ void OrderBook::onSubscribeOrderBook(const std::string& targetID)
 */
 void OrderBook::onUnsubscribeOrderBook(const std::string& targetID)
 {
-    decreaseTargetRefCount(targetID);
+    unregisterTarget(targetID);
 }
 
 /**

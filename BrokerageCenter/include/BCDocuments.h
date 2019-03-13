@@ -25,14 +25,13 @@ Some terminologies:
 (2) "User", "Username", "Name" or "Client": Identifies a certain trading user(or, "client") that remote interact with the BC.
 (3) One (1) can consist of multiple (2)s; one (2) can interact(e.g. login) through various (1)s, but each (1) will maintain that respectively.
 */
-class BCDocuments {
+class BCDocuments : public ITargetsInfo {
     std::unordered_set<std::string> m_symbols;
     std::unordered_map<std::string, std::unique_ptr<OrderBook>> m_orderBookBySymbol; // symbol, OrderBook; contains 4 types of order book for each stock
     std::unordered_map<std::string, std::unique_ptr<CandlestickData>> m_candleBySymbol; // symbol, CandlestickData; contains current price and candle data history for each stock
 
     mutable std::mutex m_mtxUserTargetInfo;
     std::unordered_map<std::string, std::string> m_mapName2TarID; // map from Username to Target Computer ID
-    std::unordered_set<std::string> m_targetList;
 
     mutable std::mutex m_mtxRiskManagementByName;
     std::unordered_map<std::string, std::unique_ptr<RiskManagement>> m_riskManagementByName; // Username, RiskManagement
@@ -60,7 +59,6 @@ public:
     void registerUserInDoc(const std::string& targetID, const std::string& username); // for connection
     void unregisterTargetFromDoc(const std::string& targetID); // for disconnection; will unregister all connected users of this target
     std::string getTargetIDByUsername(const std::string& username) const;
-    std::vector<std::string> getTargetList() const;
 
     void unregisterTargetFromOrderBooks(const std::string& targetID);
     void unregisterTargetFromCandles(const std::string& targetID);

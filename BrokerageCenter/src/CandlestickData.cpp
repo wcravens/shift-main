@@ -215,12 +215,12 @@ void CandlestickData::sendHistory(std::string targetID)
 void CandlestickData::registerUserInCandlestickData(const std::string& targetID)
 {
     std::thread(&CandlestickData::sendHistory, this, targetID).detach(); // this takes time, so let run on side
-    increaseTargetRefCount(targetID);
+    registerTarget(targetID);
 }
 
 void CandlestickData::unregisterUserInCandlestickData(const std::string& targetID)
 {
-    decreaseTargetRefCount(targetID);
+    unregisterTarget(targetID);
 }
 
 //----------------------------------------------------------------------------

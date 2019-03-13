@@ -171,7 +171,7 @@ bool BCDocuments::manageSubscriptionInOrderBook(bool isSubscribe, const std::str
 
         std::lock_guard<std::mutex> guard(m_mtxOrderBookSymbolsByTargetID);
         m_orderBookSymbolsByTargetID[targetID].insert(symbol);
-    } else { // unsubscribe
+    } else {
         pos->second->onUnsubscribeOrderBook(targetID);
     }
 
@@ -188,18 +188,19 @@ bool BCDocuments::manageSubscriptionInCandlestickData(bool isSubscribe, const st
     */
 
     auto pos = m_candleBySymbol.find(symbol);
-    if (m_candleBySymbol.end() != pos) {
-        if (isSubscribe) {
-            pos->second->registerUserInCandlestickData(targetID);
+    if (m_candleBySymbol.end() == pos)
+        return false; // unknown RIC
 
-            std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByTargetID);
-            m_candleSymbolsByTargetID[targetID].insert(symbol);
-        } else
-            pos->second->unregisterUserInCandlestickData(targetID);
-        return true;
+    if (isSubscribe) {
+        pos->second->registerUserInCandlestickData(targetID);
+
+        std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByTargetID);
+        m_candleSymbolsByTargetID[targetID].insert(symbol);
+    } else {
+        pos->second->unregisterUserInCandlestickData(targetID);
     }
 
-    return false;
+    return true;
 }
 
 int BCDocuments::sendHistoryToUser(const std::string& username)
@@ -222,7 +223,7 @@ void BCDocuments::registerUserInDoc(const std::string& targetID, const std::stri
 {
     std::lock_guard<std::mutex> guard(m_mtxUserTargetInfo);
     m_mapName2TarID[username] = targetID;
-    m_targetList.insert(targetID);
+    registerTarget(targetID);
 }
 
 // removes all users affiliated to the target computer ID
@@ -230,7 +231,7 @@ void BCDocuments::unregisterTargetFromDoc(const std::string& targetID)
 {
     std::lock_guard<std::mutex> guard(m_mtxUserTargetInfo);
 
-    m_targetList.erase(targetID);
+    unregisterTarget(targetID);
 
     std::vector<std::string> usernames;
     for (auto& kv : m_mapName2TarID)
@@ -250,12 +251,6 @@ std::string BCDocuments::getTargetIDByUsername(const std::string& username) cons
         return ::STDSTR_NULL;
 
     return pos->second;
-}
-
-std::vector<std::string> BCDocuments::getTargetList() const
-{
-    std::vector<std::string> copy(m_targetList.begin(), m_targetList.end());
-    return copy;
 }
 
 void BCDocuments::unregisterTargetFromOrderBooks(const std::string& targetID)

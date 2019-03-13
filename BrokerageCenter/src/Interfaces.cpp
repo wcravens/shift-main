@@ -1,34 +1,30 @@
 #include "Interfaces.h"
 
-void ITargetsInfo::increaseTargetRefCount(const std::string& targetID)
+#include <algorithm>
+
+void ITargetsInfo::registerTarget(const std::string& targetID)
 {
     std::lock_guard<std::mutex> guard(m_mtxTargetsInfo);
-    m_targetsInfo[targetID]++; // add new and/or increase ref count
+    if (m_targetsInfo.end() == std::find(m_targetsInfo.begin(), m_targetsInfo.end(), targetID))
+        m_targetsInfo.push_back(targetID);
 }
 
-void ITargetsInfo::decreaseTargetRefCount(const std::string& targetID)
+void ITargetsInfo::unregisterTarget(const std::string& targetID)
 {
     std::lock_guard<std::mutex> guard(m_mtxTargetsInfo);
 
-    auto pos = m_targetsInfo.find(targetID);
+    auto pos = std::find(m_targetsInfo.begin(), m_targetsInfo.end(), targetID);
     if (m_targetsInfo.end() == pos)
         return;
-
-    if (--pos->second <= 0)
-        m_targetsInfo.erase(pos);
+    // fast removal:
+    std::swap(*pos, m_targetsInfo.back());
+    m_targetsInfo.pop_back();
 }
 
 std::vector<std::string> ITargetsInfo::getTargetList() const
 {
     std::lock_guard<std::mutex> guard(m_mtxTargetsInfo);
-    if (m_targetsInfo.empty())
-        return {};
-
-    std::vector<std::string> targetList;
-    for (auto& kv : m_targetsInfo)
-        targetList.push_back(kv.first);
-
-    return targetList;
+    return m_targetsInfo;
 }
 
 /*virtual*/ ITargetsInfo::~ITargetsInfo() /*= 0*/ = default;
