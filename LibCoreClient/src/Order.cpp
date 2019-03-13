@@ -14,14 +14,14 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
     , m_price(price)
     , m_id(id)
     , m_timestamp(std::chrono::system_clock::now())
-    , m_status(Status::PENDING_NEW)
+    , m_status(shift::Order::Status::PENDING_NEW)
 {
     if (m_price <= 0.0) {
         m_price = 0.0;
-        if (m_type == Type::LIMIT_BUY) {
-            m_type = Type::MARKET_BUY;
-        } else if (m_type == Type::LIMIT_SELL) {
-            m_type = Type::MARKET_SELL;
+        if (m_type == shift::Order::Type::LIMIT_BUY) {
+            m_type = shift::Order::Type::MARKET_BUY;
+        } else if (m_type == shift::Order::Type::LIMIT_SELL) {
+            m_type = shift::Order::Type::MARKET_SELL;
         }
     } else {
         m_price = s_decimalTruncate(m_price, 2);
@@ -67,7 +67,7 @@ shift::Order::Status shift::Order::getStatus() const
     return m_status;
 }
 
-void shift::Order::setType(Type type)
+void shift::Order::setType(shift::Order::Type type)
 {
     m_type = type;
 }
@@ -97,7 +97,7 @@ void shift::Order::setTimestamp()
     m_timestamp = std::chrono::system_clock::now();
 }
 
-void shift::Order::setStatus(Status status)
+void shift::Order::setStatus(shift::Order::Status status)
 {
     m_status = status;
 }
