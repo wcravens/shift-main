@@ -118,7 +118,7 @@ int main(int ac, char* av[])
         (CSTR_INFO ",i", po::value<std::vector<std::string>>()->multitoken(), "<first name>  <last name>  <email>") //
         (CSTR_SUPER ",s", "is super user, requires -u present") //
         (CSTR_PFDBREADONLY ",e", "is portfolio data in DB read-only") //
-        (CSTR_CHANGE_PSW, "flag of changing password; --username and --password required") //
+        (CSTR_CHANGE_PSW, "flag of changing password, also requires -u and -p provided") //
         ; // add_options
 
     po::variables_map vm;
