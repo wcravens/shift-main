@@ -50,6 +50,8 @@ using namespace std::chrono_literals;
     "super"
 #define CSTR_PFDBREADONLY \
     "readonlyportfolio"
+#define CSTR_CHANGE_PSW \
+    "changepassword"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -116,6 +118,7 @@ int main(int ac, char* av[])
         (CSTR_INFO ",i", po::value<std::vector<std::string>>()->multitoken(), "<first name>  <last name>  <email>") //
         (CSTR_SUPER ",s", "is super user, requires -u present") //
         (CSTR_PFDBREADONLY ",e", "is portfolio data in DB read-only") //
+        (CSTR_CHANGE_PSW, "flag of changing password; --username and --password required") //
         ; // add_options
 
     po::variables_map vm;
@@ -170,12 +173,14 @@ int main(int ac, char* av[])
     }
 
     const auto optsUPI = { CSTR_USERNAME, CSTR_PASSWORD, CSTR_INFO };
-    auto isIncluded = [&vm](auto* opt) { return vm.count(opt); };
+    auto isProvided = [&vm](auto* opt) { return vm.count(opt); };
 
-    if (std::any_of(optsUPI.begin(), optsUPI.end(), isIncluded) || vm.count(CSTR_SUPER)) {
-        if (!std::all_of(optsUPI.begin(), optsUPI.end(), isIncluded)) {
-            cout << COLOR_ERROR "ERROR: The new user options are not sufficient."
-                                " Please provide -u, -p, and -i at the same time." NO_COLOR
+    if (!vm.count(CSTR_CHANGE_PSW)
+        && (std::any_of(optsUPI.begin(), optsUPI.end(), isProvided) || vm.count(CSTR_SUPER))) {
+        if (!std::all_of(optsUPI.begin(), optsUPI.end(), isProvided)) {
+            cout << COLOR_ERROR "ERROR: The new "
+                 << (vm.count(CSTR_SUPER) ? "super " : "")
+                 << "user's options are not sufficient. Please provide -u, -p, and -i at the same time." NO_COLOR
                  << '\n'
                  << endl;
             return 3;
@@ -213,6 +218,28 @@ int main(int ac, char* av[])
         } else {
             cout << "DB connection OK.\n"
                  << endl;
+
+            if (vm.count(CSTR_CHANGE_PSW)) {
+                if (!vm.count(CSTR_USERNAME) || !vm.count(CSTR_PASSWORD)) {
+                    cout << COLOR_ERROR "ERROR: The password changing options are not sufficient."
+                                        " Please provide -u, -p at the same time." NO_COLOR
+                         << '\n'
+                         << endl;
+                    return 6;
+                }
+
+                params.user.username = vm[CSTR_USERNAME].as<std::string>();
+
+                std::istringstream iss(vm[CSTR_PASSWORD].as<std::string>());
+                shift::crypto::Encryptor enc;
+                iss >> enc >> params.user.password;
+
+                if (!DBConnector::getInstance()->doQuery("UPDATE traders SET password = '" + params.user.password + "' WHERE username = '" + params.user.username + "';", COLOR_ERROR "ERROR: Failed to change the user [" + params.user.username + "]'s password!\n" NO_COLOR))
+                    return 7;
+
+                cout << COLOR "Password changed." NO_COLOR << endl;
+                return 0;
+            }
 
             if (vm.count(CSTR_RESET)) {
                 vm.erase(CSTR_RESET);
