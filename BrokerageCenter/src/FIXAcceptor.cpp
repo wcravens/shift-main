@@ -16,19 +16,19 @@
 
 /* static */ std::string FIXAcceptor::s_senderID;
 
-// Predefined constant FIX message (To avoid recalculations):
-static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1");
+// Predefined constant FIX message fields (to avoid recalculations):
+static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
 static const auto& FIXFIELD_CLEARINGBUSINESSDATE = FIX::ClearingBusinessDate("20181217");
 static const auto& FIXFIELD_SYMBOL_CASH = FIX::Symbol("CASH");
-static const auto& FIXFIELD_SECURITYTYPE_CASH = FIX::SecurityType("CASH");
-static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
-static const auto& FIXFIELD_SECURITYTYPE_CS = FIX::SecurityType("CS");
-static const auto& FIXFIELD_QUOTESTAT = FIX::QuoteStatus(0); // 0 = Accepted
-static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
+static const auto& FIXFIELD_SECURITYTYPE_CASH = FIX::SecurityType(FIX::SecurityType_CASH);
+static const auto& FIXFIELD_PARTYROLE_CLIENTID = FIX::PartyRole(FIX::PartyRole_CLIENT_ID);
+static const auto& FIXFIELD_SECURITYTYPE_CS = FIX::SecurityType(FIX::SecurityType_COMMON_STOCK);
+static const auto& FIXFIELD_QUOTESTATUS_ACCEPTED = FIX::QuoteStatus(FIX::QuoteStatus_ACCEPTED);
 static const auto& FIXFIELD_EXECTYPE_ORDER_STATUS = FIX::ExecType(FIX::ExecType_ORDER_STATUS);
 static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType(FIX::ExecType_TRADE);
 static const auto& FIXFIELD_ADVTRANSTYPE_NEW = FIX::AdvTransType(FIX::AdvTransType_NEW);
-static const auto& FIXFIELD_ADVSIDE_TRADE = FIX::AdvSide('T'); // T = Trade
+static const auto& FIXFIELD_ADVSIDE_TRADE = FIX::AdvSide(FIX::AdvSide_TRADE);
+static const auto& FIXFIELD_MDUPDATEACTION_CHANGE = FIX::MDUpdateAction(FIX::MDUpdateAction_CHANGE);
 
 FIXAcceptor::~FIXAcceptor() // override
 {
@@ -124,7 +124,7 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
         The complete actions: fromAdmin => onLogon => onMessage(UserRequest)
     */
     std::string adminName, adminPsw; // super user's info to qualify the connection
-    const auto& targetID = static_cast<std::string>(sessionID.getTargetCompID());
+    const auto& targetID = sessionID.getTargetCompID().getValue();
 
     FIXT11::Logon::NoMsgTypes msgTypeGroup;
     message.getGroup(1, msgTypeGroup);
@@ -148,7 +148,7 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
  */
 void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 {
-    auto& targetID = sessionID.getTargetCompID();
+    const auto& targetID = sessionID.getTargetCompID().getValue();
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 
     // The following is not necessary as long as the super user also sends a onMessage(UserRequest):
@@ -162,7 +162,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
  */
 void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 {
-    auto& targetID = sessionID.getTargetCompID();
+    const auto& targetID = sessionID.getTargetCompID().getValue();
     cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
 
     BCDocuments::getInstance()->unregisterTargetFromDoc(targetID); // this shall come first to timely affect other acceptor parts that are sending things aside
@@ -177,10 +177,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
 {
     FIX::Username username; // WebClient's
     message.get(username);
-    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID(), username);
-    BCDocuments::getInstance()->sendHistoryToUser(username);
+    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID().getValue(), username.getValue());
+    BCDocuments::getInstance()->sendHistoryToUser(username.getValue());
 
-    cout << COLOR_PROMPT "Web user [" NO_COLOR << username << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
+    cout << COLOR_PROMPT "Web user [" NO_COLOR << username.getValue() << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
 }
 
 /**
@@ -188,47 +188,42 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
  */
 void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID&) // override
 {
-    FIX::NoPartyIDs numOfGroup;
-    message.get(numOfGroup);
-    if (numOfGroup < 1) {
-        cout << "Cannot find username in NewOrderSingle !" << endl;
+    FIX::NoPartyIDs numOfGroups;
+    message.get(numOfGroups);
+    if (numOfGroups < 1) {
+        cout << "Cannot find username in NewOrderSingle!" << endl;
         return;
     }
 
     FIX::ClOrdID orderID;
-    FIX::Symbol symbol;
-    FIX::OrderQty orderQty;
+    FIX::Symbol orderSymbol;
+    FIX::OrderQty orderSize;
     FIX::OrdType orderType;
-    FIX::Price price;
-
-    message.get(orderID);
-    message.get(symbol);
-    message.get(orderQty);
-    message.get(orderType);
-    message.get(price);
+    FIX::Price orderPrice;
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    FIX::PartyRole role;
     FIX::PartyID username;
-    for (int i = 1; i <= numOfGroup; i++) {
-        message.getGroup(i, idGroup);
-        idGroup.get(role);
-        if (::FIXFIELD_CLIENTID == role) {
-            idGroup.get(username);
-        }
-    }
+
+    message.get(orderID);
+    message.get(orderSymbol);
+    message.get(orderSize);
+    message.get(orderType);
+    message.get(orderPrice);
+
+    message.getGroup(1, idGroup);
+    idGroup.get(username);
 
     cout << COLOR_PROMPT "--------------------------------------\n" NO_COLOR;
-    cout << "Order ID: " << orderID
-         << "\nUsername: " << username
-         << "\n\tType: " << orderType
-         << "\n\tSymbol: " << symbol
-         << "\n\tSize: " << orderQty
-         << "\n\tPrice: " << price << endl;
+    cout << "Order ID: " << orderID.getValue()
+         << "\nUsername: " << username.getValue()
+         << "\n\tType: " << orderType.getValue()
+         << "\n\tSymbol: " << orderSymbol.getValue()
+         << "\n\tSize: " << orderSize.getValue()
+         << "\n\tPrice: " << orderPrice.getValue() << endl;
 
     // Order validation
     const auto type = static_cast<Order::Type>(static_cast<char>(orderType));
-    int size = static_cast<int>(orderQty);
+    int size = static_cast<int>(orderSize);
 
     if (orderID.getLength() == 0) {
         cout << "orderID is empty" << endl;
@@ -238,7 +233,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     if (username.getLength() == 0) {
         cout << "username is empty" << endl;
         return;
-    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(username)) {
+    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(username.getValue())) {
         cout << COLOR_ERROR "This username is not register in the Brokerage Center" NO_COLOR << endl;
         return;
     }
@@ -248,10 +243,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    if (symbol.getLength() == 0) {
+    if (orderSymbol.getLength() == 0) {
         cout << "symbol is empty" << endl;
         return;
-    } else if (!BCDocuments::getInstance()->hasSymbol(symbol)) {
+    } else if (!BCDocuments::getInstance()->hasSymbol(orderSymbol.getValue())) {
         cout << COLOR_ERROR "This symbol is not register in the Brokerage Center" NO_COLOR << endl;
         return;
     }
@@ -261,12 +256,12 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    if (price < 0.0) {
+    if (orderPrice < 0.0) {
         cout << "price is empty" << endl;
         return;
     }
 
-    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(username, Order{ type, symbol, size, price, orderID, username });
+    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(username.getValue(), Order{ type, orderSymbol.getValue(), size, orderPrice.getValue(), orderID.getValue(), username.getValue() });
 }
 
 /*
@@ -274,24 +269,25 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
  */
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
 {
-    FIX::NoRelatedSym numOfGroup;
-    message.get(numOfGroup);
+    FIX::NoRelatedSym numOfGroups;
+    message.get(numOfGroups);
 
-    if (numOfGroup < 1) {
+    if (numOfGroups < 1) {
         cout << "Cannot find Symbol in MarketDataRequest!" << endl;
         return;
     }
 
     FIX::SubscriptionRequestType isSubscribed;
-    message.get(isSubscribed);
 
     FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
-    message.getGroup(1, relatedSymGroup);
-
     FIX::Symbol symbol;
+
+    message.get(isSubscribed);
+
+    message.getGroup(1, relatedSymGroup);
     relatedSymGroup.get(symbol);
 
-    BCDocuments::getInstance()->manageSubscriptionInOrderBook('1' == isSubscribed, symbol, sessionID.getTargetCompID());
+    BCDocuments::getInstance()->manageSubscriptionInOrderBook('1' == isSubscribed.getValue(), symbol.getValue(), sessionID.getTargetCompID().getValue());
 }
 
 /*
@@ -299,24 +295,25 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
  */
 void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) // override
 {
-    FIX::NoRelatedSym numOfGroup;
-    message.get(numOfGroup);
+    FIX::NoRelatedSym numOfGroups;
+    message.get(numOfGroups);
 
-    if (numOfGroup < 1) { // make sure there is a symbol in group
+    if (numOfGroups < 1) { // make sure there is a symbol in group
         cout << "Cannot find Symbol in RFQRequest" << endl;
         return;
     }
 
-    FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
-    message.getGroup(1, relatedSymGroup);
-
-    FIX::Symbol symbol;
-    relatedSymGroup.get(symbol);
-
     FIX::SubscriptionRequestType isSubscribed;
+
+    FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
+    FIX::Symbol symbol;
+
     message.get(isSubscribed);
 
-    BCDocuments::getInstance()->manageSubscriptionInCandlestickData('1' == isSubscribed, symbol, sessionID.getTargetCompID());
+    message.getGroup(1, relatedSymGroup);
+    relatedSymGroup.get(symbol);
+
+    BCDocuments::getInstance()->manageSubscriptionInCandlestickData('1' == isSubscribed.getValue(), symbol.getValue(), sessionID.getTargetCompID().getValue());
 }
 
 /**
@@ -334,7 +331,7 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& username, const Portfo
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_PositionReport));
@@ -346,7 +343,7 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& username, const Portfo
     message.setField(FIX::PriceDelta(summary.getTotalPL()));
 
     FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
-    usernameGroup.setField(::FIXFIELD_CLIENTID);
+    usernameGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
     usernameGroup.setField(FIX::PartyID(username));
     message.addGroup(usernameGroup);
 
@@ -380,7 +377,7 @@ void FIXAcceptor::sendPortfolioItem(const std::string& username, const Portfolio
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_PositionReport));
@@ -394,7 +391,7 @@ void FIXAcceptor::sendPortfolioItem(const std::string& username, const Portfolio
     message.setField(FIX::PriceDelta(item.getPL()));
 
     FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
-    usernameGroup.setField(::FIXFIELD_CLIENTID);
+    usernameGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
     usernameGroup.setField(FIX::PartyID(username));
     message.addGroup(usernameGroup);
 
@@ -418,23 +415,22 @@ void FIXAcceptor::sendWaitingList(const std::string& username, const std::unorde
     FIX50SP2::MassQuoteAcknowledgement message;
     FIX::Header& header = message.getHeader();
 
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_MassQuoteAcknowledgement));
 
-    message.setField(::FIXFIELD_QUOTESTAT); // Required by FIX
+    message.setField(::FIXFIELD_QUOTESTATUS_ACCEPTED); // Required by FIX
     message.setField(FIX::Account(username));
 
     FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets orderSetGroup;
     for (const auto& kv : orders) {
         auto& order = kv.second;
-        orderSetGroup.setField(FIX::QuoteSetID(targetID));
-        orderSetGroup.setField(FIX::UnderlyingSecurityID(order.getID()));
+        orderSetGroup.setField(FIX::QuoteSetID(order.getID()));
         orderSetGroup.setField(FIX::UnderlyingSymbol(order.getSymbol()));
-        orderSetGroup.setField(FIX::UnderlyingStrikePrice(order.getPrice()));
-        orderSetGroup.setField(FIX::UnderlyingSymbolSfx(std::to_string(order.getSize()))); // FIXME: replace with other field
-        orderSetGroup.setField(FIX::UnderlyingIssuer(std::to_string(order.getType())));
+        orderSetGroup.setField(FIX::UnderlyingOptAttribute(order.getType()));
+        orderSetGroup.setField(FIX::UnderlyingQty(order.getSize()));
+        orderSetGroup.setField(FIX::UnderlyingPx(order.getPrice()));
         message.addGroup(orderSetGroup);
     }
 
@@ -458,7 +454,7 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
@@ -482,7 +478,7 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
     message.setField(FIX::TransactTime(report.serverTime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    idGroup.setField(::FIXFIELD_CLIENTID);
+    idGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
     idGroup.setField(FIX::PartyID(report.username));
     message.addGroup(idGroup);
 
@@ -498,7 +494,7 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_Advertisement));
 
@@ -525,7 +521,7 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
     FIX::Message message;
     FIX::Header& header = message.getHeader();
 
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
 
@@ -572,12 +568,12 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& targetList
     FIX::Message message;
     FIX::Header& header = message.getHeader();
 
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    entryGroup.setField(::FIXFIELD_MDUPDATE_CHANGE); // Required by FIX
+    entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
     entryGroup.setField(FIX::MDEntryType(static_cast<char>(update.getType())));
     entryGroup.setField(FIX::Symbol(update.getSymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
@@ -599,7 +595,7 @@ void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& targetList
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
 
@@ -634,7 +630,7 @@ void FIXAcceptor::sendSymbols(const std::string& targetID, const std::unordered_
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_SecurityList));

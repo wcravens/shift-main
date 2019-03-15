@@ -27,16 +27,16 @@ using namespace std::chrono_literals;
 /* static */ std::string shift::FIXInitiator::s_senderID;
 /* static */ std::string shift::FIXInitiator::s_targetID;
 
-// Predefined constant FIX fields (To avoid recalculations):
-static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1");
-static const auto& FIXFIELD_UQ_ACTION = FIX::UserRequestType(1); // Action required by a UserRequest, 1 = Log On User
-static const auto& FIXFIELD_SUBTYPE_SUB = FIX::SubscriptionRequestType('1'); // Subscription Request Type, 1 = Snapshot + Updates (Subscribe)
-static const auto& FIXFIELD_SUBTYPE_UNSUB = FIX::SubscriptionRequestType('2'); // Subscription Request Type, 2 = Disable previous Snapshot + Update Request (Unsubscribe)
-static const auto& FIXFIELD_UPDTYPE_INCRE = FIX::MDUpdateType(1); // Type of Market Data update, 1 = Incremental refresh
-static const auto& FIXFIELD_DOM_FULL = FIX::MarketDepth(0); // Depth of market for Book Snapshot, 0 = full book depth
-static const auto& FIXFIELD_ENTRY_BID = FIX::MDEntryType('0'); // Type of market data entry, 0 = Bid
-static const auto& FIXFIELD_ENTRY_OFFER = FIX::MDEntryType('1'); // Type of market data entry, 1 = Offer
-static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
+// Predefined constant FIX message fields (to avoid recalculations):
+static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
+static const auto& FIXFIELD_USERREQUESTTYPE_LOG_ON_USER = FIX::UserRequestType(FIX::UserRequestType_LOG_ON_USER);
+static const auto& FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SUBSCRIBE = FIX::SubscriptionRequestType(FIX::SubscriptionRequestType_SNAPSHOT_PLUS_UPDATES);
+static const auto& FIXFIELD_SUBSCRIPTIONREQUESTTYPE_UNSUBSCRIBE = FIX::SubscriptionRequestType(FIX::SubscriptionRequestType_DISABLE_PREVIOUS_SNAPSHOT_PLUS_UPDATE_REQUEST);
+static const auto& FIXFIELD_MDUPDATETYPE_INCREMENTAL_REFRESH = FIX::MDUpdateType(FIX::MDUpdateType_INCREMENTAL_REFRESH);
+static const auto& FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH = FIX::MarketDepth(0);
+static const auto& FIXFIELD_MDENTRYTYPE_BID = FIX::MDEntryType(FIX::MDEntryType_BID);
+static const auto& FIXFIELD_MDENTRYTYPE_OFFER = FIX::MDEntryType(FIX::MDEntryType_OFFER);
+static const auto& FIXFIELD_PARTYROLE_CLIENTID = FIX::PartyRole(FIX::PartyRole_CLIENT_ID);
 
 /*static*/ inline std::chrono::system_clock::time_point shift::FIXInitiator::s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
 {
@@ -231,13 +231,13 @@ void shift::FIXInitiator::webClientSendUsername(const std::string& username)
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_UserRequest));
 
     message.setField(FIX::UserRequestID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_UQ_ACTION); // Required by FIX
+    message.setField(::FIXFIELD_USERREQUESTTYPE_LOG_ON_USER); // Required by FIX
     message.setField(FIX::Username(username));
 
     FIX::Session::sendToTarget(message);
@@ -363,8 +363,8 @@ inline void shift::FIXInitiator::initializeOrderBooks()
  */
 void shift::FIXInitiator::onCreate(const FIX::SessionID& sessionID) // override
 {
-    s_senderID = sessionID.getSenderCompID();
-    s_targetID = sessionID.getTargetCompID();
+    s_senderID = sessionID.getSenderCompID().getValue();
+    s_targetID = sessionID.getTargetCompID().getValue();
     debugDump("SenderID: " + s_senderID + "\nTargetID: " + s_targetID);
 }
 
@@ -459,22 +459,22 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
 void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, const FIX::SessionID&) // override
 {
     if (m_connected) {
-        FIX::Symbol symbol;
+        FIX::Symbol originalName;
         FIX::Quantity size;
         FIX::Price price;
         FIX::TransactTime simulationTime;
         FIX::LastMkt destination;
 
-        message.get(symbol);
+        message.get(originalName);
         message.get(size);
         message.get(price);
         message.get(simulationTime);
         message.get(destination);
 
-        symbol = m_originalName_symbol[symbol];
+        std::string symbol = m_originalName_symbol[originalName.getValue()];
 
-        m_lastTrades[symbol].first = price;
-        m_lastTrades[symbol].second = static_cast<int>(size);
+        m_lastTrades[symbol].first = price.getValue();
+        m_lastTrades[symbol].second = static_cast<int>(size.getValue());
         m_lastTradeTime = std::chrono::system_clock::from_time_t(simulationTime.getValue().getTimeT());
         try {
             getMainClient()->receiveLastPrice(symbol);
@@ -494,9 +494,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
 void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
     // Update Version: ClientID has been replaced by PartyRole and PartyID
-    FIX::NoPartyIDs numOfGroup;
-    message.get(numOfGroup);
-    if (numOfGroup < 1) {
+    FIX::NoPartyIDs numOfGroups;
+    message.get(numOfGroups);
+    if (numOfGroups < 1) {
         cout << "Cannot find any ClientID in ExecutionReport!" << endl;
         return;
     }
@@ -512,6 +512,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     FIX::CumQty executedSize;
     FIX::TransactTime serverTime;
 
+    FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
+    FIX::PartyID username;
+
     message.get(orderID);
     message.get(orderStatus);
     message.get(orderSymbol);
@@ -523,27 +526,19 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     message.get(executedSize);
     message.get(serverTime);
 
-    FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    FIX::PartyRole role;
-    FIX::PartyID username;
-    for (int i = 1; i <= numOfGroup; i++) {
-        message.getGroup(i, idGroup);
-        idGroup.get(role);
-        if (role == 3) { // 3 -> formerly FIX 4.2 ClientID
-            idGroup.get(username);
-        }
-    }
+    message.getGroup(1, idGroup);
+    idGroup.get(username);
 
     // cout << "ConfirmRepo: "
-    //      << username << "\t"
-    //      << orderID << "\t"
-    //      << orderType << "\t"
-    //      << orderSymbol << "\t"
-    //      << currentSize << "\t"
-    //      << executedSize << "\t"
-    //      << orderPrice << "\t"
-    //      << orderStatus << "\t"
-    //      << destination << "\t"
+    //      << username.getValue() << "\t"
+    //      << orderID.getValue() << "\t"
+    //      << orderType.getValue() << "\t"
+    //      << orderSymbol.getValue() << "\t"
+    //      << currentSize.getValue() << "\t"
+    //      << executedSize.getValue() << "\t"
+    //      << orderPrice.getValue() << "\t"
+    //      << orderStatus.getValue() << "\t"
+    //      << destination.getValue() << "\t"
     //      << serverTime.getString() << "\t"
     //      << confirmTime.getString() << endl;
 }
@@ -556,65 +551,68 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
     while (!m_connected)
         ;
 
+    FIX::SecurityType type;
+
     FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
     FIX::PartyID username;
+
+    message.get(type);
+
     message.getGroup(1, usernameGroup);
     usernameGroup.get(username);
 
-    FIX::SecurityType type;
-    message.get(type);
-
-    if (type == "CS") { // Item
-        FIX::Symbol symbol;
-        message.get(symbol);
+    if (type == FIX::SecurityType_COMMON_STOCK) { // Item
+        FIX::Symbol originalName;
+        message.get(originalName);
 
         // m_originalName_symbol shall be always thread-safe-readonly once after being initialized, so we shall prevent it from accidental insertion here
-        if (m_originalName_symbol.find(symbol) == m_originalName_symbol.end()) {
-            cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << symbol << "], skipped." NO_COLOR << endl;
-            return; //
+        if (m_originalName_symbol.find(originalName.getValue()) == m_originalName_symbol.end()) {
+            cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << originalName.getValue() << "], skipped." NO_COLOR << endl;
+            return;
         }
 
-        symbol = m_originalName_symbol[symbol];
+        std::string symbol = m_originalName_symbol[originalName.getValue()];
 
         FIX::SettlPrice longPrice;
         FIX::PriorSettlPrice shortPrice;
         FIX::PriceDelta realizedPL;
-        FIX::LongQty longQty;
-        FIX::ShortQty shortQty;
+
+        FIX50SP2::PositionReport::NoPositions sizeGroup;
+        FIX::LongQty longSize;
+        FIX::ShortQty shortSize;
 
         message.get(longPrice);
         message.get(shortPrice);
         message.get(realizedPL);
 
-        FIX50SP2::PositionReport::NoPositions qtyGroup;
-        message.getGroup(1, qtyGroup);
-        qtyGroup.get(longQty);
-        qtyGroup.get(shortQty);
+        message.getGroup(1, sizeGroup);
+        sizeGroup.get(longSize);
+        sizeGroup.get(shortSize);
 
         try {
-            getClient(username)->storePortfolioItem(symbol, static_cast<int>(longQty), static_cast<int>(shortQty), longPrice, shortPrice, realizedPL);
+            getClient(username)->storePortfolioItem(symbol, static_cast<int>(longSize.getValue()), static_cast<int>(shortSize.getValue()), longPrice.getValue(), shortPrice.getValue(), realizedPL.getValue());
             getClient(username)->receivePortfolioItem(symbol);
         } catch (...) {
             return;
         }
-    } else { // Summary
+    } else { // Summary (FIX::SecurityType_CASH)
         FIX::PriceDelta totalRealizedPL;
         FIX::LongQty totalShares;
         FIX::PosAmt totalBuyingPower;
 
-        message.get(totalRealizedPL);
-
-        FIX50SP2::PositionReport::NoPositions qtyGroup;
+        FIX50SP2::PositionReport::NoPositions totalSharesGroup;
         FIX50SP2::PositionReport::NoPosAmt buyingPowerGroup;
 
-        message.getGroup(1, qtyGroup);
-        qtyGroup.get(totalShares);
+        message.get(totalRealizedPL);
+
+        message.getGroup(1, totalSharesGroup);
+        totalSharesGroup.get(totalShares);
 
         message.getGroup(1, buyingPowerGroup);
         buyingPowerGroup.get(totalBuyingPower);
 
         try {
-            getClient(username)->storePortfolioSummary(totalBuyingPower, static_cast<int>(totalShares), totalRealizedPL);
+            getClient(username)->storePortfolioSummary(totalBuyingPower.getValue(), static_cast<int>(totalShares.getValue()), totalRealizedPL.getValue());
             getClient(username)->receivePortfolioSummary();
         } catch (...) {
             return;
@@ -629,17 +627,16 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID&) // override
 {
-    FIX::NoMDEntries numOfEntry;
-    message.getField(numOfEntry);
-    if (!numOfEntry) {
-        cout << "Cannot find MDEntry in MarketDataSnapshotFullRefresh!" << endl;
+    FIX::NoMDEntries numOfEntries;
+    message.get(numOfEntries);
+    if (numOfEntries < 1) {
+        cout << "Cannot find the Entries group in MarketDataSnapshotFullRefresh!" << endl;
         return;
     }
 
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries::NoPartyIDs partyGroup;
+    FIX::Symbol originalName;
 
-    FIX::Symbol symbol;
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
     FIX::MDEntryType type;
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
@@ -647,13 +644,13 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     FIX::MDEntryTime simulationTime;
     FIX::MDMkt destination;
 
+    message.getField(originalName);
+    std::string symbol = m_originalName_symbol[originalName.getValue()];
+
     std::list<shift::OrderBookEntry> orderBook;
 
-    message.getField(symbol);
-    symbol = m_originalName_symbol[symbol];
-
-    for (int i = 1; i <= numOfEntry; i++) {
-        message.getGroup(i, entryGroup);
+    for (int i = 1; i <= numOfEntries; i++) {
+        message.getGroup(static_cast<unsigned int>(i), entryGroup);
 
         entryGroup.getField(type);
         entryGroup.getField(price);
@@ -662,62 +659,69 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
         entryGroup.getField(simulationTime);
         entryGroup.getField(destination);
 
-        orderBook.push_back({ static_cast<double>(price),
-            static_cast<int>(size),
-            destination,
+        orderBook.push_back({ static_cast<double>(price.getValue()),
+            static_cast<int>(size.getValue()),
+            destination.getValue(),
             s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
     }
 
     try {
-        m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(type))]->setOrderBook(orderBook);
+        m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(type.getValue()))]->setOrderBook(orderBook);
     } catch (std::exception e) {
-        debugDump(symbol.getString() + " doesn't work");
+        debugDump(symbol + " doesn't work");
     }
 }
 
 /**
- * @brief Method to receive portfolio update from Brokerage Center.
+ * @brief Method to receive waiting list from Brokerage Center.
  *
- * @param message as a QuoteAcknowledgement type object contains the current accepting order information.
+ * @param message as a QuoteAcknowledgement type object contains the current waiting list information.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID&) // override
 {
-    FIX::Account username;
-    message.get(username);
-
     while (!m_connected)
         ;
 
     FIX::NoQuoteSets n;
     message.get(n);
 
-    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
+    FIX::Account username;
 
-    FIX::QuoteSetID userID;
-    FIX::UnderlyingSymbol symbol;
-    FIX::UnderlyingSymbolSfx orderSize;
-    FIX::UnderlyingSecurityID orderID;
-    FIX::UnderlyingStrikePrice price;
-    FIX::UnderlyingIssuer orderType;
+    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
+    FIX::QuoteSetID orderID;
+    FIX::UnderlyingSymbol originalName;
+    FIX::UnderlyingOptAttribute orderType;
+    FIX::UnderlyingQty orderSize;
+    FIX::UnderlyingPx orderPrice;
+
+    message.get(username);
 
     std::vector<shift::Order> waitingList;
 
     for (int i = 1; i <= n; i++) {
         message.getGroup(static_cast<unsigned int>(i), quoteSetGroup);
 
-        quoteSetGroup.get(userID);
-        quoteSetGroup.get(symbol);
-        quoteSetGroup.get(orderSize);
         quoteSetGroup.get(orderID);
-        quoteSetGroup.get(price);
+        quoteSetGroup.get(originalName);
         quoteSetGroup.get(orderType);
+        quoteSetGroup.get(orderSize);
+        quoteSetGroup.get(orderPrice);
 
-        symbol = m_originalName_symbol[symbol];
-        int size = atoi((std::string(orderSize)).c_str());
-        shift::Order::Type type = shift::Order::Type(static_cast<char>(atoi(orderType.getString().c_str())));
+        int size = static_cast<int>(orderSize.getValue());
 
-        if (size != 0) {
-            waitingList.push_back({ type, symbol, size, price, orderID });
+        if (size > 0) {
+
+            // m_originalName_symbol shall be always thread-safe-readonly once after being initialized, so we shall prevent it from accidental insertion here
+            if (m_originalName_symbol.find(originalName.getValue()) == m_originalName_symbol.end()) {
+                cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << originalName.getValue() << "], skipped." NO_COLOR << endl;
+                continue;
+            }
+
+            std::string symbol = m_originalName_symbol[originalName.getValue()];
+
+            shift::Order::Type type = static_cast<shift::Order::Type>(static_cast<char>(orderType.getValue()));
+
+            waitingList.push_back({ type, symbol, size, orderPrice.getValue(), orderID.getValue() });
         }
     }
 
@@ -740,35 +744,34 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
 {
-    FIX::NoMDEntries numOfEntry;
-
-    message.get(numOfEntry);
-    if (numOfEntry < 1) {
-        cout << "Cannot find the entry group in message !" << endl;
+    FIX::NoMDEntries numOfEntries;
+    message.get(numOfEntries);
+    if (numOfEntries < 1) {
+        cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
         return;
     }
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    message.getGroup(1, entryGroup);
-
-    FIX::MDEntryType type;
-    FIX::Symbol symbol;
+    FIX::MDEntryType bookType;
+    FIX::Symbol originalName;
     FIX::MDEntryPx price;
     FIX::MDEntrySize size;
     FIX::MDEntryDate simulationDate;
     FIX::MDEntryTime simulationTime;
     FIX::MDMkt destination;
 
-    entryGroup.getField(type);
-    entryGroup.getField(symbol);
+    message.getGroup(1, entryGroup);
+    entryGroup.getField(bookType);
+    entryGroup.getField(originalName);
     entryGroup.getField(price);
     entryGroup.getField(size);
     entryGroup.getField(simulationDate);
     entryGroup.getField(simulationTime);
     entryGroup.getField(destination);
 
-    symbol = m_originalName_symbol[symbol];
-    m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(type))]->update({ price, static_cast<int>(size), destination, s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
+    std::string symbol = m_originalName_symbol[originalName.getValue()];
+
+    m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(bookType))]->update({ price.getValue(), static_cast<int>(size.getValue()), destination.getValue(), s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
 }
 
 /**
@@ -776,10 +779,10 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
 {
-    FIX::NoRelatedSym numOfGroup;
-    message.get(numOfGroup);
-    if (numOfGroup < 1) {
-        cout << "Cannot find the NoRelatedSym in SecurityList !\n";
+    FIX::NoRelatedSym numOfGroups;
+    message.get(numOfGroups);
+    if (numOfGroups < 1) {
+        cout << "Cannot find any Symbol in SecurityList!" << endl;
         return;
     }
 
@@ -788,9 +791,10 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
 
         FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
         FIX::Symbol symbol;
+
         m_stockList.clear();
 
-        for (int i = 1; i <= numOfGroup; ++i) {
+        for (int i = 1; i <= numOfGroups; ++i) {
             message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
             relatedSymGroup.get(symbol);
             m_stockList.push_back(symbol);
@@ -811,29 +815,29 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID&) // override
 {
-    FIX::Symbol symbol;
+    FIX::Symbol originalName;
     FIX::StrikePrice open;
     FIX::HighPx high;
     FIX::LowPx low;
     FIX::LastPx close;
     FIX::Text timestamp;
 
-    message.get(symbol);
+    message.get(originalName);
     message.get(open);
     message.get(high);
     message.get(low);
     message.get(close);
     message.get(timestamp);
 
-    symbol = m_originalName_symbol[symbol];
+    std::string symbol = m_originalName_symbol[originalName.getValue()];
 
     /**
      * @brief Logic for storing open price and check if ready. Open price stores the very first candle data open price for each ticker
      */
     if (!m_openPricesReady) {
         std::lock_guard<std::mutex> opGuard(m_mtxOpenPrices);
-        if (m_openPrices.find(symbol.getString()) == m_openPrices.end()) {
-            m_openPrices[symbol.getString()] = open;
+        if (m_openPrices.find(symbol) == m_openPrices.end()) {
+            m_openPrices[symbol] = open.getValue();
             if (m_openPrices.size() == getStockList().size()) {
                 m_openPricesReady = true;
             }
@@ -841,7 +845,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     }
 
     try {
-        getMainClient()->receiveCandlestickData(symbol, open, high, low, close, timestamp);
+        getMainClient()->receiveCandlestickData(symbol, open.getValue(), high.getValue(), low.getValue(), close.getValue(), timestamp.getValue());
     } catch (...) {
         return;
     }
@@ -855,7 +859,7 @@ void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool 
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_RFQRequest));
@@ -867,9 +871,9 @@ void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool 
     message.addGroup(relatedSymGroup);
 
     if (isSubscribed) {
-        message.setField(::FIXFIELD_SUBTYPE_SUB);
+        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SUBSCRIBE);
     } else {
-        message.setField(::FIXFIELD_SUBTYPE_UNSUB);
+        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_UNSUBSCRIBE);
     }
 
     FIX::Session::sendToTarget(message);
@@ -883,24 +887,24 @@ void shift::FIXInitiator::sendOrderBookRequest(const std::string& symbol, bool i
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
 
     message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
     if (isSubscribed) {
-        message.setField(::FIXFIELD_SUBTYPE_SUB);
-        message.setField(::FIXFIELD_UPDTYPE_INCRE);
+        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SUBSCRIBE);
+        message.setField(::FIXFIELD_MDUPDATETYPE_INCREMENTAL_REFRESH);
     } else {
-        message.setField(::FIXFIELD_SUBTYPE_UNSUB);
+        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_UNSUBSCRIBE);
     }
-    message.setField(::FIXFIELD_DOM_FULL); // Required by FIX
+    message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
 
     FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup1;
     FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup2;
-    entryTypeGroup1.setField(::FIXFIELD_ENTRY_BID);
-    entryTypeGroup2.setField(::FIXFIELD_ENTRY_OFFER);
+    entryTypeGroup1.setField(::FIXFIELD_MDENTRYTYPE_BID);
+    entryTypeGroup2.setField(::FIXFIELD_MDENTRYTYPE_OFFER);
     message.addGroup(entryTypeGroup1);
     message.addGroup(entryTypeGroup2);
 
@@ -921,7 +925,7 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
@@ -935,7 +939,7 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
     message.setField(FIX::Price(order.getPrice()));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs partyIDGroup;
-    partyIDGroup.setField(::FIXFIELD_CLIENTID);
+    partyIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
     if (username != "") {
         partyIDGroup.setField(FIX::PartyID(username));
     } else {
@@ -1065,7 +1069,7 @@ std::vector<std::string> shift::FIXInitiator::getStockList()
     return m_stockList;
 }
 
-void shift::FIXInitiator::fetchCompanyName(const std::string tickerName)
+void shift::FIXInitiator::fetchCompanyName(std::string tickerName)
 {
     // Find the target url
     std::string modifiedName;

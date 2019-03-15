@@ -13,17 +13,17 @@ extern std::map<std::string, Stock> stocklist;
 /* static */ std::string FIXInitiator::s_senderID;
 /* static */ std::string FIXInitiator::s_targetID;
 
-// Predefined constant FIX fields (To avoid recalculations):
-static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1"); // FIX BeginString
-static const auto& FIXFIELD_SUBTYPE_SNAP = FIX::SubscriptionRequestType('0'); // 0 = Snapshot
-static const auto& FIXFIELD_DOM_FULL = FIX::MarketDepth(0); // Depth of market for Book Snapshot, 0 = full book depth
-static const auto& FIXFIELD_ENTRY_BID = FIX::MDEntryType('0'); // Type of market data entry, 0 = Bid
-static const auto& FIXFIELD_ENTRY_OFFER = FIX::MDEntryType('1'); // Type of market data entry, 1 = Offer
-static const auto& FIXFIELD_SYMBOL = FIX::Symbol("1"); // Ticker symbol
-static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType('F'); // F = Trade
-static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
-static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = ClientID in FIX4.2
-static const auto& FIXFIELD_SIDE_BUY = FIX::Side('1'); // 1 = Buy
+// Predefined constant FIX message fields (to avoid recalculations):
+static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
+static const auto& FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT = FIX::SubscriptionRequestType(FIX::SubscriptionRequestType_SNAPSHOT);
+static const auto& FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH = FIX::MarketDepth(0);
+static const auto& FIXFIELD_MDENTRYTYPE_BID = FIX::MDEntryType(FIX::MDEntryType_BID);
+static const auto& FIXFIELD_MDENTRYTYPE_OFFER = FIX::MDEntryType(FIX::MDEntryType_OFFER);
+static const auto& FIXFIELD_FAKE_SYMBOL = FIX::Symbol("0");
+static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType(FIX::ExecType_TRADE);
+static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0);
+static const auto& FIXFIELD_PARTYROLE_CLIENTID = FIX::PartyRole(FIX::PartyRole_CLIENT_ID);
+static const auto& FIXFIELD_SIDE_BUY = FIX::Side(FIX::Side_BUY);
 
 FIXInitiator::~FIXInitiator() // override
 {
@@ -84,14 +84,14 @@ void FIXInitiator::disconnectDatafeedEngine()
 }
 
 /**
- * @brief Send security list and timestamps to DatafeedEngine 
+ * @brief Send security list and timestamps to Datafeed Engine 
  */
 void FIXInitiator::sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols)
 {
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_SecurityList));
@@ -110,28 +110,28 @@ void FIXInitiator::sendSecurityList(const std::string& requestID, const boost::p
 }
 
 /**
- * @brief Send market data request to DatafeedEngine 
+ * @brief Send market data request to Datafeed Engine 
  */
 void FIXInitiator::sendMarketDataRequest()
 {
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
 
     message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_SUBTYPE_SNAP); // Required by FIX
-    message.setField(::FIXFIELD_DOM_FULL); // Required by FIX
+    message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
+    message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
 
     FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup1;
     FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup2;
     FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup; // Empty, not used
-    typeGroup1.set(::FIXFIELD_ENTRY_BID);
-    typeGroup2.set(::FIXFIELD_ENTRY_OFFER);
-    relatedSymGroup.set(::FIXFIELD_SYMBOL);
+    typeGroup1.set(::FIXFIELD_MDENTRYTYPE_BID);
+    typeGroup2.set(::FIXFIELD_MDENTRYTYPE_OFFER);
+    relatedSymGroup.set(::FIXFIELD_FAKE_SYMBOL);
 
     message.addGroup(typeGroup1);
     message.addGroup(typeGroup2);
@@ -141,14 +141,14 @@ void FIXInitiator::sendMarketDataRequest()
 }
 
 /**
- * @brief Send execution report to DatafeedEngine
+ * @brief Send execution report to Datafeed Engine
  */
 void FIXInitiator::sendExecutionReport(action& report)
 {
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
@@ -169,12 +169,12 @@ void FIXInitiator::sendExecutionReport(action& report)
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
-    idGroup1.setField(::FIXFIELD_CLIENTID);
+    idGroup1.setField(::FIXFIELD_PARTYROLE_CLIENTID);
     idGroup1.setField(FIX::PartyID(report.trader_id1));
     message.addGroup(idGroup1);
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup2;
-    idGroup2.setField(::FIXFIELD_CLIENTID);
+    idGroup2.setField(::FIXFIELD_PARTYROLE_CLIENTID);
     idGroup2.setField(FIX::PartyID(report.trader_id2));
     message.addGroup(idGroup2);
 
@@ -190,14 +190,14 @@ void FIXInitiator::sendExecutionReport(action& report)
 }
 
 /**
- * @brief Store order in DatabaseEngine after confirmed
+ * @brief Store order in Database Engine after confirmed
  */
-/* static */ void FIXInitiator::storeOrder(Quote& order)
+void FIXInitiator::storeOrder(Quote& order)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
 
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
@@ -211,7 +211,7 @@ void FIXInitiator::sendExecutionReport(action& report)
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    idGroup.set(::FIXFIELD_CLIENTID);
+    idGroup.set(::FIXFIELD_PARTYROLE_CLIENTID);
     idGroup.set(FIX::PartyID(order.gettrader_id()));
     message.addGroup(idGroup);
 
@@ -220,8 +220,8 @@ void FIXInitiator::sendExecutionReport(action& report)
 
 void FIXInitiator::onCreate(const FIX::SessionID& sessionID) // override
 {
-    s_senderID = sessionID.getSenderCompID();
-    s_targetID = sessionID.getTargetCompID();
+    s_senderID = sessionID.getSenderCompID().getValue();
+    s_targetID = sessionID.getTargetCompID().getValue();
 }
 
 void FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
@@ -243,105 +243,107 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
 
 // FIXME: Error Message
 /**
- * @brief Deal with the incoming message which type is QuoteAcknowledgement
+ * @brief Deal with incoming message of type QuoteAcknowledgement
  */
 void FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID&) // override
 {
     FIX::QuoteID error;
     message.get(error);
-    cout << "Error: " << error << endl;
+    cout << "Error: " << error.getValue() << endl;
 }
 
 /**
- * @brief Receive message to notify that 
- * the requested works have been done.
+ * @brief Receive notification that the requested work has been done.
  */
 void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID&) // override
 {
-    FIX::NoLinesOfText numOfGroup;
-    message.get(numOfGroup);
-    if (numOfGroup < 1) {
+    FIX::NoLinesOfText numOfGroups;
+    message.get(numOfGroups);
+    if (numOfGroups.getValue() < 1) {
         cout << "Cannot find Text in Notice!" << endl;
         return;
     }
 
+    FIX::Headline requestID;
+
     FIX50SP2::News::NoLinesOfText textGroup;
-    message.getGroup(1, textGroup);
     FIX::Text text;
+
+    message.get(requestID);
+
+    message.getGroup(1, textGroup);
     textGroup.get(text);
 
-    FIX::Headline request_id;
-    message.get(request_id);
-
     cout << "----- Receive NOTICE -----" << endl;
-    cout << "request_id: " << request_id << endl;
-    cout << "text: " << text << endl;
+    cout << "request_id: " << requestID.getValue() << endl;
+    cout << "text: " << text.getValue() << endl;
 }
 
 /**
- * @brief Server Receiving Rawdata from Database
+ * @brief Receive raw data from Datafeed Engine
  */
 void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID&) // override
 {
-    FIX::QuoteType ordType; // 0 for quote / 1 for trade
+    FIX::QuoteType ordType; // 0 for Quote / 1 for Trade
     message.get(ordType);
 
-    FIX::NoPartyIDs numOfPartyGroup;
-    message.get(numOfPartyGroup);
+    FIX::NoPartyIDs numOfGroups;
+    message.get(numOfGroups);
 
-    if ((!ordType && numOfPartyGroup < 2) || numOfPartyGroup < 1) {
+    if ((ordType.getValue() == 0 && numOfGroups.getValue() < 2) || (numOfGroups.getValue() < 1)) {
         cout << "Cannot find enough Party IDs!" << endl;
         return;
     }
 
-    FIX50SP2::Quote::NoPartyIDs partyGroup1;
-    message.getGroup(1, partyGroup1);
-    FIX::PartyID buyerID;
-    partyGroup1.getField(buyerID);
-
     FIX::Symbol symbol;
-    FIX::BidPx bidPx;
+    FIX::BidPx bidPrice;
     FIX::BidSize bidSize;
     FIX::TransactTime transactTime;
 
+    FIX50SP2::Quote::NoPartyIDs partyGroup1;
+    FIX::PartyID buyerID;
+
     message.get(symbol);
-    message.get(bidPx);
+    message.get(bidPrice);
     message.get(bidSize);
     message.get(transactTime);
 
-    std::map<std::string, Stock>::iterator stockIt;
-    stockIt = stocklist.find(symbol);
+    message.getGroup(1, partyGroup1);
+    partyGroup1.getField(buyerID);
+
+    auto stockIt = stocklist.find(symbol);
     if (stockIt == stocklist.end()) {
-        cout << "Receive error in Global!" << endl; // orderQty=0;
+        cout << "Receive error in Global!" << endl;
         return;
     }
 
-    Quote newquote(symbol, bidPx, bidSize / 100, buyerID, transactTime.getValue());
-    newquote.setordertype('7'); // Update as "trade" from global;
+    Quote newQuote{ symbol, bidPrice, static_cast<int>(bidSize.getValue()) / 100, buyerID, transactTime.getValue() };
+    newQuote.setordertype('7'); // Update as "trade" from Global
 
     long mili = timepara.past_milli(transactTime.getValue());
-    newquote.setmili(mili);
+    newQuote.setmili(mili);
 
-    if (!ordType) { // Quote
+    if (ordType == 0) { // Quote
+        FIX::OfferPx askPrice;
+        FIX::OfferSize askSize;
+
         FIX50SP2::Quote::NoPartyIDs partyGroup2;
-        message.getGroup(2, partyGroup2);
         FIX::PartyID sellerID;
+
+        message.get(askPrice);
+        message.get(askSize);
+
+        message.getGroup(2, partyGroup2);
         partyGroup2.getField(sellerID);
 
-        FIX::OfferPx offerPx;
-        FIX::OfferSize offerSize;
-        message.get(offerPx);
-        message.get(offerSize);
+        Quote newQuote2{ symbol, askPrice, static_cast<int>(askSize.getValue()), sellerID, transactTime.getValue() };
+        newQuote2.setordertype('8'); // Update as "ask" from Global
+        newQuote2.setmili(mili);
 
-        Quote newquote2(symbol, offerPx, offerSize, sellerID, transactTime.getValue());
-        // Quote(string stockname1, double price1, int size1, string destination1,string time1)
-        newquote2.setordertype('8'); // Update global ask
-        newquote2.setmili(mili);
-        newquote.setsize(bidSize);
-        newquote.setordertype('9'); // Update global bid;
+        newQuote.setsize(static_cast<int>(bidSize.getValue()));
+        newQuote.setordertype('9'); // Update as "bid" from Global
 
-        stockIt->second.buf_new_global(newquote2);
-        // cout<<"time: "<<(*it).first<<"   data: "<<(*it).second.getstockname()<<"  "<<(*it).second.gettime()<<"  "<<(*it).second.getprice()<<"  "<<(*it).second.getordertype()<<endl;
+        stockIt->second.buf_new_global(newQuote2);
     }
-    stockIt->second.buf_new_global(newquote);
+    stockIt->second.buf_new_global(newQuote);
 }

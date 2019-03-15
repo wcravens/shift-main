@@ -12,12 +12,12 @@ extern std::map<std::string, Stock> stocklist;
 
 /* static */ std::string FIXAcceptor::s_senderID;
 
-// Predefined constant FIX fields (To avoid recalculations):
-static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1"); // FIX BeginString
-static const auto& FIXFIELD_MDUPDATE_CHANGE = FIX::MDUpdateAction('1');
+// Predefined constant FIX message fields (to avoid recalculations):
+static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
+static const auto& FIXFIELD_MDUPDATEACTION_CHANGE = FIX::MDUpdateAction(FIX::MDUpdateAction_CHANGE);
 static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType(FIX::ExecType_TRADE);
-static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0); // Quantity open for further execution
-static const auto& FIXFIELD_CLIENTID = FIX::PartyRole(3); // 3 = Client ID in FIX4.2
+static const auto& FIXFIELD_LEAVQTY_0 = FIX::LeavesQty(0);
+static const auto& FIXFIELD_PARTYROLE_CLIENTID = FIX::PartyRole(FIX::PartyRole_CLIENT_ID);
 static const auto& FIXFIELD_EXECTYPE_ORDER_STATUS = FIX::ExecType(FIX::ExecType_ORDER_STATUS);
 static const auto& FIXFIELD_ORDSTATUS_NEW = FIX::OrdStatus(FIX::OrdStatus_NEW);
 static const auto& FIXFIELD_ORDSTATUS_PENDING_CANCEL = FIX::OrdStatus(FIX::OrdStatus_PENDING_CANCEL);
@@ -99,12 +99,12 @@ void FIXAcceptor::sendOrderBookUpdate2All(Newbook& update)
     FIX::Message message;
     FIX::Header& header = message.getHeader();
 
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    entryGroup.setField(::FIXFIELD_MDUPDATE_CHANGE); // Required by FIX
+    entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
     entryGroup.setField(FIX::MDEntryType(update.getbook()));
     entryGroup.setField(FIX::Symbol(update.getsymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getprice()));
@@ -132,7 +132,7 @@ void FIXAcceptor::sendExecutionReport2All(action& report)
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
 
@@ -152,12 +152,12 @@ void FIXAcceptor::sendExecutionReport2All(action& report)
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
-    idGroup1.set(::FIXFIELD_CLIENTID);
+    idGroup1.set(::FIXFIELD_PARTYROLE_CLIENTID);
     idGroup1.set(FIX::PartyID(report.trader_id1));
     message.addGroup(idGroup1);
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup2;
-    idGroup2.set(::FIXFIELD_CLIENTID);
+    idGroup2.set(::FIXFIELD_PARTYROLE_CLIENTID);
     idGroup2.set(FIX::PartyID(report.trader_id2));
     message.addGroup(idGroup2);
 
@@ -176,7 +176,7 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID)
 {
     FIX50SP2::SecurityList message;
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_SecurityList));
@@ -201,7 +201,7 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Quote
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
@@ -224,7 +224,7 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Quote
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    idGroup.set(::FIXFIELD_CLIENTID);
+    idGroup.set(::FIXFIELD_PARTYROLE_CLIENTID);
     idGroup.set(FIX::PartyID(confirmation.clientID));
     message.addGroup(idGroup);
 
@@ -233,12 +233,12 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Quote
 
 void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
 {
-    s_senderID = sessionID.getSenderCompID();
+    s_senderID = sessionID.getSenderCompID().getValue();
 }
 
 void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 {
-    std::string targetID = sessionID.getTargetCompID();
+    std::string targetID = sessionID.getTargetCompID().getValue();
     cout << "Target ID: " << targetID << " logon" << endl;
 
     // Check whether targetID already exists in target list
@@ -262,9 +262,9 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
  */
 void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) // override
 {
-    FIX::NoPartyIDs numOfGroup;
-    message.get(numOfGroup);
-    if (numOfGroup < 1) {
+    FIX::NoPartyIDs numOfGroups;
+    message.get(numOfGroups);
+    if (numOfGroups.getValue() < 1) {
         cout << "Cannot find Client ID in NewOrderSingle!" << endl;
         return;
     }
@@ -275,26 +275,26 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     FIX::OrdType ordType;
     FIX::Price price;
 
+    FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
+    FIX::PartyID clientID;
+
     message.get(orderID);
     message.get(symbol);
     message.get(orderQty);
     message.get(ordType);
     message.get(price);
 
-    FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    FIX::PartyID clientID;
     message.getGroup(1, idGroup);
     idGroup.get(clientID);
 
     long milli = timepara.past_milli();
     FIX::UtcTimeStamp utc_now = timepara.simulationTimestamp();
 
-    Quote quote(symbol, clientID, orderID, price, orderQty, ordType, utc_now);
+    Quote quote{ symbol.getValue(), clientID.getValue(), orderID.getValue(), price.getValue(), static_cast<int>(orderQty.getValue()), ordType.getValue(), utc_now };
     quote.setmili(milli);
 
-    // Input the newquote into buffer
-    std::map<std::string, Stock>::iterator stockIt;
-    stockIt = stocklist.find(symbol);
+    // Add new quote to buffer
+    auto stockIt = stocklist.find(symbol);
     if (stockIt != stocklist.end()) {
         stockIt->second.buf_new_local(quote);
     } else {
@@ -303,5 +303,5 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 
     // Send confirmation to client
     cout << "Sending confirmation: " << orderID << endl;
-    sendOrderConfirmation(sessionID.getTargetCompID(), { clientID, orderID, symbol, price, static_cast<int>(orderQty), ordType, utc_now });
+    sendOrderConfirmation(sessionID.getTargetCompID(), { clientID.getValue(), orderID.getValue(), symbol.getValue(), price.getValue(), static_cast<int>(orderQty.getValue()), ordType.getValue(), utc_now });
 }

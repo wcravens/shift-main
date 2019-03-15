@@ -15,8 +15,8 @@
 #include <shift/miscutils/terminal/Common.h>
 
 // Predefined constant FIX message fields (to avoid recalculations):
-static const auto& FIXFIELD_BEGSTR = FIX::BeginString("FIXT.1.1"); // FIX BEGIN STRING
-static const auto& FIXFIELD_EXEC_VENUE = FIX::PartyRole(73); // Execution Venue
+static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
+static const auto& FIXFIELD_PARTYROLE_EXECUTION_VENUE = FIX::PartyRole(FIX::PartyRole_EXECUTION_VENUE);
 
 /*static*/ std::string FIXAcceptor::s_senderID;
 
@@ -106,7 +106,7 @@ void FIXAcceptor::disconnectMatchingEngine()
     FIX::Message message;
     FIX::Header& header = message.getHeader();
 
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(FIXAcceptor::s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_Quote));
@@ -121,14 +121,14 @@ void FIXAcceptor::disconnectMatchingEngine()
     message.setField(FIX::QuoteID(shift::crossguid::newGuid().str()));
 
     FIX50SP2::Quote::NoPartyIDs partyGroup1;
-    partyGroup1.setField(FIXFIELD_EXEC_VENUE);
-    partyGroup1.setField( // keep the order of group1 and group2
+    partyGroup1.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);
+    partyGroup1.setField( // keep the order of partyGroup1 and partyGroup2
         'Q' == rawData.toq.front() ? FIX::PartyID(rawData.buyerID) : FIX::PartyID(rawData.exchangeID));
     message.addGroup(partyGroup1);
 
     if ('Q' == rawData.toq.front()) {
         FIX50SP2::Quote::NoPartyIDs partyGroup2;
-        partyGroup2.setField(FIXFIELD_EXEC_VENUE);
+        partyGroup2.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);
         partyGroup2.setField(FIX::PartyID(rawData.sellerID));
         message.addGroup(partyGroup2);
 
@@ -154,7 +154,7 @@ void FIXAcceptor::disconnectMatchingEngine()
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGSTR);
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(FIXAcceptor::s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_News));
@@ -199,17 +199,17 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
  */
 void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
-    FIX::NoPartyIDs numOfPartyGroup;
-    message.get(numOfPartyGroup);
-    if (numOfPartyGroup < 2) {
-        cout << "Cant find Group: NoPartyIDs\n";
+    FIX::NoPartyIDs numOfPartyGroups;
+    message.get(numOfPartyGroups);
+    if (numOfPartyGroups < 2) {
+        cout << "Cannot find enough Party IDs!" << endl;
         return;
     }
 
-    FIX::NoTrdRegTimestamps numOfTimeGroup;
-    message.get(numOfTimeGroup);
-    if (numOfTimeGroup < 2) {
-        cout << "Cant find Group: NoTrdRegTimestamps\n";
+    FIX::NoTrdRegTimestamps numOfTimestampGroups;
+    message.get(numOfTimestampGroups);
+    if (numOfTimestampGroups < 2) {
+        cout << "Cannot find enough Timestamps!" << endl;
         return;
     }
 
@@ -261,17 +261,17 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     TradingRecord trade{
         serverTime.getValue(),
         utc_exetime.getValue(),
-        std::string(symbol),
-        double(price),
-        int(size),
-        std::string(traderID1),
-        std::string(traderID2),
-        std::string(orderID1),
-        std::string(orderID2),
-        char(orderType1),
-        char(orderType2),
-        char(decision),
-        std::string(destination),
+        symbol.getValue(),
+        price.getValue(),
+        static_cast<int>(size.getValue()),
+        traderID1.getValue(),
+        traderID2.getValue(),
+        orderID1.getValue(),
+        orderID2.getValue(),
+        orderType1.getValue(),
+        orderType2.getValue(),
+        decision.getValue(),
+        destination.getValue(),
         utc_time1.getValue(),
         utc_time2.getValue()
     };
@@ -284,7 +284,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
  */
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
 {
-    const std::string targetID = sessionID.getTargetCompID();
+    const std::string targetID = sessionID.getTargetCompID().getValue();
 
     if (m_requestsProcessors.count(targetID)) {
         m_requestsProcessors[targetID]->enqueueNextDataRequest();
@@ -300,46 +300,46 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
  */
 void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
 {
-    const std::string targetID = sessionID.getTargetCompID();
+    const std::string targetID = sessionID.getTargetCompID().getValue();
 
     if (m_requestsProcessors.count(targetID) == 0) {
         m_requestsProcessors[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
     }
 
-    FIX::NoRelatedSym numOfGroup;
-    message.get(numOfGroup);
+    FIX::NoRelatedSym numOfGroups;
+    message.get(numOfGroups);
 
-    if (numOfGroup < 1) {
-        cout << "Cannot find any Symbol in SecurityList\n";
+    if (numOfGroups < 1) {
+        cout << "Cannot find any Symbol in SecurityList!" << endl;
         return;
     }
 
-    FIX::SecurityResponseID request_id;
-    FIX::SecurityListID start_time_s;
-    FIX::SecurityListRefID end_time_s;
+    FIX::SecurityResponseID requestID;
+    FIX::SecurityListID startTimeString;
+    FIX::SecurityListRefID endTimeString;
 
-    message.get(request_id);
-    message.get(start_time_s);
-    message.get(end_time_s);
+    message.get(requestID);
+    message.get(startTimeString);
+    message.get(endTimeString);
 
-    boost::posix_time::ptime start_time = boost::posix_time::from_iso_string(start_time_s);
-    boost::posix_time::ptime end_time = boost::posix_time::from_iso_string(end_time_s);
+    boost::posix_time::ptime startTime = boost::posix_time::from_iso_string(startTimeString);
+    boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(endTimeString);
     cout << "Request info:" << '\n'
-         << start_time_s << '\n'
-         << end_time_s << '\n'
-         << request_id << endl;
+         << startTimeString.getValue() << '\n'
+         << endTimeString.getValue() << '\n'
+         << requestID.getValue() << endl;
 
     FIX::Symbol symbol;
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
     std::vector<std::string> symbols;
 
-    for (int i = 1; i <= numOfGroup; ++i) {
-        message.getGroup(i, relatedSymGroup);
+    for (int i = 1; i <= numOfGroups.getValue(); ++i) {
+        message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
         relatedSymGroup.get(symbol);
-        cout << i << ":\t" << symbol << endl;
-        symbols.push_back(symbol);
+        cout << i << ":\t" << symbol.getValue() << endl;
+        symbols.push_back(symbol.getValue());
     }
     cout << endl;
 
-    m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(request_id), std::move(symbols), std::move(start_time), std::move(end_time));
+    m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(requestID), std::move(symbols), std::move(startTime), std::move(endTime));
 }

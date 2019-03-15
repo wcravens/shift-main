@@ -611,7 +611,7 @@ void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, d
     m_portfolioSummary.setTimestamp(); // current time
 }
 
-void shift::CoreClient::storeWaitingList(std::vector<shift::Order> waitingList)
+void shift::CoreClient::storeWaitingList(std::vector<shift::Order>&& waitingList)
 {
     std::lock_guard<std::mutex> lock(m_mutex_waitingList);
     m_waitingList = std::move(waitingList);

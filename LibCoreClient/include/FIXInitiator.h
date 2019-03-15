@@ -126,7 +126,7 @@ protected:
 
     // Symbols list and company names
     R_FIXSUB std::vector<std::string> getStockList();
-    R_TODO void fetchCompanyName(const std::string tickerName);
+    R_TODO void fetchCompanyName(std::string tickerName);
     R_FIXSUB void requestCompanyNames();
     R_FIXSUB std::map<std::string, std::string> getCompanyNames();
     R_FIXSUB std::string getCompanyName(const std::string& symbol);

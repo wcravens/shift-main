@@ -105,7 +105,7 @@ protected:
     bool attach(FIXInitiator& initiator);
     void storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);
     void storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
-    void storeWaitingList(std::vector<shift::Order> waitingList);
+    void storeWaitingList(std::vector<shift::Order>&& waitingList);
 
     // FIXInitiator callback methods
     virtual void receiveCandlestickData(const std::string& /*symbol*/, double /*open*/, double /*high*/, double /*low*/, double /*close*/, const std::string& /*timestamp*/) {}
