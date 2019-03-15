@@ -485,20 +485,20 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
 
     if (success) {
         s_sendOrderToME(order);
+    } else {
+        Report report{
+            m_username,
+            order.getID(),
+            order.getType(),
+            order.getSymbol(),
+            order.getSize(),
+            0, // executed size
+            order.getPrice(),
+            Order::Status::REJECTED,
+            "BC" // destination (rejected at the Brokerage Center)
+        };
+        FIXAcceptor::getInstance()->sendConfirmationReport(report);
     }
-    // else {
-    //     Report report{
-    //         m_username,
-    //         order.getID(),
-    //         order.getType(),
-    //         order.getSymbol(),
-    //         order.getSize(),
-    //         0, // executed size
-    //         order.getPrice(),
-    //         Order::Status::REJECTED
-    //     };
-    //     FIXAcceptor::getInstance()->sendConfirmationReport(report);
-    // }
 
     return success;
 }
