@@ -146,6 +146,12 @@ std::vector<shift::Order> shift::CoreClient::getSubmittedOrders()
     return submittedOrders;
 }
 
+shift::Order shift::CoreClient::getOrder(const std::string& orderID)
+{
+    std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
+    return m_submittedOrders[orderID];
+}
+
 int shift::CoreClient::getWaitingListSize()
 {
     return m_waitingListSize;
@@ -593,10 +599,16 @@ bool shift::CoreClient::attach(FIXInitiator& initiator)
 
 void shift::CoreClient::storeExecutionReport(const std::string& orderID, int executedSize, shift::Order::Status newStatus)
 {
-    // cout << "ExecutionReport: "
-    //      << orderID << "\t"
-    //      << executedSize << "\t"
-    //      << newStatus << endl;
+    std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
+
+    auto& order = m_submittedOrders[orderID];
+
+    order.setExecuted(order.getExecuted() + executedSize);
+    order.setStatus(newStatus);
+
+    if ((newStatus == shift::Order::Status::CANCELED) && (order.getSize() > order.getExecuted())) {
+        order.setStatus(shift::Order::Status::PARTIALLY_FILLED);
+    }
 }
 
 void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)

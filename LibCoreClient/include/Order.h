@@ -47,6 +47,7 @@ public:
     Type getType() const;
     const std::string& getSymbol() const;
     int getSize() const;
+    int getExecuted() const;
     double getPrice() const;
     const std::string& getID() const;
     Status getStatus() const;
@@ -56,6 +57,7 @@ public:
     void setType(Type type);
     void setSymbol(const std::string& symbol);
     void setSize(int size);
+    void setExecuted(int executed);
     void setPrice(double price);
     void setID(const std::string& id);
     void setStatus(Status status);
@@ -65,6 +67,7 @@ private:
     Type m_type;
     std::string m_symbol;
     int m_size;
+    int m_executed;
     double m_price;
     std::string m_id;
     Status m_status;

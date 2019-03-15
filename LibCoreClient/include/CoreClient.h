@@ -54,6 +54,7 @@ public:
     PortfolioItem getPortfolioItem(const std::string& symbol);
     int getSubmittedOrdersSize();
     std::vector<shift::Order> getSubmittedOrders();
+    shift::Order getOrder(const std::string& orderID);
     int getWaitingListSize();
     std::vector<shift::Order> getWaitingList();
     void cancelAllPendingOrders();

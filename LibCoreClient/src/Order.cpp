@@ -11,6 +11,7 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
     : m_type(type)
     , m_symbol(symbol)
     , m_size(size)
+    , m_executed(0)
     , m_price(price)
     , m_id(id)
     , m_status(shift::Order::Status::PENDING_NEW)
@@ -47,6 +48,11 @@ int shift::Order::getSize() const
     return m_size;
 }
 
+int shift::Order::getExecuted() const
+{
+    return m_executed;
+}
+
 double shift::Order::getPrice() const
 {
     return m_price;
@@ -80,6 +86,11 @@ void shift::Order::setSymbol(const std::string& symbol)
 void shift::Order::setSize(int size)
 {
     m_size = size;
+}
+
+void shift::Order::setExecuted(int executed)
+{
+    m_executed = executed;
 }
 
 void shift::Order::setPrice(double price)
