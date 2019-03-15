@@ -1,8 +1,3 @@
-// get local timezone offset & local time zone name
-var d = new Date();
-var n = d.getTimezoneOffset();
-var tz = jstz.determine();
-
 $(document).ready(function () {
     // highcharts dark theme settings
     HighchartsTheme = {
@@ -206,7 +201,7 @@ $(document).ready(function () {
 
     Highcharts.setOptions({
         global: {
-            timezoneOffset: n
+            useUTC: false,
         },
         lang: {
             rangeSelectorZoom: "Zoom:"
@@ -317,9 +312,16 @@ $(document).ready(function () {
         },
 
         title: {
-            text: php_symbol_companyName_map_json[localStorage.getItem("cur_symbol")] ?
-                (localStorage.getItem("cur_symbol") + " (" + php_symbol_companyName_map_json[localStorage.getItem("cur_symbol")].replace("?", "\'").replace("=", "\"") + ")")
-                : localStorage.getItem("cur_symbol"),
+            text: php_symbol_companyName_map_json[
+                    localStorage.getItem("cur_symbol")] ?
+                    (localStorage.getItem("cur_symbol")
+                            + " ("
+                            + php_symbol_companyName_map_json[localStorage
+                                    .getItem("cur_symbol")]
+                                    .replace("?", "\'")
+                                    .replace("=", "\"")
+                                    + ")")
+                    : localStorage.getItem("cur_symbol"),
             style: {
                 fontWeight: 'bold'
             }
@@ -351,12 +353,17 @@ $(document).ready(function () {
         Highcharts.Chart.prototype.callbacks.push(function (chart) {
             H.addEvent(chart.container, 'click', function (e) {
                 e = chart.pointer.normalize();
-                curPeriod.attr({ text: '<span style="color: #6f6f6f; font-weight: bold;">' + series.currentDataGrouping.count + ' ' + series.currentDataGrouping.unitName + (series.currentDataGrouping.count == 1 ? '' : 's') });
+                curPeriod.attr({
+                        text: '<span style="color: #6f6f6f; font-weight: bold;">'
+                        + series.currentDataGrouping.count
+                        + ' ' + series.currentDataGrouping.unitName
+                        + (series.currentDataGrouping.count == 1 ? '' : 's')
+                        });
             });
         });
     }(Highcharts));
 
-    var chart = new Highcharts.StockChart(highchartOptions);
+    let chart = new Highcharts.StockChart(highchartOptions);
     var series = chart.series[0];
 
     chart.renderer.label('Freq:', 11, 80, 'callout')
@@ -371,8 +378,9 @@ $(document).ready(function () {
         .add();
 
     // time zone name
-    var tzname = tz.name().replace(/^.*\//, "").replace("_", " ");
-    tzname = 'Local Time Zone: ' + tzname
+    let timezone = jstz.determine();
+    let tzname = timezone.name().replace(/^.*\//, "").replace("_", " ");
+    tzname = 'Local Time Zone: ' + tzname;
 
     chart.renderer.label(tzname, 6, 326, 'callout')
         .css({
@@ -398,24 +406,39 @@ $(document).ready(function () {
         })
         .add();
 
-    var conn = new ab.Session('ws://' + php_server_ip + ':8080',
+    let conn = new ab.Session('ws://' + php_server_ip + ':8080',
         function () {
             conn.subscribe('candleData_' + localStorage.getItem("cur_symbol"), function (topic, data) {
                 if (data.length && data.length > 0) {
                     for (var i = 0; i < data.length; i++) {
                         var mydata = data[i];
-                        series.addPoint([mydata.data.time * 1000, parseFloat(parseFloat(mydata.data.open).toFixed(2)), parseFloat(parseFloat(mydata.data.high).toFixed(2)), parseFloat(parseFloat(mydata.data.low).toFixed(2)), parseFloat(parseFloat(mydata.data.close).toFixed(2))], false);
+                        series.addPoint([mydata.data.time * 1000, 
+                                parseFloat(parseFloat(mydata.data.open).toFixed(2)),
+                                parseFloat(parseFloat(mydata.data.high).toFixed(2)),
+                                parseFloat(parseFloat(mydata.data.low).toFixed(2)),
+                                parseFloat(parseFloat(mydata.data.close).toFixed(2))],
+                                false);
                     }
-                    chart.redraw();
                 } else {
-                    series.addPoint([data.data.time * 1000, parseFloat(parseFloat(data.data.open).toFixed(2)), parseFloat(parseFloat(data.data.high).toFixed(2)), parseFloat(parseFloat(data.data.low).toFixed(2)), parseFloat(parseFloat(data.data.close).toFixed(2))], false);
-                    chart.redraw();
+                    series.addPoint([data.data.time * 1000,
+                            parseFloat(parseFloat(data.data.open).toFixed(2)),
+                            parseFloat(parseFloat(data.data.high).toFixed(2)),
+                            parseFloat(parseFloat(data.data.low).toFixed(2)),
+                            parseFloat(parseFloat(data.data.close).toFixed(2))],
+                            false);
                 }
-                curPeriod.attr({ text: '<span style="color: #6f6f6f; font-weight: bold;">' + series.currentDataGrouping.count + ' ' + series.currentDataGrouping.unitName + (series.currentDataGrouping.count == 1 ? '' : 's') });
+                chart.redraw();
+                curPeriod.attr({
+                        text: '<span style="color: #6f6f6f; font-weight: bold;">'
+                        + series.currentDataGrouping.count
+                        + ' '
+                        + series.currentDataGrouping.unitName
+                        + (series.currentDataGrouping.count == 1 ? '' : 's')
+                        });
             });
         },
         function () {
-            console.warn('WebSocket connchartection closed');
+            console.warn('WebSocket connection closed');
         },
         { 'skipSubprotocolCheck': true }
     );
