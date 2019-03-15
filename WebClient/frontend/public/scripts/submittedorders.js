@@ -32,7 +32,7 @@ $(document).ready(function () {
                     row.cells[cNum].innerHTML = orderTypeStrs[data.data[i].orderType];
                     row.cells[cNum].className = "text-right";
                     cNum++; // price
-                    row.cells[cNum].innerHTML = (data.data[i].orderType == "3" || data.data[i].orderType == "4") ? "" : numFloat(data.data[i].price);;
+                    row.cells[cNum].innerHTML = numFloat(data.data[i].price);
                     row.cells[cNum].className = "text-right";
                     cNum++; // order size
                     row.cells[cNum].innerHTML = numInt(data.data[i].shares);
