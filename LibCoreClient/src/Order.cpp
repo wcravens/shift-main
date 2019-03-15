@@ -13,8 +13,8 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
     , m_size(size)
     , m_price(price)
     , m_id(id)
-    , m_timestamp(std::chrono::system_clock::now())
     , m_status(shift::Order::Status::PENDING_NEW)
+    , m_timestamp(std::chrono::system_clock::now())
 {
     if (m_price <= 0.0) {
         m_price = 0.0;
@@ -57,14 +57,14 @@ const std::string& shift::Order::getID() const
     return m_id;
 }
 
-const std::chrono::system_clock::time_point& shift::Order::getTimestamp() const
-{
-    return m_timestamp;
-}
-
 shift::Order::Status shift::Order::getStatus() const
 {
     return m_status;
+}
+
+const std::chrono::system_clock::time_point& shift::Order::getTimestamp() const
+{
+    return m_timestamp;
 }
 
 void shift::Order::setType(shift::Order::Type type)
@@ -92,12 +92,12 @@ void shift::Order::setID(const std::string& id)
     m_id = id;
 }
 
-void shift::Order::setTimestamp()
-{
-    m_timestamp = std::chrono::system_clock::now();
-}
-
 void shift::Order::setStatus(shift::Order::Status status)
 {
     m_status = status;
+}
+
+void shift::Order::setTimestamp()
+{
+    m_timestamp = std::chrono::system_clock::now();
 }

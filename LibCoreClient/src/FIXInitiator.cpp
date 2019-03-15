@@ -908,6 +908,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     FIX::UnderlyingOptAttribute orderType;
     FIX::UnderlyingQty orderSize;
     FIX::UnderlyingPx orderPrice;
+    FIX::UnderlyingFXRateCalc orderStatus;
 
     message.get(username);
 
@@ -921,6 +922,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
         quoteSetGroup.get(orderType);
         quoteSetGroup.get(orderSize);
         quoteSetGroup.get(orderPrice);
+        quoteSetGroup.get(orderStatus);
 
         int size = static_cast<int>(orderSize.getValue());
 
@@ -934,9 +936,16 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 
             std::string symbol = m_originalName_symbol[originalName.getValue()];
 
-            shift::Order::Type type = static_cast<shift::Order::Type>(static_cast<char>(orderType.getValue()));
+            shift::Order order{
+                static_cast<shift::Order::Type>(static_cast<char>(orderType.getValue())),
+                symbol,
+                size,
+                orderPrice.getValue(),
+                orderID.getValue()
+            };
+            order.setStatus(static_cast<shift::Order::Status>(static_cast<char>(orderStatus.getValue())));
 
-            waitingList.push_back({ type, symbol, size, orderPrice.getValue(), orderID.getValue() });
+            waitingList.push_back(std::move(order));
         }
     }
 

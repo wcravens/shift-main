@@ -7,6 +7,7 @@ Order::Order(Order::Type type, const std::string& symbol, int size, double price
     , m_price(price)
     , m_id(id)
     , m_username(username)
+    , m_status(Order::Status::PENDING_NEW)
 {
 }
 
@@ -40,6 +41,11 @@ const std::string& Order::getUsername() const
     return m_username;
 }
 
+Order::Status Order::getStatus() const
+{
+    return m_status;
+}
+
 void Order::setType(Order::Type type)
 {
     m_type = type;
@@ -68,4 +74,9 @@ void Order::setID(const std::string& id)
 void Order::setUsername(const std::string& username)
 {
     m_username = username;
+}
+
+void Order::setStatus(Order::Status status)
+{
+    m_status = status;
 }

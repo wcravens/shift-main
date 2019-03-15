@@ -109,6 +109,7 @@ void RiskManagement::updateWaitingList(const Report& report)
     auto& order = it->second;
     if (order.getSize() > report.executedSize) {
         order.setSize(order.getSize() - report.executedSize);
+        order.setStatus(report.orderStatus);
     } else {
         m_waitingList.erase(it);
     }
@@ -177,228 +178,226 @@ void RiskManagement::processExecRpt()
 
         auto reportPtr = &m_execRptBuffer.front();
 
-        if (reportPtr->orderStatus == Order::Status::NEW || reportPtr->orderStatus == Order::Status::PENDING_CANCEL) { // confirmation report
-            FIXAcceptor::getInstance()->sendConfirmationReport(*reportPtr);
-            reportPtr = nullptr;
-            m_execRptBuffer.pop();
-            continue;
-        }
+        // if it is not a confirmation report
+        if (reportPtr->orderStatus != Order::Status::NEW && reportPtr->orderStatus != Order::Status::PENDING_CANCEL) {
 
-        if (reportPtr->orderStatus == Order::Status::FILLED) { // execution report
+            if (reportPtr->orderStatus == Order::Status::FILLED) { // execution report
 
-            if (reportPtr->orderType == Order::Type::MARKET_BUY || reportPtr->orderType == Order::Type::LIMIT_BUY) {
+                if (reportPtr->orderType == Order::Type::MARKET_BUY || reportPtr->orderType == Order::Type::LIMIT_BUY) {
 
-                std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
-                std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
-                std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
+                    std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
+                    std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
+                    std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
-                auto& item = m_portfolioItems[reportPtr->orderSymbol];
+                    auto& item = m_portfolioItems[reportPtr->orderSymbol];
 
-                const double price = reportPtr->orderPrice; // NP
-                const int buyShares = reportPtr->executedSize * 100; // NS
+                    const double price = reportPtr->orderPrice; // NP
+                    const int buyShares = reportPtr->executedSize * 100; // NS
 
-                double inc = 0.0;
+                    double inc = 0.0;
 
-                if (item.getShortShares() == 0) { // no current short positions
-                    item.addLongPrice(price, buyShares);
-                    item.addLongShares(buyShares);
-                } else {
-                    if (buyShares > item.getShortShares()) {
-                        inc = (item.getShortPrice() - price) * item.getShortShares(); // (OP - NP) * OS
-
-                        // all short positions are "consumed" and withholded money is returned
-                        m_porfolioSummary.returnBalance(item.getBorrowedBalance());
-                        item.resetBorrowedBalance();
-
-                        double rem = buyShares - item.getShortShares();
-                        item.addLongPrice(price, rem);
-                        item.addLongShares(rem);
-                        item.resetShortShares();
-                        item.resetShortPrice();
+                    if (item.getShortShares() == 0) { // no current short positions
+                        item.addLongPrice(price, buyShares);
+                        item.addLongShares(buyShares);
                     } else {
-                        inc = (item.getShortPrice() - price) * buyShares; // (OP - NP) * NS
+                        if (buyShares > item.getShortShares()) {
+                            inc = (item.getShortPrice() - price) * item.getShortShares(); // (OP - NP) * OS
 
-                        // some short positions are "consumed" and part of withheld money is returned
-                        double ret = item.getBorrowedBalance() * (double(buyShares) / double(item.getShortShares()));
-                        ret = std::floor(ret * std::pow(10, 2)) / std::pow(10, 2);
-                        m_porfolioSummary.returnBalance(ret);
-                        item.addBorrowedBalance(-ret);
+                            // all short positions are "consumed" and withholded money is returned
+                            m_porfolioSummary.returnBalance(item.getBorrowedBalance());
+                            item.resetBorrowedBalance();
 
-                        item.addShortShares(-buyShares);
-                        if (item.getShortShares() == 0) {
+                            double rem = buyShares - item.getShortShares();
+                            item.addLongPrice(price, rem);
+                            item.addLongShares(rem);
+                            item.resetShortShares();
                             item.resetShortPrice();
+                        } else {
+                            inc = (item.getShortPrice() - price) * buyShares; // (OP - NP) * NS
+
+                            // some short positions are "consumed" and part of withheld money is returned
+                            double ret = item.getBorrowedBalance() * (double(buyShares) / double(item.getShortShares()));
+                            ret = std::floor(ret * std::pow(10, 2)) / std::pow(10, 2);
+                            m_porfolioSummary.returnBalance(ret);
+                            item.addBorrowedBalance(-ret);
+
+                            item.addShortShares(-buyShares);
+                            if (item.getShortShares() == 0) {
+                                item.resetShortPrice();
+                            }
                         }
                     }
+
+                    // the user must pay for the share that were bought
+                    m_porfolioSummary.addBuyingPower(-buyShares * price);
+                    // but pending transaction price is returned (also updating total holding balance)
+                    m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * buyShares);
+
+                    m_pendingBidOrders[reportPtr->orderID].setSize(m_pendingBidOrders[reportPtr->orderID].getSize() - (buyShares / 100));
+                    reportPtr->currentSize = m_pendingBidOrders[reportPtr->orderID].getSize();
+
+                    if (m_pendingBidOrders[reportPtr->orderID].getSize() == 0) { // if pending transaction is completely fulfilled
+                        m_pendingBidOrders.erase(reportPtr->orderID); // it can be deleted
+                    } else {
+                        reportPtr->orderStatus = Order::Status::PARTIALLY_FILLED;
+                    }
+
+                    item.addPL(inc); // update instrument P&L
+                    m_porfolioSummary.addTotalPL(inc); // update portfolio P&L
+                    m_porfolioSummary.addTotalShares(buyShares); // update total trade shares
+
+                } else if (reportPtr->orderType == Order::Type::MARKET_SELL || reportPtr->orderType == Order::Type::LIMIT_SELL) {
+
+                    std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
+                    std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
+                    std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
+
+                    auto& item = m_portfolioItems[reportPtr->orderSymbol];
+
+                    const double price = reportPtr->orderPrice; // NP
+                    const int sellShares = reportPtr->executedSize * 100; // NS
+
+                    double inc = 0.0;
+
+                    if (m_pendingAskOrders[reportPtr->orderID].second == 0) { // no long shares were reserved for this order
+                        m_porfolioSummary.borrowBalance(price * sellShares); // all shares need to be borrowed
+                        item.addBorrowedBalance(price * sellShares);
+                        m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * sellShares;
+
+                        item.addShortPrice(price, sellShares);
+                        item.addShortShares(sellShares);
+                    } else {
+                        if (sellShares < m_pendingAskOrders[reportPtr->orderID].second) { // if enought shares were previously reserved
+                            inc = (price - item.getLongPrice()) * sellShares; // (NP - OP) * NS
+
+                            // update buying power for selling shares
+                            m_porfolioSummary.addBuyingPower(sellShares * price);
+
+                            item.addLongShares(-sellShares);
+                            if (item.getLongShares() == 0) {
+                                item.resetLongPrice();
+                            }
+
+                            m_pendingShortUnitAmount[reportPtr->orderSymbol] -= sellShares;
+                            m_pendingAskOrders[reportPtr->orderID].second -= sellShares; // update reservation of shares of this transaction
+                        } else {
+                            inc = (price - item.getLongPrice()) * m_pendingAskOrders[reportPtr->orderID].second; // (NP - OP) * OS
+
+                            // update buying power for selling long shares
+                            m_porfolioSummary.addBuyingPower(m_pendingAskOrders[reportPtr->orderID].second * price);
+
+                            double rem = sellShares - m_pendingAskOrders[reportPtr->orderID].second;
+                            m_porfolioSummary.borrowBalance(price * rem); // the remainder of the shares need to be borrowed
+                            item.addBorrowedBalance(price * rem);
+                            m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * rem;
+
+                            item.addShortPrice(price, rem);
+                            item.addShortShares(rem);
+                            item.addLongShares(-m_pendingAskOrders[reportPtr->orderID].second);
+                            if (item.getLongShares() == 0) {
+                                item.resetLongPrice();
+                            }
+
+                            m_pendingShortUnitAmount[reportPtr->orderSymbol] -= m_pendingAskOrders[reportPtr->orderID].second;
+                            m_pendingAskOrders[reportPtr->orderID].second = 0; // all reserved shares of this transactions were already used
+                        }
+                    }
+
+                    m_pendingAskOrders[reportPtr->orderID].first.setSize(m_pendingAskOrders[reportPtr->orderID].first.getSize() - (sellShares / 100));
+                    reportPtr->currentSize = m_pendingAskOrders[reportPtr->orderID].first.getSize();
+
+                    if (m_pendingAskOrders[reportPtr->orderID].first.getSize() == 0) { // if pending transaction is completely fulfilled
+                        m_pendingAskOrders.erase(reportPtr->orderID); // it can be deleted
+                    } else {
+                        reportPtr->orderStatus = Order::Status::PARTIALLY_FILLED;
+                    }
+
+                    item.addPL(inc); // update instrument P&L
+                    m_porfolioSummary.addTotalPL(inc); // update portfolio P&L
+                    m_porfolioSummary.addTotalShares(sellShares); // update total trade shares
                 }
 
-                // the user must pay for the share that were bought
-                m_porfolioSummary.addBuyingPower(-buyShares * price);
-                // but pending transaction price is returned (also updating total holding balance)
-                m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * buyShares);
-
-                m_pendingBidOrders[reportPtr->orderID].setSize(m_pendingBidOrders[reportPtr->orderID].getSize() - (buyShares / 100));
-                reportPtr->currentSize = m_pendingBidOrders[reportPtr->orderID].getSize();
-
-                if (m_pendingBidOrders[reportPtr->orderID].getSize() == 0) { // if pending transaction is completely fulfilled
-                    m_pendingBidOrders.erase(reportPtr->orderID); // it can be deleted
-                } else {
-                    reportPtr->orderStatus = Order::Status::PARTIALLY_FILLED;
-                }
-
-                item.addPL(inc); // update instrument P&L
-                m_porfolioSummary.addTotalPL(inc); // update portfolio P&L
-                m_porfolioSummary.addTotalShares(buyShares); // update total trade shares
-
-            } else if (reportPtr->orderType == Order::Type::MARKET_SELL || reportPtr->orderType == Order::Type::LIMIT_SELL) {
+            } else if (reportPtr->orderStatus == Order::Status::CANCELED) { // cancellation report
 
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
-                std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
                 std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
 
-                auto& item = m_portfolioItems[reportPtr->orderSymbol];
+                const int cancelShares = reportPtr->executedSize * 100;
 
-                const double price = reportPtr->orderPrice; // NP
-                const int sellShares = reportPtr->executedSize * 100; // NS
+                if (reportPtr->orderType == Order::Type::CANCEL_BID) {
+                    // pending transaction price is returned
+                    m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * cancelShares);
 
-                double inc = 0.0;
+                    m_pendingBidOrders[reportPtr->orderID].setSize(m_pendingBidOrders[reportPtr->orderID].getSize() - (cancelShares / 100));
 
-                if (m_pendingAskOrders[reportPtr->orderID].second == 0) { // no long shares were reserved for this order
-                    m_porfolioSummary.borrowBalance(price * sellShares); // all shares need to be borrowed
-                    item.addBorrowedBalance(price * sellShares);
-                    m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * sellShares;
+                    if (m_pendingBidOrders[reportPtr->orderID].getSize() == 0) { // if pending transaction is completely cancelled
+                        m_pendingBidOrders.erase(reportPtr->orderID); // it can be deleted
+                    }
+                } else if (reportPtr->orderType == Order::Type::CANCEL_ASK) {
+                    const int shortShares = m_pendingAskOrders[reportPtr->orderID].first.getSize() * 100 - m_pendingAskOrders[reportPtr->orderID].second;
 
-                    item.addShortPrice(price, sellShares);
-                    item.addShortShares(sellShares);
-                } else {
-                    if (sellShares < m_pendingAskOrders[reportPtr->orderID].second) { // if enought shares were previously reserved
-                        inc = (price - item.getLongPrice()) * sellShares; // (NP - OP) * NS
-
-                        // update buying power for selling shares
-                        m_porfolioSummary.addBuyingPower(sellShares * price);
-
-                        item.addLongShares(-sellShares);
-                        if (item.getLongShares() == 0) {
-                            item.resetLongPrice();
-                        }
-
-                        m_pendingShortUnitAmount[reportPtr->orderSymbol] -= sellShares;
-                        m_pendingAskOrders[reportPtr->orderID].second -= sellShares; // update reservation of shares of this transaction
+                    if (cancelShares < shortShares) {
+                        m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * cancelShares;
                     } else {
-                        inc = (price - item.getLongPrice()) * m_pendingAskOrders[reportPtr->orderID].second; // (NP - OP) * OS
+                        m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * shortShares;
+                        m_pendingShortUnitAmount[reportPtr->orderSymbol] -= (cancelShares - shortShares);
+                        m_pendingAskOrders[reportPtr->orderID].second -= (cancelShares - shortShares);
+                    }
 
-                        // update buying power for selling long shares
-                        m_porfolioSummary.addBuyingPower(m_pendingAskOrders[reportPtr->orderID].second * price);
+                    m_pendingAskOrders[reportPtr->orderID].first.setSize(m_pendingAskOrders[reportPtr->orderID].first.getSize() - (cancelShares / 100));
 
-                        double rem = sellShares - m_pendingAskOrders[reportPtr->orderID].second;
-                        m_porfolioSummary.borrowBalance(price * rem); // the remainder of the shares need to be borrowed
-                        item.addBorrowedBalance(price * rem);
-                        m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * rem;
-
-                        item.addShortPrice(price, rem);
-                        item.addShortShares(rem);
-                        item.addLongShares(-m_pendingAskOrders[reportPtr->orderID].second);
-                        if (item.getLongShares() == 0) {
-                            item.resetLongPrice();
-                        }
-
-                        m_pendingShortUnitAmount[reportPtr->orderSymbol] -= m_pendingAskOrders[reportPtr->orderID].second;
-                        m_pendingAskOrders[reportPtr->orderID].second = 0; // all reserved shares of this transactions were already used
+                    if (m_pendingAskOrders[reportPtr->orderID].first.getSize() == 0) { // if pending transaction is completely cancelled
+                        m_pendingAskOrders.erase(reportPtr->orderID); // it can be deleted
                     }
                 }
-
-                m_pendingAskOrders[reportPtr->orderID].first.setSize(m_pendingAskOrders[reportPtr->orderID].first.getSize() - (sellShares / 100));
-                reportPtr->currentSize = m_pendingAskOrders[reportPtr->orderID].first.getSize();
-
-                if (m_pendingAskOrders[reportPtr->orderID].first.getSize() == 0) { // if pending transaction is completely fulfilled
-                    m_pendingAskOrders.erase(reportPtr->orderID); // it can be deleted
-                } else {
-                    reportPtr->orderStatus = Order::Status::PARTIALLY_FILLED;
-                }
-
-                item.addPL(inc); // update instrument P&L
-                m_porfolioSummary.addTotalPL(inc); // update portfolio P&L
-                m_porfolioSummary.addTotalShares(sellShares); // update total trade shares
             }
 
-        } else if (reportPtr->orderStatus == Order::Status::CANCELED) { // cancellation report
+            bool wasPortfolioSent = false; // to postpone DB writes until lock guards are released
+            {
+                std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
+                std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-            std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
-            std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
+                s_sendPortfolioSummaryToClient(m_username, m_porfolioSummary);
+                s_sendPortfolioItemToClient(m_username, m_portfolioItems[reportPtr->orderSymbol]);
 
-            const int cancelShares = reportPtr->executedSize * 100;
+                wasPortfolioSent = true;
+            }
+            if (!DBConnector::s_isPortfolioDBReadOnly && wasPortfolioSent) {
+                const auto& item = m_portfolioItems[reportPtr->orderSymbol];
+                auto lock{ DBConnector::getInstance()->lockPSQL() };
 
-            if (reportPtr->orderType == Order::Type::CANCEL_BID) {
-                // pending transaction price is returned
-                m_porfolioSummary.releaseBalance(m_pendingBidOrders[reportPtr->orderID].getPrice() * cancelShares);
+                DBConnector::getInstance()->doQuery(
+                    "UPDATE portfolio_items" // presume that we have got the user's uuid already in it
+                    "\n"
+                    "SET borrowed_balance = "
+                        + std::to_string(item.getBorrowedBalance())
+                        + ", pl = " + std::to_string(item.getPL())
+                        + ", long_price = " + std::to_string(item.getLongPrice())
+                        + ", short_price = " + std::to_string(item.getShortPrice())
+                        + ", long_shares = " + std::to_string(item.getLongShares())
+                        + ", short_shares = " + std::to_string(item.getShortShares())
+                        + "\n" // PK == (id, symbol):
+                          "WHERE symbol = '"
+                        + reportPtr->orderSymbol + "' AND id = (SELECT id FROM traders WHERE username = '"
+                        + m_username + "');",
+                    COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_username + "]!\n" NO_COLOR);
 
-                m_pendingBidOrders[reportPtr->orderID].setSize(m_pendingBidOrders[reportPtr->orderID].getSize() - (cancelShares / 100));
-
-                if (m_pendingBidOrders[reportPtr->orderID].getSize() == 0) { // if pending transaction is completely cancelled
-                    m_pendingBidOrders.erase(reportPtr->orderID); // it can be deleted
-                }
-            } else if (reportPtr->orderType == Order::Type::CANCEL_ASK) {
-                const int shortShares = m_pendingAskOrders[reportPtr->orderID].first.getSize() * 100 - m_pendingAskOrders[reportPtr->orderID].second;
-
-                if (cancelShares < shortShares) {
-                    m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * cancelShares;
-                } else {
-                    m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * shortShares;
-                    m_pendingShortUnitAmount[reportPtr->orderSymbol] -= (cancelShares - shortShares);
-                    m_pendingAskOrders[reportPtr->orderID].second -= (cancelShares - shortShares);
-                }
-
-                m_pendingAskOrders[reportPtr->orderID].first.setSize(m_pendingAskOrders[reportPtr->orderID].first.getSize() - (cancelShares / 100));
-
-                if (m_pendingAskOrders[reportPtr->orderID].first.getSize() == 0) { // if pending transaction is completely cancelled
-                    m_pendingAskOrders.erase(reportPtr->orderID); // it can be deleted
-                }
+                DBConnector::getInstance()->doQuery(
+                    "UPDATE portfolio_summary" // presume that we have got the user's uuid already in it
+                    "\n"
+                    "SET buying_power = "
+                        + std::to_string(m_porfolioSummary.getBuyingPower())
+                        + ", holding_balance = " + std::to_string(m_porfolioSummary.getHoldingBalance())
+                        + ", borrowed_balance = " + std::to_string(m_porfolioSummary.getBorrowedBalance())
+                        + ", total_pl = " + std::to_string(m_porfolioSummary.getTotalPL())
+                        + ", total_shares = " + std::to_string(m_porfolioSummary.getTotalShares())
+                        + "\n" // PK == id:
+                          "WHERE id = (SELECT id FROM traders WHERE username = '"
+                        + m_username + "');",
+                    COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_username + "]!\n" NO_COLOR);
             }
         }
 
-        bool wasPortfolioSent = false; // to postpone DB writes until lock guards are released
-        {
-            std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
-            std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
-
-            s_sendPortfolioSummaryToClient(m_username, m_porfolioSummary);
-            s_sendPortfolioItemToClient(m_username, m_portfolioItems[reportPtr->orderSymbol]);
-
-            wasPortfolioSent = true;
-        }
-        if (!DBConnector::s_isPortfolioDBReadOnly && wasPortfolioSent) {
-            const auto& item = m_portfolioItems[reportPtr->orderSymbol];
-            auto lock{ DBConnector::getInstance()->lockPSQL() };
-
-            DBConnector::getInstance()->doQuery(
-                "UPDATE portfolio_items" // presume that we have got the user's uuid already in it
-                "\n"
-                "SET borrowed_balance = "
-                    + std::to_string(item.getBorrowedBalance())
-                    + ", pl = " + std::to_string(item.getPL())
-                    + ", long_price = " + std::to_string(item.getLongPrice())
-                    + ", short_price = " + std::to_string(item.getShortPrice())
-                    + ", long_shares = " + std::to_string(item.getLongShares())
-                    + ", short_shares = " + std::to_string(item.getShortShares())
-                    + "\n" // PK == (id, symbol):
-                      "WHERE symbol = '"
-                    + reportPtr->orderSymbol + "' AND id = (SELECT id FROM traders WHERE username = '"
-                    + m_username + "');",
-                COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_username + "]!\n" NO_COLOR);
-
-            DBConnector::getInstance()->doQuery(
-                "UPDATE portfolio_summary" // presume that we have got the user's uuid already in it
-                "\n"
-                "SET buying_power = "
-                    + std::to_string(m_porfolioSummary.getBuyingPower())
-                    + ", holding_balance = " + std::to_string(m_porfolioSummary.getHoldingBalance())
-                    + ", borrowed_balance = " + std::to_string(m_porfolioSummary.getBorrowedBalance())
-                    + ", total_pl = " + std::to_string(m_porfolioSummary.getTotalPL())
-                    + ", total_shares = " + std::to_string(m_porfolioSummary.getTotalShares())
-                    + "\n" // PK == id:
-                      "WHERE id = (SELECT id FROM traders WHERE username = '"
-                    + m_username + "');",
-                COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_username + "]!\n" NO_COLOR);
-        }
         updateWaitingList(*reportPtr);
         sendWaitingList();
         FIXAcceptor::getInstance()->sendConfirmationReport(*reportPtr);

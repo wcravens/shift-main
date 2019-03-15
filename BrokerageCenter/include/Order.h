@@ -35,6 +35,7 @@ struct Order {
     double getPrice() const;
     const std::string& getID() const;
     const std::string& getUsername() const;
+    Status getStatus() const;
 
     // Setters
     void setType(Type type);
@@ -43,6 +44,7 @@ struct Order {
     void setPrice(double price);
     void setID(const std::string& id);
     void setUsername(const std::string& username);
+    void setStatus(Status status);
 
 private:
     Type m_type;
@@ -51,4 +53,5 @@ private:
     double m_price;
     std::string m_id;
     std::string m_username;
+    Status m_status;
 };
