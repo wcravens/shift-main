@@ -597,16 +597,28 @@ bool shift::CoreClient::attach(FIXInitiator& initiator)
     return true;
 }
 
-void shift::CoreClient::storeExecutionReport(const std::string& orderID, int executedSize, shift::Order::Status newStatus)
+void shift::CoreClient::storeExecutionReport(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus)
 {
     std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
 
     auto& order = m_submittedOrders[orderID];
 
-    order.setExecuted(order.getExecuted() + executedSize);
+    int newExecuted = order.getExecuted() + executedSize;
+    double newPrice = order.getPrice();
+
+    if (executedSize > 0) {
+        if (order.getExecuted() > 0) {
+            newPrice = ((order.getPrice() / order.getExecuted()) + (executedPrice / executedSize)) * newExecuted;
+        } else {
+            newPrice = executedPrice;
+        }
+    }
+
+    order.setExecuted(newExecuted);
+    order.setPrice(newPrice);
     order.setStatus(newStatus);
 
-    if ((newStatus == shift::Order::Status::CANCELED) && (order.getSize() > order.getExecuted())) {
+    if ((newStatus == shift::Order::Status::CANCELED) && (order.getSize() > newExecuted)) {
         order.setStatus(shift::Order::Status::PARTIALLY_FILLED);
     }
 }
