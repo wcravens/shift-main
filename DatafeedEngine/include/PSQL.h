@@ -62,7 +62,7 @@ public:
     bool insertTradeAndQuoteRecords(std::string csvName, std::string tableName);
 
     /*@brief Fetch chunk of Trade & Quote records from database and sends them to matching engine via FIXAcceptor */
-    bool readSendRawData(std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, std::string targetID);
+    bool readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime);
 
     // /*@brief Check if Trade & Quote is empty */
     // long checkEmpty(std::string tableName);

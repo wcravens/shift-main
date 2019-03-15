@@ -160,19 +160,19 @@ void RequestsProcessorPerTarget::processRequests()
         ,
         [](std::vector<std::promise<bool>> proms /* owns promises by transfering/moving */
             ,
-            std::string requestID, std::string targetID) {
+            std::string targetID, std::string requestID) {
             bool isPerfect = true;
 
             for (auto& prom : proms)
                 isPerfect &= prom.get_future().get();
 
-            s_announceDataReady(requestID, targetID);
+            s_announceDataReady(targetID, requestID);
 
             return isPerfect;
         } // []{}
 
         ,
-        std::move(proms), marketReq.getRequestID(), targetID
+        std::move(proms), targetID, marketReq.getRequestID()
         /* All these arguments will be used to create corresponding value(non-reference) objects for std::async's internal use.
                     If the argument is std::move-ed, then such object is move-constructed, otherwise copy-constructed.
                     After these, those objects will again move-constructs the lambda's parameters.
@@ -184,14 +184,14 @@ void RequestsProcessorPerTarget::processRequests()
 }
 
 /**@brief Announces requested data is ready to send. */
-/*static*/ void RequestsProcessorPerTarget::s_announceDataReady(const std::string& requestID, const std::string& targetID)
+/*static*/ void RequestsProcessorPerTarget::s_announceDataReady(const std::string& targetID, const std::string& requestID)
 {
     static std::mutex mtxReadyMsg; // Its only purpose is to ensure atomically print message and send signal at the same time. Its lifetime will last from first time the program encountered it, to when the entire DE program terminates.
     std::lock_guard<std::mutex> guard(mtxReadyMsg);
     cout << '\n'
          << COLOR_PROMPT "Ready to send chunk to " << targetID << NO_COLOR << '\n'
          << endl;
-    FIXAcceptor::sendNotice("READY", requestID, targetID);
+    FIXAcceptor::sendNotice(targetID, requestID, "READY");
 }
 
 /**@brief Processor helper for one Next Data request.
@@ -239,11 +239,11 @@ void RequestsProcessorPerTarget::processRequests()
 
     size_t cnt = 0;
     for (const auto& symbol : symbols) {
-        if (db.readSendRawData(symbol, sendFrom, sendTo, targetID))
+        if (db.readSendRawData(targetID, symbol, sendFrom, sendTo))
             cout << '(' << ++cnt << '/' << symbols.size() << ")\n";
     }
 
-    FIXAcceptor::sendNotice("SENDFINISH", lastMarketRequestPtr->getRequestID(), targetID);
+    FIXAcceptor::sendNotice(targetID, lastMarketRequestPtr->getRequestID(), "SENDFINISH");
 
     lastMarketRequestPtr->updateTimeStart(sendTo);
 

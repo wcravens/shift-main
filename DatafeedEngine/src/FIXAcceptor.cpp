@@ -99,9 +99,34 @@ void FIXAcceptor::disconnectMatchingEngine()
 }
 
 /**
+ * @brief For notifying ME requested works were done
+ * 
+ * @param text: Indicate the meaning/type of the notice
+ */
+/* static */ void FIXAcceptor::sendNotice(const std::string& targetID, const std::string& requestID, const std::string& text)
+{
+    FIX::Message message;
+
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+    header.setField(FIX::SenderCompID(FIXAcceptor::s_senderID));
+    header.setField(FIX::TargetCompID(targetID));
+    header.setField(FIX::MsgType(FIX::MsgType_News));
+
+    // The RequestID of requested job
+    message.setField(FIX::Headline(requestID));
+    // Notice message
+    FIX50SP2::News::NoLinesOfText textGroup;
+    textGroup.set(FIX::Text(text));
+    message.addGroup(textGroup);
+
+    FIX::Session::sendToTarget(message);
+}
+
+/**
  * @brief Sends trade or quote data to ME.
  */
-/* static */ void FIXAcceptor::sendRawData(const RawData& rawData, const std::string& targetID)
+/* static */ void FIXAcceptor::sendRawData(const std::string& targetID, const RawData& rawData)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -144,31 +169,6 @@ void FIXAcceptor::disconnectMatchingEngine()
     FIX::Session::sendToTarget(message);
 }
 
-/**
- * @brief For notifying ME requested works were done
- * 
- * @param text: Indicate the meaning/type of the notice
- */
-/* static */ void FIXAcceptor::sendNotice(const std::string& text, const std::string& requestID, const std::string& targetID)
-{
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(FIXAcceptor::s_senderID));
-    header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_News));
-
-    // The RequestID of requested job
-    message.setField(FIX::Headline(requestID));
-    // Notice message
-    FIX50SP2::News::NoLinesOfText textGroup;
-    textGroup.set(FIX::Text(text));
-    message.addGroup(textGroup);
-
-    FIX::Session::sendToTarget(message);
-}
-
 void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
 {
     cout << "FIX:Create - " << sessionID << endl;
@@ -191,6 +191,71 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
 {
     crack(message, sessionID);
+}
+
+/** 
+ * @brief The FIX message handler of the acceptor.
+ *        Identifies message types and push to processor accordingly.
+ */
+void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
+{
+    const std::string targetID = sessionID.getTargetCompID().getValue();
+
+    if (m_requestsProcessors.count(targetID) == 0) {
+        m_requestsProcessors[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
+    }
+
+    FIX::NoRelatedSym numOfGroups;
+    message.get(numOfGroups);
+
+    if (numOfGroups < 1) {
+        cout << "Cannot find any Symbol in SecurityList!" << endl;
+        return;
+    }
+
+    FIX::SecurityResponseID requestID;
+    FIX::SecurityListID startTimeString;
+    FIX::SecurityListRefID endTimeString;
+
+    message.get(requestID);
+    message.get(startTimeString);
+    message.get(endTimeString);
+
+    boost::posix_time::ptime startTime = boost::posix_time::from_iso_string(startTimeString);
+    boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(endTimeString);
+    cout << "Request info:" << '\n'
+         << startTimeString.getValue() << '\n'
+         << endTimeString.getValue() << '\n'
+         << requestID.getValue() << endl;
+
+    FIX::Symbol symbol;
+    FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
+    std::vector<std::string> symbols;
+
+    for (int i = 1; i <= numOfGroups.getValue(); ++i) {
+        message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
+        relatedSymGroup.get(symbol);
+        cout << i << ":\t" << symbol.getValue() << endl;
+        symbols.push_back(symbol.getValue());
+    }
+    cout << endl;
+
+    m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(requestID), std::move(symbols), std::move(startTime), std::move(endTime));
+}
+
+/** 
+ * @brief receive the market data request from ME
+ */
+void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
+{
+    const std::string targetID = sessionID.getTargetCompID().getValue();
+
+    if (m_requestsProcessors.count(targetID)) {
+        m_requestsProcessors[targetID]->enqueueNextDataRequest();
+    } else {
+        cout << COLOR_ERROR "ERROR: No market data request from " << targetID << NO_COLOR << endl;
+        return;
+    }
 }
 
 /**
@@ -277,69 +342,4 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     };
     PSQLManager::getInstance().insertTradingRecord(trade);
     // }
-}
-
-/** 
- * @brief receive the market data request from ME
- */
-void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
-{
-    const std::string targetID = sessionID.getTargetCompID().getValue();
-
-    if (m_requestsProcessors.count(targetID)) {
-        m_requestsProcessors[targetID]->enqueueNextDataRequest();
-    } else {
-        cout << COLOR_ERROR "ERROR: No market data request from " << targetID << NO_COLOR << endl;
-        return;
-    }
-}
-
-/** 
- * @brief The FIX message handler of the acceptor.
- *        Identifies message types and push to processor accordingly.
- */
-void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
-{
-    const std::string targetID = sessionID.getTargetCompID().getValue();
-
-    if (m_requestsProcessors.count(targetID) == 0) {
-        m_requestsProcessors[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
-    }
-
-    FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
-
-    if (numOfGroups < 1) {
-        cout << "Cannot find any Symbol in SecurityList!" << endl;
-        return;
-    }
-
-    FIX::SecurityResponseID requestID;
-    FIX::SecurityListID startTimeString;
-    FIX::SecurityListRefID endTimeString;
-
-    message.get(requestID);
-    message.get(startTimeString);
-    message.get(endTimeString);
-
-    boost::posix_time::ptime startTime = boost::posix_time::from_iso_string(startTimeString);
-    boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(endTimeString);
-    cout << "Request info:" << '\n'
-         << startTimeString.getValue() << '\n'
-         << endTimeString.getValue() << '\n'
-         << requestID.getValue() << endl;
-
-    FIX::Symbol symbol;
-    FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
-    std::vector<std::string> symbols;
-
-    for (int i = 1; i <= numOfGroups.getValue(); ++i) {
-        message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
-        relatedSymGroup.get(symbol);
-        cout << i << ":\t" << symbol.getValue() << endl;
-        symbols.push_back(symbol.getValue());
-    }
-    cout << endl;
-
-    m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(requestID), std::move(symbols), std::move(startTime), std::move(endTime));
 }

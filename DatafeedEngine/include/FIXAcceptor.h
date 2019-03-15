@@ -41,8 +41,8 @@ public:
     void connectMatchingEngine(const std::string& configFile, bool verbose = false);
     void disconnectMatchingEngine();
 
-    static void sendRawData(const RawData& rawData, const std::string& targetID);
-    static void sendNotice(const std::string& text, const std::string& requestID, const std::string& targetID);
+    static void sendNotice(const std::string& targetID, const std::string& requestID, const std::string& text);
+    static void sendRawData(const std::string& targetID, const RawData& rawData);
 
 private:
     FIXAcceptor();
@@ -55,10 +55,9 @@ private:
     void toApp(FIX::Message&, const FIX::SessionID&) throw(FIX::DoNotSend) override {}
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
-    // Receive execution report and save it into database
-    void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override;
-    void onMessage(const FIX50SP2::MarketDataRequest&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
+    void onMessage(const FIX50SP2::MarketDataRequest&, const FIX::SessionID&) override;
+    void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override; // Receive execution report and save it into database
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;

@@ -37,7 +37,7 @@ public:
 private:
     void processRequests();
 
-    static void s_announceDataReady(const std::string& requestID, const std::string& targetID);
+    static void s_announceDataReady(const std::string& targetID, const std::string& requestID);
 
     std::mutex m_mtxRequest; ///> One per target; for guarding all queues
     std::condition_variable m_cvQueues; ///> For events of all queues

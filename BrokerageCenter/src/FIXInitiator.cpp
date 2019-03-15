@@ -137,6 +137,84 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
     crack(message, sessionID); // Message is message type
 }
 
+/*
+ * @brief Receive security list from ME. Only run once each system session.
+ */
+void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
+{
+    // This test is required because if there is a disconnection between ME and BC,
+    // the ME will send the security list again during the reconnection procedure.
+    if (BCDocuments::s_isSecurityListReady)
+        return;
+
+    FIX::NoRelatedSym numOfGroups;
+    message.get(numOfGroups);
+    if (numOfGroups < 1) {
+        cout << "Cannot find any Symbol in SecurityList!" << endl;
+        return;
+    }
+
+    FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
+    FIX::Symbol symbol;
+
+    auto* docs = BCDocuments::getInstance();
+    for (int i = 1; i <= numOfGroups.getValue(); i++) {
+        message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
+        relatedSymGroup.get(symbol);
+
+        docs->addSymbol(symbol.getValue());
+        docs->attachOrderBookToSymbol(symbol.getValue());
+        docs->attachCandlestickDataToSymbol(symbol.getValue());
+    }
+
+    // Now, it's safe to advance all routines that *read* permanent data structures created above:
+    BCDocuments::s_isSecurityListReady = true;
+}
+
+/**
+ * @brief Receive order book updates
+ */
+void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
+{
+    FIX::NoMDEntries numOfEntries;
+    message.get(numOfEntries);
+    if (numOfEntries < 1) {
+        cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
+        return;
+    }
+
+    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
+
+    FIX::MDEntryType bookType;
+    FIX::Symbol symbol;
+    FIX::MDEntryPx price;
+    FIX::MDEntrySize size;
+    FIX::MDEntryDate date;
+    FIX::MDEntryTime daytime;
+    FIX::MDMkt destination;
+
+    message.getGroup(1, entryGroup);
+    entryGroup.get(bookType);
+    entryGroup.get(symbol);
+    entryGroup.get(price);
+    entryGroup.get(size);
+    entryGroup.get(date);
+    entryGroup.get(daytime);
+    entryGroup.get(destination);
+
+    OrderBookEntry update{
+        static_cast<OrderBookEntry::Type>(static_cast<char>(bookType.getValue())),
+        symbol.getValue(),
+        price.getValue(),
+        static_cast<int>(size.getValue()),
+        destination.getValue(),
+        date.getValue(),
+        daytime.getValue()
+    };
+
+    BCDocuments::getInstance()->onNewOBEntryForOrderBook(symbol.getValue(), update);
+}
+
 /**
  * @brief Deal with incoming messages which type is Execution Report
  */
@@ -338,82 +416,4 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         } break;
         } // switch
     }
-}
-
-/**
- * @brief Receive order book updates
- */
-void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
-{
-    FIX::NoMDEntries numOfEntries;
-    message.get(numOfEntries);
-    if (numOfEntries < 1) {
-        cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
-        return;
-    }
-
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-
-    FIX::MDEntryType bookType;
-    FIX::Symbol symbol;
-    FIX::MDEntryPx price;
-    FIX::MDEntrySize size;
-    FIX::MDEntryDate date;
-    FIX::MDEntryTime daytime;
-    FIX::MDMkt destination;
-
-    message.getGroup(1, entryGroup);
-    entryGroup.get(bookType);
-    entryGroup.get(symbol);
-    entryGroup.get(price);
-    entryGroup.get(size);
-    entryGroup.get(date);
-    entryGroup.get(daytime);
-    entryGroup.get(destination);
-
-    OrderBookEntry update{
-        static_cast<OrderBookEntry::Type>(static_cast<char>(bookType.getValue())),
-        symbol.getValue(),
-        price.getValue(),
-        static_cast<int>(size.getValue()),
-        destination.getValue(),
-        date.getValue(),
-        daytime.getValue()
-    };
-
-    BCDocuments::getInstance()->onNewOBEntryForOrderBook(symbol.getValue(), update);
-}
-
-/*
- * @brief Receive security list from ME. Only run once each system session.
- */
-void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
-{
-    // This test is required because if there is a disconnection between ME and BC,
-    // the ME will send the security list again during the reconnection procedure.
-    if (BCDocuments::s_isSecurityListReady)
-        return;
-
-    FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
-    if (numOfGroups < 1) {
-        cout << "Cannot find any Symbol in SecurityList!" << endl;
-        return;
-    }
-
-    FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
-    FIX::Symbol symbol;
-
-    auto* docs = BCDocuments::getInstance();
-    for (int i = 1; i <= numOfGroups.getValue(); i++) {
-        message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
-        relatedSymGroup.get(symbol);
-
-        docs->addSymbol(symbol.getValue());
-        docs->attachOrderBookToSymbol(symbol.getValue());
-        docs->attachCandlestickDataToSymbol(symbol.getValue());
-    }
-
-    // Now, it's safe to advance all routines that *read* permanent data structures created above:
-    BCDocuments::s_isSecurityListReady = true;
 }

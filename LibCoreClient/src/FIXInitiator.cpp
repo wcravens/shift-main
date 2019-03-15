@@ -357,6 +357,105 @@ inline void shift::FIXInitiator::initializeOrderBooks()
     }
 }
 
+/*
+ * @brief send order book request to BC
+ */
+void shift::FIXInitiator::sendOrderBookRequest(const std::string& symbol, bool isSubscribed)
+{
+    FIX::Message message;
+
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::TargetCompID(s_targetID));
+    header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
+
+    message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
+    if (isSubscribed) {
+        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SUBSCRIBE);
+        message.setField(::FIXFIELD_MDUPDATETYPE_INCREMENTAL_REFRESH);
+    } else {
+        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_UNSUBSCRIBE);
+    }
+    message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
+
+    FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup1;
+    FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup2;
+    entryTypeGroup1.setField(::FIXFIELD_MDENTRYTYPE_BID);
+    entryTypeGroup2.setField(::FIXFIELD_MDENTRYTYPE_OFFER);
+    message.addGroup(entryTypeGroup1);
+    message.addGroup(entryTypeGroup2);
+
+    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
+    relatedSymGroup.setField(FIX::Symbol(symbol));
+    message.addGroup(relatedSymGroup);
+
+    FIX::Session::sendToTarget(message);
+}
+
+/*
+ * @brief Send candle data request to BC
+ */
+void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool isSubscribed)
+{
+    FIX::Message message;
+
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::TargetCompID(s_targetID));
+    header.setField(FIX::MsgType(FIX::MsgType_RFQRequest));
+
+    message.setField(FIX::RFQReqID(shift::crossguid::newGuid().str()));
+
+    FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
+    relatedSymGroup.setField(FIX::Symbol(symbol));
+    message.addGroup(relatedSymGroup);
+
+    if (isSubscribed) {
+        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SUBSCRIBE);
+    } else {
+        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_UNSUBSCRIBE);
+    }
+
+    FIX::Session::sendToTarget(message);
+}
+
+/**
+ * @brief Method to submit Order From FIXInitiator to Brokerage Center.
+ *
+ * @param order as a shift::Order object contains all required information.
+ * @param username as name for the user/client who is submitting the order.
+ */
+void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::string& username)
+{
+    FIX::Message message;
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::TargetCompID(s_targetID));
+    header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
+
+    message.setField(FIX::ClOrdID(order.getID()));
+    message.setField(FIX::Symbol(m_symbol_originalName[order.getSymbol()]));
+    message.setField(FIX::Side(order.getType())); // FIXME: separate Side and OrdType
+    message.setField(FIX::TransactTime(6));
+    message.setField(FIX::OrderQty(order.getSize()));
+    message.setField(FIX::OrdType(order.getType())); // FIXME: separate Side and OrdType
+    message.setField(FIX::Price(order.getPrice()));
+
+    FIX50SP2::NewOrderSingle::NoPartyIDs partyIDGroup;
+    partyIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
+    if (username != "") {
+        partyIDGroup.setField(FIX::PartyID(username));
+    } else {
+        partyIDGroup.setField(FIX::PartyID(m_username));
+    }
+    message.addGroup(partyIDGroup);
+
+    FIX::Session::sendToTarget(message);
+}
+
 /**
  * @brief Method called when a new Session was created.
  * Set Sender and Target Comp ID.
@@ -482,6 +581,174 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
             return;
         }
 
+        return;
+    }
+}
+
+/**
+ * @brief Receive the security list of all stock from BrokerageCenter.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
+{
+    FIX::NoRelatedSym numOfGroups;
+    message.get(numOfGroups);
+    if (numOfGroups < 1) {
+        cout << "Cannot find any Symbol in SecurityList!" << endl;
+        return;
+    }
+
+    if (m_stockList.size() == 0) {
+        std::lock_guard<std::mutex> slGuard(m_mtxStockList);
+
+        FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
+        FIX::Symbol symbol;
+
+        m_stockList.clear();
+
+        for (int i = 1; i <= numOfGroups; ++i) {
+            message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
+            relatedSymGroup.get(symbol);
+            m_stockList.push_back(symbol);
+        }
+
+        createSymbolMap();
+        initializePrices();
+        initializeOrderBooks();
+
+        m_cvStockList.notify_one();
+    }
+}
+
+/**
+ * @brief Method to receive Global/Local orders from Brokerage Center.
+ *
+ * @param message as a MarketDataSnapshotFullRefresh type object contains the current accepting order information.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID&) // override
+{
+    FIX::NoMDEntries numOfEntries;
+    message.get(numOfEntries);
+    if (numOfEntries < 1) {
+        cout << "Cannot find the Entries group in MarketDataSnapshotFullRefresh!" << endl;
+        return;
+    }
+
+    FIX::Symbol originalName;
+
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
+    FIX::MDEntryType type;
+    FIX::MDEntryPx price;
+    FIX::MDEntrySize size;
+    FIX::MDEntryDate simulationDate;
+    FIX::MDEntryTime simulationTime;
+    FIX::MDMkt destination;
+
+    message.getField(originalName);
+    std::string symbol = m_originalName_symbol[originalName.getValue()];
+
+    std::list<shift::OrderBookEntry> orderBook;
+
+    for (int i = 1; i <= numOfEntries; i++) {
+        message.getGroup(static_cast<unsigned int>(i), entryGroup);
+
+        entryGroup.getField(type);
+        entryGroup.getField(price);
+        entryGroup.getField(size);
+        entryGroup.getField(simulationDate);
+        entryGroup.getField(simulationTime);
+        entryGroup.getField(destination);
+
+        orderBook.push_back({ static_cast<double>(price.getValue()),
+            static_cast<int>(size.getValue()),
+            destination.getValue(),
+            s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
+    }
+
+    try {
+        m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(type.getValue()))]->setOrderBook(orderBook);
+    } catch (std::exception e) {
+        debugDump(symbol + " doesn't work");
+    }
+}
+
+/**
+ * @brief   Method to update already saved order book
+ *          when receiving order book updates from Brokerage Center
+ * @param   Message as an MarketDataIncrementalRefresh type object
+ *          contains updated order book information.
+ * @param   sessionID as the SessionID for the current communication.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
+{
+    FIX::NoMDEntries numOfEntries;
+    message.get(numOfEntries);
+    if (numOfEntries < 1) {
+        cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
+        return;
+    }
+
+    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
+    FIX::MDEntryType bookType;
+    FIX::Symbol originalName;
+    FIX::MDEntryPx price;
+    FIX::MDEntrySize size;
+    FIX::MDEntryDate simulationDate;
+    FIX::MDEntryTime simulationTime;
+    FIX::MDMkt destination;
+
+    message.getGroup(1, entryGroup);
+    entryGroup.getField(bookType);
+    entryGroup.getField(originalName);
+    entryGroup.getField(price);
+    entryGroup.getField(size);
+    entryGroup.getField(simulationDate);
+    entryGroup.getField(simulationTime);
+    entryGroup.getField(destination);
+
+    std::string symbol = m_originalName_symbol[originalName.getValue()];
+
+    m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(bookType))]->update({ price.getValue(), static_cast<int>(size.getValue()), destination.getValue(), s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
+}
+
+/**
+ * @brief Method to receive open/close/high/low for a specific ticker at a specific time (Data for candlestick chart).
+ *
+ * @param message as a SecurityStatus type object contains symbol, open, close, high, low, timestamp information.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID&) // override
+{
+    FIX::Symbol originalName;
+    FIX::StrikePrice open;
+    FIX::HighPx high;
+    FIX::LowPx low;
+    FIX::LastPx close;
+    FIX::Text timestamp;
+
+    message.get(originalName);
+    message.get(open);
+    message.get(high);
+    message.get(low);
+    message.get(close);
+    message.get(timestamp);
+
+    std::string symbol = m_originalName_symbol[originalName.getValue()];
+
+    /**
+     * @brief Logic for storing open price and check if ready. Open price stores the very first candle data open price for each ticker
+     */
+    if (!m_openPricesReady) {
+        std::lock_guard<std::mutex> opGuard(m_mtxOpenPrices);
+        if (m_openPrices.find(symbol) == m_openPrices.end()) {
+            m_openPrices[symbol] = open.getValue();
+            if (m_openPrices.size() == getStockList().size()) {
+                m_openPricesReady = true;
+            }
+        }
+    }
+
+    try {
+        getMainClient()->receiveCandlestickData(symbol, open.getValue(), high.getValue(), low.getValue(), close.getValue(), timestamp.getValue());
+    } catch (...) {
         return;
     }
 }
@@ -621,58 +888,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 }
 
 /**
- * @brief Method to receive Global/Local orders from Brokerage Center.
- *
- * @param message as a MarketDataSnapshotFullRefresh type object contains the current accepting order information.
- */
-void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID&) // override
-{
-    FIX::NoMDEntries numOfEntries;
-    message.get(numOfEntries);
-    if (numOfEntries < 1) {
-        cout << "Cannot find the Entries group in MarketDataSnapshotFullRefresh!" << endl;
-        return;
-    }
-
-    FIX::Symbol originalName;
-
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
-    FIX::MDEntryType type;
-    FIX::MDEntryPx price;
-    FIX::MDEntrySize size;
-    FIX::MDEntryDate simulationDate;
-    FIX::MDEntryTime simulationTime;
-    FIX::MDMkt destination;
-
-    message.getField(originalName);
-    std::string symbol = m_originalName_symbol[originalName.getValue()];
-
-    std::list<shift::OrderBookEntry> orderBook;
-
-    for (int i = 1; i <= numOfEntries; i++) {
-        message.getGroup(static_cast<unsigned int>(i), entryGroup);
-
-        entryGroup.getField(type);
-        entryGroup.getField(price);
-        entryGroup.getField(size);
-        entryGroup.getField(simulationDate);
-        entryGroup.getField(simulationTime);
-        entryGroup.getField(destination);
-
-        orderBook.push_back({ static_cast<double>(price.getValue()),
-            static_cast<int>(size.getValue()),
-            destination.getValue(),
-            s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
-    }
-
-    try {
-        m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(type.getValue()))]->setOrderBook(orderBook);
-    } catch (std::exception e) {
-        debugDump(symbol + " doesn't work");
-    }
-}
-
-/**
  * @brief Method to receive waiting list from Brokerage Center.
  *
  * @param message as a QuoteAcknowledgement type object contains the current waiting list information.
@@ -733,221 +948,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     } catch (...) {
         return;
     }
-}
-
-/**
- * @brief   Method to update already saved order book
- *          when receiving order book updates from Brokerage Center
- * @param   Message as an MarketDataIncrementalRefresh type object
- *          contains updated order book information.
- * @param   sessionID as the SessionID for the current communication.
- */
-void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
-{
-    FIX::NoMDEntries numOfEntries;
-    message.get(numOfEntries);
-    if (numOfEntries < 1) {
-        cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
-        return;
-    }
-
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    FIX::MDEntryType bookType;
-    FIX::Symbol originalName;
-    FIX::MDEntryPx price;
-    FIX::MDEntrySize size;
-    FIX::MDEntryDate simulationDate;
-    FIX::MDEntryTime simulationTime;
-    FIX::MDMkt destination;
-
-    message.getGroup(1, entryGroup);
-    entryGroup.getField(bookType);
-    entryGroup.getField(originalName);
-    entryGroup.getField(price);
-    entryGroup.getField(size);
-    entryGroup.getField(simulationDate);
-    entryGroup.getField(simulationTime);
-    entryGroup.getField(destination);
-
-    std::string symbol = m_originalName_symbol[originalName.getValue()];
-
-    m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(bookType))]->update({ price.getValue(), static_cast<int>(size.getValue()), destination.getValue(), s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
-}
-
-/**
- * @brief Receive the security list of all stock from BrokerageCenter.
- */
-void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
-{
-    FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
-    if (numOfGroups < 1) {
-        cout << "Cannot find any Symbol in SecurityList!" << endl;
-        return;
-    }
-
-    if (m_stockList.size() == 0) {
-        std::lock_guard<std::mutex> slGuard(m_mtxStockList);
-
-        FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
-        FIX::Symbol symbol;
-
-        m_stockList.clear();
-
-        for (int i = 1; i <= numOfGroups; ++i) {
-            message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
-            relatedSymGroup.get(symbol);
-            m_stockList.push_back(symbol);
-        }
-
-        createSymbolMap();
-        initializePrices();
-        initializeOrderBooks();
-
-        m_cvStockList.notify_one();
-    }
-}
-
-/**
- * @brief Method to receive open/close/high/low for a specific ticker at a specific time (Data for candlestick chart).
- *
- * @param message as a SecurityStatus type object contains symbol, open, close, high, low, timestamp information.
- */
-void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID&) // override
-{
-    FIX::Symbol originalName;
-    FIX::StrikePrice open;
-    FIX::HighPx high;
-    FIX::LowPx low;
-    FIX::LastPx close;
-    FIX::Text timestamp;
-
-    message.get(originalName);
-    message.get(open);
-    message.get(high);
-    message.get(low);
-    message.get(close);
-    message.get(timestamp);
-
-    std::string symbol = m_originalName_symbol[originalName.getValue()];
-
-    /**
-     * @brief Logic for storing open price and check if ready. Open price stores the very first candle data open price for each ticker
-     */
-    if (!m_openPricesReady) {
-        std::lock_guard<std::mutex> opGuard(m_mtxOpenPrices);
-        if (m_openPrices.find(symbol) == m_openPrices.end()) {
-            m_openPrices[symbol] = open.getValue();
-            if (m_openPrices.size() == getStockList().size()) {
-                m_openPricesReady = true;
-            }
-        }
-    }
-
-    try {
-        getMainClient()->receiveCandlestickData(symbol, open.getValue(), high.getValue(), low.getValue(), close.getValue(), timestamp.getValue());
-    } catch (...) {
-        return;
-    }
-}
-
-/*
- * @brief Send candle data request to BC
- */
-void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool isSubscribed)
-{
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(s_targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_RFQRequest));
-
-    message.setField(FIX::RFQReqID(shift::crossguid::newGuid().str()));
-
-    FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
-    relatedSymGroup.setField(FIX::Symbol(symbol));
-    message.addGroup(relatedSymGroup);
-
-    if (isSubscribed) {
-        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SUBSCRIBE);
-    } else {
-        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_UNSUBSCRIBE);
-    }
-
-    FIX::Session::sendToTarget(message);
-}
-
-/*
- * @brief send order book request to BC
- */
-void shift::FIXInitiator::sendOrderBookRequest(const std::string& symbol, bool isSubscribed)
-{
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(s_targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
-
-    message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
-    if (isSubscribed) {
-        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SUBSCRIBE);
-        message.setField(::FIXFIELD_MDUPDATETYPE_INCREMENTAL_REFRESH);
-    } else {
-        message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_UNSUBSCRIBE);
-    }
-    message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
-
-    FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup1;
-    FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup2;
-    entryTypeGroup1.setField(::FIXFIELD_MDENTRYTYPE_BID);
-    entryTypeGroup2.setField(::FIXFIELD_MDENTRYTYPE_OFFER);
-    message.addGroup(entryTypeGroup1);
-    message.addGroup(entryTypeGroup2);
-
-    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
-    relatedSymGroup.setField(FIX::Symbol(symbol));
-    message.addGroup(relatedSymGroup);
-
-    FIX::Session::sendToTarget(message);
-}
-
-/**
- * @brief Method to submit Order From FIXInitiator to Brokerage Center.
- *
- * @param order as a shift::Order object contains all required information.
- * @param username as name for the user/client who is submitting the order.
- */
-void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::string& username)
-{
-    FIX::Message message;
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(s_targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
-
-    message.setField(FIX::ClOrdID(order.getID()));
-    message.setField(FIX::Symbol(m_symbol_originalName[order.getSymbol()]));
-    message.setField(FIX::Side(order.getType())); // FIXME: separate Side and OrdType
-    message.setField(FIX::TransactTime(6));
-    message.setField(FIX::OrderQty(order.getSize()));
-    message.setField(FIX::OrdType(order.getType())); // FIXME: separate Side and OrdType
-    message.setField(FIX::Price(order.getPrice()));
-
-    FIX50SP2::NewOrderSingle::NoPartyIDs partyIDGroup;
-    partyIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    if (username != "") {
-        partyIDGroup.setField(FIX::PartyID(username));
-    } else {
-        partyIDGroup.setField(FIX::PartyID(m_username));
-    }
-    message.addGroup(partyIDGroup);
-
-    FIX::Session::sendToTarget(message);
 }
 
 /**

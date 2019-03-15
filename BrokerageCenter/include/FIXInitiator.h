@@ -53,9 +53,9 @@ private:
     void toApp(FIX::Message&, const FIX::SessionID&) throw(FIX::DoNotSend) override {}
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
-    void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override; // To receive execution report (order confirmation , trade , cancel )from matchgin engine
-    void onMessage(const FIX50SP2::MarketDataIncrementalRefresh&, const FIX::SessionID&) override; // Receive order book updates
-    void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override; // To receive security list from ME
+    void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override; // To receive security list from Matching Engine
+    void onMessage(const FIX50SP2::MarketDataIncrementalRefresh&, const FIX::SessionID&) override; // To receive order book updates from Matching Engine
+    void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override; // To receive execution report (order confirmation, trade, cancel) from Matching Engine
 
     // DO NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;

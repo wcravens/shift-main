@@ -94,6 +94,10 @@ protected:
     R_TODO void initializeOrderBooks();
 
     // FIXInitiator - QuickFIX methods
+    R_FIXINIT void sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
+    R_FIXINIT void sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
+    R_FIXINIT void submitOrder(const shift::Order&, const std::string& username = "");
+
     R_FIXINIT void onCreate(const FIX::SessionID&) override;
     R_FIXINIT void onLogon(const FIX::SessionID&) override;
     R_FIXINIT void onLogout(const FIX::SessionID&) override;
@@ -102,17 +106,13 @@ protected:
     R_FIXINIT void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     R_FIXINIT void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     R_FIXINIT void onMessage(const FIX50SP2::Advertisement&, const FIX::SessionID&) override;
+    R_FIXINIT void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
+    R_FIXINIT void onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh&, const FIX::SessionID&) override;
+    R_FIXINIT void onMessage(const FIX50SP2::MarketDataIncrementalRefresh&, const FIX::SessionID&) override;
+    R_FIXINIT void onMessage(const FIX50SP2::SecurityStatus&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::PositionReport&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::MassQuoteAcknowledgement&, const FIX::SessionID&) override;
-    R_FIXINIT void onMessage(const FIX50SP2::MarketDataIncrementalRefresh&, const FIX::SessionID&) override;
-    R_FIXINIT void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
-    R_FIXINIT void onMessage(const FIX50SP2::SecurityStatus&, const FIX::SessionID&) override;
-    R_FIXINIT void onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh&, const FIX::SessionID&) override;
-
-    R_FIXINIT void sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
-    R_FIXINIT void sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
-    R_FIXINIT void submitOrder(const shift::Order&, const std::string& username = "");
 
     // Price methods
     R_FIXSUB double getOpenPrice(const std::string& symbol);

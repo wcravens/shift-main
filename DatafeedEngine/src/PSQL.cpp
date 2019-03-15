@@ -370,7 +370,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
 }
 
 /* Fetch chunk of Quote and trading records, and send to matching engine*/
-bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, std::string targetID)
+bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime)
 {
     const std::string stime = boost::posix_time::to_iso_extended_string(startTime).substr(11, 8);
     const std::string etime = boost::posix_time::to_iso_extended_string(endTime).substr(11, 8);
@@ -449,7 +449,7 @@ bool PSQL::readSendRawData(std::string symbol, boost::posix_time::ptime startTim
         rawData.askPrice = std::strtod(PQgetvalue(pRes, i, VAL_IDX::ASK_PRICE), &pCh);
         rawData.askSize = std::atoi(PQgetvalue(pRes, i, VAL_IDX::ASK_SIZE));
 
-        FIXAcceptor::sendRawData(rawData, targetID);
+        FIXAcceptor::sendRawData(targetID, rawData);
     }
 
     PQclear(pResTime);

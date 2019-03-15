@@ -61,7 +61,6 @@ private:
     void toApp(FIX::Message&, const FIX::SessionID&) throw(FIX::DoNotSend) override {}
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
-    void onMessage(const FIX50SP2::MassQuoteAcknowledgement&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::News&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::Quote&, const FIX::SessionID&) override;
 

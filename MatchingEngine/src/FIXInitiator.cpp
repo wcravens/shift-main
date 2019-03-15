@@ -241,17 +241,6 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
     crack(message, sessionID);
 }
 
-// FIXME: Error Message
-/**
- * @brief Deal with incoming message of type QuoteAcknowledgement
- */
-void FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID&) // override
-{
-    FIX::QuoteID error;
-    message.get(error);
-    cout << "Error: " << error.getValue() << endl;
-}
-
 /**
  * @brief Receive notification that the requested work has been done.
  */

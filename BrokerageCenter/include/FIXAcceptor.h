@@ -55,21 +55,21 @@ public:
     void connectClients(const std::string& configFile, bool verbose = false);
     void disconnectClients();
 
+    void sendLastPrice2All(const Transaction& transac);
+    void sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
+    static void s_setAddGroupIntoMarketDataMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry);
+    void sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update);
+    void sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
+
+    void sendConfirmationReport(const Report& report); // send order conformation report
     void sendPortfolioSummary(const std::string& username, const PortfolioSummary& summary);
     void sendPortfolioItem(const std::string& username, const PortfolioItem& item);
     void sendWaitingList(const std::string& username, const std::unordered_map<std::string, Order>& orders);
-    void sendConfirmationReport(const Report& report); // send order conformation report
-
-    void sendLastPrice2All(const Transaction& transac);
-    void sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName);
-    static void s_setAddGroupIntoOrderAckMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry);
-    void sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update);
-    void sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
 
 private:
     FIXAcceptor() = default;
 
-    void sendSymbols(const std::string& targetID, const std::unordered_set<std::string>& symbols);
+    void sendSecurityList(const std::string& targetID, const std::unordered_set<std::string>& symbols);
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;
@@ -80,9 +80,9 @@ private:
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::UserRequest&, const FIX::SessionID&) override;
-    void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::MarketDataRequest&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::RFQRequest&, const FIX::SessionID&) override;
+    void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
