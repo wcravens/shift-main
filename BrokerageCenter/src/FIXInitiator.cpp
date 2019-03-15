@@ -339,8 +339,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             orderPrice.getValue(),
             static_cast<Order::Status>(static_cast<char>(orderStatus.getValue())),
             destination.getValue(),
-            serverTime.getValue(),
-            confirmTime.getValue()
+            confirmTime.getValue(),
+            serverTime.getValue()
         };
 
         cout << "ConfirmRepo: "
@@ -352,8 +352,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << orderPrice.getValue() << "\t"
              << orderStatus.getValue() << "\t"
              << destination.getValue() << "\t"
-             << serverTime.getString() << "\t"
-             << confirmTime.getString() << endl;
+             << confirmTime.getString() << "\t"
+             << serverTime.getString() << endl;
         BCDocuments::getInstance()->onNewReportForUserRiskManagement(username, report);
 
     } else { // FIX::ExecType_TRADE: Execution Report
@@ -398,7 +398,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         message.getGroup(2, idGroup);
         idGroup.get(username2);
 
-        auto printRpts = [](bool rpt1or2, auto username, auto orderID, auto orderType, auto orderSymbol, auto executedSize, auto orderPrice, auto orderStatus, auto destination, auto serverTime, auto execTime) {
+        auto printRpts = [](bool rpt1or2, auto username, auto orderID, auto orderType, auto orderSymbol, auto executedSize, auto orderPrice, auto orderStatus, auto destination, auto execTime, auto serverTime) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
                  << username.getValue() << "\t"
                  << orderID.getValue() << "\t"
@@ -408,8 +408,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                  << orderPrice.getValue() << "\t"
                  << orderStatus.getValue() << "\t"
                  << destination.getValue() << "\t"
-                 << serverTime.getString() << "\t"
-                 << execTime.getString() << endl;
+                 << execTime.getString() << "\t"
+                 << serverTime.getString() << endl;
         };
 
         switch (orderStatus) {
@@ -434,8 +434,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     orderPrice.getValue(),
                     static_cast<Order::Status>(static_cast<char>(orderStatus.getValue())),
                     destination.getValue(),
-                    serverTime.getValue(),
-                    execTime.getValue()
+                    execTime.getValue(),
+                    serverTime.getValue()
                 };
 
                 Report report2{
@@ -448,12 +448,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     orderPrice.getValue(),
                     static_cast<Order::Status>(static_cast<char>(orderStatus.getValue())),
                     destination.getValue(),
-                    serverTime.getValue(),
-                    execTime.getValue()
+                    execTime.getValue(),
+                    serverTime.getValue()
                 };
 
-                printRpts(true, username1, orderID1, orderType1, orderSymbol, executedSize, orderPrice, orderStatus, destination, serverTime, execTime);
-                printRpts(false, username2, orderID2, orderType2, orderSymbol, executedSize, orderPrice, orderStatus, destination, serverTime, execTime);
+                printRpts(true, username1, orderID1, orderType1, orderSymbol, executedSize, orderPrice, orderStatus, destination, execTime, serverTime);
+                printRpts(false, username2, orderID2, orderType2, orderSymbol, executedSize, orderPrice, orderStatus, destination, execTime, serverTime);
 
                 auto* docs = BCDocuments::getInstance();
                 docs->onNewTransacForCandlestickData(orderSymbol, transac);
@@ -476,12 +476,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 orderPrice.getValue(),
                 static_cast<Order::Status>(static_cast<char>(orderStatus.getValue())),
                 destination.getValue(),
-                serverTime.getValue(),
-                execTime.getValue()
+                execTime.getValue(),
+                serverTime.getValue()
             };
 
-            printRpts(true, username1, orderID1, orderType1, orderSymbol, executedSize, orderPrice, orderStatus, destination, serverTime, execTime);
-            printRpts(false, username2, orderID2, orderType2, orderSymbol, executedSize, orderPrice, orderStatus, destination, serverTime, execTime);
+            printRpts(true, username1, orderID1, orderType1, orderSymbol, executedSize, orderPrice, orderStatus, destination, execTime, serverTime);
+            printRpts(false, username2, orderID2, orderType2, orderSymbol, executedSize, orderPrice, orderStatus, destination, execTime, serverTime);
 
             BCDocuments::getInstance()->onNewReportForUserRiskManagement(username2.getValue(), report2);
         } break;

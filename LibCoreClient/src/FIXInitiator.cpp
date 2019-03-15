@@ -770,7 +770,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 
     FIX::OrderID orderID;
     FIX::OrdStatus orderStatus;
-    FIX::Symbol orderSymbol;
+    FIX::Symbol originalName;
     FIX::Side orderType;
     FIX::Price orderPrice;
     FIX::EffectiveTime confirmTime;
@@ -784,7 +784,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 
     message.get(orderID);
     message.get(orderStatus);
-    message.get(orderSymbol);
+    message.get(originalName);
     message.get(orderType);
     message.get(orderPrice);
     message.get(confirmTime);
@@ -796,18 +796,20 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     message.getGroup(1, idGroup);
     idGroup.get(username);
 
+    std::string symbol = m_originalName_symbol[originalName.getValue()];
+
     // cout << "ConfirmRepo: "
     //      << username.getValue() << "\t"
     //      << orderID.getValue() << "\t"
     //      << orderType.getValue() << "\t"
-    //      << orderSymbol.getValue() << "\t"
+    //      << symbol << "\t"
     //      << currentSize.getValue() << "\t"
     //      << executedSize.getValue() << "\t"
     //      << orderPrice.getValue() << "\t"
     //      << orderStatus.getValue() << "\t"
     //      << destination.getValue() << "\t"
-    //      << serverTime.getString() << "\t"
-    //      << confirmTime.getString() << endl;
+    //      << confirmTime.getString() << "\t"
+    //      << serverTime.getString() << endl;
 }
 
 /**
