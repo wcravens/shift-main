@@ -173,6 +173,26 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
 
 /**
  * @brief Receive order book updates
+ * 
+ * @section OPTIMIZATION FOR THREAD-SAFE BASED ON
+ * LOCK-FREE TECHNOLOGY
+ *
+ * Since we are using various FIX fields,
+ * which are all class objects, as "containers" to
+ * get value (and then pass them somewhere else),
+ * there is NO need to repetitively initialize
+ * (i.e. call default constructors) those fields
+ * WHEN onMessage is executing sequentially.
+ * Also, onMessage is being called very frequently,
+ * hence it will accumulate significant initialization
+ * time if we define each field locally in sequential
+ * onMessage.
+ * To eliminate this waste of time and resources,
+ * here we define fields as local static, which are
+ * initialized only once and shared between multithreaded
+ * onMessage instances, if any, and creates and
+ * initializes their own (local) fields only if there are
+ * multiple onMessage threads running at the same time.
  */
 void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
 {
@@ -183,36 +203,87 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         return;
     }
 
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
+    static FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
+    static FIX::MDEntryType bookType;
+    static FIX::Symbol symbol;
+    static FIX::MDEntryPx price;
+    static FIX::MDEntrySize size;
+    static FIX::MDEntryDate date;
+    static FIX::MDEntryTime daytime;
+    static FIX::MDMkt destination;
 
-    FIX::MDEntryType bookType;
-    FIX::Symbol symbol;
-    FIX::MDEntryPx price;
-    FIX::MDEntrySize size;
-    FIX::MDEntryDate date;
-    FIX::MDEntryTime daytime;
-    FIX::MDMkt destination;
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, entryGroup);
-    entryGroup.get(bookType);
-    entryGroup.get(symbol);
-    entryGroup.get(price);
-    entryGroup.get(size);
-    entryGroup.get(date);
-    entryGroup.get(daytime);
-    entryGroup.get(destination);
+    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries* pEntryGroup;
+    FIX::MDEntryType* pBookType;
+    FIX::Symbol* pSymbol;
+    FIX::MDEntryPx* pPrice;
+    FIX::MDEntrySize* pSize;
+    FIX::MDEntryDate* pDate;
+    FIX::MDEntryTime* pDaytime;
+    FIX::MDMkt* pDestination;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pEntryGroup = &entryGroup;
+        pBookType = &bookType;
+        pSymbol = &symbol;
+        pPrice = &price;
+        pSize = &size;
+        pDate = &date;
+        pDaytime = &daytime;
+        pDestination = &destination;
+    } else { // > 1 threads; always safe way:
+        pEntryGroup = new decltype(entryGroup);
+        pBookType = new decltype(bookType);
+        pSymbol = new decltype(symbol);
+        pPrice = new decltype(price);
+        pSize = new decltype(size);
+        pDate = new decltype(date);
+        pDaytime = new decltype(daytime);
+        pDestination = new decltype(destination);
+    }
+
+    message.getGroup(1, *pEntryGroup);
+    pEntryGroup->get(*pBookType);
+    pEntryGroup->get(*pSymbol);
+    pEntryGroup->get(*pPrice);
+    pEntryGroup->get(*pSize);
+    pEntryGroup->get(*pDate);
+    pEntryGroup->get(*pDaytime);
+    pEntryGroup->get(*pDestination);
 
     OrderBookEntry update{
-        static_cast<OrderBookEntry::Type>(static_cast<char>(bookType.getValue())),
-        symbol.getValue(),
-        price.getValue(),
-        static_cast<int>(size.getValue()),
-        destination.getValue(),
-        date.getValue(),
-        daytime.getValue()
+        static_cast<OrderBookEntry::Type>(static_cast<char>(pBookType->getValue())),
+        pSymbol->getValue(),
+        pPrice->getValue(),
+        static_cast<int>(pSize->getValue()),
+        pDestination->getValue(),
+        pDate->getValue(),
+        pDaytime->getValue()
     };
 
-    BCDocuments::getInstance()->onNewOBEntryForOrderBook(symbol.getValue(), update);
+    BCDocuments::getInstance()->onNewOBEntryForOrderBook(pSymbol->getValue(), update);
+
+    if (prevCnt) { // > 1 threads
+        delete pEntryGroup;
+        delete pBookType;
+        delete pSymbol;
+        delete pPrice;
+        delete pSize;
+        delete pDate;
+        delete pDaytime;
+        delete pDestination;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**
