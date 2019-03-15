@@ -10,7 +10,7 @@
  */
 class OrderBookEntry {
 public:
-    enum class Type : char {
+    enum Type : char {
         GLB_ASK = 'A',
         GLB_BID = 'B',
         LOC_ASK = 'a',

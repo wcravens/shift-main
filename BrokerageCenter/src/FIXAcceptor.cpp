@@ -193,7 +193,7 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& targetList
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
     entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
-    entryGroup.setField(FIX::MDEntryType(static_cast<char>(update.getType())));
+    entryGroup.setField(FIX::MDEntryType(update.getType()));
     entryGroup.setField(FIX::Symbol(update.getSymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));
@@ -610,8 +610,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
          << "\n\tPrice: " << orderPrice.getValue() << endl;
 
     // Order validation
-    const auto type = static_cast<Order::Type>(static_cast<char>(orderType));
-    int size = static_cast<int>(orderSize);
+    const auto type = static_cast<Order::Type>(orderType.getValue());
+    int size = static_cast<int>(orderSize.getValue());
 
     if (orderID.getLength() == 0) {
         cout << "orderID is empty" << endl;

@@ -591,10 +591,12 @@ bool shift::CoreClient::attach(FIXInitiator& initiator)
     return true;
 }
 
-void shift::CoreClient::storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL)
+void shift::CoreClient::storeExecutionReport(const std::string& orderID, int executedSize, shift::Order::Status newStatus)
 {
-    std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
-    m_symbol_portfolioItem[symbol] = PortfolioItem{ symbol, longShares, shortShares, longPrice, shortPrice, realizedPL };
+    // cout << "ExecutionReport: "
+    //      << orderID << "\t"
+    //      << executedSize << "\t"
+    //      << newStatus << endl;
 }
 
 void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)
@@ -609,6 +611,12 @@ void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, d
     m_portfolioSummary.setTotalShares(totalShares);
     m_portfolioSummary.setTotalRealizedPL(totalRealizedPL);
     m_portfolioSummary.setTimestamp(); // current time
+}
+
+void shift::CoreClient::storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL)
+{
+    std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
+    m_symbol_portfolioItem[symbol] = PortfolioItem{ symbol, longShares, shortShares, longPrice, shortPrice, realizedPL };
 }
 
 void shift::CoreClient::storeWaitingList(std::vector<shift::Order>&& waitingList)

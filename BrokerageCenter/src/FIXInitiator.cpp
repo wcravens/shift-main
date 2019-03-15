@@ -260,7 +260,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     pEntryGroup->get(*pDestination);
 
     OrderBookEntry update{
-        static_cast<OrderBookEntry::Type>(static_cast<char>(pBookType->getValue())),
+        static_cast<OrderBookEntry::Type>(pBookType->getValue()),
         pSymbol->getValue(),
         pPrice->getValue(),
         static_cast<int>(pSize->getValue()),
@@ -332,12 +332,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         Report report{
             username.getValue(),
             orderID.getValue(),
-            static_cast<Order::Type>(static_cast<char>(orderType.getValue())),
+            static_cast<Order::Type>(orderType.getValue()),
             orderSymbol.getValue(),
             static_cast<int>(currentSize.getValue()),
             0, // executed size
             orderPrice.getValue(),
-            static_cast<Order::Status>(static_cast<char>(orderStatus.getValue())),
+            static_cast<Order::Status>(orderStatus.getValue()),
             destination.getValue(),
             confirmTime.getValue(),
             serverTime.getValue()
@@ -427,12 +427,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 Report report1{
                     username1.getValue(),
                     orderID1.getValue(),
-                    static_cast<Order::Type>(static_cast<char>(orderType1.getValue())),
+                    static_cast<Order::Type>(orderType1.getValue()),
                     orderSymbol.getValue(),
                     0, // current size: will be added later
                     static_cast<int>(executedSize.getValue()),
                     orderPrice.getValue(),
-                    static_cast<Order::Status>(static_cast<char>(orderStatus.getValue())),
+                    static_cast<Order::Status>(orderStatus.getValue()),
                     destination.getValue(),
                     execTime.getValue(),
                     serverTime.getValue()
@@ -441,12 +441,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 Report report2{
                     username2.getValue(),
                     orderID2.getValue(),
-                    static_cast<Order::Type>(static_cast<char>(orderType2.getValue())),
+                    static_cast<Order::Type>(orderType2.getValue()),
                     orderSymbol.getValue(),
                     0, // current size: will be added later
                     static_cast<int>(executedSize.getValue()),
                     orderPrice.getValue(),
-                    static_cast<Order::Status>(static_cast<char>(orderStatus.getValue())),
+                    static_cast<Order::Status>(orderStatus.getValue()),
                     destination.getValue(),
                     execTime.getValue(),
                     serverTime.getValue()
@@ -469,12 +469,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             Report report2{
                 username2.getValue(),
                 orderID2.getValue(),
-                static_cast<Order::Type>(static_cast<char>(orderType2.getValue())),
+                static_cast<Order::Type>(orderType2.getValue()),
                 orderSymbol.getValue(),
                 0, // current size: will be added later
                 static_cast<int>(executedSize.getValue()),
                 orderPrice.getValue(),
-                static_cast<Order::Status>(static_cast<char>(orderStatus.getValue())),
+                static_cast<Order::Status>(orderStatus.getValue()),
                 destination.getValue(),
                 execTime.getValue(),
                 serverTime.getValue()

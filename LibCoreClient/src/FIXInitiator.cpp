@@ -665,7 +665,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     }
 
     try {
-        m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(type.getValue()))]->setOrderBook(orderBook);
+        m_orderBooks[symbol][static_cast<OrderBook::Type>(type.getValue())]->setOrderBook(orderBook);
     } catch (std::exception e) {
         debugDump(symbol + " doesn't work");
     }
@@ -707,7 +707,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
 
     std::string symbol = m_originalName_symbol[originalName.getValue()];
 
-    m_orderBooks[symbol][static_cast<OrderBook::Type>(static_cast<char>(bookType))]->update({ price.getValue(), static_cast<int>(size.getValue()), destination.getValue(), s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
+    m_orderBooks[symbol][static_cast<OrderBook::Type>(bookType.getValue())]->update({ price.getValue(), static_cast<int>(size.getValue()), destination.getValue(), s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
 }
 
 /**
@@ -770,46 +770,24 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 
     FIX::OrderID orderID;
     FIX::OrdStatus orderStatus;
-    FIX::Symbol originalName;
-    FIX::Side orderType;
-    FIX::Price orderPrice;
-    FIX::EffectiveTime confirmTime;
-    FIX::LastMkt destination;
-    FIX::LeavesQty currentSize;
     FIX::CumQty executedSize;
-    FIX::TransactTime serverTime;
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     FIX::PartyID username;
 
     message.get(orderID);
     message.get(orderStatus);
-    message.get(originalName);
-    message.get(orderType);
-    message.get(orderPrice);
-    message.get(confirmTime);
-    message.get(destination);
-    message.get(currentSize);
     message.get(executedSize);
-    message.get(serverTime);
 
     message.getGroup(1, idGroup);
     idGroup.get(username);
 
-    std::string symbol = m_originalName_symbol[originalName.getValue()];
-
-    // cout << "ConfirmRepo: "
-    //      << username.getValue() << "\t"
-    //      << orderID.getValue() << "\t"
-    //      << orderType.getValue() << "\t"
-    //      << symbol << "\t"
-    //      << currentSize.getValue() << "\t"
-    //      << executedSize.getValue() << "\t"
-    //      << orderPrice.getValue() << "\t"
-    //      << orderStatus.getValue() << "\t"
-    //      << destination.getValue() << "\t"
-    //      << confirmTime.getString() << "\t"
-    //      << serverTime.getString() << endl;
+    try {
+        getClient(username.getValue())->storeExecutionReport(orderID.getValue(), executedSize.getValue(), static_cast<shift::Order::Status>(orderStatus.getValue()));
+        getClient(username.getValue())->receiveExecutionReport(orderID.getValue());
+    } catch (...) {
+        return;
+    }
 }
 
 /**
@@ -859,8 +837,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         sizeGroup.get(shortSize);
 
         try {
-            getClient(username)->storePortfolioItem(symbol, static_cast<int>(longSize.getValue()), static_cast<int>(shortSize.getValue()), longPrice.getValue(), shortPrice.getValue(), realizedPL.getValue());
-            getClient(username)->receivePortfolioItem(symbol);
+            getClient(username.getValue())->storePortfolioItem(symbol, static_cast<int>(longSize.getValue()), static_cast<int>(shortSize.getValue()), longPrice.getValue(), shortPrice.getValue(), realizedPL.getValue());
+            getClient(username.getValue())->receivePortfolioItem(symbol);
         } catch (...) {
             return;
         }
@@ -881,8 +859,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         buyingPowerGroup.get(totalBuyingPower);
 
         try {
-            getClient(username)->storePortfolioSummary(totalBuyingPower.getValue(), static_cast<int>(totalShares.getValue()), totalRealizedPL.getValue());
-            getClient(username)->receivePortfolioSummary();
+            getClient(username.getValue())->storePortfolioSummary(totalBuyingPower.getValue(), static_cast<int>(totalShares.getValue()), totalRealizedPL.getValue());
+            getClient(username.getValue())->receivePortfolioSummary();
         } catch (...) {
             return;
         }
@@ -939,13 +917,13 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
             std::string symbol = m_originalName_symbol[originalName.getValue()];
 
             shift::Order order{
-                static_cast<shift::Order::Type>(static_cast<char>(orderType.getValue())),
+                static_cast<shift::Order::Type>(orderType.getValue()),
                 symbol,
                 size,
                 orderPrice.getValue(),
                 orderID.getValue()
             };
-            order.setStatus(static_cast<shift::Order::Status>(static_cast<char>(orderStatus.getValue())));
+            order.setStatus(static_cast<shift::Order::Status>(orderStatus.getValue()));
 
             waitingList.push_back(std::move(order));
         }
@@ -953,9 +931,9 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 
     try {
         // store the data in target client
-        getClient(username)->storeWaitingList(std::move(waitingList));
+        getClient(username.getValue())->storeWaitingList(std::move(waitingList));
         // notify target client
-        getClient(username)->receiveWaitingList();
+        getClient(username.getValue())->receiveWaitingList();
     } catch (...) {
         return;
     }
