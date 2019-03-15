@@ -52,8 +52,8 @@ public:
 
     static FIXAcceptor* getInstance();
 
-    void connectClientComputers(const std::string& configFile, bool verbose = false);
-    void disconnectClientComputers();
+    void connectClients(const std::string& configFile, bool verbose = false);
+    void disconnectClients();
 
     void sendPortfolioSummary(const std::string& username, const PortfolioSummary& summary);
     void sendPortfolioItem(const std::string& username, const PortfolioItem& item);

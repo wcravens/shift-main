@@ -118,7 +118,7 @@ int main(int ac, char* av[])
         (CSTR_INFO ",i", po::value<std::vector<std::string>>()->multitoken(), "<first name>  <last name>  <email>") //
         (CSTR_SUPER ",s", "is super user, requires -u present") //
         (CSTR_PFDBREADONLY ",e", "is portfolio data in DB read-only") //
-        (CSTR_CHANGE_PSW, "flag of changing password, also requires -u and -p provided") //
+        (CSTR_CHANGE_PSW, "flag for changing password, also requires -u and -p provided") //
         ; // add_options
 
     po::variables_map vm;
@@ -291,7 +291,7 @@ int main(int ac, char* av[])
     /*
      * @brief   Try to connect to clients
      */
-    FIXAcceptor::getInstance()->connectClientComputers(params.configDir + "acceptor.cfg", params.isVerbose);
+    FIXAcceptor::getInstance()->connectClients(params.configDir + "acceptor.cfg", params.isVerbose);
 
     /*
      * @brief   Create a broadcaster to broadcast all order books
@@ -336,7 +336,7 @@ int main(int ac, char* av[])
     if (broadcaster.joinable())
         broadcaster.join(); // wait for termination
 
-    FIXAcceptor::getInstance()->disconnectClientComputers();
+    FIXAcceptor::getInstance()->disconnectClients();
     FIXInitiator::getInstance()->disconnectMatchingEngine();
 
     if (params.isVerbose) {

@@ -32,7 +32,7 @@ static const auto& FIXFIELD_MDUPDATEACTION_CHANGE = FIX::MDUpdateAction(FIX::MDU
 
 FIXAcceptor::~FIXAcceptor() // override
 {
-    disconnectClientComputers();
+    disconnectClients();
 }
 
 /*static*/ FIXAcceptor* FIXAcceptor::getInstance()
@@ -41,9 +41,9 @@ FIXAcceptor::~FIXAcceptor() // override
     return &s_FIXAccInst;
 }
 
-void FIXAcceptor::connectClientComputers(const std::string& configFile, bool verbose)
+void FIXAcceptor::connectClients(const std::string& configFile, bool verbose)
 {
-    disconnectClientComputers();
+    disconnectClients();
 
     const auto targetIDs = shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT username FROM traders WHERE super = TRUE;");
     if (targetIDs.empty()) {
@@ -89,7 +89,7 @@ void FIXAcceptor::connectClientComputers(const std::string& configFile, bool ver
     }
 }
 
-void FIXAcceptor::disconnectClientComputers()
+void FIXAcceptor::disconnectClients()
 {
     if (!m_acceptorPtr)
         return;
