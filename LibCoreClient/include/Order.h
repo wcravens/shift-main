@@ -45,12 +45,14 @@ public:
 
     // Getters
     Type getType() const;
+    std::string getTypeString() const;
     const std::string& getSymbol() const;
     int getSize() const;
     int getExecuted() const;
     double getPrice() const;
     const std::string& getID() const;
     Status getStatus() const;
+    std::string getStatusString() const;
     const std::chrono::system_clock::time_point& getTimestamp() const;
 
     // Setters

@@ -38,6 +38,31 @@ shift::Order::Type shift::Order::getType() const
     return m_type;
 }
 
+std::string shift::Order::getTypeString() const
+{
+    switch (m_type) {
+        case LIMIT_BUY: {
+            return "Limit Buy";
+        }
+        case LIMIT_SELL: {
+            return "Limit Sell";
+        }
+        case MARKET_BUY: {
+            return "Market Buy";
+        }
+        case MARKET_SELL: {
+            return "Market Sell";
+        }
+        case CANCEL_BID: {
+            return "Cancel Bid";
+        }
+        case CANCEL_ASK: {
+            return "Cancel Ask";
+        }
+    }
+    return "N/A";
+}
+
 const std::string& shift::Order::getSymbol() const
 {
     return m_symbol;
@@ -66,6 +91,34 @@ const std::string& shift::Order::getID() const
 shift::Order::Status shift::Order::getStatus() const
 {
     return m_status;
+}
+
+std::string shift::Order::getStatusString() const
+{
+    switch (m_status) {
+        case PENDING_NEW: {
+            return "Pending New";
+        }
+        case NEW: {
+            return "New";
+        }
+        case PARTIALLY_FILLED: {
+            return "Partially Filled";
+        }
+        case FILLED: {
+            return "Filled";
+        }
+        case CANCELED: {
+            return "Canceled";
+        }
+        case PENDING_CANCEL: {
+            return "Pending Cancel";
+        }
+        case REJECTED: {
+            return "Rejected";
+        }
+    }
+    return "N/A";
 }
 
 const std::chrono::system_clock::time_point& shift::Order::getTimestamp() const

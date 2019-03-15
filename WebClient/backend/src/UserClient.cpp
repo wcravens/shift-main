@@ -39,7 +39,9 @@ void UserClient::receiveWaitingList()
             << "\"shares\": "
             << "\"" << order.getSize() << "\","
             << "\"orderType\": "
-            << "\"" << char(order.getType()) << "\""
+            << "\"" << char(order.getType()) << "\","
+            << "\"status\":"
+            << "\"" << order.getStatusString() << "\""
             << "}";
         if (res == "") {
             res += out.str();
@@ -76,8 +78,12 @@ void UserClient::sendSubmittedOrders()
             << "\"" << order.getPrice() << "\","
             << "\"shares\": "
             << "\"" << order.getSize() << "\","
+            << "\"executed\": "
+            << "\"" << order.getExecuted() << "\","
             << "\"orderType\": "
-            << "\"" << char(order.getType()) << "\","
+            << "\"" << static_cast<char>(order.getType()) << "\","
+            << "\"status\": "
+            << "\"" << order.getStatusString() << "\","
             << "\"timestamp\": "
             << "\"" << timestampStr << "\""
             << "}";

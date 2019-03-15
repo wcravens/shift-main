@@ -39,14 +39,14 @@ $redirect_url = '/submittedorders.php';
                         <table class="table notselectable bborder" id="stock_list">
                             <tr>
                                 <th class="notwrap" width="5%">Symbol</th>
-                                <th class="text-right notwrap" width="14%">Order Type</th>
-                                <th class="text-right notwrap" width="9.5%">Price</th>
-                                <th class="text-right notwrap" width="9.5%">Size</th>
+                                <th class="text-right notwrap" width="10%">Order Type</th>
+                                <th class="text-right notwrap" width="8%">Price</th>
+                                <th class="text-right notwrap" width="8%">Size</th>
+                                <th class="text-right notwrap" width="8%">Executed</th>
                                 <th width="5%"></th>
-                                <th class="notwrap notimpcol2" width="35%">Order ID</th>
-                                <th class="notwrap notimpcol2" width="35%">Timestamp</th>
-                                <th class="text-right notwrap notimpcol" width="20%">Accepted</th>
-                                <th class="text-right notwrap notimpcol" width="20%">Cancelled</th>
+                                <th class="notwrap notimpcol2" width="30%">Order ID</th>
+                                <th class="notwrap notimpcol" width="10%">Status</th>
+                                <th class="notwrap notimpcol2" width="20%">Timestamp</th>
                             </tr>
                         </table>
                     </div>
