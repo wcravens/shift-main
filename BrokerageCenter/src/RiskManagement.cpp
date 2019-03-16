@@ -472,12 +472,19 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
             success = true;
         }
     } break;
-    case Order::Type::CANCEL_BID:
+    case Order::Type::CANCEL_BID: {
+        std::lock_guard<std::mutex> guard(m_mtxWaitingList);
+        auto it = m_waitingList.find(order.getID());
+        if ((m_waitingList.end() != it))
+            if ((it->second.getType() == Order::Type::LIMIT_BUY) && (it->second.getPrice() == order.getPrice()))
+                success = true;
+    } break;
     case Order::Type::CANCEL_ASK: {
         std::lock_guard<std::mutex> guard(m_mtxWaitingList);
         auto it = m_waitingList.find(order.getID());
-        if (m_waitingList.end() != it)
-            success = true;
+        if ((m_waitingList.end() != it))
+            if ((it->second.getType() == Order::Type::LIMIT_SELL) && (it->second.getPrice() == order.getPrice()))
+                success = true;
     } break;
     default: {
     } break;
