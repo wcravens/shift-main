@@ -608,7 +608,7 @@ void shift::CoreClient::storeExecutionReport(const std::string& orderID, int exe
 
     if (executedSize > 0) {
         if (order.getExecutedSize() > 0) {
-            newExecutedPrice = ((order.getExecutedPrice() / order.getExecutedSize()) + (executedPrice / executedSize)) * newExecutedSize;
+            newExecutedPrice = (order.getExecutedPrice() / order.getExecutedSize()) + (executedPrice / executedSize);
         } else {
             newExecutedPrice = executedPrice;
         }
