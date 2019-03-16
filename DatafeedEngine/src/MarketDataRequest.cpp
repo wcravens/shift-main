@@ -6,11 +6,11 @@
  * @brief Constructor for a new MarketDataRequest.
  * @param requestID, vector of ticker symbols, start time, and end time.
  */
-MarketDataRequest::MarketDataRequest(std::string requestID, std::vector<std::string> symbols, boost::posix_time::ptime timeStart, boost::posix_time::ptime timeEnd)
+MarketDataRequest::MarketDataRequest(std::string&& requestID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime)
     : m_requestID(std::move(requestID))
     , m_symbols(std::move(symbols))
-    , m_timeStart(std::move(timeStart))
-    , m_timeEnd(std::move(timeEnd))
+    , m_startTime(std::move(startTime))
+    , m_endTime(std::move(endTime))
 {
 }
 
@@ -41,7 +41,7 @@ const std::vector<std::string>& MarketDataRequest::getSymbols() const
  */
 const boost::posix_time::ptime& MarketDataRequest::getStartTime() const
 {
-    return m_timeStart;
+    return m_startTime;
 }
 
 /**
@@ -51,7 +51,7 @@ const boost::posix_time::ptime& MarketDataRequest::getStartTime() const
  */
 const boost::posix_time::ptime& MarketDataRequest::getEndTime() const
 {
-    return m_timeEnd;
+    return m_endTime;
 }
 
 /**
@@ -61,11 +61,11 @@ const boost::posix_time::ptime& MarketDataRequest::getEndTime() const
  */
 std::string MarketDataRequest::getDate() const
 {
-    std::string date = boost::posix_time::to_iso_extended_string(m_timeStart);
+    std::string date = boost::posix_time::to_iso_extended_string(m_startTime);
     return date.substr(0, 10);
 }
 
-void MarketDataRequest::updateTimeStart(boost::posix_time::ptime newStartTime)
+void MarketDataRequest::updateStartTime(const boost::posix_time::ptime& newStartTime)
 {
-    m_timeStart = std::move(newStartTime);
+    m_startTime = newStartTime;
 }

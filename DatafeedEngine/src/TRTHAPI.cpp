@@ -79,16 +79,87 @@ TRTHAPI::~TRTHAPI()
     s_pInst = nullptr;
 }
 
-TRTHAPI* TRTHAPI::getInstance()
-{
-    return s_pInst;
-}
-
 TRTHAPI* TRTHAPI::createInstance(const std::string& cryptoKey, const std::string& configDir)
 {
     static TRTHAPI s_inst(cryptoKey, configDir);
     s_pInst = &s_inst;
     return s_pInst;
+}
+
+TRTHAPI* TRTHAPI::getInstance()
+{
+    return s_pInst;
+}
+
+/**@brief Creates and runs a Requests Processor thread */
+void TRTHAPI::start()
+{
+    if (!m_reqProcessorPtr) {
+        m_reqProcessorPtr.reset(new std::thread(&TRTHAPI::processRequests, this));
+    }
+}
+
+/**@brief Terminates the Requests Processor. */
+void TRTHAPI::stop()
+{
+    if (!m_reqProcessorPtr)
+        return;
+
+    cout << '\n'
+         << COLOR "TRTH is stopping..." NO_COLOR << '\n'
+         << flush;
+
+    shift::concurrency::notifyConsumerThreadToQuit(m_reqProcQuitFlag, m_cvReqs, *m_reqProcessorPtr);
+    m_reqProcessorPtr = nullptr;
+}
+
+void TRTHAPI::enqueueRequest(TRTHRequest req)
+{
+    {
+        std::lock_guard<std::mutex> guard(m_mtxReqs);
+        m_requests.push(req);
+    }
+    m_cvReqs.notify_one();
+}
+
+void TRTHAPI::addUnavailableRequest(const TRTHRequest& req)
+{
+    std::lock_guard<std::mutex> guard(m_mtxReqsUnavail);
+    m_requestsUnavailable.push_back(req);
+}
+
+/**
+ * @brief Removes unrecognizable symbols/RICs from the given symbols/RICs collection, with respect to the current TRTH contents.
+ *        Note that, if any TRTH request detects a formerly unrecognized symbol from the remote now, at which time any ME
+ *        concurrently requesting Next Data that contains this symbol, DE will either send or do not send this symbol to ME.
+ *        Such behavior is caused by the concurrency contention characteristics.
+ * @return Number of removed RICs.
+ */
+size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs)
+{
+    std::lock_guard<std::mutex> guard(m_mtxReqsUnavail);
+
+    if (m_requestsUnavailable.empty() || originalRICs.empty())
+        return 0;
+
+    std::sort(originalRICs.begin(), originalRICs.end());
+    std::stable_sort(m_requestsUnavailable.begin(), m_requestsUnavailable.end(), [](const TRTHRequest& lhs, const TRTHRequest& rhs) { return lhs.symbol < rhs.symbol; });
+
+    const auto oldSize = originalRICs.size();
+    auto lastSearchPosInUnavail = m_requestsUnavailable.cbegin();
+
+    auto pred = [this, &lastSearchPosInUnavail](const std::string& symbol) {
+        lastSearchPosInUnavail = std::lower_bound(lastSearchPosInUnavail, m_requestsUnavailable.cend(), symbol, [](const TRTHRequest& elem, const std::string& symbol) { return elem.symbol < symbol; });
+
+        if (m_requestsUnavailable.cend() == lastSearchPosInUnavail)
+            return false;
+
+        return symbol == lastSearchPosInUnavail->symbol;
+    };
+
+    originalRICs.erase(std::remove_if(originalRICs.begin(), originalRICs.end(), pred), originalRICs.end());
+
+    return oldSize - originalRICs.size();
 }
 
 /**@brief The unique Requests Processor thread for all requests */
@@ -173,37 +244,6 @@ void TRTHAPI::processRequests()
 
         req.prom->set_value(isPerfect);
     } // while
-}
-
-void TRTHAPI::enqueueRequest(TRTHRequest req)
-{
-    {
-        std::lock_guard<std::mutex> guard(m_mtxReqs);
-        m_requests.push(req);
-    }
-    m_cvReqs.notify_one();
-}
-
-/**@brief Creates and runs a Requests Processor thread */
-void TRTHAPI::start()
-{
-    if (!m_reqProcessorPtr) {
-        m_reqProcessorPtr.reset(new std::thread(&TRTHAPI::processRequests, this));
-    }
-}
-
-/**@brief Terminates the Requests Processor. */
-void TRTHAPI::stop()
-{
-    if (!m_reqProcessorPtr)
-        return;
-
-    cout << '\n'
-         << COLOR "TRTH is stopping..." NO_COLOR << '\n'
-         << flush;
-
-    shift::concurrency::notifyConsumerThreadToQuit(m_reqProcQuitFlag, m_cvReqs, *m_reqProcessorPtr);
-    m_reqProcessorPtr = nullptr;
 }
 
 /**@brief The main method to search, check, request and download data from TRTH. Gives processing status as feedback. */
@@ -345,161 +385,3 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
 
     return 0;
 }
-
-void TRTHAPI::addUnavailableRequest(const TRTHRequest& req)
-{
-    std::lock_guard<std::mutex> guard(m_mtxReqsUnavail);
-    m_requestsUnavailable.push_back(req);
-}
-
-/**
- * @brief Removes unrecognizable symbols/RICs from the given symbols/RICs collection, with respect to the current TRTH contents.
- *        Note that, if any TRTH request detects a formerly unrecognized symbol from the remote now, at which time any ME
- *        concurrently requesting Next Data that contains this symbol, DE will either send or do not send this symbol to ME.
- *        Such behavior is caused by the concurrency contention characteristics.
- * @return Number of removed RICs.
- */
-size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs)
-{
-    std::lock_guard<std::mutex> guard(m_mtxReqsUnavail);
-
-    if (m_requestsUnavailable.empty() || originalRICs.empty())
-        return 0;
-
-    std::sort(originalRICs.begin(), originalRICs.end());
-    std::stable_sort(m_requestsUnavailable.begin(), m_requestsUnavailable.end(), [](const TRTHRequest& lhs, const TRTHRequest& rhs) { return lhs.symbol < rhs.symbol; });
-
-    const auto oldSize = originalRICs.size();
-    auto lastSearchPosInUnavail = m_requestsUnavailable.cbegin();
-
-    auto pred = [this, &lastSearchPosInUnavail](const std::string& symbol) {
-        lastSearchPosInUnavail = std::lower_bound(lastSearchPosInUnavail, m_requestsUnavailable.cend(), symbol, [](const TRTHRequest& elem, const std::string& symbol) { return elem.symbol < symbol; });
-
-        if (m_requestsUnavailable.cend() == lastSearchPosInUnavail)
-            return false;
-
-        return symbol == lastSearchPosInUnavail->symbol;
-    };
-
-    originalRICs.erase(std::remove_if(originalRICs.begin(), originalRICs.end(), pred), originalRICs.end());
-
-    return oldSize - originalRICs.size();
-}
-
-// /**@brief Prints friendlier SOAP error messages for specified funcion. */
-// void TRTHAPI::printErrorDetails(std::string func)
-// {
-//     cout << COLOR_ERROR "gSOAP error";
-//     // SoapStatusCodeInterpreter::interpret(m_apiProxy.error, "");
-//     cout << "while calling function '" << func << "'." << endl;
-//     if (m_apiProxy.soap_fault_string() != nullptr)
-//         cout << "\nSOAP_fault_string:\n"
-//                   << m_apiProxy.soap_fault_string() << endl;
-//     if (m_apiProxy.soap_fault_detail() != nullptr)
-//         cout << "\nSOAP_fault_detail:\n"
-//                   << m_apiProxy.soap_fault_detail() << endl;
-
-//     cout << COLOR;
-//     // Provide hints for some common cases
-//     switch (m_apiProxy.error) {
-//     case SOAP_SSL_ERROR:
-//         cout << "\nHint:\n"
-//                      "This is an SSL error. Make sure stdsoap2.cpp is compiled with the command-line\n"
-//                      "option -DWITH_OPENSSL and the environment variable SSL_CERT_FILE points to a\n"
-//                      "Certification Authorities file such as the cacerts.pem that is included in the\n"
-//                      "gSOAP installation."
-//                   << endl;
-//     break;
-//     case SOAP_TCP_ERROR:
-//         cout << "\nHint:\n"
-//                      "This is a TCP error. Make sure you have assigned the correct HTTP proxy details\n"
-//                      "in the application. If you are not using an HTTP proxy, make sure you have\n"
-//                      "removed the proxy settings in the application source code."
-//                   << endl;
-//     break;
-//     }
-//     cout << NO_COLOR;
-// }
-
-// /**@brief Configure TRTH request parameters and submit the request */
-// std::string TRTHAPI::submitRequest(ns2__Instrument* pInstrument, const std::string& date, ns2__TimeRange& timeRange)
-// {
-//     // Set up the fields and message types for the request. The names of these can be
-//     // obtained by calling api.GetMessageTypes(), but we hard-code them here for brevity.
-
-//     ns2__ArrayOfString fields1;
-//     fields1.string.push_back("Price");
-//     fields1.string.push_back("Volume");
-//     fields1.string.push_back("Exchange Time");
-//     fields1.string.push_back("Exchange ID");
-//     ns2__MessageType timesale1;
-//     timesale1.name = "Trade";
-//     timesale1.fieldList = &fields1;
-
-//     ns2__ArrayOfString fields;
-//     fields.string.push_back("Bid Price");
-//     fields.string.push_back("Bid Size");
-//     fields.string.push_back("Ask Price");
-//     fields.string.push_back("Ask Size");
-//     fields.string.push_back("Quote Time");
-//     fields.string.push_back("Quote Date");
-//     fields.string.push_back("Buyer ID / Exchange ID");
-//     fields.string.push_back("Seller ID / Exchange ID");
-
-//     ns2__MessageType timesale;
-//     timesale.name = "Quote";
-//     timesale.fieldList = &fields;
-
-//     ns2__ArrayOfMessageType messageTypes;
-//     messageTypes.messageType.push_back(&timesale1);
-//     messageTypes.messageType.push_back(&timesale);
-
-//     ns2__RequestSpec request;
-//     request.friendlyName = "ts Request";
-//     request.date = date;
-//     request.timeRange = &timeRange;
-//     request.instrument = pInstrument;
-//     request.requestType = ns2__RequestType__TimeAndSales;
-//     request.messageTypeList = &messageTypes;
-//     request.applyCorrections = false;
-//     request.requestInGMT = false;
-//     request.displayInGMT = false;
-//     request.disableHeader = false;
-//     request.dateFormat = ns2__RequestDateFormat__DDMMMYYYY;
-//     request.disableDataPersistence = true;
-//     request.includeCurrentRIC = false;
-//     request.displayMicroseconds = true; // changed to 6 digits
-
-//     _ns2__SubmitRequest submitRequest;
-//     submitRequest.request = &request;
-
-//     _ns2__SubmitRequestResponse submitRequestResponse;
-//     auto statCode = soap_status{ m_apiProxy.SubmitRequest(&submitRequest, &submitRequestResponse) };
-//     SoapStatusCodeInterpreter::interpret(statCode, statCode != SOAP_OK, "SOAP.APIProxy.SubmitRequest error");
-
-//     return submitRequestResponse.requestID; // On error this will be an empty std::string.
-// }
-
-// /**@brief Asynchronously fetches the request result */
-// ns2__RequestResult* TRTHAPI::getRequestResult(std::string& reqID)
-// {
-//     _ns2__GetRequestResult getRequestResult;
-//     getRequestResult.requestID = reqID;
-
-//     _ns2__GetRequestResultResponse response;
-
-//     // Wait for the server side data processing to complete.
-//     bool done = false;
-//     while (!done) {
-//         std::this_thread::sleep_for(2s); // wait between polls
-//         int rc = m_apiProxy.GetRequestResult(&getRequestResult, &response);
-//         SoapStatusCodeInterpreter::interpret(rc, rc != SOAP_OK, "SOAP.APIProxy.GetRequestResult error");
-//         if (rc != 0
-//             || response.result->status == ns2__RequestStatusCode__Complete
-//             || response.result->status == ns2__RequestStatusCode__Aborted) {
-//             done = true;
-//         }
-//     }
-
-//     return response.result;
-// }

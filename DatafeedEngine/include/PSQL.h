@@ -18,21 +18,18 @@ struct TradingRecord;
  * @brief The PostgreSQL database manipulator
  */
 class PSQL {
-private:
-    std::mutex m_mtxPSQL; // To mutual-exclusively access db
-    PGconn* m_pConn;
-    std::unordered_map<std::string, std::string> m_loginInfo;
-    static const std::string s_sessionID;
-
-protected:
-    PSQL(std::unordered_map<std::string, std::string>&& info);
-    virtual ~PSQL() = 0; // PSQL becomes an abstract class, hence forces users to access it via PSQLManager
-
 public:
+    static std::string s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string& lastRTime, int& lastRTimeOrder);
+
+    static std::string s_createTableName(const std::string& symbol, const std::string& yyyymmdd);
+
+    /*@brief Convert FIX::UtcTimeStamp to string used for date field in DB*/
+    static std::string s_utcToString(const FIX::UtcTimeStamp& utc, bool localTime = false);
+
     /*@brief Locker for SQL transactions. It also provides a simpler syntax to lock. */
     std::unique_lock<std::mutex> lockPSQL();
 
-    auto getLoginInfo() const -> const decltype(m_loginInfo)& { return m_loginInfo; }
+    const std::unordered_map<std::string, std::string>& getLoginInfo() const { return m_loginInfo; }
 
     /*@brief Establish connection to database */
     bool connectDB();
@@ -67,28 +64,36 @@ public:
     // /*@brief Check if Trade & Quote is empty */
     // long checkEmpty(std::string tableName);
 
-    /*@brief Convert FIX::UtcTimeStamp to string used for date field in DB*/
-    static std::string utcToString(const FIX::UtcTimeStamp& utc, bool localTime = false);
-
     /*@brief Inserts trade history into the table used to save the trading records*/
     bool insertTradingRecord(const TradingRecord& trade);
 
     /*@brief Convertor from CSV data to database records */
     bool saveCSVIntoDB(std::string csvName, std::string symbol, std::string date);
+
+protected:
+    PSQL(std::unordered_map<std::string, std::string>&& info);
+    virtual ~PSQL() = 0; // PSQL becomes an abstract class, hence forces users to access it via PSQLManager
+
+private:
+    std::mutex m_mtxPSQL; // To mutual-exclusively access db
+    PGconn* m_pConn;
+    std::unordered_map<std::string, std::string> m_loginInfo;
+    static const std::string s_sessionID;
 };
 
 /**
  * @brief The organizer for PSQL singleton object. Users accessing to PostgreSQL shall always use it instead of bare PSQL.
  */
 class PSQLManager final : public PSQL {
-    static PSQLManager* s_pInst;
-    PSQLManager(std::unordered_map<std::string, std::string>&& loginInfo);
-
 public:
-    static PSQLManager& createInstance(std::unordered_map<std::string, std::string> dbLoginInfo);
-
-    static PSQLManager& getInstance() { return *s_pInst; }
-
     PSQLManager(const PSQLManager&) = delete; // forbid copying
     void operator=(const PSQLManager&) = delete; // forbid assigning
+
+    static PSQLManager& createInstance(std::unordered_map<std::string, std::string>&& dbLoginInfo);
+    static PSQLManager& getInstance() { return *s_pInst; }
+
+private:
+    PSQLManager(std::unordered_map<std::string, std::string>&& loginInfo);
+
+    static PSQLManager* s_pInst;
 };

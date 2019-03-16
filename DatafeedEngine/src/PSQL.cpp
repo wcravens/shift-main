@@ -11,18 +11,13 @@
 
 #define __DBG_DUMP_PQCMD false
 
-static inline std::string createTableName(const std::string& symbol, const std::string& yyyymmdd)
-{
-    return symbol + '_' + yyyymmdd;
-}
-
 /**
  * @brief Generates Reuters-Time-Order series numbers (as a column data) so that they combined with the Reuters-Time column be used as primary key.
  *        To view the line-by-line correspondence of these two columns(i.e. primary key), use the SQL script:
  *          SELECT reuters_time, reuters_time_order
  *          FROM public.<a table name here>;
  */
-static std::string getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string& lastRTime, int& lastRTimeOrder)
+/* static */ std::string PSQL::s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string& lastRTime, int& lastRTimeOrder)
 {
     if (currReutersTime.length() != lastRTime.length() // Different size must implies different strings!
         /* Reuters time data are always in increasing order, usually with strides of some microseconds(10^-6s) to some milliseconds.
@@ -42,6 +37,28 @@ static std::string getUpdateReutersTimeOrder(const std::string& currReutersTime,
     }
 
     return std::to_string(++lastRTimeOrder);
+}
+
+/* static */ inline std::string PSQL::s_createTableName(const std::string& symbol, const std::string& yyyymmdd)
+{
+    return symbol + '_' + yyyymmdd;
+}
+
+/**
+ * @brief Convert FIX::UtcTimeStamp to string used for date field in DB
+ */
+/* static */ std::string PSQL::s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
+{
+    std::ostringstream os;
+    time_t t = ts.getTimeT();
+    if (localTime) {
+        os << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
+    } else {
+        os << std::put_time(std::gmtime(&t), "%Y-%m-%d %H:%M:%S");
+    }
+    os << '.';
+    os << ts.getFraction(6);
+    return os.str();
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -128,11 +145,6 @@ void PSQL::init()
     (void)res;
 }
 
-bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
-{
-    return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
-}
-
 /* Insert record to the table after updating one day quote&trade data to the database*/
 bool PSQL::insertTableName(std::string ric, std::string reutersDate, std::string tableName)
 {
@@ -140,11 +152,9 @@ bool PSQL::insertTableName(std::string ric, std::string reutersDate, std::string
     return doQuery("INSERT INTO " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " VALUES ('" + ric + "','" + reutersDate + "','" + tableName + "');", COLOR_ERROR "\tERROR: Insert into " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " table failed.\t" NO_COLOR);
 }
 
-/* Create Trade & Quote data table */
-bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
+bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
 {
-    auto lock{ lockPSQL() };
-    return doQuery("CREATE TABLE " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
+    return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
 }
 
 /* Check if the Trade and Quote data for a specific Ric-ReutersDate combination is exist.
@@ -187,6 +197,13 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     PQclear(pRes);
 
     return status;
+}
+
+/* Create Trade & Quote data table */
+bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
+{
+    auto lock{ lockPSQL() };
+    return doQuery("CREATE TABLE " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
 }
 
 /* read csv file, Append statement and insert record into table */
@@ -257,7 +274,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                 pqQuery += "',";
 
                 // reuters time order (for primary key purpose)
-                pqQuery += ::getUpdateReutersTimeOrder(rtMicroSec, lastRTime, lastRTimeOrder);
+                pqQuery += s_getUpdateReutersTimeOrder(rtMicroSec, lastRTime, lastRTimeOrder);
                 pqQuery += ',';
 
                 // reuters time offset
@@ -374,7 +391,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 {
     const std::string stime = boost::posix_time::to_iso_extended_string(startTime).substr(11, 8);
     const std::string etime = boost::posix_time::to_iso_extended_string(endTime).substr(11, 8);
-    const std::string table_name = ::createTableName(symbol, boost::posix_time::to_iso_string(startTime).substr(0, 8)); /*YYYYMMDD*/
+    const std::string table_name = s_createTableName(symbol, boost::posix_time::to_iso_string(startTime).substr(0, 8)); /*YYYYMMDD*/
     auto lock{ lockPSQL() };
 
     if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
@@ -481,41 +498,24 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 //     return 1;
 // }
 
-/**
- * @brief Convert FIX::UtcTimeStamp to string used for date field in DB
- */
-/* static */ std::string PSQL::utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
-{
-    std::ostringstream os;
-    time_t t = ts.getTimeT();
-    if (localTime) {
-        os << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
-    } else {
-        os << std::put_time(std::gmtime(&t), "%Y-%m-%d %H:%M:%S");
-    }
-    os << '.';
-    os << ts.getFraction(6);
-    return os.str();
-}
-
 bool PSQL::insertTradingRecord(const TradingRecord& trade)
 {
     std::ostringstream temp;
     temp << "INSERT INTO " << shift::database::PSQLTable<shift::database::DETradingRecords>::name << " VALUES ('"
          << s_sessionID << "','"
-         << utcToString(trade.realtime, true) << "','"
-         << utcToString(trade.exetime, true) << "','"
+         << s_utcToString(trade.realTime, true) << "','"
+         << s_utcToString(trade.execTime, true) << "','"
          << trade.symbol << "','"
          << trade.price << "','"
          << trade.size << "','"
-         << trade.trader_id_1 << "','"
-         << trade.trader_id_2 << "','"
-         << trade.order_id_1 << "','"
-         << trade.order_id_2 << "','"
-         << trade.order_type_1 << "','"
-         << trade.order_type_2 << "','"
-         << utcToString(trade.time1, true) << "','"
-         << utcToString(trade.time2, true) << "','"
+         << trade.traderID1 << "','"
+         << trade.traderID2 << "','"
+         << trade.orderID1 << "','"
+         << trade.orderID2 << "','"
+         << trade.orderType1 << "','"
+         << trade.orderType2 << "','"
+         << s_utcToString(trade.time1, true) << "','"
+         << s_utcToString(trade.time2, true) << "','"
          << trade.decision << "','"
          << trade.destination << "');";
 
@@ -528,7 +528,7 @@ bool PSQL::insertTradingRecord(const TradingRecord& trade)
 
 bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) // Date format: YYYY-MM-DD
 {
-    std::string tableName = ::createTableName(symbol, date.substr(0, 4) + date.substr(5, 2) + date.substr(8, 2));
+    std::string tableName = s_createTableName(symbol, date.substr(0, 4) + date.substr(5, 2) + date.substr(8, 2));
 
     cout << "Insert [ " << symbol << ' ' << date << " ] into table name list";
     if (insertTableName(symbol, date, tableName)) {
@@ -572,7 +572,7 @@ PSQLManager::PSQLManager(std::unordered_map<std::string, std::string>&& dbInfo)
 {
 }
 
-/*static*/ PSQLManager& PSQLManager::createInstance(std::unordered_map<std::string, std::string> dbLoginInfo)
+/*static*/ PSQLManager& PSQLManager::createInstance(std::unordered_map<std::string, std::string>&& dbLoginInfo)
 {
     static PSQLManager s_inst(std::move(dbLoginInfo));
     s_pInst = &s_inst;

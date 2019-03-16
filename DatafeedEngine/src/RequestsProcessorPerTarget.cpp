@@ -81,6 +81,17 @@ void RequestsProcessorPerTarget::processRequests()
     } // while
 }
 
+/**@brief Announces requested data is ready to send. */
+/*static*/ void RequestsProcessorPerTarget::s_announceDataReady(const std::string& targetID, const std::string& requestID)
+{
+    static std::mutex mtxReadyMsg; // Its only purpose is to ensure atomically print message and send signal at the same time. Its lifetime will last from first time the program encountered it, to when the entire DE program terminates.
+    std::lock_guard<std::mutex> guard(mtxReadyMsg);
+    cout << '\n'
+         << COLOR_PROMPT "Ready to send chunk to " << targetID << NO_COLOR << '\n'
+         << endl;
+    FIXAcceptor::sendNotice(targetID, requestID, "READY");
+}
+
 /**@brief Processor helper for one Market Data request.
  * @param oneReqLock: The caller side lock that must be pre-locked before calling this.
  * @param marketReq: The Market Data request with necessary informations.
@@ -183,17 +194,6 @@ void RequestsProcessorPerTarget::processRequests()
     ); // return
 }
 
-/**@brief Announces requested data is ready to send. */
-/*static*/ void RequestsProcessorPerTarget::s_announceDataReady(const std::string& targetID, const std::string& requestID)
-{
-    static std::mutex mtxReadyMsg; // Its only purpose is to ensure atomically print message and send signal at the same time. Its lifetime will last from first time the program encountered it, to when the entire DE program terminates.
-    std::lock_guard<std::mutex> guard(mtxReadyMsg);
-    cout << '\n'
-         << COLOR_PROMPT "Ready to send chunk to " << targetID << NO_COLOR << '\n'
-         << endl;
-    FIXAcceptor::sendNotice(targetID, requestID, "READY");
-}
-
 /**@brief Processor helper for one Next Data request.
  * @param oneReqLock: The caller side lock that must be pre-locked before calling this.
  * @param lastDownloadFutPtr: The pointer to the future that waiting for the last downloading. The future object will be mutated.
@@ -245,7 +245,7 @@ void RequestsProcessorPerTarget::processRequests()
 
     FIXAcceptor::sendNotice(targetID, lastMarketRequestPtr->getRequestID(), "SENDFINISH");
 
-    lastMarketRequestPtr->updateTimeStart(sendTo);
+    lastMarketRequestPtr->updateStartTime(sendTo);
 
     cout << "\nSend done.\n"
          << endl;
