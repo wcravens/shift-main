@@ -201,7 +201,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 {
     FIX::NoRelatedSym numOfGroups;
     message.get(numOfGroups);
-    if (numOfGroups < 1) {
+    if (numOfGroups.getValue() < 1) {
         cout << "Cannot find any Symbol in SecurityList!" << endl;
         return;
     }
@@ -308,14 +308,14 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
 {
     FIX::NoPartyIDs numOfPartyGroups;
     message.get(numOfPartyGroups);
-    if (numOfPartyGroups < 2) {
+    if (numOfPartyGroups.getValue() < 2) {
         cout << "Cannot find enough Party IDs!" << endl;
         return;
     }
 
     FIX::NoTrdRegTimestamps numOfTimestampGroups;
     message.get(numOfTimestampGroups);
-    if (numOfTimestampGroups < 2) {
+    if (numOfTimestampGroups.getValue() < 2) {
         cout << "Cannot find enough Timestamps!" << endl;
         return;
     }
