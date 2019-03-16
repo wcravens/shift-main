@@ -140,27 +140,27 @@ void FIXAcceptor::disconnectMatchingEngine()
     int millisec = static_cast<int>((rawData.microsecs - static_cast<int>(rawData.microsecs)) * 1000000);
     auto secs_gmt = std::mktime(std::gmtime(&secs));
 
-    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(secs_gmt, millisec, 6), 6));
-    message.setField(FIX::Symbol(rawData.symbol));
-    message.setField(FIX::QuoteType(rawData.toq.front() == 'Q' ? 0 : 1));
     message.setField(FIX::QuoteID(shift::crossguid::newGuid().str()));
+    message.setField(FIX::QuoteType(rawData.toq.front() == 'Q' ? 0 : 1));
+    message.setField(FIX::Symbol(rawData.symbol));
+    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(secs_gmt, millisec, 6), 6));
 
-    FIX50SP2::Quote::NoPartyIDs partyGroup1;
-    partyGroup1.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);
-    partyGroup1.setField( // keep the order of partyGroup1 and partyGroup2
+    FIX50SP2::Quote::NoPartyIDs idGroup1;
+    idGroup1.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);
+    idGroup1.setField( // keep the order of idGroup1 and idGroup2
         'Q' == rawData.toq.front() ? FIX::PartyID(rawData.buyerID) : FIX::PartyID(rawData.exchangeID));
-    message.addGroup(partyGroup1);
+    message.addGroup(idGroup1);
 
     if ('Q' == rawData.toq.front()) {
-        FIX50SP2::Quote::NoPartyIDs partyGroup2;
-        partyGroup2.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);
-        partyGroup2.setField(FIX::PartyID(rawData.sellerID));
-        message.addGroup(partyGroup2);
+        FIX50SP2::Quote::NoPartyIDs idGroup2;
+        idGroup2.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);
+        idGroup2.setField(FIX::PartyID(rawData.sellerID));
+        message.addGroup(idGroup2);
 
         message.setField(FIX::BidPx(rawData.bidPrice));
+        message.setField(FIX::OfferPx(rawData.askPrice));
         message.setField(FIX::BidSize(rawData.bidSize));
         message.setField(FIX::OfferSize(rawData.askSize));
-        message.setField(FIX::OfferPx(rawData.askPrice));
     } else if ('T' == rawData.toq.front()) {
         message.setField(FIX::BidPx(rawData.price));
         message.setField(FIX::BidSize(rawData.volume));
@@ -332,7 +332,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     static FIX::CumQty size;
     static FIX::TransactTime serverTime;
 
-    static FIX50SP2::ExecutionReport::NoPartyIDs partyGroup;
+    static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     static FIX::PartyID traderID1;
     static FIX::PartyID traderID2;
 
@@ -354,7 +354,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     FIX::CumQty* pSize;
     FIX::TransactTime* pServerTime;
 
-    FIX50SP2::ExecutionReport::NoPartyIDs* pPartyGroup;
+    FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
     FIX::PartyID* pTraderID1;
     FIX::PartyID* pTraderID2;
 
@@ -381,7 +381,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
         pDestination = &destination;
         pSize = &size;
         pServerTime = &serverTime;
-        pPartyGroup = &partyGroup;
+        pIDGroup = &idGroup;
         pTraderID1 = &traderID1;
         pTraderID2 = &traderID2;
         pTimeGroup = &timeGroup;
@@ -399,7 +399,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
         pDestination = new decltype(destination);
         pSize = new decltype(size);
         pServerTime = new decltype(serverTime);
-        pPartyGroup = new decltype(partyGroup);
+        pIDGroup = new decltype(idGroup);
         pTraderID1 = new decltype(traderID1);
         pTraderID2 = new decltype(traderID2);
         pTimeGroup = new decltype(timeGroup);
@@ -419,10 +419,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     message.get(*pSize);
     message.get(*pServerTime);
 
-    message.getGroup(1, *pPartyGroup);
-    pPartyGroup->get(*pTraderID1);
-    message.getGroup(2, *pPartyGroup);
-    pPartyGroup->get(*pTraderID2);
+    message.getGroup(1, *pIDGroup);
+    pIDGroup->get(*pTraderID1);
+    message.getGroup(2, *pIDGroup);
+    pIDGroup->get(*pTraderID2);
 
     message.getGroup(1, *pTimeGroup);
     pTimeGroup->get(*pUTCTime1);
@@ -464,7 +464,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
         delete pDestination;
         delete pSize;
         delete pServerTime;
-        delete pPartyGroup;
+        delete pIDGroup;
         delete pTraderID1;
         delete pTraderID2;
         delete pTimeGroup;

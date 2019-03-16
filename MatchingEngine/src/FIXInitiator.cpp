@@ -227,13 +227,13 @@ void FIXInitiator::onCreate(const FIX::SessionID& sessionID) // override
 void FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
 {
     cout << endl
-         << "Logon - " << sessionID << endl;
+         << "Logon - " << sessionID.toString() << endl;
 }
 
 void FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
 {
     cout << endl
-         << "Logout - " << sessionID << endl;
+         << "Logout - " << sessionID.toString() << endl;
 }
 
 void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
@@ -253,19 +253,52 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
         return;
     }
 
-    FIX::Headline requestID;
+    static FIX::Headline requestID;
 
-    FIX50SP2::News::NoLinesOfText textGroup;
-    FIX::Text text;
+    static FIX50SP2::News::NoLinesOfText textGroup;
+    static FIX::Text text;
 
-    message.get(requestID);
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, textGroup);
-    textGroup.get(text);
+    FIX::Headline* pRequestID;
+
+    FIX50SP2::News::NoLinesOfText* pTextGroup;
+    FIX::Text* pText;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pRequestID = &requestID;
+        pTextGroup = &textGroup;
+        pText = &text;
+    } else { // > 1 threads; always safe way:
+        pRequestID = new decltype(requestID);
+        pTextGroup = new decltype(textGroup);
+        pText = new decltype(text);
+    }
+
+    message.get(*pRequestID);
+
+    message.getGroup(1, *pTextGroup);
+    pTextGroup->get(*pText);
 
     cout << "----- Receive NOTICE -----" << endl;
-    cout << "request_id: " << requestID.getValue() << endl;
-    cout << "text: " << text.getValue() << endl;
+    cout << "request_id: " << pRequestID->getValue() << endl;
+    cout << "text: " << pText->getValue() << endl;
+
+    if (prevCnt) { // > 1 threads
+        delete pRequestID;
+        delete pTextGroup;
+        delete pText;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**
@@ -284,55 +317,110 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         return;
     }
 
-    FIX::Symbol symbol;
-    FIX::BidPx bidPrice;
-    FIX::BidSize bidSize;
-    FIX::TransactTime transactTime;
+    static FIX::Symbol symbol;
+    static FIX::BidPx bidPrice;
+    static FIX::OfferPx askPrice;
+    static FIX::BidSize bidSize;
+    static FIX::OfferSize askSize;
+    static FIX::TransactTime transactTime;
 
-    FIX50SP2::Quote::NoPartyIDs partyGroup1;
-    FIX::PartyID buyerID;
+    static FIX50SP2::Quote::NoPartyIDs idGroup;
+    static FIX::PartyID buyerID;
+    static FIX::PartyID sellerID;
 
-    message.get(symbol);
-    message.get(bidPrice);
-    message.get(bidSize);
-    message.get(transactTime);
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, partyGroup1);
-    partyGroup1.getField(buyerID);
+    FIX::Symbol* pSymbol;
+    FIX::BidPx* pBidPrice;
+    FIX::OfferPx* pAskPrice;
+    FIX::BidSize* pBidSize;
+    FIX::OfferSize* pAskSize;
+    FIX::TransactTime* pTransactTime;
 
-    auto stockIt = stocklist.find(symbol);
+    FIX50SP2::Quote::NoPartyIDs* pIDGroup;
+    FIX::PartyID* pBuyerID;
+    FIX::PartyID* pSellerID;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pSymbol = &symbol;
+        pBidPrice = &bidPrice;
+        pAskPrice = &askPrice;
+        pBidSize = &bidSize;
+        pAskSize = &askSize;
+        pTransactTime = &transactTime;
+        pIDGroup = &idGroup;
+        pBuyerID = &buyerID;
+        pSellerID = &sellerID;
+    } else { // > 1 threads; always safe way:
+        pSymbol = new decltype(symbol);
+        pBidPrice = new decltype(bidPrice);
+        pAskPrice = new decltype(askPrice);
+        pBidSize = new decltype(bidSize);
+        pAskSize = new decltype(askSize);
+        pTransactTime = new decltype(transactTime);
+        pIDGroup = new decltype(idGroup);
+        pBuyerID = new decltype(buyerID);
+        pSellerID = new decltype(sellerID);
+    }
+
+    message.get(*pSymbol);
+    message.get(*pBidPrice);
+    message.get(*pBidSize);
+    message.get(*pTransactTime);
+
+    message.getGroup(1, *pIDGroup);
+    pIDGroup->getField(*pBuyerID);
+
+    auto stockIt = stocklist.find(pSymbol->getValue());
     if (stockIt == stocklist.end()) {
         cout << "Receive error in Global!" << endl;
         return;
     }
 
-    Quote newQuote{ symbol, bidPrice, static_cast<int>(bidSize.getValue()) / 100, buyerID, transactTime.getValue() };
+    Quote newQuote{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()) / 100, pBuyerID->getValue(), pTransactTime->getValue() };
     newQuote.setordertype('7'); // Update as "trade" from Global
 
-    long mili = timepara.past_milli(transactTime.getValue());
+    long mili = timepara.past_milli(pTransactTime->getValue());
     newQuote.setmili(mili);
 
     if (ordType == 0) { // Quote
-        FIX::OfferPx askPrice;
-        FIX::OfferSize askSize;
 
-        FIX50SP2::Quote::NoPartyIDs partyGroup2;
-        FIX::PartyID sellerID;
+        message.get(*pAskPrice);
+        message.get(*pAskSize);
 
-        message.get(askPrice);
-        message.get(askSize);
+        message.getGroup(2, *pIDGroup);
+        pIDGroup->getField(*pSellerID);
 
-        message.getGroup(2, partyGroup2);
-        partyGroup2.getField(sellerID);
-
-        Quote newQuote2{ symbol, askPrice, static_cast<int>(askSize.getValue()), sellerID, transactTime.getValue() };
+        Quote newQuote2{ pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), pSellerID->getValue(), pTransactTime->getValue() };
         newQuote2.setordertype('8'); // Update as "ask" from Global
         newQuote2.setmili(mili);
 
-        newQuote.setsize(static_cast<int>(bidSize.getValue()));
+        newQuote.setsize(static_cast<int>(pBidSize->getValue()));
         newQuote.setordertype('9'); // Update as "bid" from Global
 
         stockIt->second.buf_new_global(newQuote2);
     }
     stockIt->second.buf_new_global(newQuote);
+
+    if (prevCnt) { // > 1 threads
+        delete pSymbol;
+        delete pBidPrice;
+        delete pAskPrice;
+        delete pBidSize;
+        delete pAskSize;
+        delete pTransactTime;
+        delete pIDGroup;
+        delete pBuyerID;
+        delete pSellerID;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
