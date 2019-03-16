@@ -26,28 +26,10 @@ Some terminologies:
 (3) One (1) can consist of multiple (2)s; one (2) can interact(e.g. login) through various (1)s, but each (1) will maintain that respectively.
 */
 class BCDocuments : public ITargetsInfo {
-    std::unordered_set<std::string> m_symbols;
-    std::unordered_map<std::string, std::unique_ptr<OrderBook>> m_orderBookBySymbol; // symbol, OrderBook; contains 4 types of order book for each stock
-    std::unordered_map<std::string, std::unique_ptr<CandlestickData>> m_candleBySymbol; // symbol, CandlestickData; contains current price and candle data history for each stock
-
-    mutable std::mutex m_mtxUserTargetInfo;
-    std::unordered_map<std::string, std::string> m_mapName2TarID; // map from Username to Target Computer ID
-
-    mutable std::mutex m_mtxRiskManagementByName;
-    std::unordered_map<std::string, std::unique_ptr<RiskManagement>> m_riskManagementByName; // Username, RiskManagement
-
-    mutable std::mutex m_mtxOrderBookSymbolsByTargetID;
-    std::unordered_map<std::string, std::unordered_set<std::string>> m_orderBookSymbolsByTargetID; // Username, symbols; for order book subscription
-
-    mutable std::mutex m_mtxCandleSymbolsByTargetID;
-    std::unordered_map<std::string, std::unordered_set<std::string>> m_candleSymbolsByTargetID; // Username, symbols; for candle stick data subscription
-
-    auto addRiskManagementToUserNoLock(const std::string& username) -> decltype(m_riskManagementByName)::iterator;
-
 public:
-    static BCDocuments* getInstance();
-
     static std::atomic<bool> s_isSecurityListReady;
+
+    static BCDocuments* getInstance();
 
     void addSymbol(const std::string& symbol);
     bool hasSymbol(const std::string& symbol) const;
@@ -76,4 +58,23 @@ public:
     void onNewReportForUserRiskManagement(const std::string& username, Report&& report);
 
     void broadcastOrderBooks() const;
+
+private:
+    std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator addRiskManagementToUserNoLock(const std::string& username);
+
+    std::unordered_set<std::string> m_symbols;
+    std::unordered_map<std::string, std::unique_ptr<OrderBook>> m_orderBookBySymbol; // symbol, OrderBook; contains 4 types of order book for each stock
+    std::unordered_map<std::string, std::unique_ptr<CandlestickData>> m_candleBySymbol; // symbol, CandlestickData; contains current price and candle data history for each stock
+
+    mutable std::mutex m_mtxUserTargetInfo;
+    std::unordered_map<std::string, std::string> m_mapName2TarID; // map from Username to Target Computer ID
+
+    mutable std::mutex m_mtxRiskManagementByName;
+    std::unordered_map<std::string, std::unique_ptr<RiskManagement>> m_riskManagementByName; // Username, RiskManagement
+
+    mutable std::mutex m_mtxOrderBookSymbolsByTargetID;
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_orderBookSymbolsByTargetID; // Username, symbols; for order book subscription
+
+    mutable std::mutex m_mtxCandleSymbolsByTargetID;
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_candleSymbolsByTargetID; // Username, symbols; for candle stick data subscription
 };

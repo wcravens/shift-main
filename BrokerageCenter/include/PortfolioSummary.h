@@ -5,17 +5,6 @@
 */
 
 class PortfolioSummary {
-    double m_buyingPower;
-    double m_holdingBalance;
-    double m_borrowedBalance; /* When client attempt to sell the stock
-                               * but does not have any shares of this stock,
-                               * client has to pay money for this stock,
-                               * and the borrowed money will be returned to client
-                               * when client buy it later.
-                               */
-    double m_totalPL;
-    int m_totalShares;
-
 public:
     PortfolioSummary(double buyingPower);
     PortfolioSummary(double buyingPower, int totalShares); //> For default use, i.e. Holding Balance/Borrowed Balance/Total P&L == 0.
@@ -36,4 +25,16 @@ public:
     double getBorrowedBalance() const;
     double getTotalPL() const;
     int getTotalShares() const;
+
+private:
+    double m_buyingPower;
+    double m_holdingBalance;
+    double m_borrowedBalance; /* When client attempt to sell the stock
+                               * but does not have any shares of this stock,
+                               * client has to pay money for this stock,
+                               * and the borrowed money will be returned to client
+                               * when client buy it later.
+                               */
+    double m_totalPL;
+    int m_totalShares;
 };

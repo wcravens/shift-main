@@ -16,6 +16,34 @@
 *  @brief Class that asynchronosly receives and/or broadcasts order books for a specific stock.
 */
 class OrderBook : public ITargetsInfo {
+public:
+    OrderBook() = default;
+    OrderBook(const std::string& name);
+    ~OrderBook() override;
+
+    void enqueueOrderBook(OrderBookEntry&& entry);
+    void process();
+    void spawn();
+    // void stop();
+
+    void onSubscribeOrderBook(const std::string& username);
+    void onUnsubscribeOrderBook(const std::string& username);
+
+    void broadcastWholeOrderBookToOne(const std::string& username);
+    void broadcastWholeOrderBookToAll();
+    void broadcastSingleUpdateToAll(const OrderBookEntry& update);
+
+    void saveOrderBookGlobalBid(const OrderBookEntry& entry);
+    void saveOrderBookGlobalAsk(const OrderBookEntry& entry);
+    void saveOrderBookLocalBid(const OrderBookEntry& entry);
+    void saveOrderBookLocalAsk(const OrderBookEntry& entry);
+    static void s_saveOdrBkLocal(const OrderBookEntry& entry, std::mutex& mtxOdrBkLocal, std::map<double, std::map<std::string, OrderBookEntry>>& odrBkLocal);
+
+    double getGlobalBidOrderBookFirstPrice() const;
+    double getGlobalAskOrderBookFirstPrice() const;
+    double getLocalBidOrderBookFirstPrice() const;
+    double getLocalAskOrderBookFirstPrice() const;
+
 private:
     std::string m_symbol; ///> The stock name of this OrderBook instance.
 
@@ -35,31 +63,4 @@ private:
     std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalBid;
 
     std::queue<OrderBookEntry> m_obeBuff;
-
-public:
-    OrderBook();
-    OrderBook(std::string name);
-    ~OrderBook() override;
-
-    void enqueueOrderBook(OrderBookEntry&& entry);
-    void process();
-    void spawn();
-    // void stop();
-
-    void onSubscribeOrderBook(const std::string& username);
-    void onUnsubscribeOrderBook(const std::string& username);
-
-    void broadcastWholeOrderBookToOne(const std::string& username);
-    void broadcastWholeOrderBookToAll();
-    void broadcastSingleUpdateToAll(const OrderBookEntry& update);
-
-    void saveOrderBookGlobalBid(const OrderBookEntry& entry);
-    void saveOrderBookGlobalAsk(const OrderBookEntry& entry);
-    void saveOrderBookLocalBid(const OrderBookEntry& entry);
-    void saveOrderBookLocalAsk(const OrderBookEntry& entry);
-
-    double getGlobalBidOrderBookFirstPrice() const;
-    double getGlobalAskOrderBookFirstPrice() const;
-    double getLocalBidOrderBookFirstPrice() const;
-    double getLocalAskOrderBookFirstPrice() const;
 };

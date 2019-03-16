@@ -13,6 +13,8 @@
 
 class DBConnector {
 public:
+    static bool s_isPortfolioDBReadOnly; // E.g. useful for research purpose when true
+
     ~DBConnector();
 
     std::unique_lock<std::mutex> lockPSQL() const;
@@ -25,8 +27,6 @@ public:
     void disconnectDB();
 
     bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
-
-    static bool s_isPortfolioDBReadOnly; // E.g. useful for research purpose when true
 
 protected:
     PGconn* m_pConn;

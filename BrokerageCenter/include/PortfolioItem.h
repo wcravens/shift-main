@@ -7,14 +7,6 @@
 */
 
 class PortfolioItem {
-    std::string m_symbol;
-    double m_borrowedBalance;
-    double m_pl;
-    double m_longPrice;
-    double m_shortPrice;
-    int m_longShares; // expect the price to go up
-    int m_shortShares; // expect the price to go down
-
 public:
     PortfolioItem();
     PortfolioItem(const std::string& symbol);
@@ -44,4 +36,13 @@ public:
     double getShortPrice() const;
     double getPL() const;
     double getBorrowedBalance() const;
+
+private:
+    std::string m_symbol;
+    double m_borrowedBalance;
+    double m_pl;
+    double m_longPrice;
+    double m_shortPrice;
+    int m_longShares; // expect the price to go up
+    int m_shortShares; // expect the price to go down
 };

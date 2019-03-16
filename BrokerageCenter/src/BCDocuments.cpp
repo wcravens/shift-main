@@ -54,169 +54,11 @@ void BCDocuments::attachOrderBookToSymbol(const std::string& symbol)
     orderBookPtr->spawn();
 }
 
-void BCDocuments::onNewOBEntryForOrderBook(const std::string& symbol, OrderBookEntry&& entry)
-{
-    while (!s_isSecurityListReady)
-        std::this_thread::sleep_for(500ms);
-    m_orderBookBySymbol[symbol]->enqueueOrderBook(std::move(entry));
-}
-
 void BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
 {
     auto& candlePtr = m_candleBySymbol[symbol]; // insert new
     candlePtr.reset(new CandlestickData);
     candlePtr->spawn();
-}
-
-void BCDocuments::onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac)
-{
-    while (!s_isSecurityListReady)
-        std::this_thread::sleep_for(500ms);
-    m_candleBySymbol[symbol]->enqueueTransaction(transac);
-}
-
-auto BCDocuments::addRiskManagementToUserNoLock(const std::string& username) -> decltype(m_riskManagementByName)::iterator
-{
-    auto res = m_riskManagementByName.emplace(username, nullptr);
-    if (!res.second)
-        return res.first;
-
-    auto& rmPtr = res.first->second;
-
-    auto lock{ DBConnector::getInstance()->lockPSQL() };
-
-    const auto summary = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
-        "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
-        "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
-        "WHERE traders.username = '" // here presume we always has got current username in traders table
-            + username + "';",
-        5);
-
-    if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
-        constexpr auto DEFAULT_BUYING_POWER = 1e6;
-        DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ((SELECT id FROM traders WHERE username = '" + username + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
-        rmPtr.reset(new RiskManagement(username, DEFAULT_BUYING_POWER));
-    } else // explicitly parameterize the summary
-        rmPtr.reset(new RiskManagement(username, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
-
-    // populate portfolio items
-    for (int row = 0; true; row++) {
-        const auto& item = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
-            "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
-            "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
-            "WHERE traders.username = '"
-                + username + "';",
-            7,
-            row);
-        if (item.empty())
-            break;
-
-        rmPtr->insertPortfolioItem(item[0], { item[0], std::stod(item[1]), std::stod(item[2]), std::stod(item[3]), std::stod(item[4]), std::stoi(item[5]), std::stoi(item[6]) });
-    }
-
-    rmPtr->spawn();
-
-    return res.first;
-}
-
-void BCDocuments::onNewOrderForUserRiskManagement(const std::string& username, Order&& order)
-{
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-    addRiskManagementToUserNoLock(username);
-    m_riskManagementByName[username]->enqueueOrder(std::move(order));
-}
-
-void BCDocuments::onNewReportForUserRiskManagement(const std::string& username, Report&& report)
-{
-    if ("TR" == username)
-        return;
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-    m_riskManagementByName[username]->enqueueExecRpt(std::move(report));
-}
-
-double BCDocuments::getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const
-{
-    double global_price = 0.0;
-    double local_price = 0.0;
-
-    auto pos = m_orderBookBySymbol.find(symbol);
-    if (m_orderBookBySymbol.end() == pos)
-        return 0.0;
-
-    if (isBuy) {
-        global_price = pos->second->getGlobalBidOrderBookFirstPrice();
-        local_price = pos->second->getLocalBidOrderBookFirstPrice();
-
-        return std::max(global_price, local_price);
-    } else { // Sell
-        global_price = pos->second->getGlobalAskOrderBookFirstPrice();
-        local_price = pos->second->getLocalAskOrderBookFirstPrice();
-
-        if ((global_price && global_price < local_price) || (local_price == 0.0))
-            return global_price;
-        return local_price;
-    }
-}
-
-bool BCDocuments::manageSubscriptionInOrderBook(bool isSubscribe, const std::string& symbol, const std::string& targetID)
-{
-    assert(s_isSecurityListReady);
-
-    auto pos = m_orderBookBySymbol.find(symbol);
-    if (m_orderBookBySymbol.end() == pos)
-        return false; // unknown RIC
-
-    if (isSubscribe) {
-        pos->second->onSubscribeOrderBook(targetID);
-
-        std::lock_guard<std::mutex> guard(m_mtxOrderBookSymbolsByTargetID);
-        m_orderBookSymbolsByTargetID[targetID].insert(symbol);
-    } else {
-        pos->second->onUnsubscribeOrderBook(targetID);
-    }
-
-    return true;
-}
-
-bool BCDocuments::manageSubscriptionInCandlestickData(bool isSubscribe, const std::string& symbol, const std::string& targetID)
-{
-    assert(s_isSecurityListReady);
-    /*  I do write assert(...) here instead of explicitly writting busy waiting loop because that
-        assert() assumes that the dependency logics are implied and preconditions are guarenteed by the
-        implementation somewhere, whereas a waiting loop assumes nothing.
-        Hence, the assert() here is reasonable because this function is invoked only after we connected to the user, at which security list must be ready.
-    */
-
-    auto pos = m_candleBySymbol.find(symbol);
-    if (m_candleBySymbol.end() == pos)
-        return false; // unknown RIC
-
-    if (isSubscribe) {
-        pos->second->registerUserInCandlestickData(targetID);
-
-        std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByTargetID);
-        m_candleSymbolsByTargetID[targetID].insert(symbol);
-    } else {
-        pos->second->unregisterUserInCandlestickData(targetID);
-    }
-
-    return true;
-}
-
-int BCDocuments::sendHistoryToUser(const std::string& username)
-{
-    int res = 0;
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-
-    auto pos = m_riskManagementByName.find(username);
-    if (m_riskManagementByName.end() == pos) { // newly joined user ? (TODO)
-        pos = addRiskManagementToUserNoLock(username);
-        res = 1;
-    }
-    pos->second->sendPortfolioHistory();
-    pos->second->sendWaitingList();
-
-    return res;
 }
 
 void BCDocuments::registerUserInDoc(const std::string& targetID, const std::string& username)
@@ -285,10 +127,168 @@ void BCDocuments::unregisterTargetFromCandles(const std::string& targetID)
     }
 }
 
+bool BCDocuments::manageSubscriptionInOrderBook(bool isSubscribe, const std::string& symbol, const std::string& targetID)
+{
+    assert(s_isSecurityListReady);
+
+    auto pos = m_orderBookBySymbol.find(symbol);
+    if (m_orderBookBySymbol.end() == pos)
+        return false; // unknown RIC
+
+    if (isSubscribe) {
+        pos->second->onSubscribeOrderBook(targetID);
+
+        std::lock_guard<std::mutex> guard(m_mtxOrderBookSymbolsByTargetID);
+        m_orderBookSymbolsByTargetID[targetID].insert(symbol);
+    } else {
+        pos->second->onUnsubscribeOrderBook(targetID);
+    }
+
+    return true;
+}
+
+bool BCDocuments::manageSubscriptionInCandlestickData(bool isSubscribe, const std::string& symbol, const std::string& targetID)
+{
+    assert(s_isSecurityListReady);
+    /*  I do write assert(...) here instead of explicitly writting busy waiting loop because that
+        assert() assumes that the dependency logics are implied and preconditions are guarenteed by the
+        implementation somewhere, whereas a waiting loop assumes nothing.
+        Hence, the assert() here is reasonable because this function is invoked only after we connected to the user, at which security list must be ready.
+    */
+
+    auto pos = m_candleBySymbol.find(symbol);
+    if (m_candleBySymbol.end() == pos)
+        return false; // unknown RIC
+
+    if (isSubscribe) {
+        pos->second->registerUserInCandlestickData(targetID);
+
+        std::lock_guard<std::mutex> guard(m_mtxCandleSymbolsByTargetID);
+        m_candleSymbolsByTargetID[targetID].insert(symbol);
+    } else {
+        pos->second->unregisterUserInCandlestickData(targetID);
+    }
+
+    return true;
+}
+
+int BCDocuments::sendHistoryToUser(const std::string& username)
+{
+    int res = 0;
+    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
+
+    auto pos = m_riskManagementByName.find(username);
+    if (m_riskManagementByName.end() == pos) { // newly joined user ? (TODO)
+        pos = addRiskManagementToUserNoLock(username);
+        res = 1;
+    }
+    pos->second->sendPortfolioHistory();
+    pos->second->sendWaitingList();
+
+    return res;
+}
+
+double BCDocuments::getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const
+{
+    double global_price = 0.0;
+    double local_price = 0.0;
+
+    auto pos = m_orderBookBySymbol.find(symbol);
+    if (m_orderBookBySymbol.end() == pos)
+        return 0.0;
+
+    if (isBuy) {
+        global_price = pos->second->getGlobalBidOrderBookFirstPrice();
+        local_price = pos->second->getLocalBidOrderBookFirstPrice();
+
+        return std::max(global_price, local_price);
+    } else { // Sell
+        global_price = pos->second->getGlobalAskOrderBookFirstPrice();
+        local_price = pos->second->getLocalAskOrderBookFirstPrice();
+
+        if ((global_price && global_price < local_price) || (local_price == 0.0))
+            return global_price;
+        return local_price;
+    }
+}
+
+void BCDocuments::onNewOBEntryForOrderBook(const std::string& symbol, OrderBookEntry&& entry)
+{
+    while (!s_isSecurityListReady)
+        std::this_thread::sleep_for(500ms);
+    m_orderBookBySymbol[symbol]->enqueueOrderBook(std::move(entry));
+}
+
+void BCDocuments::onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac)
+{
+    while (!s_isSecurityListReady)
+        std::this_thread::sleep_for(500ms);
+    m_candleBySymbol[symbol]->enqueueTransaction(transac);
+}
+
+void BCDocuments::onNewOrderForUserRiskManagement(const std::string& username, Order&& order)
+{
+    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
+    addRiskManagementToUserNoLock(username);
+    m_riskManagementByName[username]->enqueueOrder(std::move(order));
+}
+
+void BCDocuments::onNewReportForUserRiskManagement(const std::string& username, Report&& report)
+{
+    if ("TR" == username)
+        return;
+    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
+    m_riskManagementByName[username]->enqueueExecRpt(std::move(report));
+}
+
 void BCDocuments::broadcastOrderBooks() const
 {
     for (const auto& kv : m_orderBookBySymbol) {
         auto& orderBook = *kv.second;
         orderBook.broadcastWholeOrderBookToAll();
     }
+}
+
+std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDocuments::addRiskManagementToUserNoLock(const std::string& username)
+{
+    auto res = m_riskManagementByName.emplace(username, nullptr);
+    if (!res.second)
+        return res.first;
+
+    auto& rmPtr = res.first->second;
+
+    auto lock{ DBConnector::getInstance()->lockPSQL() };
+
+    const auto summary = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
+        "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
+        "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
+        "WHERE traders.username = '" // here presume we always has got current username in traders table
+            + username + "';",
+        5);
+
+    if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
+        constexpr auto DEFAULT_BUYING_POWER = 1e6;
+        DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ((SELECT id FROM traders WHERE username = '" + username + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
+        rmPtr.reset(new RiskManagement(username, DEFAULT_BUYING_POWER));
+    } else // explicitly parameterize the summary
+        rmPtr.reset(new RiskManagement(username, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
+
+    // populate portfolio items
+    for (int row = 0; true; row++) {
+        const auto& item = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
+            "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
+            "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
+            "WHERE traders.username = '"
+                + username + "';",
+            7,
+            row);
+        if (item.empty())
+            break;
+
+        rmPtr->insertPortfolioItem(item[0], { item[0], std::stod(item[1]), std::stod(item[2]), std::stod(item[3]), std::stod(item[4]), std::stoi(item[5]), std::stoi(item[6]) });
+    }
+
+    rmPtr->spawn();
+
+    return res.first;
 }

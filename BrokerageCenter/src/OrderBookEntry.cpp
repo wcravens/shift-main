@@ -1,11 +1,6 @@
 #include "OrderBookEntry.h"
 
 /**
- * @brief   Default constructs an OrderBookEntry instance.
- */
-OrderBookEntry::OrderBookEntry() = default;
-
-/**
  * @brief   Constructs with corresponding parameters.
  * @param   type: The versioning of the Option Constract.
  * @param	symbol: The symbol of the order.
@@ -16,13 +11,13 @@ OrderBookEntry::OrderBookEntry() = default;
  * @param   time: FIX::UtcTimeOnly for the time of order
  */
 OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
-    : m_type(type)
-    , m_symbol(symbol)
+    : m_type{ type }
+    , m_symbol{ symbol }
     , m_price{ price }
     , m_size{ size }
-    , m_destination(destination)
-    , m_date(date)
-    , m_time(time)
+    , m_destination{ destination }
+    , m_date{ date }
+    , m_time{ time }
 {
 }
 

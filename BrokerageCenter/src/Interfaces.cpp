@@ -2,6 +2,14 @@
 
 #include <algorithm>
 
+/*virtual*/ ITargetsInfo::~ITargetsInfo() /*= 0*/ = default;
+
+std::vector<std::string> ITargetsInfo::getTargetList() const
+{
+    std::lock_guard<std::mutex> guard(m_mtxTargetsInfo);
+    return m_targetsInfo;
+}
+
 void ITargetsInfo::registerTarget(const std::string& targetID)
 {
     std::lock_guard<std::mutex> guard(m_mtxTargetsInfo);
@@ -20,11 +28,3 @@ void ITargetsInfo::unregisterTarget(const std::string& targetID)
     std::swap(*pos, m_targetsInfo.back());
     m_targetsInfo.pop_back();
 }
-
-std::vector<std::string> ITargetsInfo::getTargetList() const
-{
-    std::lock_guard<std::mutex> guard(m_mtxTargetsInfo);
-    return m_targetsInfo;
-}
-
-/*virtual*/ ITargetsInfo::~ITargetsInfo() /*= 0*/ = default;

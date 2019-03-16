@@ -11,6 +11,21 @@
 #include <shift/miscutils/concurrency/Consumer.h>
 #include <shift/miscutils/terminal/Common.h>
 
+/*static*/ inline void RiskManagement::s_sendOrderToME(const Order& order)
+{
+    FIXInitiator::getInstance()->sendOrder(order);
+}
+
+/*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary)
+{
+    FIXAcceptor::getInstance()->sendPortfolioSummary(username, summary);
+}
+
+/*static*/ inline void RiskManagement::s_sendPortfolioItemToClient(const std::string& username, const PortfolioItem& item)
+{
+    FIXAcceptor::getInstance()->sendPortfolioItem(username, item);
+}
+
 RiskManagement::RiskManagement(std::string username, double buyingPower)
     : m_username(std::move(username))
     , m_porfolioSummary{ buyingPower }
@@ -47,37 +62,20 @@ void RiskManagement::spawn()
     m_execRptThread.reset(new std::thread(&RiskManagement::processExecRpt, this));
 }
 
-void RiskManagement::enqueueOrder(Order&& order)
+inline double RiskManagement::getMarketBuyPrice(const std::string& symbol)
 {
-    {
-        std::lock_guard<std::mutex> guard(m_mtxOrder);
-        m_orderBuffer.push(std::move(order));
-    }
-    m_cvOrder.notify_one();
+    return BCDocuments::getInstance()->getOrderBookMarketFirstPrice(true, symbol);
 }
 
-void RiskManagement::enqueueExecRpt(Report&& report)
+inline double RiskManagement::getMarketSellPrice(const std::string& symbol)
 {
-    {
-        std::lock_guard<std::mutex> guard(m_mtxExecRpt);
-        m_execRptBuffer.push(std::move(report));
-    }
-    m_cvExecRpt.notify_one();
+    return BCDocuments::getInstance()->getOrderBookMarketFirstPrice(false, symbol);
 }
 
-/*static*/ inline void RiskManagement::s_sendOrderToME(const Order& order)
+void RiskManagement::insertPortfolioItem(const std::string& symbol, const PortfolioItem& portfolioItem)
 {
-    FIXInitiator::getInstance()->sendOrder(order);
-}
-
-/*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary)
-{
-    FIXAcceptor::getInstance()->sendPortfolioSummary(username, summary);
-}
-
-/*static*/ inline void RiskManagement::s_sendPortfolioItemToClient(const std::string& username, const PortfolioItem& item)
-{
-    FIXAcceptor::getInstance()->sendPortfolioItem(username, item);
+    std::lock_guard<std::mutex> guard(m_mtxPortfolioItems);
+    m_portfolioItems[symbol] = portfolioItem;
 }
 
 void RiskManagement::sendPortfolioHistory()
@@ -89,13 +87,6 @@ void RiskManagement::sendPortfolioHistory()
 
     for (auto& i : m_portfolioItems)
         s_sendPortfolioItemToClient(m_username, i.second);
-}
-
-void RiskManagement::sendWaitingList() const
-{
-    std::lock_guard<std::mutex> guard(m_mtxWaitingList);
-    if (!m_waitingList.empty())
-        FIXAcceptor::getInstance()->sendWaitingList(m_username, m_waitingList);
 }
 
 void RiskManagement::updateWaitingList(const Report& report)
@@ -115,20 +106,20 @@ void RiskManagement::updateWaitingList(const Report& report)
     }
 }
 
-void RiskManagement::insertPortfolioItem(const std::string& symbol, const PortfolioItem& portfolioItem)
+void RiskManagement::sendWaitingList() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxPortfolioItems);
-    m_portfolioItems[symbol] = portfolioItem;
+    std::lock_guard<std::mutex> guard(m_mtxWaitingList);
+    if (!m_waitingList.empty())
+        FIXAcceptor::getInstance()->sendWaitingList(m_username, m_waitingList);
 }
 
-inline double RiskManagement::getMarketBuyPrice(const std::string& symbol)
+void RiskManagement::enqueueOrder(Order&& order)
 {
-    return BCDocuments::getInstance()->getOrderBookMarketFirstPrice(true, symbol);
-}
-
-inline double RiskManagement::getMarketSellPrice(const std::string& symbol)
-{
-    return BCDocuments::getInstance()->getOrderBookMarketFirstPrice(false, symbol);
+    {
+        std::lock_guard<std::mutex> guard(m_mtxOrder);
+        m_orderBuffer.push(std::move(order));
+    }
+    m_cvOrder.notify_one();
 }
 
 void RiskManagement::processOrder()
@@ -165,6 +156,15 @@ void RiskManagement::processOrder()
         orderPtr = nullptr;
         m_orderBuffer.pop();
     }
+}
+
+void RiskManagement::enqueueExecRpt(Report&& report)
+{
+    {
+        std::lock_guard<std::mutex> guard(m_mtxExecRpt);
+        m_execRptBuffer.push(std::move(report));
+    }
+    m_cvExecRpt.notify_one();
 }
 
 void RiskManagement::processExecRpt()

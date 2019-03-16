@@ -10,21 +10,9 @@
 
 /*static*/ bool DBConnector::s_isPortfolioDBReadOnly = false;
 
-/*static*/ DBConnector* DBConnector::getInstance()
-{
-    static DBConnector s_DBInst;
-    return &s_DBInst;
-}
-
 DBConnector::DBConnector()
     : m_pConn(nullptr)
 {
-}
-
-bool DBConnector::init(const std::string& cryptoKey, const std::string& fileName)
-{
-    m_loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
-    return m_loginInfo.size();
 }
 
 DBConnector::~DBConnector()
@@ -39,6 +27,18 @@ std::unique_lock<std::mutex> DBConnector::lockPSQL() const
 {
     std::unique_lock<std::mutex> lock(m_mtxPSQL);
     return lock; // move()-ed out here
+}
+
+/*static*/ DBConnector* DBConnector::getInstance()
+{
+    static DBConnector s_DBInst;
+    return &s_DBInst;
+}
+
+bool DBConnector::init(const std::string& cryptoKey, const std::string& fileName)
+{
+    m_loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
+    return m_loginInfo.size();
 }
 
 /**

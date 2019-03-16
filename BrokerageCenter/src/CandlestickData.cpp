@@ -52,6 +52,29 @@ CandlestickData::~CandlestickData() /*override*/
     m_th = nullptr;
 }
 
+void CandlestickData::sendPoint(const CandlestickDataPoint& cdPoint)
+{
+    auto targetList = getTargetList();
+    if (targetList.empty())
+        return;
+
+    FIXAcceptor::getInstance()->sendCandlestickData(targetList, cdPoint);
+}
+
+void CandlestickData::sendHistory(std::string targetID)
+{
+    std::map<std::time_t, CandlestickDataPoint> histCopy;
+    {
+        std::lock_guard<std::mutex> guard(m_mtxHistory);
+        histCopy = m_history;
+    }
+    const std::vector<std::string> targetList{ std::move(targetID) };
+
+    for (const auto& i : histCopy) {
+        FIXAcceptor::getInstance()->sendCandlestickData(targetList, i.second);
+    }
+}
+
 const std::string& CandlestickData::getSymbol() const
 {
     return m_symbol;
@@ -69,6 +92,17 @@ const std::string& CandlestickData::getSymbol() const
     ::strptime(time.c_str(), CSTR_TIME_FORMAT_YMDHMS, &tm);
     std::time_t t = std::mktime(&tm);
     return t;
+}
+
+void CandlestickData::registerUserInCandlestickData(const std::string& targetID)
+{
+    std::thread(&CandlestickData::sendHistory, this, targetID).detach(); // this takes time, so let run on side
+    registerTarget(targetID);
+}
+
+void CandlestickData::unregisterUserInCandlestickData(const std::string& targetID)
+{
+    unregisterTarget(targetID);
 }
 
 void CandlestickData::enqueueTransaction(const Transaction& t)
@@ -188,51 +222,6 @@ void CandlestickData::spawn()
 {
     m_th.reset(new std::thread(&CandlestickData::process, this));
 }
-
-void CandlestickData::sendPoint(const CandlestickDataPoint& cdPoint)
-{
-    auto targetList = getTargetList();
-    if (targetList.empty())
-        return;
-
-    FIXAcceptor::getInstance()->sendCandlestickData(targetList, cdPoint);
-}
-
-void CandlestickData::sendHistory(std::string targetID)
-{
-    std::map<std::time_t, CandlestickDataPoint> histCopy;
-    {
-        std::lock_guard<std::mutex> guard(m_mtxHistory);
-        histCopy = m_history;
-    }
-    const std::vector<std::string> targetList{ std::move(targetID) };
-
-    for (const auto& i : histCopy) {
-        FIXAcceptor::getInstance()->sendCandlestickData(targetList, i.second);
-    }
-}
-
-void CandlestickData::registerUserInCandlestickData(const std::string& targetID)
-{
-    std::thread(&CandlestickData::sendHistory, this, targetID).detach(); // this takes time, so let run on side
-    registerTarget(targetID);
-}
-
-void CandlestickData::unregisterUserInCandlestickData(const std::string& targetID)
-{
-    unregisterTarget(targetID);
-}
-
-//----------------------------------------------------------------------------
-
-// /*static*/ std::string CandlestickData::s_toNormalTime(std::time_t t)
-// {
-//     struct std::tm* tm = std::localtime(&t);
-//     char normalTimeC[20];
-//     strftime(normalTimeC, sizeof(normalTimeC), CSTR_TIME_FORMAT_YMDHMS, tm);
-//     normalTimeC[19] = '\0';
-//     return normalTimeC;
-// }
 
 #undef CSTR_TIME_FORMAT_YMDHMS
 #undef DEBUG_PERFORMANCE_COUNTER
