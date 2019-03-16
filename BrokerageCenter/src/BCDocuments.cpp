@@ -190,25 +190,25 @@ int BCDocuments::sendHistoryToUser(const std::string& username)
 
 double BCDocuments::getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const
 {
-    double global_price = 0.0;
-    double local_price = 0.0;
+    double globalPrice = 0.0;
+    double localPrice = 0.0;
 
     auto pos = m_orderBookBySymbol.find(symbol);
     if (m_orderBookBySymbol.end() == pos)
         return 0.0;
 
     if (isBuy) {
-        global_price = pos->second->getGlobalBidOrderBookFirstPrice();
-        local_price = pos->second->getLocalBidOrderBookFirstPrice();
+        globalPrice = pos->second->getGlobalBidOrderBookFirstPrice();
+        localPrice = pos->second->getLocalBidOrderBookFirstPrice();
 
-        return std::max(global_price, local_price);
+        return std::max(globalPrice, localPrice);
     } else { // Sell
-        global_price = pos->second->getGlobalAskOrderBookFirstPrice();
-        local_price = pos->second->getLocalAskOrderBookFirstPrice();
+        globalPrice = pos->second->getGlobalAskOrderBookFirstPrice();
+        localPrice = pos->second->getLocalAskOrderBookFirstPrice();
 
-        if ((global_price && global_price < local_price) || (local_price == 0.0))
-            return global_price;
-        return local_price;
+        if ((globalPrice && globalPrice < localPrice) || (localPrice == 0.0))
+            return globalPrice;
+        return localPrice;
     }
 }
 
