@@ -421,12 +421,12 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
 
     message.getGroup(1, *pPartyGroup);
     pPartyGroup->get(*pTraderID1);
-    message.getGroup(2, partyGroup);
+    message.getGroup(2, *pPartyGroup);
     pPartyGroup->get(*pTraderID2);
 
     message.getGroup(1, *pTimeGroup);
     pTimeGroup->get(*pUTCTime1);
-    message.getGroup(2, timeGroup);
+    message.getGroup(2, *pTimeGroup);
     pTimeGroup->get(*pUTCTime2);
 
     // (this test is being done in the MatchingEngine now)
