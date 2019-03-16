@@ -269,32 +269,68 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    FIX::ClOrdID orderID;
-    FIX::Symbol symbol;
-    FIX::OrderQty orderQty;
-    FIX::OrdType ordType;
-    FIX::Price price;
+    static FIX::ClOrdID orderID;
+    static FIX::Symbol symbol;
+    static FIX::OrderQty size;
+    static FIX::OrdType orderType;
+    static FIX::Price price;
 
-    FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    FIX::PartyID clientID;
+    static FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
+    static FIX::PartyID clientID;
 
-    message.get(orderID);
-    message.get(symbol);
-    message.get(orderQty);
-    message.get(ordType);
-    message.get(price);
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, idGroup);
-    idGroup.get(clientID);
+    FIX::ClOrdID* pOrderID;
+    FIX::Symbol* pSymbol;
+    FIX::OrderQty* pSize;
+    FIX::OrdType* pOrderType;
+    FIX::Price* pPrice;
+
+    FIX50SP2::NewOrderSingle::NoPartyIDs* pIDGroup;
+    FIX::PartyID* pClientID;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pOrderID = &orderID;
+        pSymbol = &symbol;
+        pSize = &size;
+        pOrderType = &orderType;
+        pPrice = &price;
+        pIDGroup = &idGroup;
+        pClientID = &clientID;
+    } else { // > 1 threads; always safe way:
+        pOrderID = new decltype(orderID);
+        pSymbol = new decltype(symbol);
+        pSize = new decltype(size);
+        pOrderType = new decltype(orderType);
+        pPrice = new decltype(price);
+        pIDGroup = new decltype(idGroup);
+        pClientID = new decltype(clientID);
+    }
+
+    message.get(*pOrderID);
+    message.get(*pSymbol);
+    message.get(*pSize);
+    message.get(*pOrderType);
+    message.get(*pPrice);
+
+    message.getGroup(1, *pIDGroup);
+    pIDGroup->get(*pClientID);
 
     long milli = timepara.past_milli();
-    FIX::UtcTimeStamp utc_now = timepara.simulationTimestamp();
+    FIX::UtcTimeStamp utcNow = timepara.simulationTimestamp();
 
-    Quote quote{ symbol.getValue(), clientID.getValue(), orderID.getValue(), price.getValue(), static_cast<int>(orderQty.getValue()), ordType.getValue(), utc_now };
+    Quote quote{ pSymbol->getValue(), pClientID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue(), utcNow };
     quote.setmili(milli);
 
     // Add new quote to buffer
-    auto stockIt = stocklist.find(symbol);
+    auto stockIt = stocklist.find(pSymbol->getValue());
     if (stockIt != stocklist.end()) {
         stockIt->second.buf_new_local(quote);
     } else {
@@ -302,6 +338,19 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     }
 
     // Send confirmation to client
-    cout << "Sending confirmation: " << orderID << endl;
-    sendOrderConfirmation(sessionID.getTargetCompID(), { clientID.getValue(), orderID.getValue(), symbol.getValue(), price.getValue(), static_cast<int>(orderQty.getValue()), ordType.getValue(), utc_now });
+    cout << "Sending confirmation: " << pOrderID->getValue() << endl;
+    sendOrderConfirmation(sessionID.getTargetCompID().getValue(), { pClientID->getValue(), pOrderID->getValue(), pSymbol->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue(), utcNow });
+
+    if (prevCnt) { // > 1 threads
+        delete pOrderID;
+        delete pSymbol;
+        delete pSize;
+        delete pOrderType;
+        delete pPrice;
+        delete pIDGroup;
+        delete pClientID;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
