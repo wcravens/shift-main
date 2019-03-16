@@ -35,7 +35,7 @@ void UserClient::receiveWaitingList()
             << "\"symbol\": "
             << "\"" << order.getSymbol() << "\","
             << "\"size\": "
-            << "\"" << order.getSize() << "\","
+            << "\"" << (order.getSize() - order.getExecutedSize()) << "\","
             << "\"price\": "
             << "\"" << order.getPrice() << "\","
             << "\"orderId\": "
