@@ -4,6 +4,7 @@ Order::Order(Order::Type type, const std::string& symbol, int size, double price
     : m_type(type)
     , m_symbol(symbol)
     , m_size(size)
+    , m_executedSize(0)
     , m_price(price)
     , m_id(id)
     , m_username(username)
@@ -24,6 +25,11 @@ const std::string& Order::getSymbol() const
 int Order::getSize() const
 {
     return m_size;
+}
+
+int Order::getExecutedSize() const
+{
+    return m_executedSize;
 }
 
 double Order::getPrice() const
@@ -59,6 +65,11 @@ void Order::setSymbol(const std::string& symbol)
 void Order::setSize(int size)
 {
     m_size = size;
+}
+
+void Order::setExecutedSize(int executedSize)
+{
+    m_executedSize = executedSize;
 }
 
 void Order::setPrice(double price)

@@ -890,6 +890,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     FIX::UnderlyingOptAttribute orderType;
     FIX::UnderlyingQty orderSize;
     FIX::UnderlyingPx orderPrice;
+    FIX::UnderlyingAdjustedQuantity executedSize;
     FIX::UnderlyingFXRateCalc orderStatus;
 
     message.get(username);
@@ -904,6 +905,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
         quoteSetGroup.get(orderType);
         quoteSetGroup.get(orderSize);
         quoteSetGroup.get(orderPrice);
+        quoteSetGroup.get(executedSize);
         quoteSetGroup.get(orderStatus);
 
         int size = static_cast<int>(orderSize.getValue());
@@ -925,6 +927,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
                 orderPrice.getValue(),
                 orderID.getValue()
             };
+            order.setExecutedSize(static_cast<int>(executedSize.getValue()));
             order.setStatus(static_cast<shift::Order::Status>(orderStatus.getValue()));
 
             waitingList.push_back(std::move(order));

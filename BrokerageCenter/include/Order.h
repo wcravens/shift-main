@@ -32,6 +32,7 @@ struct Order {
     Type getType() const;
     const std::string& getSymbol() const;
     int getSize() const;
+    int getExecutedSize() const;
     double getPrice() const;
     const std::string& getID() const;
     const std::string& getUsername() const;
@@ -41,6 +42,7 @@ struct Order {
     void setType(Type type);
     void setSymbol(const std::string& symbol);
     void setSize(int size);
+    void setExecutedSize(int executedSize);
     void setPrice(double price);
     void setID(const std::string& id);
     void setUsername(const std::string& username);
@@ -50,6 +52,7 @@ private:
     Type m_type;
     std::string m_symbol;
     int m_size;
+    int m_executedSize;
     double m_price;
     std::string m_id;
     std::string m_username;

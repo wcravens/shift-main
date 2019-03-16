@@ -394,6 +394,7 @@ void FIXAcceptor::sendWaitingList(const std::string& username, const std::unorde
         orderSetGroup.setField(FIX::UnderlyingOptAttribute(order.getType())); // TODO: incorrect field (require new message type)
         orderSetGroup.setField(FIX::UnderlyingQty(order.getSize()));
         orderSetGroup.setField(FIX::UnderlyingPx(order.getPrice()));
+        orderSetGroup.setField(FIX::UnderlyingAdjustedQuantity(order.getExecutedSize()));
         orderSetGroup.setField(FIX::UnderlyingFXRateCalc(order.getStatus())); // TODO: incorrect field (require new message type)
         message.addGroup(orderSetGroup);
     }
