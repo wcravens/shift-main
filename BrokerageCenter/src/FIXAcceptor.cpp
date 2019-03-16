@@ -437,7 +437,7 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID, const std::unord
  */
 void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
 {
-    s_senderID = sessionID.getSenderCompID();
+    s_senderID = sessionID.getSenderCompID().getValue();
     /* SenderID: BROKERAGECENTER */
 }
 
@@ -512,12 +512,38 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
  */
 void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
 {
-    FIX::Username username; // WebClient's
-    message.get(username);
-    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID().getValue(), username.getValue());
-    BCDocuments::getInstance()->sendHistoryToUser(username.getValue());
+    static FIX::Username username;
 
-    cout << COLOR_PROMPT "Web user [" NO_COLOR << username.getValue() << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
+    // #pragma GCC diagnostic ignored ....
+
+    FIX::Username* pUsername;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pUsername = &username;
+    } else { // > 1 threads; always safe way:
+        pUsername = new decltype(username);
+    }
+
+    message.get(*pUsername);
+
+    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID().getValue(), pUsername->getValue());
+    BCDocuments::getInstance()->sendHistoryToUser(pUsername->getValue());
+
+    cout << COLOR_PROMPT "Web user [" NO_COLOR << pUsername->getValue() << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
+
+    if (prevCnt) { // > 1 threads
+        delete pUsername;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /*
@@ -527,23 +553,55 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
 {
     FIX::NoRelatedSym numOfGroups;
     message.get(numOfGroups);
-
     if (numOfGroups < 1) {
         cout << "Cannot find Symbol in MarketDataRequest!" << endl;
         return;
     }
 
-    FIX::SubscriptionRequestType isSubscribed;
+    static FIX::SubscriptionRequestType isSubscribed;
 
-    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
-    FIX::Symbol symbol;
+    static FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
+    static FIX::Symbol symbol;
 
-    message.get(isSubscribed);
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, relatedSymGroup);
-    relatedSymGroup.get(symbol);
+    FIX::SubscriptionRequestType* pIsSubscribed;
 
-    BCDocuments::getInstance()->manageSubscriptionInOrderBook('1' == isSubscribed.getValue(), symbol.getValue(), sessionID.getTargetCompID().getValue());
+    FIX50SP2::MarketDataRequest::NoRelatedSym* pRelatedSymGroup;
+    FIX::Symbol* pSymbol;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pIsSubscribed = &isSubscribed;
+        pRelatedSymGroup = &relatedSymGroup;
+        pSymbol = &symbol;
+    } else { // > 1 threads; always safe way:
+        pIsSubscribed = new decltype(isSubscribed);
+        pRelatedSymGroup = new decltype(relatedSymGroup);
+        pSymbol = new decltype(symbol);
+    }
+
+    message.get(*pIsSubscribed);
+
+    message.getGroup(1, *pRelatedSymGroup);
+    pRelatedSymGroup->get(*pSymbol);
+
+    BCDocuments::getInstance()->manageSubscriptionInOrderBook('1' == pIsSubscribed->getValue(), pSymbol->getValue(), sessionID.getTargetCompID().getValue());
+
+    if (prevCnt) { // > 1 threads
+        delete pIsSubscribed;
+        delete pRelatedSymGroup;
+        delete pSymbol;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /*
@@ -553,23 +611,55 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
 {
     FIX::NoRelatedSym numOfGroups;
     message.get(numOfGroups);
-
     if (numOfGroups < 1) { // make sure there is a symbol in group
         cout << "Cannot find Symbol in RFQRequest" << endl;
         return;
     }
 
-    FIX::SubscriptionRequestType isSubscribed;
+    static FIX::SubscriptionRequestType isSubscribed;
 
-    FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
-    FIX::Symbol symbol;
+    static FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
+    static FIX::Symbol symbol;
 
-    message.get(isSubscribed);
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, relatedSymGroup);
-    relatedSymGroup.get(symbol);
+    FIX::SubscriptionRequestType* pIsSubscribed;
 
-    BCDocuments::getInstance()->manageSubscriptionInCandlestickData('1' == isSubscribed.getValue(), symbol.getValue(), sessionID.getTargetCompID().getValue());
+    FIX50SP2::MarketDataRequest::NoRelatedSym* pRelatedSymGroup;
+    FIX::Symbol* pSymbol;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pIsSubscribed = &isSubscribed;
+        pRelatedSymGroup = &relatedSymGroup;
+        pSymbol = &symbol;
+    } else { // > 1 threads; always safe way:
+        pIsSubscribed = new decltype(isSubscribed);
+        pRelatedSymGroup = new decltype(relatedSymGroup);
+        pSymbol = new decltype(symbol);
+    }
+
+    message.get(*pIsSubscribed);
+
+    message.getGroup(1, *pRelatedSymGroup);
+    pRelatedSymGroup->get(*pSymbol);
+
+    BCDocuments::getInstance()->manageSubscriptionInCandlestickData('1' == pIsSubscribed->getValue(), pSymbol->getValue(), sessionID.getTargetCompID().getValue());
+
+    if (prevCnt) { // > 1 threads
+        delete pIsSubscribed;
+        delete pRelatedSymGroup;
+        delete pSymbol;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**
@@ -584,45 +674,81 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    FIX::ClOrdID orderID;
-    FIX::Symbol orderSymbol;
-    FIX::OrderQty orderSize;
-    FIX::OrdType orderType;
-    FIX::Price orderPrice;
+    static FIX::ClOrdID orderID;
+    static FIX::Symbol symbol;
+    static FIX::OrderQty size;
+    static FIX::OrdType orderType;
+    static FIX::Price price;
 
-    FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    FIX::PartyID username;
+    static FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
+    static FIX::PartyID username;
 
-    message.get(orderID);
-    message.get(orderSymbol);
-    message.get(orderSize);
-    message.get(orderType);
-    message.get(orderPrice);
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, idGroup);
-    idGroup.get(username);
+    FIX::ClOrdID* pOrderID;
+    FIX::Symbol* pSymbol;
+    FIX::OrderQty* pSize;
+    FIX::OrdType* pOrderType;
+    FIX::Price* pPrice;
+
+    FIX50SP2::NewOrderSingle::NoPartyIDs* pIDGroup;
+    FIX::PartyID* pUsername;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pOrderID = &orderID;
+        pSymbol = &symbol;
+        pSize = &size;
+        pOrderType = &orderType;
+        pPrice = &price;
+        pIDGroup = &idGroup;
+        pUsername = &username;
+    } else { // > 1 threads; always safe way:
+        pOrderID = new decltype(orderID);
+        pSymbol = new decltype(symbol);
+        pSize = new decltype(size);
+        pOrderType = new decltype(orderType);
+        pPrice = new decltype(price);
+        pIDGroup = new decltype(idGroup);
+        pUsername = new decltype(username);
+    }
+
+    message.get(*pOrderID);
+    message.get(*pSymbol);
+    message.get(*pSize);
+    message.get(*pOrderType);
+    message.get(*pPrice);
+
+    message.getGroup(1, *pIDGroup);
+    pIDGroup->get(*pUsername);
 
     cout << COLOR_PROMPT "--------------------------------------\n" NO_COLOR;
-    cout << "Order ID: " << orderID.getValue()
-         << "\nUsername: " << username.getValue()
-         << "\n\tType: " << orderType.getValue()
-         << "\n\tSymbol: " << orderSymbol.getValue()
-         << "\n\tSize: " << orderSize.getValue()
-         << "\n\tPrice: " << orderPrice.getValue() << endl;
+    cout << "Order ID: " << pOrderID->getValue()
+         << "\nUsername: " << pUsername->getValue()
+         << "\n\tType: " << pOrderType->getValue()
+         << "\n\tSymbol: " << pSymbol->getValue()
+         << "\n\tSize: " << pSize->getValue()
+         << "\n\tPrice: " << pPrice->getValue() << endl;
 
     // Order validation
-    const auto type = static_cast<Order::Type>(orderType.getValue());
-    int size = static_cast<int>(orderSize.getValue());
+    const auto type = static_cast<Order::Type>(pOrderType->getValue());
+    int sizeInt = static_cast<int>(pSize->getValue());
 
-    if (orderID.getLength() == 0) {
+    if (pOrderID->getLength() == 0) {
         cout << "orderID is empty" << endl;
         return;
     }
 
-    if (username.getLength() == 0) {
+    if (pUsername->getLength() == 0) {
         cout << "username is empty" << endl;
         return;
-    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(username.getValue())) {
+    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(pUsername->getValue())) {
         cout << COLOR_ERROR "This username is not register in the Brokerage Center" NO_COLOR << endl;
         return;
     }
@@ -632,25 +758,47 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    if (orderSymbol.getLength() == 0) {
+    if (pSymbol->getLength() == 0) {
         cout << "symbol is empty" << endl;
         return;
-    } else if (!BCDocuments::getInstance()->hasSymbol(orderSymbol.getValue())) {
+    } else if (!BCDocuments::getInstance()->hasSymbol(pSymbol->getValue())) {
         cout << COLOR_ERROR "This symbol is not register in the Brokerage Center" NO_COLOR << endl;
         return;
     }
 
-    if (size <= 0) {
+    if (sizeInt <= 0) {
         cout << "size is empty" << endl;
         return;
     }
 
-    if (orderPrice < 0.0) {
+    if (pPrice->getValue() < 0.0) {
         cout << "price is empty" << endl;
         return;
     }
 
-    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(username.getValue(), Order{ type, orderSymbol.getValue(), size, orderPrice.getValue(), orderID.getValue(), username.getValue() });
+    Order order{
+        type,
+        pSymbol->getValue(),
+        sizeInt,
+        pPrice->getValue(),
+        pOrderID->getValue(),
+        pUsername->getValue()
+    };
+
+    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(pUsername->getValue(), std::move(order));
+
+    if (prevCnt) { // > 1 threads
+        delete pOrderID;
+        delete pSymbol;
+        delete pSize;
+        delete pOrderType;
+        delete pPrice;
+        delete pIDGroup;
+        delete pUsername;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 #undef SHOW_INPUT_MSG

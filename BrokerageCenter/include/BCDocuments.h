@@ -72,7 +72,7 @@ public:
 
     void onNewOBEntryForOrderBook(const std::string& symbol, const OrderBookEntry& entry);
     void onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac);
-    void onNewOrderForUserRiskManagement(const std::string& username, const Order& order);
+    void onNewOrderForUserRiskManagement(const std::string& username, Order&& order);
     void onNewReportForUserRiskManagement(const std::string& username, const Report& report);
 
     void broadcastOrderBooks() const;

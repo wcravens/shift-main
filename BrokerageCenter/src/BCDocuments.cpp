@@ -119,11 +119,11 @@ auto BCDocuments::addRiskManagementToUserNoLock(const std::string& username) -> 
     return res.first;
 }
 
-void BCDocuments::onNewOrderForUserRiskManagement(const std::string& username, const Order& order)
+void BCDocuments::onNewOrderForUserRiskManagement(const std::string& username, Order&& order)
 {
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
     addRiskManagementToUserNoLock(username);
-    m_riskManagementByName[username]->enqueueOrder(order);
+    m_riskManagementByName[username]->enqueueOrder(std::move(order));
 }
 
 void BCDocuments::onNewReportForUserRiskManagement(const std::string& username, const Report& report)

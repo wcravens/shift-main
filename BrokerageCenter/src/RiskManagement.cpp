@@ -47,11 +47,11 @@ void RiskManagement::spawn()
     m_execRptThread.reset(new std::thread(&RiskManagement::processExecRpt, this));
 }
 
-void RiskManagement::enqueueOrder(const Order& order)
+void RiskManagement::enqueueOrder(Order&& order)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxOrder);
-        m_orderBuffer.push(order);
+        m_orderBuffer.push(std::move(order));
     }
     m_cvOrder.notify_one();
 }
