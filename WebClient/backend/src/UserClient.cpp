@@ -30,16 +30,16 @@ void UserClient::receiveWaitingList()
     for (const auto& order : waitingList) {
         std::ostringstream out;
         out << "{ "
-            << "\"orderId\": "
-            << "\"" << order.getID() << "\","
+            << "\"orderType\": "
+            << "\"" << order.getTypeString() << "\","
             << "\"symbol\": "
             << "\"" << order.getSymbol() << "\","
+            << "\"size\": "
+            << "\"" << order.getSize() << "\","
             << "\"price\": "
             << "\"" << order.getPrice() << "\","
-            << "\"shares\": "
-            << "\"" << order.getSize() << "\","
-            << "\"orderType\": "
-            << "\"" << char(order.getType()) << "\","
+            << "\"orderID\": "
+            << "\"" << order.getID() << "\","
             << "\"status\":"
             << "\"" << order.getStatusString() << "\""
             << "}";
@@ -62,26 +62,36 @@ void UserClient::sendSubmittedOrders()
     auto submittedOrders = getSubmittedOrders();
     std::string res = "";
 
+    double price = 0.0;
+    std::time_t timestamp = 0;
+    std::string timestampStr = "";
+
     for (const auto& order : submittedOrders) {
         std::ostringstream out;
 
-        std::time_t timestamp = std::chrono::system_clock::to_time_t(order.getTimestamp());
-        std::string timestampStr = std::ctime(&timestamp);
+        if (order.getExecutedSize() != order.getSize()) {
+            price = order.getExecutedPrice();
+        } else {
+            price = order.getPrice();
+        }
+
+        timestamp = std::chrono::system_clock::to_time_t(order.getTimestamp());
+        timestampStr = std::ctime(&timestamp);
         timestampStr.pop_back();
 
         out << "{ "
-            << "\"orderId\": "
-            << "\"" << order.getID() << "\","
+            << "\"orderType\": "
+            << "\"" << order.getTypeString() << "\","
             << "\"symbol\": "
             << "\"" << order.getSymbol() << "\","
-            << "\"price\": "
-            << "\"" << order.getPrice() << "\","
-            << "\"shares\": "
+            << "\"size\": "
             << "\"" << order.getSize() << "\","
-            << "\"executed\": "
-            << "\"" << order.getExecuted() << "\","
-            << "\"orderType\": "
-            << "\"" << static_cast<char>(order.getType()) << "\","
+            << "\"executedSize\": "
+            << "\"" << order.getExecutedSize() << "\","
+            << "\"price\": "
+            << "\"" << price << "\","
+            << "\"orderID\": "
+            << "\"" << order.getID() << "\","
             << "\"status\": "
             << "\"" << order.getStatusString() << "\","
             << "\"timestamp\": "

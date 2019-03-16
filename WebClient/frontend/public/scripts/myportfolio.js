@@ -2,8 +2,6 @@
  * rceive portfolio data and display
  */
 
-var orderTypeStrs = { "1": "Limit Buy", "2": "Limit Sell", "3": "Market Buy", "4": "Market Sell" };
-
 function createCloseForm(symbol, size, mysubmit) {
     var f = document.createElement("form");
     f.setAttribute('class', 'form-inline');
@@ -52,7 +50,7 @@ function createCloseForm(symbol, size, mysubmit) {
     return f;
 }
 
-function createCancelOrderForm(orderType, symbol, size, price, orderId) {
+function createCancelOrderForm(orderType, symbol, size, price, orderID) {
     var f = document.createElement("form");
     f.setAttribute('class', 'form-inline alignright notwrap');
     f.setAttribute('method', 'post');
@@ -61,8 +59,8 @@ function createCancelOrderForm(orderType, symbol, size, price, orderId) {
 
     var i0 = document.createElement("input");
     i0.setAttribute('type', "hidden");
-    i0.setAttribute('name', "orderId");
-    i0.setAttribute('value', orderId);
+    i0.setAttribute('name', "orderID");
+    i0.setAttribute('value', orderID);
 
     var i1 = document.createElement("input");
     i1.setAttribute('type', "hidden");
@@ -75,7 +73,7 @@ function createCancelOrderForm(orderType, symbol, size, price, orderId) {
     i2.setAttribute('value', symbol);
 
     var i3 = document.createElement("input");
-    i3.setAttribute('id', "input_size"+orderId);
+    i3.setAttribute('id', "input_size" + orderID);
     i3.setAttribute('type', "number");
     i3.setAttribute('class', "input-xs notimpcol");
     i3.setAttribute('name', "size");
@@ -84,7 +82,7 @@ function createCancelOrderForm(orderType, symbol, size, price, orderId) {
     i3.setAttribute('style', "width: 4em");
     i3.setAttribute('value', size);
     i3.setAttribute('placeholder', "Size");
-    i3.setAttribute('onchange', "sizeOnchangeFunc(orderId)");
+    i3.setAttribute('onchange', "sizeOnchangeFunc(orderID)");
 
     var i4 = document.createElement("input");
     i4.setAttribute('type', "submit");
@@ -104,7 +102,7 @@ function createCancelOrderForm(orderType, symbol, size, price, orderId) {
     i6.setAttribute('value', price);
 
     var i7 = document.createElement("input");
-    i7.setAttribute('id', "ori_size"+orderId);
+    i7.setAttribute('id', "ori_size" + orderID);
     i7.setAttribute('type', "hidden");
     i7.setAttribute('value', size);
 
@@ -121,17 +119,17 @@ function createCancelOrderForm(orderType, symbol, size, price, orderId) {
 }
 
 // Set size back to original if user types in a larger one.
-function sizeOnchangeFunc(orderId){
-    var inputSize = document.getElementById('input_size'+orderId.value);
-    var oriSize = parseInt(document.getElementById('ori_size'+orderId.value).value);
+function sizeOnchangeFunc(orderID) {
+    var inputSize = document.getElementById('input_size' + orderID.value);
+    var oriSize = parseInt(document.getElementById('ori_size' + orderID.value).value);
     var floatrx = new RegExp(/^[+-]?\d+(\.\d+)?$/);
-    if (inputSize.value <= 0 ){
+    if (inputSize.value <= 0) {
         inputSize.value = 1;
     } else {
-        if (floatrx.test(inputSize.value)){
+        if (floatrx.test(inputSize.value)) {
             inputSize.value = Math.floor(inputSize.value);
         }
-        if (inputSize.value > oriSize){
+        if (inputSize.value > oriSize) {
             inputSize.value = oriSize;
         }
     }
@@ -145,9 +143,9 @@ $(document).ready(function () {
                 document.getElementById("buying_power").innerHTML = numFloat(data.data.totalBP);
                 document.getElementById("total_shares").innerHTML = numInt(data.data.totalShares);
                 document.getElementById("total_shares").className = "text-right notimpcol";
-                if (parseFloat(data.data.portfolioUnrealizedPL) > 0){
+                if (parseFloat(data.data.portfolioUnrealizedPL) > 0) {
                     document.getElementById("unrealized_pl").className = "text-right rise";
-                } else if (parseFloat(data.data.portfolioUnrealizedPL) < 0){
+                } else if (parseFloat(data.data.portfolioUnrealizedPL) < 0) {
                     document.getElementById("unrealized_pl").className = "text-right drop";
                 } else {
                     document.getElementById("unrealized_pl").className = "text-right";
@@ -223,7 +221,7 @@ $(document).ready(function () {
                     portfolio_table.rows[index].cells[6].appendChild(closeform);
                 }
 
-                if (!portfolio_table.rows[1]){
+                if (!portfolio_table.rows[1]) {
                     var row = portfolio_table.insertRow(1);
                     row.id = "emptyPosition";
                     cell = row.insertCell(0);
@@ -244,50 +242,50 @@ $(document).ready(function () {
                     let row;
                     if (stock_list_table.rows[index]) {
                         row = stock_list_table.rows[index];
-                        stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].symbol;
+                        row.cells[cNum].innerHTML = data.data[i].symbol;
                         cNum++; // order type
-                        stock_list_table.rows[index].cells[cNum].innerHTML = orderTypeStrs[data.data[i].orderType];
+                        row.cells[cNum].innerHTML = data.data[i].orderType;
                         cNum++; // price
-                        stock_list_table.rows[index].cells[cNum].innerHTML = numFloat(data.data[i].price);
+                        row.cells[cNum].innerHTML = numFloat(data.data[i].price);
                         cNum++; // order size
-                        stock_list_table.rows[index].cells[cNum].innerHTML = numInt(data.data[i].shares);
+                        row.cells[cNum].innerHTML = numInt(data.data[i].size);
                         cNum++; // empty column
                         cNum++; // order id
-                        stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].orderId;
-                        stock_list_table.rows[index].cells[cNum].className += " notimpcol2";
+                        row.cells[cNum].innerHTML = data.data[i].orderID;
+                        row.cells[cNum].className += " notimpcol2";
                         cNum++; // status
                         row.cells[cNum].innerHTML = data.data[i].status;
-                        stock_list_table.rows[index].cells[cNum].className += " notimpcol2";
+                        row.cells[cNum].className += " notimpcol2";
                         cNum++; // cancle order form
-                        stock_list_table.rows[index].cells[cNum].removeChild(stock_list_table.rows[index].cells[cNum].childNodes[0]);
-                        stock_list_table.rows[index].cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].shares, data.data[i].price, data.data[i].orderId));
+                        row.cells[cNum].removeChild(row.cells[cNum].childNodes[0]);
+                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderID));
                     } else {
                         row = stock_list_table.insertRow(index);
-                        for (var j = 0; j < tableCells; j++){
+                        for (var j = 0; j < tableCells; j++) {
                             row.insertCell(j);
                         }
                         row.cells[cNum].innerHTML = data.data[i].symbol;
                         row.cells[cNum].className = "bold";
                         cNum++; // order type
-                        row.cells[cNum].innerHTML = orderTypeStrs[data.data[i].orderType]; 
+                        row.cells[cNum].innerHTML = data.data[i].orderType;
                         row.cells[cNum].className = "text-right";
                         cNum++; // price
                         row.cells[cNum].className = "text-right";
-                        row.cells[cNum].innerHTML = numFloat(data.data[i].price); 
+                        row.cells[cNum].innerHTML = numFloat(data.data[i].price);
                         cNum++; // order size
                         row.cells[cNum].className = "text-right";
-                        row.cells[cNum].innerHTML = numInt(data.data[i].shares); 
+                        row.cells[cNum].innerHTML = numInt(data.data[i].size);
                         cNum++; // empty column
                         cNum++; // order id
-                        row.cells[cNum].innerHTML = data.data[i].orderId; 
+                        row.cells[cNum].innerHTML = data.data[i].orderID;
                         row.cells[cNum].className = " notimpcol2";
                         cNum++; // status
                         row.cells[cNum].innerHTML = data.data[i].status;
-                        stock_list_table.rows[index].cells[cNum].className += " notimpcol2";
+                        row.cells[cNum].className += " notimpcol2";
                         cNum++; // cancle order form
                         row.cells[cNum].className = " notimpcol";
                         row.cells[cNum].setAttribute("nowrap", "nowrap");
-                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].shares, data.data[i].price, data.data[i].orderId));
+                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderID));
                     }
                 }
 
@@ -296,7 +294,7 @@ $(document).ready(function () {
                     stock_list_table.deleteRow(-1);
                 }
 
-                if (!stock_list_table.rows[1]){
+                if (!stock_list_table.rows[1]) {
                     var row = stock_list_table.insertRow(1);
                     row.id = "emptyWaitingList";
                     cell = row.insertCell(0);

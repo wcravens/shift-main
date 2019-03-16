@@ -2,8 +2,6 @@
  * receive submitted orders data and display
  */
 
-var orderTypeStrs = { "1": "Limit Buy", "2": "Limit Sell", "3": "Market Buy", "4": "Market Sell" };
-
 $(document).ready(function () {
     var conn = new ab.Session('ws://' + php_server_ip + ':8080',
         function () {
@@ -12,7 +10,7 @@ $(document).ready(function () {
                 var tableCells = 9; // cell count
                 if (data.data.length != 0 && document.getElementById("emptyList"))
                     stock_list_table.deleteRow(1);
-                
+
                 for (var i = 0; i < data.data.length; i++) {
                     var index = i + 1;
                     var cNum = 0;
@@ -22,32 +20,32 @@ $(document).ready(function () {
 
                     } else {
                         row = stock_list_table.insertRow(index);
-                        for (var j = 0; j < tableCells; j++){
+                        for (var j = 0; j < tableCells; j++) {
                             row.insertCell(j);
                         }
                     }
                     row.cells[cNum].innerHTML = data.data[i].symbol;
                     row.cells[cNum].className = "bold";
                     cNum++; // order type
-                    row.cells[cNum].innerHTML = orderTypeStrs[data.data[i].orderType];
+                    row.cells[cNum].innerHTML = data.data[i].orderType;
                     row.cells[cNum].className = "text-right";
                     cNum++; // price
                     row.cells[cNum].innerHTML = numFloat(data.data[i].price);
                     row.cells[cNum].className = "text-right";
                     cNum++; // order size
-                    row.cells[cNum].innerHTML = numInt(data.data[i].shares);
+                    row.cells[cNum].innerHTML = numInt(data.data[i].size);
                     row.cells[cNum].className = "text-right";
                     cNum++; // executed
-                    row.cells[cNum].innerHTML = numInt(data.data[i].executed);
+                    row.cells[cNum].innerHTML = numInt(data.data[i].executedSize);
                     row.cells[cNum].className = "text-right";
                     cNum++; // empty column
                     cNum++; // order id
-                    row.cells[cNum].innerHTML = data.data[i].orderId;
+                    row.cells[cNum].innerHTML = data.data[i].orderID;
                     row.cells[cNum].className = " notimpcol2";
                     cNum++; // status
-                    stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].status;
+                    row.cells[cNum].innerHTML = data.data[i].status;
                     cNum++; // timestamp
-                    stock_list_table.rows[index].cells[cNum].innerHTML = data.data[i].timestamp;
+                    row.cells[cNum].innerHTML = data.data[i].timestamp;
                 }
 
                 var len = stock_list_table.rows.length;
@@ -55,7 +53,7 @@ $(document).ready(function () {
                     stock_list_table.deleteRow(-1);
                 }
 
-                if (!stock_list_table.rows[1]){
+                if (!stock_list_table.rows[1]) {
                     var row = stock_list_table.insertRow(1);
                     row.id = "emptyList";
                     cell = row.insertCell(0);

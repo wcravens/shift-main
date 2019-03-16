@@ -48,8 +48,9 @@ public:
     std::string getTypeString() const;
     const std::string& getSymbol() const;
     int getSize() const;
-    int getExecuted() const;
+    int getExecutedSize() const;
     double getPrice() const;
+    double getExecutedPrice() const;
     const std::string& getID() const;
     Status getStatus() const;
     std::string getStatusString() const;
@@ -59,8 +60,9 @@ public:
     void setType(Type type);
     void setSymbol(const std::string& symbol);
     void setSize(int size);
-    void setExecuted(int executed);
+    void setExecutedSize(int executedSize);
     void setPrice(double price);
+    void setExecutedPrice(double executedPrice);
     void setID(const std::string& id);
     void setStatus(Status status);
     void setTimestamp();
@@ -69,8 +71,9 @@ private:
     Type m_type;
     std::string m_symbol;
     int m_size;
-    int m_executed;
+    int m_executedSize;
     double m_price;
+    double m_executedPrice;
     std::string m_id;
     Status m_status;
     std::chrono::system_clock::time_point m_timestamp;

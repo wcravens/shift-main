@@ -603,22 +603,22 @@ void shift::CoreClient::storeExecutionReport(const std::string& orderID, int exe
 
     auto& order = m_submittedOrders[orderID];
 
-    int newExecuted = order.getExecuted() + executedSize;
-    double newPrice = order.getPrice();
+    int newExecutedSize = order.getExecutedSize() + executedSize;
+    double newExecutedPrice = order.getExecutedPrice();
 
     if (executedSize > 0) {
-        if (order.getExecuted() > 0) {
-            newPrice = ((order.getPrice() / order.getExecuted()) + (executedPrice / executedSize)) * newExecuted;
+        if (order.getExecutedSize() > 0) {
+            newExecutedPrice = ((order.getExecutedPrice() / order.getExecutedSize()) + (executedPrice / executedSize)) * newExecutedSize;
         } else {
-            newPrice = executedPrice;
+            newExecutedPrice = executedPrice;
         }
     }
 
-    order.setExecuted(newExecuted);
-    order.setPrice(newPrice);
+    order.setExecutedSize(newExecutedSize);
+    order.setExecutedPrice(newExecutedPrice);
     order.setStatus(newStatus);
 
-    if ((newStatus == shift::Order::Status::CANCELED) && (order.getSize() > newExecuted)) {
+    if ((newStatus == shift::Order::Status::CANCELED) && (order.getSize() > newExecutedSize)) {
         order.setStatus(shift::Order::Status::PARTIALLY_FILLED);
     }
 }

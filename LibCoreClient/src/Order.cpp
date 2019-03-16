@@ -11,8 +11,9 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
     : m_type(type)
     , m_symbol(symbol)
     , m_size(size)
-    , m_executed(0)
+    , m_executedSize(0)
     , m_price(price)
+    , m_executedPrice(0.0)
     , m_id(id)
     , m_status(shift::Order::Status::PENDING_NEW)
     , m_timestamp(std::chrono::system_clock::now())
@@ -41,24 +42,24 @@ shift::Order::Type shift::Order::getType() const
 std::string shift::Order::getTypeString() const
 {
     switch (m_type) {
-        case LIMIT_BUY: {
-            return "Limit Buy";
-        }
-        case LIMIT_SELL: {
-            return "Limit Sell";
-        }
-        case MARKET_BUY: {
-            return "Market Buy";
-        }
-        case MARKET_SELL: {
-            return "Market Sell";
-        }
-        case CANCEL_BID: {
-            return "Cancel Bid";
-        }
-        case CANCEL_ASK: {
-            return "Cancel Ask";
-        }
+    case LIMIT_BUY: {
+        return "Limit Buy";
+    }
+    case LIMIT_SELL: {
+        return "Limit Sell";
+    }
+    case MARKET_BUY: {
+        return "Market Buy";
+    }
+    case MARKET_SELL: {
+        return "Market Sell";
+    }
+    case CANCEL_BID: {
+        return "Cancel Bid";
+    }
+    case CANCEL_ASK: {
+        return "Cancel Ask";
+    }
     }
     return "N/A";
 }
@@ -73,14 +74,19 @@ int shift::Order::getSize() const
     return m_size;
 }
 
-int shift::Order::getExecuted() const
+int shift::Order::getExecutedSize() const
 {
-    return m_executed;
+    return m_executedSize;
 }
 
 double shift::Order::getPrice() const
 {
     return m_price;
+}
+
+double shift::Order::getExecutedPrice() const
+{
+    return m_executedPrice;
 }
 
 const std::string& shift::Order::getID() const
@@ -96,27 +102,27 @@ shift::Order::Status shift::Order::getStatus() const
 std::string shift::Order::getStatusString() const
 {
     switch (m_status) {
-        case PENDING_NEW: {
-            return "Pending New";
-        }
-        case NEW: {
-            return "New";
-        }
-        case PARTIALLY_FILLED: {
-            return "Partially Filled";
-        }
-        case FILLED: {
-            return "Filled";
-        }
-        case CANCELED: {
-            return "Canceled";
-        }
-        case PENDING_CANCEL: {
-            return "Pending Cancel";
-        }
-        case REJECTED: {
-            return "Rejected";
-        }
+    case PENDING_NEW: {
+        return "Pending New";
+    }
+    case NEW: {
+        return "New";
+    }
+    case PARTIALLY_FILLED: {
+        return "Partially Filled";
+    }
+    case FILLED: {
+        return "Filled";
+    }
+    case CANCELED: {
+        return "Canceled";
+    }
+    case PENDING_CANCEL: {
+        return "Pending Cancel";
+    }
+    case REJECTED: {
+        return "Rejected";
+    }
     }
     return "N/A";
 }
@@ -141,14 +147,19 @@ void shift::Order::setSize(int size)
     m_size = size;
 }
 
-void shift::Order::setExecuted(int executed)
+void shift::Order::setExecutedSize(int executedSize)
 {
-    m_executed = executed;
+    m_executedSize = executedSize;
 }
 
 void shift::Order::setPrice(double price)
 {
     m_price = s_decimalTruncate(price, 2);
+}
+
+void shift::Order::setExecutedPrice(double executedPrice)
+{
+    m_executedPrice = executedPrice;
 }
 
 void shift::Order::setID(const std::string& id)
