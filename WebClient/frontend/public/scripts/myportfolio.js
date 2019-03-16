@@ -258,7 +258,7 @@ $(document).ready(function () {
                         row.cells[cNum].className += " notimpcol2";
                         cNum++; // cancle order form
                         row.cells[cNum].removeChild(row.cells[cNum].childNodes[0]);
-                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderId));
+                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "Limit Buy" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderId));
                     } else {
                         row = stock_list_table.insertRow(index);
                         for (var j = 0; j < tableCells; j++) {
@@ -285,7 +285,7 @@ $(document).ready(function () {
                         cNum++; // cancle order form
                         row.cells[cNum].className = " notimpcol";
                         row.cells[cNum].setAttribute("nowrap", "nowrap");
-                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderId));
+                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "Limit Buy" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderId));
                     }
                 }
 
