@@ -785,8 +785,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     idGroup.get(username);
 
     try {
-        getClient(username.getValue())->storeExecutionReport(orderID.getValue(), executedSize.getValue(), executedPrice.getValue(), static_cast<shift::Order::Status>(orderStatus.getValue()));
-        getClient(username.getValue())->receiveExecutionReport(orderID.getValue());
+        getClient(username.getValue())->storeExecution(orderID.getValue(), executedSize.getValue(), executedPrice.getValue(), static_cast<shift::Order::Status>(orderStatus.getValue()));
+        getClient(username.getValue())->receiveExecution(orderID.getValue());
     } catch (...) {
         return;
     }

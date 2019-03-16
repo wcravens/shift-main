@@ -597,7 +597,7 @@ bool shift::CoreClient::attach(FIXInitiator& initiator)
     return true;
 }
 
-void shift::CoreClient::storeExecutionReport(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus)
+void shift::CoreClient::storeExecution(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus)
 {
     std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
 

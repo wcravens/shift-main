@@ -104,7 +104,7 @@ protected:
 
     // FIXInitiator interface
     bool attach(FIXInitiator& initiator);
-    void storeExecutionReport(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus);
+    void storeExecution(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus);
     void storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
     void storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);
     void storeWaitingList(std::vector<shift::Order>&& waitingList);
@@ -112,7 +112,7 @@ protected:
     // FIXInitiator callback methods
     virtual void receiveLastPrice(const std::string& /*symbol*/) {}
     virtual void receiveCandlestickData(const std::string& /*symbol*/, double /*open*/, double /*high*/, double /*low*/, double /*close*/, const std::string& /*timestamp*/) {}
-    virtual void receiveExecutionReport(const std::string& /*orderID*/) {}
+    virtual void receiveExecution(const std::string& /*orderID*/) {}
     virtual void receivePortfolioSummary() {}
     virtual void receivePortfolioItem(const std::string& /*symbol*/) {}
     virtual void receiveWaitingList() {}
