@@ -40,7 +40,7 @@ $(document).ready(function () {
                     row.cells[cNum].className = "text-right";
                     cNum++; // empty column
                     cNum++; // order id
-                    row.cells[cNum].innerHTML = data.data[i].orderID;
+                    row.cells[cNum].innerHTML = data.data[i].orderId;
                     row.cells[cNum].className = " notimpcol2";
                     cNum++; // status
                     row.cells[cNum].innerHTML = data.data[i].status;

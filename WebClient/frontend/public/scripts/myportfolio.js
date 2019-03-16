@@ -50,7 +50,7 @@ function createCloseForm(symbol, size, mysubmit) {
     return f;
 }
 
-function createCancelOrderForm(orderType, symbol, size, price, orderID) {
+function createCancelOrderForm(orderType, symbol, size, price, orderId) {
     var f = document.createElement("form");
     f.setAttribute('class', 'form-inline alignright notwrap');
     f.setAttribute('method', 'post');
@@ -59,8 +59,8 @@ function createCancelOrderForm(orderType, symbol, size, price, orderID) {
 
     var i0 = document.createElement("input");
     i0.setAttribute('type', "hidden");
-    i0.setAttribute('name', "orderID");
-    i0.setAttribute('value', orderID);
+    i0.setAttribute('name', "orderId");
+    i0.setAttribute('value', orderId);
 
     var i1 = document.createElement("input");
     i1.setAttribute('type', "hidden");
@@ -73,7 +73,7 @@ function createCancelOrderForm(orderType, symbol, size, price, orderID) {
     i2.setAttribute('value', symbol);
 
     var i3 = document.createElement("input");
-    i3.setAttribute('id', "input_size" + orderID);
+    i3.setAttribute('id', "input_size" + orderId);
     i3.setAttribute('type', "number");
     i3.setAttribute('class', "input-xs notimpcol");
     i3.setAttribute('name', "size");
@@ -82,7 +82,7 @@ function createCancelOrderForm(orderType, symbol, size, price, orderID) {
     i3.setAttribute('style', "width: 4em");
     i3.setAttribute('value', size);
     i3.setAttribute('placeholder', "Size");
-    i3.setAttribute('onchange', "sizeOnchangeFunc(orderID)");
+    i3.setAttribute('onchange', "sizeOnchangeFunc(orderId)");
 
     var i4 = document.createElement("input");
     i4.setAttribute('type', "submit");
@@ -102,7 +102,7 @@ function createCancelOrderForm(orderType, symbol, size, price, orderID) {
     i6.setAttribute('value', price);
 
     var i7 = document.createElement("input");
-    i7.setAttribute('id', "ori_size" + orderID);
+    i7.setAttribute('id', "ori_size" + orderId);
     i7.setAttribute('type', "hidden");
     i7.setAttribute('value', size);
 
@@ -119,9 +119,9 @@ function createCancelOrderForm(orderType, symbol, size, price, orderID) {
 }
 
 // Set size back to original if user types in a larger one.
-function sizeOnchangeFunc(orderID) {
-    var inputSize = document.getElementById('input_size' + orderID.value);
-    var oriSize = parseInt(document.getElementById('ori_size' + orderID.value).value);
+function sizeOnchangeFunc(orderId) {
+    var inputSize = document.getElementById('input_size' + orderId.value);
+    var oriSize = parseInt(document.getElementById('ori_size' + orderId.value).value);
     var floatrx = new RegExp(/^[+-]?\d+(\.\d+)?$/);
     if (inputSize.value <= 0) {
         inputSize.value = 1;
@@ -251,14 +251,14 @@ $(document).ready(function () {
                         row.cells[cNum].innerHTML = numInt(data.data[i].size);
                         cNum++; // empty column
                         cNum++; // order id
-                        row.cells[cNum].innerHTML = data.data[i].orderID;
+                        row.cells[cNum].innerHTML = data.data[i].orderId;
                         row.cells[cNum].className += " notimpcol2";
                         cNum++; // status
                         row.cells[cNum].innerHTML = data.data[i].status;
                         row.cells[cNum].className += " notimpcol2";
                         cNum++; // cancle order form
                         row.cells[cNum].removeChild(row.cells[cNum].childNodes[0]);
-                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderID));
+                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderId));
                     } else {
                         row = stock_list_table.insertRow(index);
                         for (var j = 0; j < tableCells; j++) {
@@ -277,7 +277,7 @@ $(document).ready(function () {
                         row.cells[cNum].innerHTML = numInt(data.data[i].size);
                         cNum++; // empty column
                         cNum++; // order id
-                        row.cells[cNum].innerHTML = data.data[i].orderID;
+                        row.cells[cNum].innerHTML = data.data[i].orderId;
                         row.cells[cNum].className = " notimpcol2";
                         cNum++; // status
                         row.cells[cNum].innerHTML = data.data[i].status;
@@ -285,7 +285,7 @@ $(document).ready(function () {
                         cNum++; // cancle order form
                         row.cells[cNum].className = " notimpcol";
                         row.cells[cNum].setAttribute("nowrap", "nowrap");
-                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderID));
+                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "1" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderId));
                     }
                 }
 
