@@ -110,6 +110,8 @@ void shift::CoreClient::submitCancellation(shift::Order order)
         order.setType(shift::Order::CANCEL_ASK);
     }
 
+    order.setSize(order.getSize() - order.getExecutedSize());
+
     return m_fixInitiator->submitOrder(order, m_username);
 }
 
