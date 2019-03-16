@@ -33,7 +33,7 @@ RequestsProcessorPerTarget::~RequestsProcessorPerTarget()
 /**
  * @brief Enqueue one Market Data request to process
  */
-void RequestsProcessorPerTarget::enqueueMarketDataRequest(FIX::SecurityResponseID&& reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime)
+void RequestsProcessorPerTarget::enqueueMarketDataRequest(std::string reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxRequest);

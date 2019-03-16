@@ -31,7 +31,7 @@ public:
     RequestsProcessorPerTarget(const RequestsProcessorPerTarget&) = delete;
     RequestsProcessorPerTarget(RequestsProcessorPerTarget&&) = delete;
 
-    void enqueueMarketDataRequest(FIX::SecurityResponseID&& reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime);
+    void enqueueMarketDataRequest(std::string reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime);
     void enqueueNextDataRequest();
 
 private:

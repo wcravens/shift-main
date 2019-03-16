@@ -172,20 +172,20 @@ void FIXAcceptor::disconnectMatchingEngine()
 void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
 {
     cout << "FIX:Create - " << sessionID << endl;
-    FIXAcceptor::s_senderID = sessionID.getSenderCompID();
+    FIXAcceptor::s_senderID = sessionID.getSenderCompID().getValue();
 }
 
 void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 {
     cout << '\n'
          << "FIX:Logon - " << sessionID << "\n\t"
-         << sessionID.getTargetCompID() << endl;
+         << sessionID.getTargetCompID().getValue() << endl;
 }
 
 void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 {
     cout << '\n'
-         << "FIX:Logout - " << sessionID << endl;
+         << "FIX:Logout - " << sessionID.toString() << endl;
 }
 
 void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
@@ -199,48 +199,90 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
  */
 void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
 {
+    FIX::NoRelatedSym numOfGroups;
+    message.get(numOfGroups);
+    if (numOfGroups < 1) {
+        cout << "Cannot find any Symbol in SecurityList!" << endl;
+        return;
+    }
+
     const std::string targetID = sessionID.getTargetCompID().getValue();
 
     if (m_requestsProcessors.count(targetID) == 0) {
         m_requestsProcessors[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
     }
 
-    FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
+    static FIX::SecurityResponseID requestID;
+    static FIX::SecurityListID startTimeString;
+    static FIX::SecurityListRefID endTimeString;
 
-    if (numOfGroups < 1) {
-        cout << "Cannot find any Symbol in SecurityList!" << endl;
-        return;
+    static FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
+    static FIX::Symbol symbol;
+
+    // #pragma GCC diagnostic ignored ....
+
+    FIX::SecurityResponseID* pRequestID;
+    FIX::SecurityListID* pStartTimeString;
+    FIX::SecurityListRefID* pEndTimeString;
+
+    FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup;
+    FIX::Symbol* pSymbol;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pRequestID = &requestID;
+        pStartTimeString = &startTimeString;
+        pEndTimeString = &endTimeString;
+        pRelatedSymGroup = &relatedSymGroup;
+        pSymbol = &symbol;
+    } else { // > 1 threads; always safe way:
+        pRequestID = new decltype(requestID);
+        pStartTimeString = new decltype(startTimeString);
+        pEndTimeString = new decltype(endTimeString);
+        pRelatedSymGroup = new decltype(relatedSymGroup);
+        pSymbol = new decltype(symbol);
     }
 
-    FIX::SecurityResponseID requestID;
-    FIX::SecurityListID startTimeString;
-    FIX::SecurityListRefID endTimeString;
+    message.get(*pRequestID);
+    message.get(*pStartTimeString);
+    message.get(*pEndTimeString);
 
-    message.get(requestID);
-    message.get(startTimeString);
-    message.get(endTimeString);
-
-    boost::posix_time::ptime startTime = boost::posix_time::from_iso_string(startTimeString);
-    boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(endTimeString);
     cout << "Request info:" << '\n'
-         << startTimeString.getValue() << '\n'
-         << endTimeString.getValue() << '\n'
-         << requestID.getValue() << endl;
+         << pRequestID->getValue() << '\n'
+         << pStartTimeString->getValue() << '\n'
+         << pEndTimeString->getValue() << endl;
 
-    FIX::Symbol symbol;
-    FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
     std::vector<std::string> symbols;
 
     for (int i = 1; i <= numOfGroups.getValue(); ++i) {
-        message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
-        relatedSymGroup.get(symbol);
-        cout << i << ":\t" << symbol.getValue() << endl;
-        symbols.push_back(symbol.getValue());
+        message.getGroup(static_cast<unsigned int>(i), *pRelatedSymGroup);
+        pRelatedSymGroup->get(*pSymbol);
+        cout << i << ":\t" << pSymbol->getValue() << endl;
+        symbols.push_back(pSymbol->getValue());
     }
     cout << endl;
 
-    m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(requestID), std::move(symbols), std::move(startTime), std::move(endTime));
+    boost::posix_time::ptime startTime = boost::posix_time::from_iso_string(*pStartTimeString);
+    boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(*pEndTimeString);
+
+    m_requestsProcessors[targetID]->enqueueMarketDataRequest(*pRequestID, std::move(symbols), std::move(startTime), std::move(endTime));
+
+    if (prevCnt) { // > 1 threads
+        delete pRequestID;
+        delete pStartTimeString;
+        delete pEndTimeString;
+        delete pRelatedSymGroup;
+        delete pSymbol;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /** 
@@ -278,68 +320,158 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
         return;
     }
 
-    FIX::OrderID orderID1;
-    FIX::SecondaryOrderID orderID2;
-    FIX::OrdStatus decision;
-    FIX::Symbol symbol;
-    FIX::Side orderType1;
-    FIX::OrdType orderType2;
-    FIX::Price price;
-    FIX::EffectiveTime utc_exetime;
-    FIX::LastMkt destination;
-    FIX::CumQty size;
-    FIX::TransactTime serverTime;
+    static FIX::OrderID orderID1;
+    static FIX::SecondaryOrderID orderID2;
+    static FIX::OrdStatus decision;
+    static FIX::Symbol symbol;
+    static FIX::Side orderType1;
+    static FIX::OrdType orderType2;
+    static FIX::Price price;
+    static FIX::EffectiveTime utcExecTime;
+    static FIX::LastMkt destination;
+    static FIX::CumQty size;
+    static FIX::TransactTime serverTime;
 
-    FIX50SP2::ExecutionReport::NoPartyIDs partyGroup;
-    FIX::PartyID traderID1;
-    FIX::PartyID traderID2;
+    static FIX50SP2::ExecutionReport::NoPartyIDs partyGroup;
+    static FIX::PartyID traderID1;
+    static FIX::PartyID traderID2;
 
-    FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup;
-    FIX::TrdRegTimestamp utc_time1;
-    FIX::TrdRegTimestamp utc_time2;
+    static FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup;
+    static FIX::TrdRegTimestamp utcTime1;
+    static FIX::TrdRegTimestamp utcTime2;
 
-    message.get(orderID1);
-    message.get(orderID2);
-    message.get(decision);
-    message.get(symbol);
-    message.get(orderType1);
-    message.get(orderType2);
-    message.get(price);
-    message.get(utc_exetime);
-    message.get(destination);
-    message.get(size);
-    message.get(serverTime);
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, partyGroup);
-    partyGroup.get(traderID1);
+    FIX::OrderID* pOrderID1;
+    FIX::SecondaryOrderID* pOrderID2;
+    FIX::OrdStatus* pDecision;
+    FIX::Symbol* pSymbol;
+    FIX::Side* pOrderType1;
+    FIX::OrdType* pOrderType2;
+    FIX::Price* pPrice;
+    FIX::EffectiveTime* pUTCExecTime;
+    FIX::LastMkt* pDestination;
+    FIX::CumQty* pSize;
+    FIX::TransactTime* pServerTime;
+
+    FIX50SP2::ExecutionReport::NoPartyIDs* pPartyGroup;
+    FIX::PartyID* pTraderID1;
+    FIX::PartyID* pTraderID2;
+
+    FIX50SP2::ExecutionReport::NoTrdRegTimestamps* pTimeGroup;
+    FIX::TrdRegTimestamp* pUTCTime1;
+    FIX::TrdRegTimestamp* pUTCTime2;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pOrderID1 = &orderID1;
+        pOrderID2 = &orderID2;
+        pDecision = &decision;
+        pSymbol = &symbol;
+        pOrderType1 = &orderType1;
+        pOrderType2 = &orderType2;
+        pPrice = &price;
+        pUTCExecTime = &utcExecTime;
+        pDestination = &destination;
+        pSize = &size;
+        pServerTime = &serverTime;
+        pPartyGroup = &partyGroup;
+        pTraderID1 = &traderID1;
+        pTraderID2 = &traderID2;
+        pTimeGroup = &timeGroup;
+        pUTCTime1 = &utcTime1;
+        pUTCTime2 = &utcTime2;
+    } else { // > 1 threads; always safe way:
+        pOrderID1 = new decltype(orderID1);
+        pOrderID2 = new decltype(orderID2);
+        pDecision = new decltype(decision);
+        pSymbol = new decltype(symbol);
+        pOrderType1 = new decltype(orderType1);
+        pOrderType2 = new decltype(orderType2);
+        pPrice = new decltype(price);
+        pUTCExecTime = new decltype(utcExecTime);
+        pDestination = new decltype(destination);
+        pSize = new decltype(size);
+        pServerTime = new decltype(serverTime);
+        pPartyGroup = new decltype(partyGroup);
+        pTraderID1 = new decltype(traderID1);
+        pTraderID2 = new decltype(traderID2);
+        pTimeGroup = new decltype(timeGroup);
+        pUTCTime1 = new decltype(utcTime1);
+        pUTCTime2 = new decltype(utcTime2);
+    }
+
+    message.get(*pOrderID1);
+    message.get(*pOrderID2);
+    message.get(*pDecision);
+    message.get(*pSymbol);
+    message.get(*pOrderType1);
+    message.get(*pOrderType2);
+    message.get(*pPrice);
+    message.get(*pUTCExecTime);
+    message.get(*pDestination);
+    message.get(*pSize);
+    message.get(*pServerTime);
+
+    message.getGroup(1, *pPartyGroup);
+    pPartyGroup->get(*pTraderID1);
     message.getGroup(2, partyGroup);
-    partyGroup.get(traderID2);
+    pPartyGroup->get(*pTraderID2);
 
-    message.getGroup(1, timeGroup);
-    timeGroup.get(utc_time1);
+    message.getGroup(1, *pTimeGroup);
+    pTimeGroup->get(*pUTCTime1);
     message.getGroup(2, timeGroup);
-    timeGroup.get(utc_time2);
+    pTimeGroup->get(*pUTCTime2);
 
     // (this test is being done in the MatchingEngine now)
-    // decision == 5 means this is a trade update from TRTH -> no need to store it
-    // if (decision != '5') {
+    // pDecision->getValue() == 5 means this is a trade update from TRTH -> no need to store it
+    // if (pDecision->getValue() != '5') {
     TradingRecord trade{
-        serverTime.getValue(),
-        utc_exetime.getValue(),
-        symbol.getValue(),
-        price.getValue(),
-        static_cast<int>(size.getValue()),
-        traderID1.getValue(),
-        traderID2.getValue(),
-        orderID1.getValue(),
-        orderID2.getValue(),
-        orderType1.getValue(),
-        orderType2.getValue(),
-        decision.getValue(),
-        destination.getValue(),
-        utc_time1.getValue(),
-        utc_time2.getValue()
+        pServerTime->getValue(),
+        pUTCExecTime->getValue(),
+        pSymbol->getValue(),
+        pPrice->getValue(),
+        static_cast<int>(pSize->getValue()),
+        pTraderID1->getValue(),
+        pTraderID2->getValue(),
+        pOrderID1->getValue(),
+        pOrderID2->getValue(),
+        pOrderType1->getValue(),
+        pOrderType2->getValue(),
+        pDecision->getValue(),
+        pDestination->getValue(),
+        pUTCTime1->getValue(),
+        pUTCTime2->getValue()
     };
     PSQLManager::getInstance().insertTradingRecord(trade);
     // }
+
+    if (prevCnt) { // > 1 threads
+        delete pOrderID1;
+        delete pOrderID2;
+        delete pDecision;
+        delete pSymbol;
+        delete pOrderType1;
+        delete pOrderType2;
+        delete pPrice;
+        delete pUTCExecTime;
+        delete pDestination;
+        delete pSize;
+        delete pServerTime;
+        delete pPartyGroup;
+        delete pTraderID1;
+        delete pTraderID2;
+        delete pTimeGroup;
+        delete pUTCTime1;
+        delete pUTCTime2;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
