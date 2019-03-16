@@ -54,7 +54,7 @@ public:
     void spawn();
 
     void enqueueOrder(Order&& order);
-    void enqueueExecRpt(const Report& report);
+    void enqueueExecRpt(Report&& report);
     void processOrder();
     void processExecRpt();
 

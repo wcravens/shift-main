@@ -32,11 +32,11 @@ OrderBook::~OrderBook() /*override*/
 *	@param	entry: The OrderBookEntry to be enqueue the buffer.
 *   @return nothing
 */
-void OrderBook::enqueueOrderBook(const OrderBookEntry& entry)
+void OrderBook::enqueueOrderBook(OrderBookEntry&& entry)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxOBEBuff);
-        m_obeBuff.push(entry);
+        m_obeBuff.push(std::move(entry));
     }
     m_cvOBEBuff.notify_one();
 }

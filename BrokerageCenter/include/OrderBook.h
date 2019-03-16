@@ -41,7 +41,7 @@ public:
     OrderBook(std::string name);
     ~OrderBook() override;
 
-    void enqueueOrderBook(const OrderBookEntry& entry);
+    void enqueueOrderBook(OrderBookEntry&& entry);
     void process();
     void spawn();
     // void stop();

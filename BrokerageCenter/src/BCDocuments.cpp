@@ -54,11 +54,11 @@ void BCDocuments::attachOrderBookToSymbol(const std::string& symbol)
     orderBookPtr->spawn();
 }
 
-void BCDocuments::onNewOBEntryForOrderBook(const std::string& symbol, const OrderBookEntry& entry)
+void BCDocuments::onNewOBEntryForOrderBook(const std::string& symbol, OrderBookEntry&& entry)
 {
     while (!s_isSecurityListReady)
         std::this_thread::sleep_for(500ms);
-    m_orderBookBySymbol[symbol]->enqueueOrderBook(entry);
+    m_orderBookBySymbol[symbol]->enqueueOrderBook(std::move(entry));
 }
 
 void BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
@@ -126,12 +126,12 @@ void BCDocuments::onNewOrderForUserRiskManagement(const std::string& username, O
     m_riskManagementByName[username]->enqueueOrder(std::move(order));
 }
 
-void BCDocuments::onNewReportForUserRiskManagement(const std::string& username, const Report& report)
+void BCDocuments::onNewReportForUserRiskManagement(const std::string& username, Report&& report)
 {
     if ("TR" == username)
         return;
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-    m_riskManagementByName[username]->enqueueExecRpt(report);
+    m_riskManagementByName[username]->enqueueExecRpt(std::move(report));
 }
 
 double BCDocuments::getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const

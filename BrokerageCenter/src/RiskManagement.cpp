@@ -56,11 +56,11 @@ void RiskManagement::enqueueOrder(Order&& order)
     m_cvOrder.notify_one();
 }
 
-void RiskManagement::enqueueExecRpt(const Report& report)
+void RiskManagement::enqueueExecRpt(Report&& report)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxExecRpt);
-        m_execRptBuffer.push(report);
+        m_execRptBuffer.push(std::move(report));
     }
     m_cvExecRpt.notify_one();
 }
