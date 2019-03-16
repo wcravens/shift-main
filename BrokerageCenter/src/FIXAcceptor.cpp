@@ -7,6 +7,9 @@
 #include "BCDocuments.h"
 #include "DBConnector.h"
 
+#include <atomic>
+#include <cassert>
+
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/database/Common.h>

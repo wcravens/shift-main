@@ -8,6 +8,8 @@
 #include "PSQL.h"
 #include "RequestsProcessorPerTarget.h"
 
+#include <atomic>
+#include <cassert>
 #include <iomanip>
 #include <sstream>
 

@@ -3,6 +3,8 @@
 #include "Stock.h"
 #include "globalvariables.h"
 
+#include <atomic>
+#include <cassert>
 #include <map>
 
 #include <shift/miscutils/crossguid/Guid.h>
