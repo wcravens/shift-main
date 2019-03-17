@@ -556,7 +556,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
 {
     FIX::NoRelatedSym numOfGroups;
     message.get(numOfGroups);
-    if (numOfGroups < 1) {
+    if (numOfGroups.getValue() < 1) {
         cout << "Cannot find Symbol in MarketDataRequest!" << endl;
         return;
     }
@@ -614,7 +614,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
 {
     FIX::NoRelatedSym numOfGroups;
     message.get(numOfGroups);
-    if (numOfGroups < 1) { // make sure there is a symbol in group
+    if (numOfGroups.getValue() < 1) { // make sure there is a symbol in group
         cout << "Cannot find Symbol in RFQRequest" << endl;
         return;
     }
@@ -672,7 +672,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 {
     FIX::NoPartyIDs numOfGroups;
     message.get(numOfGroups);
-    if (numOfGroups < 1) {
+    if (numOfGroups.getValue() < 1) {
         cout << "Cannot find username in NewOrderSingle!" << endl;
         return;
     }

@@ -149,7 +149,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
 
     FIX::NoRelatedSym numOfGroups;
     message.get(numOfGroups);
-    if (numOfGroups < 1) {
+    if (numOfGroups.getValue() < 1) {
         cout << "Cannot find any Symbol in SecurityList!" << endl;
         return;
     }
@@ -226,7 +226,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 {
     FIX::NoMDEntries numOfEntries;
     message.get(numOfEntries);
-    if (numOfEntries < 1) {
+    if (numOfEntries.getValue() < 1) {
         cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
         return;
     }
@@ -325,7 +325,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
     if (execType == FIX::ExecType_ORDER_STATUS) { // Confirmation Report
         FIX::NoPartyIDs numOfGroups;
         message.get(numOfGroups);
-        if (numOfGroups < 1) {
+        if (numOfGroups.getValue() < 1) {
             cout << "Cannot find any ClientID in ExecutionReport!" << endl;
             return;
         }
@@ -452,7 +452,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
     } else { // FIX::ExecType_TRADE: Execution Report
         FIX::NoPartyIDs numOfGroups;
         message.get(numOfGroups);
-        if (numOfGroups < 2) {
+        if (numOfGroups.getValue() < 2) {
             cout << "Cannot find all ClientID in ExecutionReport!" << endl;
             return;
         }
