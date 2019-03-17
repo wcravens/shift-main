@@ -236,8 +236,8 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     static FIX::Symbol symbol;
     static FIX::MDEntryPx price;
     static FIX::MDEntrySize size;
-    static FIX::MDEntryDate date;
-    static FIX::MDEntryTime daytime;
+    static FIX::MDEntryDate simulationDate;
+    static FIX::MDEntryTime simulationTime;
     static FIX::MDMkt destination;
 
     // #pragma GCC diagnostic ignored ....
@@ -247,8 +247,8 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     FIX::Symbol* pSymbol;
     FIX::MDEntryPx* pPrice;
     FIX::MDEntrySize* pSize;
-    FIX::MDEntryDate* pDate;
-    FIX::MDEntryTime* pDaytime;
+    FIX::MDEntryDate* pSimulationDate;
+    FIX::MDEntryTime* pSimulationTime;
     FIX::MDMkt* pDestination;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
@@ -264,8 +264,8 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pSymbol = &symbol;
         pPrice = &price;
         pSize = &size;
-        pDate = &date;
-        pDaytime = &daytime;
+        pSimulationDate = &simulationDate;
+        pSimulationTime = &simulationTime;
         pDestination = &destination;
     } else { // > 1 threads; always safe way:
         pEntryGroup = new decltype(entryGroup);
@@ -273,8 +273,8 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pSymbol = new decltype(symbol);
         pPrice = new decltype(price);
         pSize = new decltype(size);
-        pDate = new decltype(date);
-        pDaytime = new decltype(daytime);
+        pSimulationDate = new decltype(simulationDate);
+        pSimulationTime = new decltype(simulationTime);
         pDestination = new decltype(destination);
     }
 
@@ -283,8 +283,8 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     pEntryGroup->get(*pSymbol);
     pEntryGroup->get(*pPrice);
     pEntryGroup->get(*pSize);
-    pEntryGroup->get(*pDate);
-    pEntryGroup->get(*pDaytime);
+    pEntryGroup->get(*pSimulationDate);
+    pEntryGroup->get(*pSimulationTime);
     pEntryGroup->get(*pDestination);
 
     OrderBookEntry entry{
@@ -293,8 +293,8 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pPrice->getValue(),
         static_cast<int>(pSize->getValue()),
         pDestination->getValue(),
-        pDate->getValue(),
-        pDaytime->getValue()
+        pSimulationDate->getValue(),
+        pSimulationTime->getValue()
     };
 
     BCDocuments::getInstance()->onNewOBEntryForOrderBook(pSymbol->getValue(), std::move(entry));
@@ -305,8 +305,8 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         delete pSymbol;
         delete pPrice;
         delete pSize;
-        delete pDate;
-        delete pDaytime;
+        delete pSimulationDate;
+        delete pSimulationTime;
         delete pDestination;
     }
 
