@@ -13,7 +13,7 @@ shift::OrderBookGlobalBid::OrderBookGlobalBid(const std::string& symbol)
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */
-void shift::OrderBookGlobalBid::update(const shift::OrderBookEntry& entry)
+void shift::OrderBookGlobalBid::update(shift::OrderBookEntry&& entry)
 {
     std::lock_guard<std::mutex> guard(m_mutex);
 
@@ -25,12 +25,12 @@ void shift::OrderBookGlobalBid::update(const shift::OrderBookEntry& entry)
             // check if the destination exist
             auto it_dest = findEntry(entry.getPrice(), entry.getDestination());
             if (it_dest != m_entries.end()) {
-                *it = entry;
+                *it = std::move(entry);
                 return;
             } else {
                 break;
             }
         }
     }
-    m_entries.insert(m_entries.begin(), entry);
+    m_entries.insert(m_entries.begin(), std::move(entry));
 }

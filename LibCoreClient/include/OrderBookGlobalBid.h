@@ -14,7 +14,7 @@ class CORECLIENT_EXPORTS OrderBookGlobalBid : public OrderBook {
 public:
     OrderBookGlobalBid(const std::string& symbol);
 
-    virtual void update(const shift::OrderBookEntry& entry) override;
+    virtual void update(shift::OrderBookEntry&& entry) override;
 };
 
 } // shift

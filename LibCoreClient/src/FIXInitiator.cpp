@@ -7,6 +7,8 @@
 #include "OrderBookLocalAsk.h"
 #include "OrderBookLocalBid.h"
 
+#include <atomic>
+#include <cassert>
 #include <cmath>
 #include <list>
 #include <regex>
@@ -551,64 +553,49 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
 }
 
 /**
- * @brief Method to receive Last Price from Brokerage Center.
- *
- * @param message as a Advertisement type object contains the last price information.
- */
-void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, const FIX::SessionID&) // override
-{
-    if (m_connected) {
-        FIX::Symbol originalName;
-        FIX::Quantity size;
-        FIX::Price price;
-        FIX::TransactTime simulationTime;
-        FIX::LastMkt destination;
-
-        message.get(originalName);
-        message.get(size);
-        message.get(price);
-        message.get(simulationTime);
-        message.get(destination);
-
-        std::string symbol = m_originalName_symbol[originalName.getValue()];
-
-        m_lastTrades[symbol].first = price.getValue();
-        m_lastTrades[symbol].second = static_cast<int>(size.getValue());
-        m_lastTradeTime = std::chrono::system_clock::from_time_t(simulationTime.getValue().getTimeT());
-        try {
-            getMainClient()->receiveLastPrice(symbol);
-        } catch (...) {
-            return;
-        }
-
-        return;
-    }
-}
-
-/**
  * @brief Receive the security list of all stock from BrokerageCenter.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
 {
     FIX::NoRelatedSym numOfGroups;
     message.get(numOfGroups);
-    if (numOfGroups < 1) {
+    if (numOfGroups.getValue() < 1) {
         cout << "Cannot find any Symbol in SecurityList!" << endl;
         return;
     }
 
     if (m_stockList.size() == 0) {
-        std::lock_guard<std::mutex> slGuard(m_mtxStockList);
+        static FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
+        static FIX::Symbol symbol;
 
-        FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
-        FIX::Symbol symbol;
+        // #pragma GCC diagnostic ignored ....
+
+        FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup;
+        FIX::Symbol* pSymbol;
+
+        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        unsigned int prevCnt = 0;
+
+        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+            continue;
+        assert(s_cntAtom > 0);
+
+        if (0 == prevCnt) { // sequential case; optimized:
+            pRelatedSymGroup = &relatedSymGroup;
+            pSymbol = &symbol;
+        } else { // > 1 threads; always safe way:
+            pRelatedSymGroup = new decltype(relatedSymGroup);
+            pSymbol = new decltype(symbol);
+        }
+
+        std::lock_guard<std::mutex> slGuard(m_mtxStockList);
 
         m_stockList.clear();
 
-        for (int i = 1; i <= numOfGroups; ++i) {
-            message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
-            relatedSymGroup.get(symbol);
-            m_stockList.push_back(symbol);
+        for (int i = 1; i <= numOfGroups.getValue(); ++i) {
+            message.getGroup(static_cast<unsigned int>(i), *pRelatedSymGroup);
+            pRelatedSymGroup->get(*pSymbol);
+            m_stockList.push_back(pSymbol->getValue());
         }
 
         createSymbolMap();
@@ -616,6 +603,87 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
         initializeOrderBooks();
 
         m_cvStockList.notify_one();
+
+        if (prevCnt) { // > 1 threads
+            delete pRelatedSymGroup;
+            delete pSymbol;
+        }
+
+        s_cntAtom--;
+        assert(s_cntAtom >= 0);
+    }
+}
+
+/**
+ * @brief Method to receive Last Price from Brokerage Center.
+ *
+ * @param message as a Advertisement type object contains the last price information.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, const FIX::SessionID&) // override
+{
+    if (m_connected) {
+        static FIX::Symbol originalName;
+        static FIX::Quantity size;
+        static FIX::Price price;
+        static FIX::TransactTime simulationTime;
+        static FIX::LastMkt destination;
+
+        // #pragma GCC diagnostic ignored ....
+
+        FIX::Symbol* pOriginalName;
+        FIX::Quantity* pSize;
+        FIX::Price* pPrice;
+        FIX::TransactTime* pSimulationTime;
+        FIX::LastMkt* pDestination;
+
+        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        unsigned int prevCnt = 0;
+
+        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+            continue;
+        assert(s_cntAtom > 0);
+
+        if (0 == prevCnt) { // sequential case; optimized:
+            pOriginalName = &originalName;
+            pSize = &size;
+            pPrice = &price;
+            pSimulationTime = &simulationTime;
+            pDestination = &destination;
+        } else { // > 1 threads; always safe way:
+            pOriginalName = new decltype(originalName);
+            pSize = new decltype(size);
+            pPrice = new decltype(price);
+            pSimulationTime = new decltype(simulationTime);
+            pDestination = new decltype(destination);
+        }
+
+        message.get(*pOriginalName);
+        message.get(*pSize);
+        message.get(*pPrice);
+        message.get(*pSimulationTime);
+        message.get(*pDestination);
+
+        std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
+
+        m_lastTrades[symbol].first = pPrice->getValue();
+        m_lastTrades[symbol].second = static_cast<int>(pSize->getValue());
+        m_lastTradeTime = std::chrono::system_clock::from_time_t(pSimulationTime->getValue().getTimeT());
+
+        try {
+            getMainClient()->receiveLastPrice(symbol);
+        } catch (...) {
+        }
+
+        if (prevCnt) { // > 1 threads
+            delete pOriginalName;
+            delete pSize;
+            delete pPrice;
+            delete pSimulationTime;
+            delete pDestination;
+        }
+
+        s_cntAtom--;
+        assert(s_cntAtom >= 0);
     }
 }
 
@@ -628,47 +696,100 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
 {
     FIX::NoMDEntries numOfEntries;
     message.get(numOfEntries);
-    if (numOfEntries < 1) {
+    if (numOfEntries.getValue() < 1) {
         cout << "Cannot find the Entries group in MarketDataSnapshotFullRefresh!" << endl;
         return;
     }
 
-    FIX::Symbol originalName;
+    static FIX::Symbol originalName;
 
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
-    FIX::MDEntryType type;
-    FIX::MDEntryPx price;
-    FIX::MDEntrySize size;
-    FIX::MDEntryDate simulationDate;
-    FIX::MDEntryTime simulationTime;
-    FIX::MDMkt destination;
+    static FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
+    static FIX::MDEntryType bookType;
+    static FIX::MDEntryPx price;
+    static FIX::MDEntrySize size;
+    static FIX::MDEntryDate simulationDate;
+    static FIX::MDEntryTime simulationTime;
+    static FIX::MDMkt destination;
 
-    message.getField(originalName);
-    std::string symbol = m_originalName_symbol[originalName.getValue()];
+    // #pragma GCC diagnostic ignored ....
 
+    FIX::Symbol* pOriginalName;
+
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries* pEntryGroup;
+    FIX::MDEntryType* pBookType;
+    FIX::MDEntryPx* pPrice;
+    FIX::MDEntrySize* pSize;
+    FIX::MDEntryDate* pSimulationDate;
+    FIX::MDEntryTime* pSimulationTime;
+    FIX::MDMkt* pDestination;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pOriginalName = &originalName;
+        pEntryGroup = &entryGroup;
+        pBookType = &bookType;
+        pPrice = &price;
+        pSize = &size;
+        pSimulationDate = &simulationDate;
+        pSimulationTime = &simulationTime;
+        pDestination = &destination;
+    } else { // > 1 threads; always safe way:
+        pOriginalName = new decltype(originalName);
+        pEntryGroup = new decltype(entryGroup);
+        pBookType = new decltype(bookType);
+        pPrice = new decltype(price);
+        pSize = new decltype(size);
+        pSimulationDate = new decltype(simulationDate);
+        pSimulationTime = new decltype(simulationTime);
+        pDestination = new decltype(destination);
+    }
+
+    message.getField(*pOriginalName);
+
+    std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
     std::list<shift::OrderBookEntry> orderBook;
 
-    for (int i = 1; i <= numOfEntries; i++) {
-        message.getGroup(static_cast<unsigned int>(i), entryGroup);
+    for (int i = 1; i <= numOfEntries.getValue(); i++) {
+        message.getGroup(static_cast<unsigned int>(i), *pEntryGroup);
 
-        entryGroup.getField(type);
-        entryGroup.getField(price);
-        entryGroup.getField(size);
-        entryGroup.getField(simulationDate);
-        entryGroup.getField(simulationTime);
-        entryGroup.getField(destination);
+        pEntryGroup->getField(*pBookType);
+        pEntryGroup->getField(*pPrice);
+        pEntryGroup->getField(*pSize);
+        pEntryGroup->getField(*pSimulationDate);
+        pEntryGroup->getField(*pSimulationTime);
+        pEntryGroup->getField(*pDestination);
 
-        orderBook.push_back({ static_cast<double>(price.getValue()),
-            static_cast<int>(size.getValue()),
-            destination.getValue(),
-            s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
+        orderBook.push_back({ static_cast<double>(pPrice->getValue()),
+            static_cast<int>(pSize->getValue()),
+            pDestination->getValue(),
+            s_convertToTimePoint(pSimulationDate->getValue(), pSimulationTime->getValue()) });
     }
 
     try {
-        m_orderBooks[symbol][static_cast<OrderBook::Type>(type.getValue())]->setOrderBook(orderBook);
+        m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->setOrderBook(orderBook);
     } catch (std::exception e) {
         debugDump(symbol + " doesn't work");
     }
+
+    if (prevCnt) { // > 1 threads
+        delete pOriginalName;
+        delete pEntryGroup;
+        delete pBookType;
+        delete pPrice;
+        delete pSize;
+        delete pSimulationDate;
+        delete pSimulationTime;
+        delete pDestination;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**
@@ -682,32 +803,91 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
 {
     FIX::NoMDEntries numOfEntries;
     message.get(numOfEntries);
-    if (numOfEntries < 1) {
+    if (numOfEntries.getValue() < 1) {
         cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
         return;
     }
 
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    FIX::MDEntryType bookType;
-    FIX::Symbol originalName;
-    FIX::MDEntryPx price;
-    FIX::MDEntrySize size;
-    FIX::MDEntryDate simulationDate;
-    FIX::MDEntryTime simulationTime;
-    FIX::MDMkt destination;
+    static FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
+    static FIX::MDEntryType bookType;
+    static FIX::Symbol originalName;
+    static FIX::MDEntryPx price;
+    static FIX::MDEntrySize size;
+    static FIX::MDEntryDate simulationDate;
+    static FIX::MDEntryTime simulationTime;
+    static FIX::MDMkt destination;
 
-    message.getGroup(1, entryGroup);
-    entryGroup.getField(bookType);
-    entryGroup.getField(originalName);
-    entryGroup.getField(price);
-    entryGroup.getField(size);
-    entryGroup.getField(simulationDate);
-    entryGroup.getField(simulationTime);
-    entryGroup.getField(destination);
+    // #pragma GCC diagnostic ignored ....
 
-    std::string symbol = m_originalName_symbol[originalName.getValue()];
+    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries* pEntryGroup;
+    FIX::MDEntryType* pBookType;
+    FIX::Symbol* pOriginalName;
+    FIX::MDEntryPx* pPrice;
+    FIX::MDEntrySize* pSize;
+    FIX::MDEntryDate* pSimulationDate;
+    FIX::MDEntryTime* pSimulationTime;
+    FIX::MDMkt* pDestination;
 
-    m_orderBooks[symbol][static_cast<OrderBook::Type>(bookType.getValue())]->update({ price.getValue(), static_cast<int>(size.getValue()), destination.getValue(), s_convertToTimePoint(simulationDate.getValue(), simulationTime.getValue()) });
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pEntryGroup = &entryGroup;
+        pBookType = &bookType;
+        pOriginalName = &originalName;
+        pPrice = &price;
+        pSize = &size;
+        pSimulationDate = &simulationDate;
+        pSimulationTime = &simulationTime;
+        pDestination = &destination;
+    } else { // > 1 threads; always safe way:
+        pEntryGroup = new decltype(entryGroup);
+        pBookType = new decltype(bookType);
+        pOriginalName = new decltype(originalName);
+        pPrice = new decltype(price);
+        pSize = new decltype(size);
+        pSimulationDate = new decltype(simulationDate);
+        pSimulationTime = new decltype(simulationTime);
+        pDestination = new decltype(destination);
+    }
+
+    message.getGroup(1, *pEntryGroup);
+    pEntryGroup->get(*pBookType);
+    pEntryGroup->get(*pOriginalName);
+    pEntryGroup->get(*pPrice);
+    pEntryGroup->get(*pSize);
+    pEntryGroup->get(*pSimulationDate);
+    pEntryGroup->get(*pSimulationTime);
+    pEntryGroup->get(*pDestination);
+
+    std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
+
+    OrderBookEntry entry{
+        pPrice->getValue(),
+        static_cast<int>(pSize->getValue()),
+        pDestination->getValue(),
+        s_convertToTimePoint(pSimulationDate->getValue(), pSimulationTime->getValue())
+    };
+
+    m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->update(std::move(entry));
+
+    if (prevCnt) { // > 1 threads
+        delete pEntryGroup;
+        delete pBookType;
+        delete pOriginalName;
+        delete pPrice;
+        delete pSize;
+        delete pSimulationDate;
+        delete pSimulationTime;
+        delete pDestination;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**
@@ -717,21 +897,53 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID&) // override
 {
-    FIX::Symbol originalName;
-    FIX::StrikePrice open;
-    FIX::HighPx high;
-    FIX::LowPx low;
-    FIX::LastPx close;
-    FIX::Text timestamp;
+    static FIX::Symbol originalName;
+    static FIX::StrikePrice openPrice;
+    static FIX::HighPx highPrice;
+    static FIX::LowPx lowPrice;
+    static FIX::LastPx closePrice;
+    static FIX::Text timestamp;
 
-    message.get(originalName);
-    message.get(open);
-    message.get(high);
-    message.get(low);
-    message.get(close);
-    message.get(timestamp);
+    // #pragma GCC diagnostic ignored ....
 
-    std::string symbol = m_originalName_symbol[originalName.getValue()];
+    FIX::Symbol* pOriginalName;
+    FIX::StrikePrice* pOpenPrice;
+    FIX::HighPx* pHighPrice;
+    FIX::LowPx* pLowPrice;
+    FIX::LastPx* pClosePrice;
+    FIX::Text* pTimestamp;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pOriginalName = &originalName;
+        pOpenPrice = &openPrice;
+        pHighPrice = &highPrice;
+        pLowPrice = &lowPrice;
+        pClosePrice = &closePrice;
+        pTimestamp = &timestamp;
+    } else { // > 1 threads; always safe way:
+        pOriginalName = new decltype(originalName);
+        pOpenPrice = new decltype(openPrice);
+        pHighPrice = new decltype(highPrice);
+        pLowPrice = new decltype(lowPrice);
+        pClosePrice = new decltype(closePrice);
+        pTimestamp = new decltype(timestamp);
+    }
+
+    message.get(*pOriginalName);
+    message.get(*pOpenPrice);
+    message.get(*pHighPrice);
+    message.get(*pLowPrice);
+    message.get(*pClosePrice);
+    message.get(*pTimestamp);
+
+    std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
     /**
      * @brief Logic for storing open price and check if ready. Open price stores the very first candle data open price for each ticker
@@ -739,7 +951,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     if (!m_openPricesReady) {
         std::lock_guard<std::mutex> opGuard(m_mtxOpenPrices);
         if (m_openPrices.find(symbol) == m_openPrices.end()) {
-            m_openPrices[symbol] = open.getValue();
+            m_openPrices[symbol] = pOpenPrice->getValue();
             if (m_openPrices.size() == getStockList().size()) {
                 m_openPricesReady = true;
             }
@@ -747,10 +959,21 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     }
 
     try {
-        getMainClient()->receiveCandlestickData(symbol, open.getValue(), high.getValue(), low.getValue(), close.getValue(), timestamp.getValue());
+        getMainClient()->receiveCandlestickData(symbol, pOpenPrice->getValue(), pHighPrice->getValue(), pLowPrice->getValue(), pClosePrice->getValue(), pTimestamp->getValue());
     } catch (...) {
-        return;
     }
+
+    if (prevCnt) { // > 1 threads
+        delete pOriginalName;
+        delete pOpenPrice;
+        delete pHighPrice;
+        delete pLowPrice;
+        delete pClosePrice;
+        delete pTimestamp;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**
@@ -760,36 +983,79 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
-    // Update Version: ClientID has been replaced by PartyRole and PartyID
     FIX::NoPartyIDs numOfGroups;
     message.get(numOfGroups);
-    if (numOfGroups < 1) {
+    if (numOfGroups.getValue() < 1) {
         cout << "Cannot find any ClientID in ExecutionReport!" << endl;
         return;
     }
 
-    FIX::OrderID orderID;
-    FIX::OrdStatus orderStatus;
-    FIX::Price executedPrice;
-    FIX::CumQty executedSize;
+    static FIX::OrderID orderID;
+    static FIX::OrdStatus status;
+    static FIX::Price executedPrice;
+    static FIX::CumQty executedSize;
 
-    FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    FIX::PartyID username;
+    static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
+    static FIX::PartyID username;
 
-    message.get(orderID);
-    message.get(orderStatus);
-    message.get(executedPrice);
-    message.get(executedSize);
+    // #pragma GCC diagnostic ignored ....
 
-    message.getGroup(1, idGroup);
-    idGroup.get(username);
+    FIX::OrderID* pOrderID;
+    FIX::OrdStatus* pStatus;
+    FIX::Price* pExecutedPrice;
+    FIX::CumQty* pExecutedSize;
+
+    FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
+    FIX::PartyID* pUsername;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pOrderID = &orderID;
+        pStatus = &status;
+        pExecutedPrice = &executedPrice;
+        pExecutedSize = &executedSize;
+        pIDGroup = &idGroup;
+        pUsername = &username;
+    } else { // > 1 threads; always safe way:
+        pOrderID = new decltype(orderID);
+        pStatus = new decltype(status);
+        pExecutedPrice = new decltype(executedPrice);
+        pExecutedSize = new decltype(executedSize);
+        pIDGroup = new decltype(idGroup);
+        pUsername = new decltype(username);
+    }
+
+    message.get(*pOrderID);
+    message.get(*pStatus);
+    message.get(*pExecutedPrice);
+    message.get(*pExecutedSize);
+
+    message.getGroup(1, *pIDGroup);
+    pIDGroup->get(*pUsername);
 
     try {
-        getClient(username.getValue())->storeExecution(orderID.getValue(), executedSize.getValue(), executedPrice.getValue(), static_cast<shift::Order::Status>(orderStatus.getValue()));
-        getClient(username.getValue())->receiveExecution(orderID.getValue());
+        getClient(pUsername->getValue())->storeExecution(pOrderID->getValue(), pExecutedSize->getValue(), pExecutedPrice->getValue(), static_cast<shift::Order::Status>(pStatus->getValue()));
+        getClient(pUsername->getValue())->receiveExecution(pOrderID->getValue());
     } catch (...) {
-        return;
     }
+
+    if (prevCnt) { // > 1 threads
+        delete pOrderID;
+        delete pStatus;
+        delete pExecutedPrice;
+        delete pExecutedSize;
+        delete pIDGroup;
+        delete pUsername;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**
@@ -801,71 +1067,186 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         ;
 
     FIX::SecurityType type;
-
-    FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
-    FIX::PartyID username;
-
     message.get(type);
 
-    message.getGroup(1, usernameGroup);
-    usernameGroup.get(username);
-
     if (type == FIX::SecurityType_COMMON_STOCK) { // Item
-        FIX::Symbol originalName;
-        message.get(originalName);
+
+        static FIX::Symbol originalName;
+        static FIX::SettlPrice longPrice;
+        static FIX::PriorSettlPrice shortPrice;
+        static FIX::PriceDelta realizedPL;
+
+        static FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
+        static FIX::PartyID username;
+
+        static FIX50SP2::PositionReport::NoPositions sizeGroup;
+        static FIX::LongQty longSize;
+        static FIX::ShortQty shortSize;
+
+        // #pragma GCC diagnostic ignored ....
+
+        FIX::Symbol* pOriginalName;
+        FIX::SettlPrice* pLongPrice;
+        FIX::PriorSettlPrice* pShortPrice;
+        FIX::PriceDelta* pRealizedPL;
+
+        FIX50SP2::PositionReport::NoPartyIDs* pUsernameGroup;
+        FIX::PartyID* pUsername;
+
+        FIX50SP2::PositionReport::NoPositions* pSizeGroup;
+        FIX::LongQty* pLongSize;
+        FIX::ShortQty* pShortSize;
+
+        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        unsigned int prevCnt = 0;
+
+        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+            continue;
+        assert(s_cntAtom > 0);
+
+        if (0 == prevCnt) { // sequential case; optimized:
+            pOriginalName = &originalName;
+            pLongPrice = &longPrice;
+            pShortPrice = &shortPrice;
+            pRealizedPL = &realizedPL;
+            pUsernameGroup = &usernameGroup;
+            pUsername = &username;
+            pSizeGroup = &sizeGroup;
+            pLongSize = &longSize;
+            pShortSize = &shortSize;
+        } else { // > 1 threads; always safe way:
+            pOriginalName = new decltype(originalName);
+            pLongPrice = new decltype(longPrice);
+            pShortPrice = new decltype(shortPrice);
+            pRealizedPL = new decltype(realizedPL);
+            pUsernameGroup = new decltype(usernameGroup);
+            pUsername = new decltype(username);
+            pSizeGroup = new decltype(sizeGroup);
+            pLongSize = new decltype(longSize);
+            pShortSize = new decltype(shortSize);
+        }
+
+        message.get(*pOriginalName);
+        message.get(*pLongPrice);
+        message.get(*pShortPrice);
+        message.get(*pRealizedPL);
+
+        message.getGroup(1, *pUsernameGroup);
+        pUsernameGroup->get(*pUsername);
+
+        message.getGroup(1, *pSizeGroup);
+        pSizeGroup->get(*pLongSize);
+        pSizeGroup->get(*pShortSize);
 
         // m_originalName_symbol shall be always thread-safe-readonly once after being initialized, so we shall prevent it from accidental insertion here
-        if (m_originalName_symbol.find(originalName.getValue()) == m_originalName_symbol.end()) {
-            cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << originalName.getValue() << "], skipped." NO_COLOR << endl;
+        if (m_originalName_symbol.find(pOriginalName->getValue()) == m_originalName_symbol.end()) {
+            cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << pOriginalName->getValue() << "], skipped." NO_COLOR << endl;
             return;
         }
 
-        std::string symbol = m_originalName_symbol[originalName.getValue()];
-
-        FIX::SettlPrice longPrice;
-        FIX::PriorSettlPrice shortPrice;
-        FIX::PriceDelta realizedPL;
-
-        FIX50SP2::PositionReport::NoPositions sizeGroup;
-        FIX::LongQty longSize;
-        FIX::ShortQty shortSize;
-
-        message.get(longPrice);
-        message.get(shortPrice);
-        message.get(realizedPL);
-
-        message.getGroup(1, sizeGroup);
-        sizeGroup.get(longSize);
-        sizeGroup.get(shortSize);
+        std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
         try {
-            getClient(username.getValue())->storePortfolioItem(symbol, static_cast<int>(longSize.getValue()), static_cast<int>(shortSize.getValue()), longPrice.getValue(), shortPrice.getValue(), realizedPL.getValue());
-            getClient(username.getValue())->receivePortfolioItem(symbol);
+            getClient(pUsername->getValue())->storePortfolioItem(symbol, static_cast<int>(pLongSize->getValue()), static_cast<int>(pShortSize->getValue()), pLongPrice->getValue(), pShortPrice->getValue(), pRealizedPL->getValue());
+            getClient(pUsername->getValue())->receivePortfolioItem(symbol);
         } catch (...) {
-            return;
         }
+
+        if (prevCnt) { // > 1 threads
+            delete pOriginalName;
+            delete pLongPrice;
+            delete pShortPrice;
+            delete pRealizedPL;
+            delete pUsernameGroup;
+            delete pUsername;
+            delete pSizeGroup;
+            delete pLongSize;
+            delete pShortSize;
+        }
+
+        s_cntAtom--;
+        assert(s_cntAtom >= 0);
+
     } else { // Summary (FIX::SecurityType_CASH)
-        FIX::PriceDelta totalRealizedPL;
-        FIX::LongQty totalShares;
-        FIX::PosAmt totalBuyingPower;
 
-        FIX50SP2::PositionReport::NoPositions totalSharesGroup;
-        FIX50SP2::PositionReport::NoPosAmt buyingPowerGroup;
+        static FIX::PriceDelta totalRealizedPL;
 
-        message.get(totalRealizedPL);
+        static FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
+        static FIX::PartyID username;
 
-        message.getGroup(1, totalSharesGroup);
-        totalSharesGroup.get(totalShares);
+        static FIX50SP2::PositionReport::NoPositions totalSharesGroup;
+        static FIX::LongQty totalShares;
 
-        message.getGroup(1, buyingPowerGroup);
-        buyingPowerGroup.get(totalBuyingPower);
+        static FIX50SP2::PositionReport::NoPosAmt totalBuyingPowerGroup;
+        static FIX::PosAmt totalBuyingPower;
+
+        // #pragma GCC diagnostic ignored ....
+
+        FIX::PriceDelta* pTotalRealizedPL;
+
+        FIX50SP2::PositionReport::NoPartyIDs* pUsernameGroup;
+        FIX::PartyID* pUsername;
+
+        FIX50SP2::PositionReport::NoPositions* pTotalSharesGroup;
+        FIX::LongQty* pTotalShares;
+
+        FIX50SP2::PositionReport::NoPosAmt* pTotalBuyingPowerGroup;
+        FIX::PosAmt* pTotalBuyingPower;
+
+        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        unsigned int prevCnt = 0;
+
+        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+            continue;
+        assert(s_cntAtom > 0);
+
+        if (0 == prevCnt) { // sequential case; optimized:
+            pTotalRealizedPL = &totalRealizedPL;
+            pUsernameGroup = &usernameGroup;
+            pUsername = &username;
+            pTotalSharesGroup = &totalSharesGroup;
+            pTotalShares = &totalShares;
+            pTotalBuyingPowerGroup = &totalBuyingPowerGroup;
+            pTotalBuyingPower = &totalBuyingPower;
+        } else { // > 1 threads; always safe way:
+            pTotalRealizedPL = new decltype(totalRealizedPL);
+            pUsernameGroup = new decltype(usernameGroup);
+            pUsername = new decltype(username);
+            pTotalSharesGroup = new decltype(totalSharesGroup);
+            pTotalShares = new decltype(totalShares);
+            pTotalBuyingPowerGroup = new decltype(totalBuyingPowerGroup);
+            pTotalBuyingPower = new decltype(totalBuyingPower);
+        }
+
+        message.get(*pTotalRealizedPL);
+
+        message.getGroup(1, *pUsernameGroup);
+        pUsernameGroup->get(*pUsername);
+
+        message.getGroup(1, *pTotalSharesGroup);
+        pTotalSharesGroup->get(*pTotalShares);
+
+        message.getGroup(1, *pTotalBuyingPowerGroup);
+        pTotalBuyingPowerGroup->get(*pTotalBuyingPower);
 
         try {
-            getClient(username.getValue())->storePortfolioSummary(totalBuyingPower.getValue(), static_cast<int>(totalShares.getValue()), totalRealizedPL.getValue());
-            getClient(username.getValue())->receivePortfolioSummary();
+            getClient(pUsername->getValue())->storePortfolioSummary(pTotalBuyingPower->getValue(), static_cast<int>(pTotalShares->getValue()), pTotalRealizedPL->getValue());
+            getClient(pUsername->getValue())->receivePortfolioSummary();
         } catch (...) {
-            return;
         }
+
+        if (prevCnt) { // > 1 threads
+            delete pTotalRealizedPL;
+            delete pUsernameGroup;
+            delete pUsername;
+            delete pTotalSharesGroup;
+            delete pTotalShares;
+            delete pTotalBuyingPowerGroup;
+            delete pTotalBuyingPower;
+        }
+
+        s_cntAtom--;
+        assert(s_cntAtom >= 0);
     }
 }
 
@@ -879,69 +1260,126 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     while (!m_connected)
         ;
 
-    FIX::NoQuoteSets n;
-    message.get(n);
+    static FIX::Account username;
+    static FIX::NoQuoteSets n;
 
-    FIX::Account username;
+    static FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
+    static FIX::QuoteSetID orderID;
+    static FIX::UnderlyingSymbol originalName;
+    static FIX::UnderlyingOptAttribute orderType;
+    static FIX::UnderlyingQty size;
+    static FIX::UnderlyingPx price;
+    static FIX::UnderlyingAdjustedQuantity executedSize;
+    static FIX::UnderlyingFXRateCalc status;
 
-    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
-    FIX::QuoteSetID orderID;
-    FIX::UnderlyingSymbol originalName;
-    FIX::UnderlyingOptAttribute orderType;
-    FIX::UnderlyingQty orderSize;
-    FIX::UnderlyingPx orderPrice;
-    FIX::UnderlyingAdjustedQuantity executedSize;
-    FIX::UnderlyingFXRateCalc orderStatus;
+    // #pragma GCC diagnostic ignored ....
 
-    message.get(username);
+    FIX::Account* pUsername;
+    FIX::NoQuoteSets* pN;
+
+    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets* pQuoteSetGroup;
+    FIX::QuoteSetID* pOrderID;
+    FIX::UnderlyingSymbol* pOriginalName;
+    FIX::UnderlyingOptAttribute* pOrderType;
+    FIX::UnderlyingQty* pSize;
+    FIX::UnderlyingPx* pPrice;
+    FIX::UnderlyingAdjustedQuantity* pExecutedSize;
+    FIX::UnderlyingFXRateCalc* pStatus;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = 0;
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pUsername = &username;
+        pN = &n;
+        pQuoteSetGroup = &quoteSetGroup;
+        pOrderID = &orderID;
+        pOriginalName = &originalName;
+        pOrderType = &orderType;
+        pSize = &size;
+        pPrice = &price;
+        pExecutedSize = &executedSize;
+        pStatus = &status;
+    } else { // > 1 threads; always safe way:
+        pUsername = new decltype(username);
+        pN = new decltype(n);
+        pQuoteSetGroup = new decltype(quoteSetGroup);
+        pOrderID = new decltype(orderID);
+        pOriginalName = new decltype(originalName);
+        pOrderType = new decltype(orderType);
+        pSize = new decltype(size);
+        pPrice = new decltype(price);
+        pExecutedSize = new decltype(executedSize);
+        pStatus = new decltype(status);
+    }
+
+    message.get(*pUsername);
+    message.get(*pN);
 
     std::vector<shift::Order> waitingList;
 
-    for (int i = 1; i <= n; i++) {
-        message.getGroup(static_cast<unsigned int>(i), quoteSetGroup);
+    for (int i = 1; i <= pN->getValue(); i++) {
+        message.getGroup(static_cast<unsigned int>(i), *pQuoteSetGroup);
 
-        quoteSetGroup.get(orderID);
-        quoteSetGroup.get(originalName);
-        quoteSetGroup.get(orderType);
-        quoteSetGroup.get(orderSize);
-        quoteSetGroup.get(orderPrice);
-        quoteSetGroup.get(executedSize);
-        quoteSetGroup.get(orderStatus);
+        pQuoteSetGroup->get(*pOrderID);
+        pQuoteSetGroup->get(*pOriginalName);
+        pQuoteSetGroup->get(*pOrderType);
+        pQuoteSetGroup->get(*pSize);
+        pQuoteSetGroup->get(*pPrice);
+        pQuoteSetGroup->get(*pExecutedSize);
+        pQuoteSetGroup->get(*pStatus);
 
-        int size = static_cast<int>(orderSize.getValue());
+        int sizeInt = static_cast<int>(pSize->getValue());
 
-        if (size > 0) {
+        if (sizeInt > 0) {
 
             // m_originalName_symbol shall be always thread-safe-readonly once after being initialized, so we shall prevent it from accidental insertion here
-            if (m_originalName_symbol.find(originalName.getValue()) == m_originalName_symbol.end()) {
-                cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << originalName.getValue() << "], skipped." NO_COLOR << endl;
+            if (m_originalName_symbol.find(pOriginalName->getValue()) == m_originalName_symbol.end()) {
+                cout << COLOR_WARNING "FIX50SP2::PositionReport received an unknown symbol [" << pOriginalName->getValue() << "], skipped." NO_COLOR << endl;
                 continue;
             }
 
-            std::string symbol = m_originalName_symbol[originalName.getValue()];
+            std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
             shift::Order order{
-                static_cast<shift::Order::Type>(orderType.getValue()),
+                static_cast<shift::Order::Type>(pOrderType->getValue()),
                 symbol,
-                size,
-                orderPrice.getValue(),
-                orderID.getValue()
+                sizeInt,
+                pPrice->getValue(),
+                pOrderID->getValue()
             };
-            order.setExecutedSize(static_cast<int>(executedSize.getValue()));
-            order.setStatus(static_cast<shift::Order::Status>(orderStatus.getValue()));
+            order.setExecutedSize(static_cast<int>(pExecutedSize->getValue()));
+            order.setStatus(static_cast<shift::Order::Status>(pStatus->getValue()));
 
             waitingList.push_back(std::move(order));
         }
     }
 
     try {
-        // store the data in target client
         getClient(username.getValue())->storeWaitingList(std::move(waitingList));
-        // notify target client
         getClient(username.getValue())->receiveWaitingList();
     } catch (...) {
-        return;
     }
+
+    if (prevCnt) { // > 1 threads
+        delete pUsername;
+        delete pN;
+        delete pQuoteSetGroup;
+        delete pOrderID;
+        delete pOriginalName;
+        delete pOrderType;
+        delete pSize;
+        delete pPrice;
+        delete pExecutedSize;
+        delete pStatus;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**

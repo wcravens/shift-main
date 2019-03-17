@@ -36,7 +36,7 @@ public:
 
     void setOrderBook(const std::list<shift::OrderBookEntry>& entries);
 
-    virtual void update(const shift::OrderBookEntry& entry) = 0;
+    virtual void update(shift::OrderBookEntry&& entry) = 0;
 
 protected:
     std::list<shift::OrderBookEntry>::iterator findEntry(double price, const std::string& destination);
