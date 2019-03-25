@@ -18,3 +18,7 @@ using std::flush;
     "\033[1;31m" // bold;red
 #define NO_COLOR \
     "\033[0m"
+
+// guaranteed interleaving-free printing:
+void synchPrint(const char* msg);
+void synchPrint(const std::string& msg);

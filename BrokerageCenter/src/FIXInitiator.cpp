@@ -154,54 +154,26 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
         return;
     }
 
-    static FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
-    static FIX::Symbol symbol;
-
-    // #pragma GCC diagnostic ignored ....
-
-    FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup;
-    FIX::Symbol* pSymbol;
-
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
-
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
-    assert(s_cntAtom > 0);
-
-    if (0 == prevCnt) { // sequential case; optimized:
-        pRelatedSymGroup = &relatedSymGroup;
-        pSymbol = &symbol;
-    } else { // > 1 threads; always safe way:
-        pRelatedSymGroup = new decltype(relatedSymGroup);
-        pSymbol = new decltype(symbol);
-    }
+    FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
+    FIX::Symbol symbol;
 
     auto* docs = BCDocuments::getInstance();
     for (int i = 1; i <= numOfGroups.getValue(); i++) {
-        message.getGroup(static_cast<unsigned int>(i), *pRelatedSymGroup);
-        pRelatedSymGroup->get(*pSymbol);
+        message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
+        relatedSymGroup.get(symbol);
 
-        docs->addSymbol(pSymbol->getValue());
-        docs->attachOrderBookToSymbol(pSymbol->getValue());
-        docs->attachCandlestickDataToSymbol(pSymbol->getValue());
+        docs->addSymbol(symbol.getValue());
+        docs->attachOrderBookToSymbol(symbol.getValue());
+        docs->attachCandlestickDataToSymbol(symbol.getValue());
     }
 
     // Now, it's safe to advance all routines that *read* permanent data structures created above:
     BCDocuments::s_isSecurityListReady = true;
-
-    if (prevCnt) { // > 1 threads
-        delete pRelatedSymGroup;
-        delete pSymbol;
-    }
-
-    s_cntAtom--;
-    assert(s_cntAtom >= 0);
 }
 
 /**
  * @brief Receive order book updates
- * 
+ *
  * @section OPTIMIZATION FOR THREAD-SAFE BASED ON
  * LOCK-FREE TECHNOLOGY
  *
@@ -252,7 +224,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     FIX::MDMkt* pDestination;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -359,7 +331,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::PartyID* pUsername;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
-        unsigned int prevCnt = 0;
+        unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
             continue;
@@ -492,7 +464,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::PartyID* pUsername2;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
-        unsigned int prevCnt = 0;
+        unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
             continue;

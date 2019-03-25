@@ -51,6 +51,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/crypto/SHA1.cpp
     ${PROJECT_SOURCE_DIR}/src/database/Tables.cpp
     ${PROJECT_SOURCE_DIR}/src/database/Common.cpp
+    ${PROJECT_SOURCE_DIR}/src/terminal/Common.cpp
     ${PROJECT_SOURCE_DIR}/src/terminal/Options.cpp
 )
 

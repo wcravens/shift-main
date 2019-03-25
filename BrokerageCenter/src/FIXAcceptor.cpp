@@ -15,7 +15,7 @@
 #include <shift/miscutils/database/Common.h>
 #include <shift/miscutils/terminal/Common.h>
 
-#define SHOW_INPUT_MSG false
+#define SHOW_FROMAPP_MSG false
 
 /* static */ std::string FIXAcceptor::s_senderID;
 
@@ -504,9 +504,8 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
 void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
 {
     crack(message, sessionID);
-#if SHOW_INPUT_MSG
-    cout << endl
-         << "IN: " << message << endl;
+#if SHOW_FROMAPP_MSG
+    synchPrint("\nfromAPP message: " + message + '\n');
 #endif
 }
 
@@ -515,38 +514,13 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
  */
 void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
 {
-    static FIX::Username username;
+    FIX::Username username;
+    message.get(username);
 
-    // #pragma GCC diagnostic ignored ....
+    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID().getValue(), username.getValue());
+    BCDocuments::getInstance()->sendHistoryToUser(username.getValue());
 
-    FIX::Username* pUsername;
-
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
-
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
-    assert(s_cntAtom > 0);
-
-    if (0 == prevCnt) { // sequential case; optimized:
-        pUsername = &username;
-    } else { // > 1 threads; always safe way:
-        pUsername = new decltype(username);
-    }
-
-    message.get(*pUsername);
-
-    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID().getValue(), pUsername->getValue());
-    BCDocuments::getInstance()->sendHistoryToUser(pUsername->getValue());
-
-    cout << COLOR_PROMPT "Web user [" NO_COLOR << pUsername->getValue() << COLOR_PROMPT "] was registered.\n" NO_COLOR << endl;
-
-    if (prevCnt) { // > 1 threads
-        delete pUsername;
-    }
-
-    s_cntAtom--;
-    assert(s_cntAtom >= 0);
+    synchPrint(COLOR_PROMPT "Web user [" NO_COLOR + username.getValue() + COLOR_PROMPT "] was registered.\n\n" NO_COLOR);
 }
 
 /*
@@ -574,7 +548,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
     FIX::Symbol* pSymbol;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -632,7 +606,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
     FIX::Symbol* pSymbol;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -698,7 +672,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     FIX::PartyID* pUsername;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -731,13 +705,13 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     message.getGroup(1, *pIDGroup);
     pIDGroup->get(*pUsername);
 
-    cout << COLOR_PROMPT "--------------------------------------\n" NO_COLOR;
-    cout << "Order ID: " << pOrderID->getValue()
-         << "\nUsername: " << pUsername->getValue()
-         << "\n\tType: " << pOrderType->getValue()
-         << "\n\tSymbol: " << pSymbol->getValue()
-         << "\n\tSize: " << pSize->getValue()
-         << "\n\tPrice: " << pPrice->getValue() << endl;
+    synchPrint(COLOR_PROMPT "--------------------------------------\n" NO_COLOR "Order ID: "
+        + pOrderID->getValue()
+        + "\nUsername: " + pUsername->getValue()
+        + "\n\tType: " + Order::s_typeToString(static_cast<Order::Type>(pOrderType->getValue()))
+        + "\n\tSymbol: " + pSymbol->getValue()
+        + "\n\tSize: " + std::to_string(pSize->getValue())
+        + "\n\tPrice: " + std::to_string(pPrice->getValue()) + '\n');
 
     // Order validation
     const auto type = static_cast<Order::Type>(pOrderType->getValue());
@@ -804,4 +778,4 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     assert(s_cntAtom >= 0);
 }
 
-#undef SHOW_INPUT_MSG
+#undef SHOW_FROMAPP_MSG

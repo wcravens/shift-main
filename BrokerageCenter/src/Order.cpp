@@ -17,6 +17,26 @@ Order::Type Order::getType() const
     return m_type;
 }
 
+/*static*/ const char* Order::s_typeToString(Type type)
+{
+    switch (type) {
+    case Type::LIMIT_BUY:
+        return "LIMIT_BUY";
+    case Type::LIMIT_SELL:
+        return "LIMIT_SELL";
+    case Type::MARKET_BUY:
+        return "MARKET_BUY";
+    case Type::MARKET_SELL:
+        return "MARKET_SELL";
+    case Type::CANCEL_BID:
+        return "CANCEL_BID";
+    case Type::CANCEL_ASK:
+        return "CANCEL_ASK";
+    default:;
+    }
+    return "UNKNOWN";
+}
+
 const std::string& Order::getSymbol() const
 {
     return m_symbol;
