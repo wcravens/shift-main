@@ -30,7 +30,7 @@ FIXAcceptor::FIXAcceptor()
 }
 
 /**
- * @brief This will automatically disconnects the 
+ * @brief This will automatically disconnects the
  *        FIX channel and PostgreSQL.
  */
 FIXAcceptor::~FIXAcceptor() // override
@@ -82,8 +82,8 @@ void FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verb
     }
 }
 
-/** 
- * @brief Ends the FIX session as the acceptor. 
+/**
+ * @brief Ends the FIX session as the acceptor.
  */
 void FIXAcceptor::disconnectMatchingEngine()
 {
@@ -102,7 +102,7 @@ void FIXAcceptor::disconnectMatchingEngine()
 
 /**
  * @brief For notifying ME requested works were done
- * 
+ *
  * @param text: Indicate the meaning/type of the notice
  */
 /* static */ void FIXAcceptor::sendNotice(const std::string& targetID, const std::string& requestID, const std::string& text)
@@ -195,7 +195,7 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
     crack(message, sessionID);
 }
 
-/** 
+/**
  * @brief The FIX message handler of the acceptor.
  *        Identifies message types and push to processor accordingly.
  */
@@ -231,7 +231,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     FIX::Symbol* pSymbol;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -287,7 +287,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     assert(s_cntAtom >= 0);
 }
 
-/** 
+/**
  * @brief receive the market data request from ME
  */
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
@@ -303,7 +303,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
 }
 
 /**
- * @brief Receiving one action record and save to 
+ * @brief Receiving one action record and save to
  *        database as one trading record.
  */
 void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
@@ -365,7 +365,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     FIX::TrdRegTimestamp* pUTCTime2;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = 0;
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
