@@ -105,7 +105,7 @@ void createStockMarket(std::string symbol)
             std::this_thread::sleep_for(50ms);
             continue;
         } else {
-            type = newquote.getordertype();
+            type = newquote.getOrderType();
 
             switch (type) {
             case '1': //limit buy
@@ -179,7 +179,7 @@ void createStockMarket(std::string symbol)
                     //decision 5 means this is a trade update from TRTH
                     auto utc_now = timepara.simulationTimestamp();
                     action newaction(
-                        newquote.getstockname(),
+                        newquote.getStockname(),
                         newquote.getPrice(),
                         newquote.getSize(),
                         "T1",
@@ -200,13 +200,13 @@ void createStockMarket(std::string symbol)
             case '8': //ask update from TR
             {
                 //cout<<"Global ask update: "<<newquote.getstockname()<<endl;
-                if (newquote.getdestination() == askexchange) {
+                if (newquote.getDestination() == askexchange) {
                     if (newquote.getPrice() == askprice && newquote.getSize() == asksize) {
                         break;
                     }
                 }
 
-                askexchange = newquote.getdestination();
+                askexchange = newquote.getDestination();
                 askprice = newquote.getPrice();
                 asksize = newquote.getSize();
                 stock->second.dolimitsell(newquote, "SHIFT");
@@ -219,13 +219,13 @@ void createStockMarket(std::string symbol)
             }
             case '9': //bid update from TR
             {
-                if (newquote.getdestination() == bidexchange) {
+                if (newquote.getDestination() == bidexchange) {
                     if (newquote.getPrice() == bidprice && newquote.getSize() == bidsize) {
                         break;
                     }
                 }
 
-                bidexchange = newquote.getdestination();
+                bidexchange = newquote.getDestination();
                 bidprice = newquote.getPrice();
                 bidsize = newquote.getSize();
                 stock->second.dolimitbuy(newquote, "SHIFT");

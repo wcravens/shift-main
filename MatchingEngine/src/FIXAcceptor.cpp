@@ -329,7 +329,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     FIX::UtcTimeStamp utcNow = timepara.simulationTimestamp();
 
     Quote quote{ pSymbol->getValue(), pClientID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue(), utcNow };
-    quote.setmili(milli);
+    quote.setMilli(milli);
 
     // Add new quote to buffer
     auto stockIt = stocklist.find(pSymbol->getValue());

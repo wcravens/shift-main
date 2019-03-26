@@ -5,38 +5,43 @@
  * @param stockname, traderID, orderID, price, size, time, orderType
  * @return None.
  */
-Quote::Quote(std::string stockname1,
-    std::string trader_id1,
-    std::string order_id1,
-    double price1,
-    int size1,
-    char ordertype1,
-    FIX::UtcTimeStamp time1)
+Quote::Quote(std::string _stockname,
+    std::string _traderID,
+    std::string _orderID,
+    double _price,
+    int _size,
+    char _orderType,
+    FIX::UtcTimeStamp _time)
 {
-    stockname = stockname1;
-    trader_id = trader_id1;
-    order_id = order_id1;
-    price = price1;
-    size = size1;
-    ordertype = ordertype1;
-    destination = "SHIFT";
-    time = time1;
+    m_stockname = _stockname;
+    m_traderID = _traderID;
+    m_orderID = _orderID;
+    m_price = _price;
+    m_size = _size;
+    m_orderType = _orderType;
+    m_destination = "SHIFT";
+    m_time = _time;
 }
 
-Quote::Quote(std::string stockname1,
-    double price1,
-    int size1,
-    std::string destination1,
-    FIX::UtcTimeStamp time1)
+/**
+ * @brief Constructor for the Quote class.
+ * @param stockname, price, size, destination, time
+ * @return None.
+ */
+Quote::Quote(std::string _stockname,
+    double _price,
+    int _size,
+    std::string _destination,
+    FIX::UtcTimeStamp _time)
 {
-    stockname = stockname1;
-    trader_id = "TR";
-    order_id = "Thomson";
-    price = price1;
-    size = size1;
-    ordertype = '1';
-    destination = destination1;
-    time = time1;
+    m_stockname = _stockname;
+    m_traderID = "TR";
+    m_orderID = "Thomson";
+    m_price = _price;
+    m_size = _size;
+    m_orderType = '1';
+    m_destination = _destination;
+    m_time = _time;
 }
 
 /**
@@ -44,21 +49,20 @@ Quote::Quote(std::string stockname1,
  * @param stockname, traderID, orderID, price, size, orderType
  * @return None.
  */
-Quote::Quote(std::string stockname1,
-    std::string trader_id1,
-    std::string order_id1,
-    double price1,
-    int size1,
-    char ordertype1)
+Quote::Quote(std::string _stockname,
+    std::string _traderID,
+    std::string _orderID,
+    double _price,
+    int _size,
+    char _orderType)
 {
-    stockname = stockname1;
-    stockname = stockname1;
-    trader_id = trader_id1;
-    order_id = order_id1;
-    price = price1;
-    size = size1;
-    ordertype = ordertype1;
-    destination = "SHIFT";
+    m_stockname = _stockname;
+    m_traderID = _traderID;
+    m_orderID = _orderID;
+    m_price = _price;
+    m_size = _size;
+    m_orderType = _orderType;
+    m_destination = "SHIFT";
 }
 
 /**
@@ -68,15 +72,15 @@ Quote::Quote(std::string stockname1,
  */
 Quote::Quote(const Quote& newquote)
 {
-    stockname = newquote.stockname;
-    trader_id = newquote.trader_id;
-    order_id = newquote.order_id;
-    mili = newquote.mili;
-    price = newquote.price;
-    size = newquote.size;
-    ordertype = newquote.ordertype;
-    destination = newquote.destination;
-    time = newquote.time;
+    m_stockname = newquote.m_stockname;
+    m_traderID = newquote.m_traderID;
+    m_orderID = newquote.m_orderID;
+    m_milli = newquote.m_milli;
+    m_price = newquote.m_price;
+    m_size = newquote.m_size;
+    m_orderType = newquote.m_orderType;
+    m_destination = newquote.m_destination;
+    m_time = newquote.m_time;
 }
 
 /**
@@ -104,15 +108,15 @@ Quote::~Quote(void)
  */
 void Quote::operator=(const Quote& newquote)
 {
-    stockname = newquote.stockname;
-    trader_id = newquote.trader_id;
-    order_id = newquote.order_id;
-    mili = newquote.mili;
-    price = newquote.price;
-    size = newquote.size;
-    ordertype = newquote.ordertype;
-    destination = newquote.destination;
-    time = newquote.time;
+    m_stockname = newquote.m_stockname;
+    m_traderID = newquote.m_traderID;
+    m_orderID = newquote.m_orderID;
+    m_milli = newquote.m_milli;
+    m_price = newquote.m_price;
+    m_size = newquote.m_size;
+    m_orderType = newquote.m_orderType;
+    m_destination = newquote.m_destination;
+    m_time = newquote.m_time;
 }
 
 /**
@@ -120,9 +124,9 @@ void Quote::operator=(const Quote& newquote)
  * @param stockname to be set.
  * @return None.
  */
-void Quote::setstockname(std::string name1)
+void Quote::setStockname(std::string _stockname)
 {
-    stockname = name1;
+    m_stockname = _stockname;
 }
 
 /**
@@ -130,9 +134,9 @@ void Quote::setstockname(std::string name1)
  * @param None.
  * @return stockname of the current Quote object.
  */
-std::string Quote::getstockname()
+std::string Quote::getStockname()
 {
-    return stockname;
+    return m_stockname;
 }
 
 /**
@@ -140,9 +144,9 @@ std::string Quote::getstockname()
  * @param None.
  * @return traderID of the current Quote object.
  */
-std::string Quote::gettrader_id()
+std::string Quote::getTraderID()
 {
-    return trader_id;
+    return m_traderID;
 }
 
 /**
@@ -150,9 +154,9 @@ std::string Quote::gettrader_id()
  * @param None.
  * @return orderID of the current Quote object.
  */
-std::string Quote::getorder_id()
+std::string Quote::getOrderID()
 {
-    return order_id;
+    return m_orderID;
 }
 
 /**
@@ -160,9 +164,9 @@ std::string Quote::getorder_id()
  * @param price to be set.
  * @return None.
  */
-void Quote::setPrice(double price1)
+void Quote::setPrice(double _price)
 {
-    price = price1;
+    m_price = _price;
 }
 
 /**
@@ -172,7 +176,7 @@ void Quote::setPrice(double price1)
  */
 double Quote::getPrice()
 {
-    return price;
+    return m_price;
 }
 
 /**
@@ -180,9 +184,9 @@ double Quote::getPrice()
  * @param size to be set.
  * @return None.
  */
-void Quote::setSize(int size1)
+void Quote::setSize(int _size)
 {
-    size = size1;
+    m_size = _size;
 }
 
 /**
@@ -192,7 +196,7 @@ void Quote::setSize(int size1)
  */
 int Quote::getSize()
 {
-    return size;
+    return m_size;
 }
 
 /**
@@ -202,7 +206,7 @@ int Quote::getSize()
  */
 FIX::UtcTimeStamp Quote::gettime()
 {
-    return time;
+    return m_time;
 }
 
 /**
@@ -210,9 +214,9 @@ FIX::UtcTimeStamp Quote::gettime()
  * @param orderType to be set.
  * @return None.
  */
-void Quote::setordertype(char ordertype1)
+void Quote::setOrderType(char _orderType)
 {
-    ordertype = ordertype1;
+    m_orderType = _orderType;
 }
 
 /**
@@ -220,9 +224,9 @@ void Quote::setordertype(char ordertype1)
  * @param None.
  * @return orderType of the current Quote object.
  */
-char Quote::getordertype()
+char Quote::getOrderType()
 {
-    return ordertype;
+    return m_orderType;
 }
 
 /**
@@ -230,9 +234,9 @@ char Quote::getordertype()
  * @param mili to be set.
  * @return None.
  */
-void Quote::setmili(long _mili)
+void Quote::setMilli(long _milli)
 {
-    mili = _mili;
+    m_milli = _milli;
 }
 
 /**
@@ -240,9 +244,9 @@ void Quote::setmili(long _mili)
  * @param None.
  * @return mili of the current Quote object.
  */
-long Quote::getmili()
+long Quote::getMilli()
 {
-    return mili;
+    return m_milli;
 }
 
 /**
@@ -250,9 +254,9 @@ long Quote::getmili()
  * @param destination to be set.
  * @return None.
  */
-void Quote::setdestination(std::string destination1)
+void Quote::setDestination(std::string _destination)
 {
-    destination = destination1;
+    m_destination = _destination;
 }
 
 /**
@@ -260,7 +264,7 @@ void Quote::setdestination(std::string destination1)
  * @param None.
  * @return destination of the current Quote object.
  */
-std::string Quote::getdestination()
+std::string Quote::getDestination()
 {
-    return destination;
+    return m_destination;
 }

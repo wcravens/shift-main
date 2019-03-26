@@ -204,17 +204,17 @@ void FIXInitiator::storeOrder(Quote& order)
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
 
-    message.setField(FIX::ClOrdID(order.getorder_id()));
+    message.setField(FIX::ClOrdID(order.getOrderID()));
     message.setField(FIX::Price(order.getPrice()));
-    message.setField(FIX::Symbol(order.getstockname()));
+    message.setField(FIX::Symbol(order.getStockname()));
     message.setField(::FIXFIELD_SIDE_BUY); // Required by FIX
-    message.setField(FIX::OrdType(order.getordertype()));
+    message.setField(FIX::OrdType(order.getOrderType()));
     message.setField(FIX::OrderQty(order.getSize()));
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup.set(FIX::PartyID(order.gettrader_id()));
+    idGroup.set(FIX::PartyID(order.getTraderID()));
     message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
@@ -387,10 +387,10 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     }
 
     Quote newQuote{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()) / 100, pBuyerID->getValue(), pTransactTime->getValue() };
-    newQuote.setordertype('7'); // Update as "trade" from Global
+    newQuote.setOrderType('7'); // Update as "trade" from Global
 
     long mili = timepara.past_milli(pTransactTime->getValue());
-    newQuote.setmili(mili);
+    newQuote.setMilli(mili);
 
     if (ordType == 0) { // Quote
 
@@ -401,11 +401,11 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         pIDGroup->getField(*pSellerID);
 
         Quote newQuote2{ pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), pSellerID->getValue(), pTransactTime->getValue() };
-        newQuote2.setordertype('8'); // Update as "ask" from Global
-        newQuote2.setmili(mili);
+        newQuote2.setOrderType('8'); // Update as "ask" from Global
+        newQuote2.setMilli(mili);
 
         newQuote.setSize(static_cast<int>(pBidSize->getValue()));
-        newQuote.setordertype('9'); // Update as "bid" from Global
+        newQuote.setOrderType('9'); // Update as "bid" from Global
 
         stockIt->second.buf_new_global(newQuote2);
     }

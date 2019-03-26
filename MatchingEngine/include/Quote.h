@@ -7,48 +7,57 @@
 class Quote {
 
 private:
-    std::string stockname;
-    std::string trader_id;
-    std::string order_id;
-    long mili;
-    double price;
-    int size;
-    char ordertype;
-    std::string destination;
-    FIX::UtcTimeStamp time;
-    //(limit_buy,  limit_sell,  market_buy,  market_sell,  cancel_bid,  cancel_ask)
+    std::string m_stockname;
+    std::string m_traderID;
+    std::string m_orderID;
+    long m_milli;
+    double m_price;
+    int m_size;
+    char m_orderType;
+    std::string m_destination;
+    FIX::UtcTimeStamp m_time;
 
 public:
     friend class Stock;
     //for the server to receive
-    Quote(std::string stockname1, std::string trader_id1, std::string order_id1, double price1, int size1, char ordertype1, FIX::UtcTimeStamp utc);
+    Quote(std::string _stockname,
+        std::string _traderID,
+        std::string _orderID,
+        double _price,
+        int _size,
+        char _orderType,
+        FIX::UtcTimeStamp _time);
+
+    Quote(std::string _stockname,
+        double _price,
+        int _size,
+        std::string _destination,
+        FIX::UtcTimeStamp _time);
 
     // for the client to send
-    Quote(std::string stockname1, std::string trader_id1, std::string order_id1, double price1, int size1, char ordertype1);
+    Quote(std::string _stockname,
+        std::string _traderID,
+        std::string _orderID,
+        double _price,
+        int _size,
+        char _orderType);
 
-    /**
-	 * @brief Constructor for the Quote class.
-	 * @param stockname, price, size, destination, time
-	 * @return None.
-	 */
-    Quote(std::string stockname1, double price1, int size1, std::string destination1, FIX::UtcTimeStamp time);
+    Quote(const Quote& _newquote);
 
-    Quote(void);
-    Quote(const Quote& newquote);
-
-    ~Quote(void);
+    Quote();
+    ~Quote();
 
     void operator=(const Quote& newquote);
 
-    void setstockname(std::string name1);
-    std::string getstockname();
+    void setStockname(std::string name1);
+    std::string getStockname();
 
-    std::string gettrader_id();
+    std::string getTraderID();
 
-    std::string getorder_id();
+    std::string getOrderID();
 
-    void setmili(long _mili);
-    long getmili();
+    void setMilli(long _mili);
+    long getMilli();
 
     void setPrice(double price1);
     double getPrice();
@@ -58,9 +67,9 @@ public:
 
     FIX::UtcTimeStamp gettime();
 
-    void setordertype(char ordertype1);
-    char getordertype();
+    void setOrderType(char ordertype1);
+    char getOrderType();
 
-    void setdestination(std::string destination1);
-    std::string getdestination();
+    void setDestination(std::string destination1);
+    std::string getDestination();
 };
