@@ -41,7 +41,6 @@ set(INCLUDE
 )
 
 set(SRC
-    ${PROJECT_SOURCE_DIR}/src/action.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXAcceptor.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp
     ${PROJECT_SOURCE_DIR}/src/globalvariables.cpp

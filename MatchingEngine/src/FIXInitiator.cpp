@@ -155,14 +155,14 @@ void FIXInitiator::sendExecutionReport(action& report)
     header.setField(FIX::TargetCompID(s_targetID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
 
-    message.setField(FIX::OrderID(report.order_id1));
-    message.setField(FIX::SecondaryOrderID(report.order_id2));
+    message.setField(FIX::OrderID(report.orderID1));
+    message.setField(FIX::SecondaryOrderID(report.orderID2));
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
     message.setField(FIX::OrdStatus(report.decision));
     message.setField(FIX::Symbol(report.stockname));
-    message.setField(FIX::Side(report.order_type1));
-    message.setField(FIX::OrdType(report.order_type2));
+    message.setField(FIX::Side(report.orderType1));
+    message.setField(FIX::OrdType(report.orderType2));
     message.setField(FIX::Price(report.price));
     message.setField(FIX::EffectiveTime(report.exetime, 6));
     message.setField(FIX::LastMkt(report.destination));
@@ -172,12 +172,12 @@ void FIXInitiator::sendExecutionReport(action& report)
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
     idGroup1.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup1.setField(FIX::PartyID(report.trader_id1));
+    idGroup1.setField(FIX::PartyID(report.traderID1));
     message.addGroup(idGroup1);
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup2;
     idGroup2.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup2.setField(FIX::PartyID(report.trader_id2));
+    idGroup2.setField(FIX::PartyID(report.traderID2));
     message.addGroup(idGroup2);
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
