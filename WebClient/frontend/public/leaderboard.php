@@ -22,6 +22,7 @@ $redirect_url = '/leaderboard.php';
             echo '<script src="/scripts/verifications.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/keymapping.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/leaderboard.js?version='.$SHIFT_version.'"></script>';
+            echo '<script src="/scripts/lastprice.js?version='.$SHIFT_version.'"></script>';
         ?> 
     </head>
     <body>
@@ -30,6 +31,11 @@ $redirect_url = '/leaderboard.php';
             <div class="starter-template">
                 <div class="row">
                     <div class="col-md-12">
+                        <?php include_once('./include/sendorderform.php');?>
+                        <?php include_once('./include/lastprice.php');?>
+                    </div>
+                    <div class="col-md-12" style="padding-top: 10px;">
+                        <h3 class="header3">Leaderboard</h3>
                         <div class="stocks">
                             <table class="table notselectable bborder nomargin" id="leaderboard">
                                 <tr>
