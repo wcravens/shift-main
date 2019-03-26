@@ -205,11 +205,11 @@ void FIXInitiator::storeOrder(Quote& order)
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
 
     message.setField(FIX::ClOrdID(order.getorder_id()));
-    message.setField(FIX::Price(order.getprice()));
+    message.setField(FIX::Price(order.getPrice()));
     message.setField(FIX::Symbol(order.getstockname()));
     message.setField(::FIXFIELD_SIDE_BUY); // Required by FIX
     message.setField(FIX::OrdType(order.getordertype()));
-    message.setField(FIX::OrderQty(order.getsize()));
+    message.setField(FIX::OrderQty(order.getSize()));
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
@@ -404,7 +404,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         newQuote2.setordertype('8'); // Update as "ask" from Global
         newQuote2.setmili(mili);
 
-        newQuote.setsize(static_cast<int>(pBidSize->getValue()));
+        newQuote.setSize(static_cast<int>(pBidSize->getValue()));
         newQuote.setordertype('9'); // Update as "bid" from Global
 
         stockIt->second.buf_new_global(newQuote2);

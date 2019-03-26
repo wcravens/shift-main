@@ -5,27 +5,23 @@
  * @param None.
  * @return None.
  */
-Price::Price(void)
-{
-}
+Price::Price() {}
 
 /**
  * @brief Default destructor for the Newbook class.
  * @param None.
  * @return None.
  */
-Price::~Price(void)
-{
-}
+Price::~Price() {}
 
 /**
  * @brief Setter for price field of current Price object.
  * @param price to be set.
  * @return None.
  */
-void Price::setprice(double price1)
+void Price::setPrice(double _price)
 {
-    price = price1;
+    m_price = _price;
 }
 
 /**
@@ -33,9 +29,9 @@ void Price::setprice(double price1)
  * @param None.
  * @return price of the current Price object.
  */
-double Price::getprice()
+double Price::getPrice()
 {
-    return price;
+    return m_price;
 }
 
 /**
@@ -43,9 +39,9 @@ double Price::getprice()
  * @param size to be set.
  * @return None.
  */
-void Price::setsize(int size1)
+void Price::setSize(int _size)
 {
-    size = size1;
+    m_size = _size;
 }
 
 /**
@@ -53,7 +49,7 @@ void Price::setsize(int size1)
  * @param None.
  * @return size of the current Price object.
  */
-int Price::getsize()
+int Price::getSize()
 {
-    return size;
+    return m_size;
 }

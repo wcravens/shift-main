@@ -160,7 +160,7 @@ std::string Quote::getorder_id()
  * @param price to be set.
  * @return None.
  */
-void Quote::setprice(double price1)
+void Quote::setPrice(double price1)
 {
     price = price1;
 }
@@ -170,7 +170,7 @@ void Quote::setprice(double price1)
  * @param None.
  * @return price of the current Quote object.
  */
-double Quote::getprice()
+double Quote::getPrice()
 {
     return price;
 }
@@ -180,7 +180,7 @@ double Quote::getprice()
  * @param size to be set.
  * @return None.
  */
-void Quote::setsize(int size1)
+void Quote::setSize(int size1)
 {
     size = size1;
 }
@@ -190,7 +190,7 @@ void Quote::setsize(int size1)
  * @param None.
  * @return size of the current Quote object.
  */
-int Quote::getsize()
+int Quote::getSize()
 {
     return size;
 }

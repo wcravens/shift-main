@@ -9,23 +9,28 @@
  */
 class Price {
 private:
-    double price;
-    int size;
     typedef std::list<Quote> ListQuote;
+    typedef ListQuote::iterator Iterator;
 
-    //ListQuote::iterator thisquote;
+private:
+    double m_price;
+    int m_size;
+    ListQuote m_quotes;
 
 public:
-    ListQuote quotes;
-    //void add(Quote newquote);
-    //void del(Quote){}
+    Price();
+    ~Price();
 
-    Price(void);
-    ~Price(void);
+    void setPrice(double _price);
+    double getPrice();
 
-    void setprice(double price1);
-    double getprice();
+    void setSize(int _size);
+    int getSize();
 
-    void setsize(int size1);
-    int getsize();
+    Iterator begin() { return m_quotes.begin(); }
+    Iterator end() { return m_quotes.end(); }
+    Iterator erase(Iterator _iter) { return m_quotes.erase(_iter); }
+    bool empty() { return m_quotes.empty(); }
+    void push_back(const Quote& _quote) { m_quotes.push_back(_quote); }
+    void push_front(const Quote& _quote) { m_quotes.push_front(_quote); }
 };

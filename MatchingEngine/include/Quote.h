@@ -50,11 +50,11 @@ public:
     void setmili(long _mili);
     long getmili();
 
-    void setprice(double price1);
-    double getprice();
+    void setPrice(double price1);
+    double getPrice();
 
-    void setsize(int size1);
-    int getsize();
+    void setSize(int size1);
+    int getSize();
 
     FIX::UtcTimeStamp gettime();
 

@@ -112,7 +112,7 @@ void createStockMarket(std::string symbol)
             {
                 stock->second.doLocalLimitBuy(newquote, "SHIFT");
                 //if(newquote.getsize()!=0) stock->second.checkglobalask(newquote,"limit");
-                if (newquote.getsize() != 0) {
+                if (newquote.getSize() != 0) {
                     stock->second.bid_insert(newquote);
                     cout << "insert bid" << endl;
                 }
@@ -124,7 +124,7 @@ void createStockMarket(std::string symbol)
             {
                 stock->second.doLocalLimitSell(newquote, "SHIFT");
                 //if(newquote.getsize()!=0) stock->second.checkglobalbid(newquote,"limit");
-                if (newquote.getsize() != 0) {
+                if (newquote.getSize() != 0) {
                     stock->second.ask_insert(newquote);
                     cout << "insert ask" << endl;
                 }
@@ -136,7 +136,7 @@ void createStockMarket(std::string symbol)
             {
                 stock->second.doLocalMarketBuy(newquote, "SHIFT");
                 //if(newquote.getsize()!=0) stock->second.checkglobalask(newquote,"market");
-                if (newquote.getsize() != 0)
+                if (newquote.getSize() != 0)
                     stock->second.bid_insert(newquote);
                 stock->second.level();
                 //stock->second.showglobal();
@@ -146,7 +146,7 @@ void createStockMarket(std::string symbol)
             {
                 stock->second.doLocalMarketSell(newquote, "SHIFT");
                 //if(newquote.getsize()!=0) stock->second.checkglobalbid(newquote,"market");
-                if (newquote.getsize() != 0)
+                if (newquote.getSize() != 0)
                     stock->second.ask_insert(newquote);
                 stock->second.level();
                 //stock->second.showglobal();
@@ -175,13 +175,13 @@ void createStockMarket(std::string symbol)
                 stock->second.dolimitsell(newquote, "SHIFT");
                 stock->second.level();
                 //stock->second.showglobal();
-                if (newquote.getsize() != 0) {
+                if (newquote.getSize() != 0) {
                     //decision 5 means this is a trade update from TRTH
                     auto utc_now = timepara.simulationTimestamp();
                     action newaction(
                         newquote.getstockname(),
-                        newquote.getprice(),
-                        newquote.getsize(),
+                        newquote.getPrice(),
+                        newquote.getSize(),
                         "T1",
                         "T2",
                         '1',
@@ -201,16 +201,16 @@ void createStockMarket(std::string symbol)
             {
                 //cout<<"Global ask update: "<<newquote.getstockname()<<endl;
                 if (newquote.getdestination() == askexchange) {
-                    if (newquote.getprice() == askprice && newquote.getsize() == asksize) {
+                    if (newquote.getPrice() == askprice && newquote.getSize() == asksize) {
                         break;
                     }
                 }
 
                 askexchange = newquote.getdestination();
-                askprice = newquote.getprice();
-                asksize = newquote.getsize();
+                askprice = newquote.getPrice();
+                asksize = newquote.getSize();
                 stock->second.dolimitsell(newquote, "SHIFT");
-                if (newquote.getsize() != 0)
+                if (newquote.getSize() != 0)
                     stock->second.updateglobalask(newquote);
                 stock->second.level();
                 //stock->second.showglobal();
@@ -220,16 +220,16 @@ void createStockMarket(std::string symbol)
             case '9': //bid update from TR
             {
                 if (newquote.getdestination() == bidexchange) {
-                    if (newquote.getprice() == bidprice && newquote.getsize() == bidsize) {
+                    if (newquote.getPrice() == bidprice && newquote.getSize() == bidsize) {
                         break;
                     }
                 }
 
                 bidexchange = newquote.getdestination();
-                bidprice = newquote.getprice();
-                bidsize = newquote.getsize();
+                bidprice = newquote.getPrice();
+                bidsize = newquote.getSize();
                 stock->second.dolimitbuy(newquote, "SHIFT");
-                if (newquote.getsize() != 0)
+                if (newquote.getSize() != 0)
                     stock->second.updateglobalbid(newquote);
                 stock->second.level();
                 //stock->second.showglobal();
