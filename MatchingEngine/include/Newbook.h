@@ -13,26 +13,25 @@ public:
     Newbook();
     Newbook(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp& _utctime);
     Newbook(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp& _utctime);
-    Newbook(const Newbook& newbook);
+    Newbook(const Newbook& _newbook);
     void store();
     bool empty();
-    void get(Newbook& newbook);
-    void copy(const Newbook& newbook);
-    std::string getsymbol();
-    double getprice();
-    int getsize();
-    FIX::UtcTimeStamp getutctime();
-    char getbook();
-    std::string getdestination();
+    void get(Newbook& _newbook);
+    void copy(const Newbook& _newbook);
+    std::string getSymbol();
+    double getPrice();
+    int getSize();
+    FIX::UtcTimeStamp getUtcTime();
+    char getBook();
+    std::string getDestination();
     virtual ~Newbook();
 
-protected:
 private:
-    std::list<Newbook>::iterator listbegin;
-    char book; //a=local ask, b=local bid, A=global ask, B=global bid
-    std::string symbol;
-    double price;
-    int size;
-    std::string destination;
-    FIX::UtcTimeStamp utctime;
+    std::list<Newbook>::iterator m_listBegin;
+    char m_book; //a=local ask, b=local bid, A=global ask, B=global bid
+    std::string m_symbol;
+    double m_price;
+    int m_size;
+    std::string m_destination;
+    FIX::UtcTimeStamp m_utcTime;
 };

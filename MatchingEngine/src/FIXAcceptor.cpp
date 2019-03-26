@@ -107,14 +107,14 @@ void FIXAcceptor::sendOrderBookUpdate2All(Newbook& update)
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
     entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
-    entryGroup.setField(FIX::MDEntryType(update.getbook()));
-    entryGroup.setField(FIX::Symbol(update.getsymbol()));
-    entryGroup.setField(FIX::MDEntryPx(update.getprice()));
-    entryGroup.setField(FIX::MDEntrySize(update.getsize()));
-    auto utc = update.getutctime();
+    entryGroup.setField(FIX::MDEntryType(update.getBook()));
+    entryGroup.setField(FIX::Symbol(update.getSymbol()));
+    entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
+    entryGroup.setField(FIX::MDEntrySize(update.getSize()));
+    auto utc = update.getUtcTime();
     entryGroup.setField(FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())));
     entryGroup.setField(FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)));
-    entryGroup.setField(FIX::MDMkt(update.getdestination()));
+    entryGroup.setField(FIX::MDMkt(update.getDestination()));
 
     message.addGroup(entryGroup);
 

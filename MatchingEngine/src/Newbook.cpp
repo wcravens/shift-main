@@ -16,42 +16,51 @@ Newbook::Newbook() {}
  * @brief   Constructor for the Newbook class.
  * @param   book, symbol, price, size, time
  */
-Newbook::Newbook(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp& _utctime)
+Newbook::Newbook(char _book,
+    std::string _symbol,
+    double _price,
+    int _size,
+    FIX::UtcTimeStamp& _utctime)
 {
-    book = _book;
-    symbol = _symbol;
-    price = _price;
-    size = _size;
-    destination = "SHIFT";
-    utctime = _utctime;
+    m_book = _book;
+    m_symbol = _symbol;
+    m_price = _price;
+    m_size = _size;
+    m_destination = "SHIFT";
+    m_utcTime = _utctime;
 }
 
 /**
  * @brief   Constructor for the Newbook class.
  * @param   book, symbol, price, size, time, destination
  */
-Newbook::Newbook(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp& _utctime)
+Newbook::Newbook(char _book,
+    std::string _symbol,
+    double _price,
+    int _size,
+    std::string _destination,
+    FIX::UtcTimeStamp& _utctime)
 {
-    book = _book;
-    symbol = _symbol;
-    price = _price;
-    size = _size;
-    destination = _destination;
-    utctime = _utctime;
+    m_book = _book;
+    m_symbol = _symbol;
+    m_price = _price;
+    m_size = _size;
+    m_destination = _destination;
+    m_utcTime = _utctime;
 }
 
 /**
  * @brief   Constructor for the Newbook class.
  * @param   the address of an exist Newbook object
  */
-Newbook::Newbook(const Newbook& newbook)
+Newbook::Newbook(const Newbook& _newbook)
 {
-    book = newbook.book;
-    symbol = newbook.symbol;
-    price = newbook.price;
-    size = newbook.size;
-    destination = newbook.destination;
-    utctime = newbook.utctime;
+    m_book = _newbook.m_book;
+    m_symbol = _newbook.m_symbol;
+    m_price = _newbook.m_price;
+    m_size = _newbook.m_size;
+    m_destination = _newbook.m_destination;
+    m_utcTime = _newbook.m_utcTime;
 }
 
 /**
@@ -78,11 +87,11 @@ bool Newbook::empty()
  * @brief   Get the Newbook object from specific address.
  * @param   An exist Newbook object.
  */
-void Newbook::get(Newbook& newbook)
+void Newbook::get(Newbook& _newbook)
 {
     std::lock_guard<std::mutex> lock(nameNewbook::newbookMu);
-    listbegin = nameNewbook::bookupdate.begin();
-    newbook.copy(*listbegin);
+    m_listBegin = nameNewbook::bookupdate.begin();
+    _newbook.copy(*m_listBegin);
     nameNewbook::bookupdate.pop_front();
 }
 
@@ -90,51 +99,51 @@ void Newbook::get(Newbook& newbook)
  * @brief   Make a copy of an existing Newbook object.
  * @param   An exist Newbook object.
  */
-void Newbook::copy(const Newbook& newbook)
+void Newbook::copy(const Newbook& _newbook)
 {
-    book = newbook.book;
-    symbol = newbook.symbol;
-    price = newbook.price;
-    size = newbook.size;
-    destination = newbook.destination;
-    utctime = newbook.utctime;
+    m_book = _newbook.m_book;
+    m_symbol = _newbook.m_symbol;
+    m_price = _newbook.m_price;
+    m_size = _newbook.m_size;
+    m_destination = _newbook.m_destination;
+    m_utcTime = _newbook.m_utcTime;
 }
 
 /**
  * @brief   Getter function for the field of symbol.
  * @return  The symbol of the current order book object.
  */
-std::string Newbook::getsymbol() { return symbol; }
+std::string Newbook::getSymbol() { return m_symbol; }
 
 /**
  * @brief   Getter function for the field of price.
  * @return  The price of the current order book object.
  */
-double Newbook::getprice() { return price; }
+double Newbook::getPrice() { return m_price; }
 
 /**
  * @brief   Getter function for the field of size.
  * @return  The size of the current order book object.
  */
-int Newbook::getsize() { return size; }
+int Newbook::getSize() { return m_size; }
 
 /**
  * @brief   Getter function for the field of time.
  * @return  The time of the current order book object.
  */
-FIX::UtcTimeStamp Newbook::getutctime() { return utctime; }
+FIX::UtcTimeStamp Newbook::getUtcTime() { return m_utcTime; }
 
 /**
  * @brief   Getter function for the field of book.
  * @return  The book of the current order book object.
  */
-char Newbook::getbook() { return book; }
+char Newbook::getBook() { return m_book; }
 
 /**
  * @brief   Getter function for the field of destination.
  * @return  The destination of the current order book object.
  */
-std::string Newbook::getdestination() { return destination; }
+std::string Newbook::getDestination() { return m_destination; }
 
 /**
  * @brief   Default destructor for the Newbook class.
