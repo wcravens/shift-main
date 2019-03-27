@@ -42,7 +42,6 @@ CandlestickData::CandlestickData(std::string symbol, double currPrice, double cu
     , m_lastHighPrice{ currHighPrice }
     , m_lastLowPrice{ currLowPrice }
     , m_lastOpenTime(currOpenTime)
-    , m_wasLastTransacSent(true)
 {
 }
 
@@ -110,7 +109,7 @@ void CandlestickData::enqueueTransaction(const Transaction& t)
     {
         std::lock_guard<std::mutex> guard(m_mtxTransacBuff);
         m_transacBuff.push(t);
-        m_tranBufSizeAtom = m_transacBuff.size();
+        // m_tranBufSizeAtom = m_transacBuff.size();
     }
     m_cvCD.notify_one();
 }
@@ -131,7 +130,7 @@ void CandlestickData::process()
 
         const auto transac = m_transacBuff.front();
         m_transacBuff.pop();
-        m_tranBufSizeAtom = m_transacBuff.size();
+        // m_tranBufSizeAtom = m_transacBuff.size();
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
         const auto lastExecTime = transac.simulationTime.getTimeT(); // getTimeT() *trancates* nano-seconds to seconds
@@ -150,71 +149,38 @@ void CandlestickData::process()
 
         const auto execTimeGapInSeconds = lastExecTime - m_lastOpenTime;
 
-        if (m_wasLastTransacSent) {
-            DEBUG_PERFORMANCE_COUNTER(pc1, "ifsent")
+        if (execTimeGapInSeconds >= 1) {
+            // send data of every "stalled" execution second between [m_lastOpenTime, lastExecTime - 1)
+            for (int cnt = 0; cnt < execTimeGapInSeconds - 1; cnt++) {
+                CandlestickDataPoint cdPoint(m_symbol, m_lastClosePrice, m_lastClosePrice, m_lastClosePrice, m_lastClosePrice, m_lastOpenTime);
 
-            if (execTimeGapInSeconds >= 2) {
-                DEBUG_PERFORMANCE_COUNTER(pc2, "ifsent;>= 2")
+                sendPoint(cdPoint);
+                writeCandlestickDataHistory(cdPoint);
 
-                // second-wise-send the data between the gap time range
-                for (int cnt = 1; cnt < execTimeGapInSeconds; cnt++) {
-                    m_lastPrice
-                        = m_lastHighPrice
-                        = m_lastLowPrice
-                        = m_lastOpenPrice
-                        = m_lastClosePrice;
-
-                    m_lastOpenTime++;
-
-                    CandlestickDataPoint cdPoint(m_symbol, m_lastOpenPrice, m_lastClosePrice, m_lastHighPrice, m_lastLowPrice, m_lastOpenTime);
-                    sendPoint(cdPoint);
-                    writeCandlestickDataHistory(cdPoint);
-                }
+                m_lastOpenTime++;
             }
-
-            m_lastPrice
-                = m_lastHighPrice
-                = m_lastLowPrice
-                = m_lastOpenPrice
-                = m_lastClosePrice
-                = transac.price;
-            m_lastOpenTime = lastExecTime;
-
-            m_wasLastTransacSent = false; // reset to the state of current transaction
-
-            const auto startTime = s_nowUnixTimestamp(); // begin the timing...
-            while (1 == m_tranBufSizeAtom) {
-                if (s_nowUnixTimestamp() - startTime >= 2) { // elapsed more than 1 sec ?
-                    DEBUG_PERFORMANCE_COUNTER_S(pc4, "%%%%%%%%%%%", 1);
-
-                    m_lastClosePrice = m_lastPrice;
-                    writeCandlestickDataHistory({ m_symbol, m_lastOpenPrice, m_lastClosePrice, m_lastHighPrice, m_lastLowPrice, m_lastOpenTime });
-                    m_wasLastTransacSent = true;
-
-                    break;
-                }
-                DEBUG_PERFORMANCE_COUNTER_S(pc3, "###########", 100000);
-                // timer counting continues...
-            }
-
-            continue; // process next transaction immediately
-        } else if (execTimeGapInSeconds <= 1) { // < 2.0 seconds elapsed since last transac ?
-            DEBUG_PERFORMANCE_COUNTER(pc5, "< 2.0")
-            // update current ongoing window
-
+        } else { // within 1 sec
             m_lastClosePrice = m_lastPrice = transac.price;
             m_lastHighPrice = std::max(m_lastPrice, m_lastHighPrice); // max
             m_lastLowPrice = std::min(m_lastPrice, m_lastLowPrice); // min
-        } else { // execTimeGapInSeconds >= 2
-            DEBUG_PERFORMANCE_COUNTER(pc6, ">= 2")
-            // finish and send current window
 
-            CandlestickDataPoint cdPoint(m_symbol, m_lastOpenPrice, m_lastClosePrice, m_lastHighPrice, m_lastLowPrice, m_lastOpenTime);
-            sendPoint(cdPoint);
-            writeCandlestickDataHistory(cdPoint);
-
-            m_wasLastTransacSent = true;
+            continue;
         }
+
+        CandlestickDataPoint cdPoint(m_symbol, m_lastOpenPrice, m_lastClosePrice, m_lastHighPrice, m_lastLowPrice, m_lastOpenTime);
+        sendPoint(cdPoint);
+        writeCandlestickDataHistory(cdPoint);
+
+        m_lastOpenPrice = m_lastHighPrice = m_lastLowPrice = m_lastClosePrice;
+
+        m_lastPrice
+            // = m_lastOpenPrice
+            = m_lastClosePrice
+            = m_lastHighPrice
+            = m_lastLowPrice
+            = transac.price;
+
+        m_lastOpenTime = lastExecTime;
     }
 }
 
