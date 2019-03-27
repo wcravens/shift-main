@@ -268,7 +268,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
     FIX::Text* pText;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -344,7 +344,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     FIX::PartyID* pSellerID;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;

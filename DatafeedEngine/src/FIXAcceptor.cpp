@@ -231,7 +231,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     FIX::Symbol* pSymbol;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -365,7 +365,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::ExecutionReport& message, const FIX:
     FIX::TrdRegTimestamp* pUTCTime2;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
