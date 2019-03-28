@@ -96,18 +96,10 @@ void MainClient::sendOrderBookToFront()
             if (res == "") {
                 res = "{ \"bookType\": \"" + std::string(1, type) + "\",\"size\": \"0\"}";
             }
-            double lastPrice = getLastPrice(symbol);
-            double diff = lastPrice - getOpenPrice(symbol);
             std::ostringstream out;
             out << "{ "
                 << "\"category\":"
                 << "\"orderBook_" << symbol << "\","
-                << "\"lastPrice\": "
-                << "\"" << lastPrice << "\","
-                << "\"rate\": "
-                << "\"" << ((getOpenPrice(symbol) == 0) ? 0.0 : diff / getOpenPrice(symbol)) << "\","
-                << "\"diff\": "
-                << "\"" << diff << "\","
                 << "\"data\":["
                 << res
                 << "]"

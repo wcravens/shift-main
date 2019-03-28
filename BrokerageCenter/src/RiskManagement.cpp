@@ -102,7 +102,11 @@ void RiskManagement::updateWaitingList(const Report& report)
     if (order.getExecutedSize() == order.getSize()) {
         m_waitingList.erase(it);
     } else {
-        order.setStatus(report.orderStatus);
+        if (report.orderStatus == Order::Status::CANCELED) {
+            order.setStatus(Order::Status::PARTIALLY_FILLED);
+        } else {
+            order.setStatus(report.orderStatus);
+        }
     }
 }
 
