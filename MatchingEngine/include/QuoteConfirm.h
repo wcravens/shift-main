@@ -10,6 +10,6 @@ struct QuoteConfirm {
     std::string symbol;
     double price;
     int size;
-    char ordertype;
+    char orderType;
     FIX::UtcTimeStamp time;
 };

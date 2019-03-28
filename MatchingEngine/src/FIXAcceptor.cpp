@@ -211,13 +211,13 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Quote
     message.setField(FIX::OrderID(confirmation.orderID));
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_ORDER_STATUS); // Required by FIX
-    if (confirmation.ordertype != '5' && confirmation.ordertype != '6') { // Not a cancellation
+    if (confirmation.orderType != '5' && confirmation.orderType != '6') { // Not a cancellation
         message.setField(::FIXFIELD_ORDSTATUS_NEW);
     } else {
         message.setField(::FIXFIELD_ORDSTATUS_PENDING_CANCEL);
     }
     message.setField(FIX::Symbol(confirmation.symbol));
-    message.setField(FIX::Side(confirmation.ordertype));
+    message.setField(FIX::Side(confirmation.orderType));
     message.setField(FIX::Price(confirmation.price));
     message.setField(FIX::EffectiveTime(confirmation.time, 6));
     message.setField(FIX::LastMkt("SHIFT"));
@@ -334,7 +334,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     // Add new quote to buffer
     auto stockIt = stocklist.find(pSymbol->getValue());
     if (stockIt != stocklist.end()) {
-        stockIt->second.buf_new_local(quote);
+        stockIt->second.bufNewLocal(quote);
     } else {
         return;
     }

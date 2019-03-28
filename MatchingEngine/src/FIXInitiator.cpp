@@ -407,9 +407,9 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         newQuote.setSize(static_cast<int>(pBidSize->getValue()));
         newQuote.setOrderType('9'); // Update as "bid" from Global
 
-        stockIt->second.buf_new_global(newQuote2);
+        stockIt->second.bufNewGlobal(newQuote2);
     }
-    stockIt->second.buf_new_global(newQuote);
+    stockIt->second.bufNewGlobal(newQuote);
 
     if (prevCnt) { // > 1 threads
         delete pSymbol;
