@@ -4,15 +4,12 @@
 #include "Interfaces.h"
 #include "Transaction.h"
 
-#include <atomic>
 #include <condition_variable>
-#include <ctime>
 #include <future>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <string>
 #include <thread>
 
 class CandlestickData : public ITargetsInfo {
@@ -46,8 +43,6 @@ private:
     bool m_wasLastTransacSent;
 
     std::queue<Transaction> m_transacBuff;
-    std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
-
     std::map<std::time_t, CandlestickDataPoint> m_history;
 
     mutable std::mutex m_mtxTransacBuff;
