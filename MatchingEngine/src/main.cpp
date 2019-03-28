@@ -173,7 +173,7 @@ int main(int ac, char* av[])
          << endl;
     // this_thread::sleep_for(120s);
     // Get the time offset in current day
-    timepara.set_start_time();
+    timepara.setStartTime();
     //begin the matching thread
     int stocknumber = stocklist.size();
     cout << "Total " << stocknumber << " stocks are ready in the Matching Engine"

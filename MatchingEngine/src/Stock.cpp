@@ -41,7 +41,7 @@ void Stock::bufNewLocal(Quote& quote)
 bool Stock::getNewQuote(Quote& quote)
 {
     bool good = false;
-    long milli_now = timepara.past_milli(true);
+    long milli_now = timepara.pastMilli(true);
 
     std::lock_guard<std::mutex> g_lock(m_newGlobal_mu);
     if (!m_newGlobal.empty()) {
@@ -527,7 +527,7 @@ void Stock::bookUpdate(char _book,
 
 void Stock::level()
 {
-    long simulationmilliseconds = timepara.past_milli(true);
+    long simulationmilliseconds = timepara.pastMilli(true);
 
     std::string newlevel;
     std::stringstream ss;
@@ -565,7 +565,7 @@ void Stock::level()
 
 void Stock::showGlobal()
 {
-    long simulationmilliseconds = timepara.past_milli(true);
+    long simulationmilliseconds = timepara.pastMilli(true);
 
     std::string newlevel;
     std::stringstream ss;
@@ -777,7 +777,7 @@ void Stock::doLocalLimitBuy(Quote& newquote, std::string destination1)
 
         // get the best local price
         if (m_thisPrice != m_ask.end()) {
-        if (m_thisQuote == m_thisPrice->end()) {
+            if (m_thisQuote == m_thisPrice->end()) {
                 // if m_thisQuote reach end(), go to next m_thisPrice
                 ++m_thisPrice;
                 m_thisQuote = m_thisPrice->begin();

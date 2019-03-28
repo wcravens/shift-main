@@ -325,7 +325,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     message.getGroup(1, *pIDGroup);
     pIDGroup->get(*pClientID);
 
-    long milli = timepara.past_milli();
+    long milli = timepara.pastMilli();
     FIX::UtcTimeStamp utcNow = timepara.simulationTimestamp();
 
     Quote quote{ pSymbol->getValue(), pClientID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue(), utcNow };

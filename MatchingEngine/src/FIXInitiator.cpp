@@ -389,7 +389,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     Quote newQuote{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()) / 100, pBuyerID->getValue(), pTransactTime->getValue() };
     newQuote.setOrderType('7'); // Update as "trade" from Global
 
-    long mili = timepara.past_milli(pTransactTime->getValue());
+    long mili = timepara.pastMilli(pTransactTime->getValue());
     newQuote.setMilli(mili);
 
     if (ordType == 0) { // Quote
