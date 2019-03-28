@@ -146,6 +146,7 @@ void MainClient::sendLastPriceToFront()
     for (auto symbol : getStockList()) {
         double lastPrice = getLastPrice(symbol);
         double diff = lastPrice - getOpenPrice(symbol);
+        std::time_t lastTradeTime = std::chrono::system_clock::to_time_t(getLastTradeTime());
         std::ostringstream out;
         out << "{\"category\": \"lastPriceView_" << symbol << "\", \"data\":{ "
             << "\"lastPrice\": "
@@ -153,7 +154,9 @@ void MainClient::sendLastPriceToFront()
             << "\"rate\": "
             << "\"" << ((getOpenPrice(symbol) == 0) ? 0.0 : diff / getOpenPrice(symbol)) << "\","
             << "\"diff\": "
-            << "\"" << diff << "\""
+            << "\"" << diff << "\","
+            << "\"lastTradeTime\": "
+            << "\"" << std::put_time(std::localtime(&lastTradeTime), "%F %T") << "\""
             << "} }";
         MyZMQ::getInstance().send(out.str());
     }
