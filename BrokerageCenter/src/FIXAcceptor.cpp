@@ -548,7 +548,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
     FIX::Symbol* pSymbol;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -606,7 +606,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
     FIX::Symbol* pSymbol;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -672,7 +672,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     FIX::PartyID* pUsername;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;

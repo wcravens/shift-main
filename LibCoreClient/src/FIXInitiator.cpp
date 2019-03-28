@@ -565,37 +565,16 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
     }
 
     if (m_stockList.size() == 0) {
-        static FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
-        static FIX::Symbol symbol;
-
-        // #pragma GCC diagnostic ignored ....
-
-        FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup;
-        FIX::Symbol* pSymbol;
-
-        static std::atomic<unsigned int> s_cntAtom{ 0 };
-        unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
-
-        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-            continue;
-        assert(s_cntAtom > 0);
-
-        if (0 == prevCnt) { // sequential case; optimized:
-            pRelatedSymGroup = &relatedSymGroup;
-            pSymbol = &symbol;
-        } else { // > 1 threads; always safe way:
-            pRelatedSymGroup = new decltype(relatedSymGroup);
-            pSymbol = new decltype(symbol);
-        }
+        FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
+        FIX::Symbol symbol;
 
         std::lock_guard<std::mutex> slGuard(m_mtxStockList);
 
         m_stockList.clear();
-
         for (int i = 1; i <= numOfGroups.getValue(); ++i) {
-            message.getGroup(static_cast<unsigned int>(i), *pRelatedSymGroup);
-            pRelatedSymGroup->get(*pSymbol);
-            m_stockList.push_back(pSymbol->getValue());
+            message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
+            relatedSymGroup.get(symbol);
+            m_stockList.push_back(symbol.getValue());
         }
 
         createSymbolMap();
@@ -603,14 +582,6 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
         initializeOrderBooks();
 
         m_cvStockList.notify_one();
-
-        if (prevCnt) { // > 1 threads
-            delete pRelatedSymGroup;
-            delete pSymbol;
-        }
-
-        s_cntAtom--;
-        assert(s_cntAtom >= 0);
     }
 }
 
@@ -637,7 +608,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
         FIX::LastMkt* pDestination;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
-        unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+        unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
             continue;
@@ -724,7 +695,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     FIX::MDMkt* pDestination;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -829,7 +800,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     FIX::MDMkt* pDestination;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -914,7 +885,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     FIX::Text* pTimestamp;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -1009,7 +980,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     FIX::PartyID* pUsername;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
@@ -1098,7 +1069,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         FIX::ShortQty* pShortSize;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
-        unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+        unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
             continue;
@@ -1194,7 +1165,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         FIX::PosAmt* pTotalBuyingPower;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
-        unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+        unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
             continue;
@@ -1287,7 +1258,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     FIX::UnderlyingFXRateCalc* pStatus;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
-    unsigned int prevCnt = s_cntAtom.load(std::memory_order::memory_order_relaxed);
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
         continue;
