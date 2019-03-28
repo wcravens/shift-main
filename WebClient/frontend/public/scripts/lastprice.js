@@ -10,6 +10,7 @@ function createsession() {
                 var rate = document.getElementById("rate");
                 var diff = document.getElementById("diff");
                 var arrow = document.getElementById("arrow");
+                var lastTradeTime = document.getElementById("last_trade_time");
                 if (lastPrice.innerHTML < numFloat(data.data.lastPrice) && lastPrice.innerHTML != "0.00") {
                     lastPrice.className = "bold rise";
                 }
@@ -40,6 +41,7 @@ function createsession() {
                 lastPrice.innerHTML = numFloat(data.data.lastPrice);
                 diff.innerHTML = numFloat(Math.abs(data.data.diff));
                 rate.innerHTML = "(" + numFloat(Math.abs(parseFloat(data.data.rate) * 100)) + "%)";
+                lastTradeTime.innerHTML = data.data.lastTradeTime;
             });
         },
         function () {

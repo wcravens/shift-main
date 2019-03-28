@@ -9,5 +9,6 @@
     <span id="arrow" class="glyphicon glyphicon-stop glyphicon-smaller"></span>
 </div>
 <div class="notselectable">
-    <font class="grey" size="-2" >Relative to open price. Market open.</font>
+    <font class="grey" size="-2" >Relative to open price. Market open. Simulation time: </font>
+    <font id="last_trade_time" class="grey" size="-2" ></font>
 </div>
