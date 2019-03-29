@@ -4,15 +4,12 @@
 #include "Interfaces.h"
 #include "Transaction.h"
 
-#include <atomic>
 #include <condition_variable>
-#include <ctime>
 #include <future>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <string>
 #include <thread>
 
 class CandlestickData : public ITargetsInfo {
@@ -37,17 +34,15 @@ public:
 
 private:
     std::string m_symbol;
-    double m_currPrice;
-    double m_currOpenPrice;
-    double m_currClosePrice;
-    double m_currHighPrice;
-    double m_currLowPrice;
-    std::time_t m_currOpenTime;
-    bool m_lastTransacSent;
+    double m_lastPrice;
+    double m_lastOpenPrice;
+    double m_lastClosePrice;
+    double m_lastHighPrice;
+    double m_lastLowPrice;
+    std::time_t m_lastOpenTime;
+    bool m_wasLastTransacSent;
 
     std::queue<Transaction> m_transacBuff;
-    std::atomic<size_t> m_tranBufSizeAtom; // For performance purpose: lock-free fast querying of transaction buffer size
-
     std::map<std::time_t, CandlestickDataPoint> m_history;
 
     mutable std::mutex m_mtxTransacBuff;

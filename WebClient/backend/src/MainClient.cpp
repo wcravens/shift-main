@@ -96,18 +96,10 @@ void MainClient::sendOrderBookToFront()
             if (res == "") {
                 res = "{ \"bookType\": \"" + std::string(1, type) + "\",\"size\": \"0\"}";
             }
-            double lastPrice = getLastPrice(symbol);
-            double diff = lastPrice - getOpenPrice(symbol);
             std::ostringstream out;
             out << "{ "
                 << "\"category\":"
                 << "\"orderBook_" << symbol << "\","
-                << "\"lastPrice\": "
-                << "\"" << lastPrice << "\","
-                << "\"rate\": "
-                << "\"" << ((getOpenPrice(symbol) == 0) ? 0.0 : diff / getOpenPrice(symbol)) << "\","
-                << "\"diff\": "
-                << "\"" << diff << "\","
                 << "\"data\":["
                 << res
                 << "]"
@@ -154,6 +146,7 @@ void MainClient::sendLastPriceToFront()
     for (auto symbol : getStockList()) {
         double lastPrice = getLastPrice(symbol);
         double diff = lastPrice - getOpenPrice(symbol);
+        std::time_t simulationTime = std::chrono::system_clock::to_time_t(getLastTradeTime());
         std::ostringstream out;
         out << "{\"category\": \"lastPriceView_" << symbol << "\", \"data\":{ "
             << "\"lastPrice\": "
@@ -161,7 +154,9 @@ void MainClient::sendLastPriceToFront()
             << "\"rate\": "
             << "\"" << ((getOpenPrice(symbol) == 0) ? 0.0 : diff / getOpenPrice(symbol)) << "\","
             << "\"diff\": "
-            << "\"" << diff << "\""
+            << "\"" << diff << "\","
+            << "\"simulationTime\": "
+            << "\"" << std::put_time(std::localtime(&simulationTime), "%F %T") << "\""
             << "} }";
         MyZMQ::getInstance().send(out.str());
     }

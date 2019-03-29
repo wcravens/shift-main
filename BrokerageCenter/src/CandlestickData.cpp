@@ -36,13 +36,12 @@ CandlestickData::CandlestickData()
 
 CandlestickData::CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
     : m_symbol(std::move(symbol))
-    , m_currPrice{ currPrice }
-    , m_currOpenPrice{ currOpenPrice }
-    , m_currClosePrice{ currClosePrice }
-    , m_currHighPrice{ currHighPrice }
-    , m_currLowPrice{ currLowPrice }
-    , m_currOpenTime(currOpenTime)
-    , m_lastTransacSent(true)
+    , m_lastPrice{ currPrice }
+    , m_lastOpenPrice{ currOpenPrice }
+    , m_lastClosePrice{ currClosePrice }
+    , m_lastHighPrice{ currHighPrice }
+    , m_lastLowPrice{ currLowPrice }
+    , m_lastOpenTime(currOpenTime)
 {
 }
 
@@ -110,7 +109,6 @@ void CandlestickData::enqueueTransaction(const Transaction& t)
     {
         std::lock_guard<std::mutex> guard(m_mtxTransacBuff);
         m_transacBuff.push(t);
-        m_tranBufSizeAtom = m_transacBuff.size();
     }
     m_cvCD.notify_one();
 }
@@ -121,7 +119,7 @@ void CandlestickData::process()
 
     auto writeCandlestickDataHistory = [this](const CandlestickDataPoint& cdPoint) {
         std::lock_guard<std::mutex> guard(m_mtxHistory);
-        m_history[m_currOpenTime] = cdPoint;
+        m_history[m_lastOpenTime] = cdPoint;
     };
 
     while (true) {
@@ -131,90 +129,46 @@ void CandlestickData::process()
 
         const auto transac = m_transacBuff.front();
         m_transacBuff.pop();
-        m_tranBufSizeAtom = m_transacBuff.size();
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
-        const auto currExecTime = transac.simulationTime.getTimeT();
+        const auto lastSimulTime = transac.simulationTime.getTimeT(); // simulTime in nano-seconds => in seconds; == tick history start timepoint + elapsed simulation duration; see MatchingEngine/src/globalvariables.cpp for the details.
 
-        if (std::time_t{} == m_currOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup status ?
+        if (std::time_t{} == m_lastOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup status ?
             m_symbol = std::move(transac.symbol);
-            m_currPrice
-                = m_currOpenPrice
-                = m_currClosePrice
-                = m_currHighPrice
-                = m_currLowPrice
+            m_lastPrice
+                = m_lastOpenPrice
+                = m_lastClosePrice
+                = m_lastHighPrice
+                = m_lastLowPrice
                 = transac.price;
-            m_currOpenTime = currExecTime;
+            m_lastOpenTime = lastSimulTime;
             continue;
         }
 
-        const auto execTimeGap = currExecTime - m_currOpenTime;
+        const auto timeGapInSeconds = lastSimulTime - m_lastOpenTime;
 
-        if (m_lastTransacSent) {
-            DEBUG_PERFORMANCE_COUNTER(pc1, "ifsent")
+        if (timeGapInSeconds >= 1) {
+            // send data of every "stalled" simulation second between [m_lastOpenTime, lastSimulTime - 1)
+            for (int cnt = 0; cnt < timeGapInSeconds - 1; cnt++) {
+                CandlestickDataPoint cdPoint(m_symbol, m_lastClosePrice, m_lastClosePrice, m_lastClosePrice, m_lastClosePrice, m_lastOpenTime);
 
-            if (execTimeGap > 1) {
-                DEBUG_PERFORMANCE_COUNTER(pc2, "ifsentsend")
+                sendPoint(cdPoint);
+                writeCandlestickDataHistory(cdPoint);
 
-                // second-wise-send the data between the gap time range
-                for (int cnt = 1; cnt < execTimeGap; cnt++) {
-                    m_currPrice
-                        = m_currOpenPrice
-                        = m_currHighPrice
-                        = m_currLowPrice
-                        = m_currClosePrice;
-
-                    m_currOpenTime++;
-
-                    CandlestickDataPoint cdPoint(m_symbol, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currClosePrice, m_currOpenTime);
-                    sendPoint(cdPoint);
-                    writeCandlestickDataHistory(cdPoint);
-                }
+                m_lastOpenTime++;
             }
 
-            m_currPrice
-                = m_currOpenPrice
-                = m_currClosePrice
-                = m_currHighPrice
-                = m_currLowPrice
-                = transac.price;
-
-            m_currOpenTime = currExecTime;
-            m_lastTransacSent = false; // reset to the state of current transaction
-
-            const auto startTime = s_nowUnixTimestamp(); // begin the timing...
-            while (1 == m_tranBufSizeAtom) {
-                if (s_nowUnixTimestamp() - startTime > 1) { // elapsed more than 1 sec ?
-                    DEBUG_PERFORMANCE_COUNTER_S(pc4, "%%%%%%%%%%%", 1);
-
-                    m_currClosePrice = m_currPrice;
-                    writeCandlestickDataHistory({ m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime });
-                    m_lastTransacSent = true;
-
-                    break;
-                }
-                DEBUG_PERFORMANCE_COUNTER_S(pc3, "###########", 100000);
-                // timer counting continues...
-            }
-
-            continue; // process next transaction immediately
-        } else if (execTimeGap <= 1) { // within 1 sec elapsed since last transac ?
-            DEBUG_PERFORMANCE_COUNTER(pc5, "notsent1")
-            // update current ongoing window
-
-            m_currClosePrice = m_currPrice = transac.price;
-            m_currLowPrice = std::min(m_currPrice, m_currLowPrice); // min
-            m_currHighPrice = std::max(m_currPrice, m_currHighPrice); // max
-        } else { // execTimeGap > 1
-            DEBUG_PERFORMANCE_COUNTER(pc6, "notsent2")
-            // finish and send current window
-
-            CandlestickDataPoint cdPoint(m_symbol, m_currOpenPrice, m_currClosePrice, m_currHighPrice, m_currLowPrice, m_currOpenTime);
+            CandlestickDataPoint cdPoint(m_symbol, m_lastOpenPrice, m_lastClosePrice, m_lastHighPrice, m_lastLowPrice, m_lastOpenTime);
             sendPoint(cdPoint);
             writeCandlestickDataHistory(cdPoint);
 
-            m_lastTransacSent = true;
+            m_lastOpenPrice = m_lastHighPrice = m_lastLowPrice = m_lastClosePrice;
+            m_lastOpenTime = lastSimulTime;
         }
+
+        m_lastClosePrice = m_lastPrice = transac.price;
+        m_lastHighPrice = std::max(m_lastPrice, m_lastHighPrice); // max
+        m_lastLowPrice = std::min(m_lastPrice, m_lastLowPrice); // min
     }
 }
 
