@@ -14,21 +14,22 @@ private:
     std::string m_endTime;
 
 public:
-    DatabaseRequest()
-    {
-    }
+    DatabaseRequest() {}
 
-    DatabaseRequest(std::string requestID, char type, std::string ticker, std::string date, std::string startTime, std::string endTime)
+    ~DatabaseRequest() {}
+
+    DatabaseRequest(std::string requestID,
+        char type,
+        std::string ticker,
+        std::string date,
+        std::string startTime,
+        std::string endTime)
         : m_requestID(std::move(requestID))
         , m_type(type)
         , m_ticker(std::move(ticker))
         , m_date(std::move(date))
         , m_startTime(std::move(startTime))
         , m_endTime(std::move(endTime))
-    {
-    }
-
-    ~DatabaseRequest()
     {
     }
 

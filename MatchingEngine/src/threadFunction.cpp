@@ -190,7 +190,7 @@ void createStockMarket(std::string symbol)
                         "o2",
                         '5',
                         "TRTH",
-                        newquote.gettime(),
+                        newquote.getTime(),
                         utc_now,
                         utc_now);
                     stock->second.actions.push_back(newaction);

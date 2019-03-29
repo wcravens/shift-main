@@ -42,25 +42,7 @@ private:
     std::list<Quote>::iterator m_thisQuote;
     std::list<Quote>::iterator m_thisGlobal;
 
-public:
-    //order book update queue
-    std::list<Newbook> orderbookupdate;
-    std::list<action> actions;
-
-    Stock();
-    Stock(const Stock& _stock);
-    Stock(std::string name1);
-    ~Stock();
-
-    void setStockname(std::string name1);
-    std::string getStockname();
-
-    //buffer new quotes & trades received from database and clients
-    void bufNewGlobal(Quote& quote);
-    void bufNewLocal(Quote& quote);
-    //retrieve earlist quote buffered in new_global or new_local
-    bool getNewQuote(Quote& quote);
-
+private: // never used
     std::string levels_begin()
     {
         std::string findlevel = *m_levels.begin();
@@ -79,6 +61,30 @@ public:
         else
             return false;
     }
+
+public:
+    //order book update queue
+    std::list<Newbook> orderbookupdate;
+    std::list<action> actions;
+
+    Stock();
+    Stock(const Stock& _stock);
+    Stock(std::string name1);
+    ~Stock();
+
+    void setStockname(std::string name1);
+    std::string getStockname();
+
+    void setThisPrice()
+    {
+        m_thisPrice = m_ask.begin();
+    }
+
+    //buffer new quotes & trades received from database and clients
+    void bufNewGlobal(Quote& quote);
+    void bufNewLocal(Quote& quote);
+    //retrieve earlist quote buffered in new_global or new_local
+    bool getNewQuote(Quote& quote);
 
     void checkGlobalBid(Quote& newquote, std::string type); //newquote to find execute in global orderbook
     void checkGlobalAsk(Quote& newquote, std::string type); //newquote to find execute in global orderbook
@@ -99,10 +105,6 @@ public:
 
     void bidInsert(Quote quote1); //{insert into bid list, sorted from big to small}
     void askInsert(Quote quote1); //{insert into ask list, sorted from small to big};
-    void setThisPrice()
-    {
-        m_thisPrice = m_ask.begin();
-    }
 
     //void bid_delete(Price);
     //void ask_delete(Price);

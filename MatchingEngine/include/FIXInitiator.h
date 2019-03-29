@@ -33,22 +33,14 @@
 
 class FIXInitiator : public FIX::Application,
                      public FIX::MessageCracker {
-public:
+private:
     static std::string s_senderID;
     static std::string s_targetID;
 
-    ~FIXInitiator() override;
-
-    static FIXInitiator* getInstance();
-
-    void connectDatafeedEngine(const std::string& configFile);
-    void disconnectDatafeedEngine();
-
-    void sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
-    void sendMarketDataRequest();
-
-    void sendExecutionReport(action& report);
-    void storeOrder(Quote& order);
+    // DO NOT change order of these unique_ptrs:
+    std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
+    std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
+    std::unique_ptr<FIX::Initiator> m_initiatorPtr;
 
 private:
     FIXInitiator() = default;
@@ -64,8 +56,20 @@ private:
     void onMessage(const FIX50SP2::News&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::Quote&, const FIX::SessionID&) override;
 
-    // DO NOT change order of these unique_ptrs:
-    std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
-    std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
-    std::unique_ptr<FIX::Initiator> m_initiatorPtr;
+public:
+    ~FIXInitiator() override;
+
+    static FIXInitiator* getInstance();
+
+    void connectDatafeedEngine(const std::string& configFile);
+    void disconnectDatafeedEngine();
+
+    void sendSecurityList(const std::string& requestID,
+        const boost::posix_time::ptime& startTime,
+        const boost::posix_time::ptime& endTime,
+        const std::vector<std::string>& symbols);
+    void sendMarketDataRequest();
+
+    void sendExecutionReport(action& report);
+    void storeOrder(Quote& order);
 };

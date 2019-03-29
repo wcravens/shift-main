@@ -11,8 +11,8 @@
 class Newbook {
 public:
     Newbook();
-    Newbook(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp& _utctime);
-    Newbook(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp& _utctime);
+    Newbook(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp& _time);
+    Newbook(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp& _time);
     Newbook(const Newbook& _newbook);
     void store();
     bool empty();
@@ -33,5 +33,5 @@ private:
     double m_price;
     int m_size;
     std::string m_destination;
-    FIX::UtcTimeStamp m_utcTime;
+    FIX::UtcTimeStamp m_time;
 };

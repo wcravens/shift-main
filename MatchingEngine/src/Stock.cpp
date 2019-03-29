@@ -7,13 +7,13 @@
 Stock::Stock() {}
 
 Stock::Stock(std::string _name)
+    : m_name(std::move(_name))
 {
-    m_name = _name;
 }
 
 Stock::Stock(const Stock& _stock)
+    : m_name(_stock.m_name)
 {
-    m_name = _stock.m_name;
 }
 
 Stock::~Stock() {}
@@ -73,7 +73,7 @@ bool Stock::getNewQuote(Quote& quote)
 
 void Stock::setStockname(std::string _name)
 {
-    m_name = _name;
+    m_name = std::move(_name);
 }
 
 std::string Stock::getStockname()
@@ -115,8 +115,8 @@ void Stock::execute(int size1, Quote& newquote, char decision1, std::string dest
         decision1,
         destination1,
         utc_now,
-        m_thisQuote->gettime(),
-        newquote.gettime());
+        m_thisQuote->getTime(),
+        newquote.getTime());
 
     actions.push_back(act);
     //level();
@@ -149,8 +149,8 @@ void Stock::executeGlobal(int size1, Quote& newquote, char decision1, std::strin
         decision1,
         destination1,
         utc_now,
-        m_thisGlobal->gettime(),
-        newquote.gettime());
+        m_thisGlobal->getTime(),
+        newquote.getTime());
 
     actions.push_back(act);
     //level();

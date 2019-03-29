@@ -17,12 +17,21 @@ private:
     std::string m_recordID;
 
 public:
-    RawData()
-    {
-    }
+    RawData() {}
+
+    ~RawData() {}
 
     // Quote
-    RawData(std::string ticker, std::string dateTime, std::string orderType, std::string buyerID, double bidPrice, int bidSize, std::string sellerID, double offerPrice, int offerSize, std::string recordID)
+    RawData(std::string ticker,
+        std::string dateTime,
+        std::string orderType,
+        std::string buyerID,
+        double bidPrice,
+        int bidSize,
+        std::string sellerID,
+        double offerPrice,
+        int offerSize,
+        std::string recordID)
         : m_ticker(std::move(ticker))
         , m_dateTime(std::move(dateTime))
         , m_orderType(std::move(orderType))
@@ -37,7 +46,16 @@ public:
     }
 
     // Trade
-    RawData(std::string ticker, std::string dateTime, std::string orderType, std::string buyerID, double bidPrice, int bidSize, std::string sellerID, double offerPrice, int offerSize, std::string recordID)
+    RawData(std::string ticker,
+        std::string dateTime,
+        std::string orderType,
+        std::string buyerID,
+        double bidPrice,
+        int bidSize,
+        std::string sellerID,
+        double offerPrice,
+        int offerSize,
+        std::string recordID)
         : m_ticker(std::move(ticker))
         , m_dateTime(std::move(dateTime))
         , m_orderType(std::move(orderType))

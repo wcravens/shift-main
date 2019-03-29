@@ -16,11 +16,19 @@ private:
     std::string m_time;
 
 public:
-    Report()
-    {
-    }
+    Report() {}
 
-    Report(std::string orderID, std::string clientID, std::string ticker, double price, char orderType, char status, int executedQuantity, int remainingQuantity, std::string time)
+    ~Report() {}
+
+    Report(std::string orderID,
+        std::string clientID,
+        std::string ticker,
+        double price,
+        char orderType,
+        char status,
+        int executedQuantity,
+        int remainingQuantity,
+        std::string time)
         : m_orderID(std::move(orderID))
         , m_clientID(std::move(clientID))
         , m_ticker(std::move(ticker))
@@ -33,7 +41,11 @@ public:
     {
     }
 
-    Report(std::string orderID, char status, int executedQuantity, int remainingQuantity, std::string time) // For partially filled
+    Report(std::string orderID,
+        char status,
+        int executedQuantity,
+        int remainingQuantity,
+        std::string time) // For partially filled
         : m_orderID(std::move(orderID))
         , m_status(status)
         , m_executedQuantity(executedQuantity)
@@ -45,10 +57,6 @@ public:
     Report(std::string orderID, char status) // For confirmed, canceled and filled
         : m_orderID(std::move(orderID))
         , m_status(status)
-    {
-    }
-
-    ~Report()
     {
     }
 

@@ -42,9 +42,8 @@ public:
         int _size,
         char _orderType);
 
-    Quote(const Quote& _newquote);
-
     Quote();
+    Quote(const Quote& _newquote);
     ~Quote();
 
     void operator=(const Quote& newquote);
@@ -65,7 +64,7 @@ public:
     void setSize(int size1);
     int getSize();
 
-    FIX::UtcTimeStamp gettime();
+    FIX::UtcTimeStamp getTime();
 
     void setOrderType(char ordertype1);
     char getOrderType();

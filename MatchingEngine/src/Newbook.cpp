@@ -20,14 +20,14 @@ Newbook::Newbook(char _book,
     std::string _symbol,
     double _price,
     int _size,
-    FIX::UtcTimeStamp& _utctime)
+    FIX::UtcTimeStamp& _time)
+    : m_book(_book)
+    , m_symbol(std::move(_symbol))
+    , m_price(_price)
+    , m_size(_size)
+    , m_destination("SHIFT")
+    , m_time(std::move(_time))
 {
-    m_book = _book;
-    m_symbol = _symbol;
-    m_price = _price;
-    m_size = _size;
-    m_destination = "SHIFT";
-    m_utcTime = _utctime;
 }
 
 /**
@@ -39,14 +39,14 @@ Newbook::Newbook(char _book,
     double _price,
     int _size,
     std::string _destination,
-    FIX::UtcTimeStamp& _utctime)
+    FIX::UtcTimeStamp& _time)
+    : m_book(_book)
+    , m_symbol(std::move(_symbol))
+    , m_price(_price)
+    , m_size(_size)
+    , m_destination(_destination)
+    , m_time(std::move(_time))
 {
-    m_book = _book;
-    m_symbol = _symbol;
-    m_price = _price;
-    m_size = _size;
-    m_destination = _destination;
-    m_utcTime = _utctime;
 }
 
 /**
@@ -54,13 +54,13 @@ Newbook::Newbook(char _book,
  * @param   the address of an exist Newbook object
  */
 Newbook::Newbook(const Newbook& _newbook)
+    : m_book(_newbook.m_book)
+    , m_symbol(_newbook.m_symbol)
+    , m_price(_newbook.m_price)
+    , m_size(_newbook.m_size)
+    , m_destination(_newbook.m_destination)
+    , m_time(_newbook.m_time)
 {
-    m_book = _newbook.m_book;
-    m_symbol = _newbook.m_symbol;
-    m_price = _newbook.m_price;
-    m_size = _newbook.m_size;
-    m_destination = _newbook.m_destination;
-    m_utcTime = _newbook.m_utcTime;
 }
 
 /**
@@ -106,7 +106,7 @@ void Newbook::copy(const Newbook& _newbook)
     m_price = _newbook.m_price;
     m_size = _newbook.m_size;
     m_destination = _newbook.m_destination;
-    m_utcTime = _newbook.m_utcTime;
+    m_time = _newbook.m_time;
 }
 
 /**
@@ -131,7 +131,7 @@ int Newbook::getSize() { return m_size; }
  * @brief   Getter function for the field of time.
  * @return  The time of the current order book object.
  */
-FIX::UtcTimeStamp Newbook::getUtcTime() { return m_utcTime; }
+FIX::UtcTimeStamp Newbook::getUtcTime() { return m_time; }
 
 /**
  * @brief   Getter function for the field of book.

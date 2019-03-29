@@ -32,21 +32,18 @@
 class FIXAcceptor
     : public FIX::Application,
       public FIX::MessageCracker {
-public:
+private:
     static std::string s_senderID;
 
-    ~FIXAcceptor() override;
+    std::set<std::string> m_symbols;
 
-    static FIXAcceptor* getInstance();
+    // Do NOT change order of these unique_ptrs:
+    std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
+    std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
+    std::unique_ptr<FIX::Acceptor> m_acceptorPtr;
 
-    void addSymbol(const std::string& symbol);
-    const std::set<std::string>& getSymbols() const;
-
-    void connectBrokerageCenter(const std::string& configFile);
-    void disconnectBrokerageCenter();
-
-    void sendOrderBookUpdate2All(Newbook& update);
-    void sendExecutionReport2All(action& report);
+    mutable std::mutex m_mtxTargetList;
+    std::unordered_set<std::string> m_targetList;
 
 private:
     FIXAcceptor() = default;
@@ -64,13 +61,17 @@ private:
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
 
-    std::set<std::string> m_symbols;
+public:
+    ~FIXAcceptor() override;
 
-    // Do NOT change order of these unique_ptrs:
-    std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
-    std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
-    std::unique_ptr<FIX::Acceptor> m_acceptorPtr;
+    static FIXAcceptor* getInstance();
 
-    mutable std::mutex m_mtxTargetList;
-    std::unordered_set<std::string> m_targetList;
+    void addSymbol(const std::string& symbol);
+    const std::set<std::string>& getSymbols() const;
+
+    void connectBrokerageCenter(const std::string& configFile);
+    void disconnectBrokerageCenter();
+
+    void sendOrderBookUpdate2All(Newbook& update);
+    void sendExecutionReport2All(action& report);
 };
