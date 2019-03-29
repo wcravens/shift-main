@@ -10,5 +10,5 @@
 </div>
 <div class="notselectable">
     <font class="grey" size="-2" >Relative to open price. Market open. Simulation time: </font>
-    <font id="last_trade_time" class="grey" size="-2" ></font>
+    <font id="simulation_time" class="grey" size="-2" ></font>
 </div>
