@@ -131,17 +131,20 @@ void CandlestickData::process()
         m_transacBuff.pop();
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
-        const auto lastSimulTime = transac.simulationTime.getTimeT(); // simulTime in nano-seconds => in seconds; == tick history start timepoint + elapsed simulation duration; see MatchingEngine/src/globalvariables.cpp for the details.
+        const auto lastSimulTime = transac.simulationTime.getTimeT(); // simulTime in nano-seconds => in seconds; == tick history start timepoint + elapsed simulation duration; see MatchingEngine/src/TimeSetting.cpp for the details.
 
-        if (std::time_t{} == m_lastOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup status ?
+        if (std::time_t{} == m_lastOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup state ?
             m_symbol = std::move(transac.symbol);
+
             m_lastPrice
                 = m_lastOpenPrice
                 = m_lastClosePrice
                 = m_lastHighPrice
                 = m_lastLowPrice
                 = transac.price;
+
             m_lastOpenTime = lastSimulTime;
+
             continue;
         }
 
@@ -167,8 +170,8 @@ void CandlestickData::process()
         }
 
         m_lastClosePrice = m_lastPrice = transac.price;
-        m_lastHighPrice = std::max(m_lastPrice, m_lastHighPrice); // max
-        m_lastLowPrice = std::min(m_lastPrice, m_lastLowPrice); // min
+        m_lastHighPrice = std::max(m_lastPrice, m_lastHighPrice);
+        m_lastLowPrice = std::min(m_lastPrice, m_lastLowPrice);
     }
 }
 
