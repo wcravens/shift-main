@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "Action.h"
 #include "Newbook.h"
 #include "QuoteConfirm.h"
-#include "action.h"
 
 #include <mutex>
 #include <set>
@@ -73,5 +73,5 @@ public:
     void disconnectBrokerageCenter();
 
     void sendOrderBookUpdate2All(Newbook& update);
-    void sendExecutionReport2All(action& report);
+    void sendExecutionReport2All(Action& report);
 };

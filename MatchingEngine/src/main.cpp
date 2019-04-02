@@ -1,7 +1,7 @@
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
 #include "Stock.h"
-#include "globalvariables.h"
+#include "TimeSetting.h"
 #include "threadFunction.h"
 
 #include <atomic>
@@ -110,7 +110,7 @@ int main(int ac, char* av[])
         date = params.simulationDate;
     }
 
-    timepara.initiate(date, stime, experiment_speed);
+    globalTimeSetting.initiate(date, stime, experiment_speed);
     boost::posix_time::ptime pt_start(boost::posix_time::time_from_string(date + " " + stime));
     boost::posix_time::ptime pt_end(boost::posix_time::time_from_string(date + " " + etime));
     std::string requestID = date + " :: " + std::to_string(symbols.size());
@@ -173,7 +173,7 @@ int main(int ac, char* av[])
          << endl;
     // this_thread::sleep_for(120s);
     // Get the time offset in current day
-    timepara.setStartTime();
+    globalTimeSetting.setStartTime();
     //begin the matching thread
     int stocknumber = stocklist.size();
     cout << "Total " << stocknumber << " stocks are ready in the Matching Engine"

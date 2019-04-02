@@ -1,7 +1,7 @@
 #include "FIXInitiator.h"
 
 #include "Stock.h"
-#include "globalvariables.h"
+#include "TimeSetting.h"
 
 #include <atomic>
 #include <cassert>
@@ -145,7 +145,7 @@ void FIXInitiator::sendMarketDataRequest()
 /**
  * @brief Send execution report to Datafeed Engine
  */
-void FIXInitiator::sendExecutionReport(action& report)
+void FIXInitiator::sendExecutionReport(Action& report)
 {
     FIX::Message message;
 
@@ -389,7 +389,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     Quote newQuote{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()) / 100, pBuyerID->getValue(), pTransactTime->getValue() };
     newQuote.setOrderType('7'); // Update as "trade" from Global
 
-    long mili = timepara.pastMilli(pTransactTime->getValue());
+    long mili = globalTimeSetting.pastMilli(pTransactTime->getValue());
     newQuote.setMilli(mili);
 
     if (ordType == 0) { // Quote

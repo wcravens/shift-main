@@ -28,28 +28,28 @@ set(CONFIGDEFAULT
 )
 
 set(INCLUDE
-    ${PROJECT_SOURCE_DIR}/include/action.h
+    ${PROJECT_SOURCE_DIR}/include/Action.h
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
     ${PROJECT_SOURCE_DIR}/include/FIXInitiator.h
-    ${PROJECT_SOURCE_DIR}/include/globalvariables.h
     ${PROJECT_SOURCE_DIR}/include/Newbook.h
     ${PROJECT_SOURCE_DIR}/include/Price.h
     ${PROJECT_SOURCE_DIR}/include/Quote.h
     ${PROJECT_SOURCE_DIR}/include/QuoteConfirm.h
     ${PROJECT_SOURCE_DIR}/include/Stock.h
     ${PROJECT_SOURCE_DIR}/include/threadFunction.h
+    ${PROJECT_SOURCE_DIR}/include/TimeSetting.h
 )
 
 set(SRC
     ${PROJECT_SOURCE_DIR}/src/FIXAcceptor.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp
-    ${PROJECT_SOURCE_DIR}/src/globalvariables.cpp
     ${PROJECT_SOURCE_DIR}/src/main.cpp
     ${PROJECT_SOURCE_DIR}/src/Newbook.cpp
     ${PROJECT_SOURCE_DIR}/src/Price.cpp
     ${PROJECT_SOURCE_DIR}/src/Quote.cpp
     ${PROJECT_SOURCE_DIR}/src/Stock.cpp
     ${PROJECT_SOURCE_DIR}/src/threadFunction.cpp
+    ${PROJECT_SOURCE_DIR}/src/TimeSetting.cpp
 )
 
 set(OTHER

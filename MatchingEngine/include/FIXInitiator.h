@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "Action.h"
 #include "Quote.h"
-#include "action.h"
 
 #include <string>
 #include <vector>
@@ -70,6 +70,6 @@ public:
         const std::vector<std::string>& symbols);
     void sendMarketDataRequest();
 
-    void sendExecutionReport(action& report);
+    void sendExecutionReport(Action& report);
     void storeOrder(Quote& order);
 };

@@ -1,9 +1,9 @@
 #pragma once
 
+#include "Action.h"
 #include "Newbook.h"
 #include "Price.h"
 #include "Quote.h"
-#include "action.h"
 
 #include <list>
 #include <mutex>
@@ -65,7 +65,7 @@ private: // never used
 public:
     //order book update queue
     std::list<Newbook> orderbookupdate;
-    std::list<action> actions;
+    std::list<Action> actions;
 
     Stock();
     Stock(const Stock& _stock);

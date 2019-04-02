@@ -1,7 +1,7 @@
 #include "FIXAcceptor.h"
 
 #include "Stock.h"
-#include "globalvariables.h"
+#include "TimeSetting.h"
 
 #include <atomic>
 #include <cassert>
@@ -129,7 +129,7 @@ void FIXAcceptor::sendOrderBookUpdate2All(Newbook& update)
 /**
  * @brief Sending execution report to brokers
  */
-void FIXAcceptor::sendExecutionReport2All(action& report)
+void FIXAcceptor::sendExecutionReport2All(Action& report)
 {
     FIX::Message message;
 
@@ -325,8 +325,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     message.getGroup(1, *pIDGroup);
     pIDGroup->get(*pClientID);
 
-    long milli = timepara.pastMilli();
-    FIX::UtcTimeStamp utcNow = timepara.simulationTimestamp();
+    long milli = globalTimeSetting.pastMilli();
+    FIX::UtcTimeStamp utcNow = globalTimeSetting.simulationTimestamp();
 
     Quote quote{ pSymbol->getValue(), pClientID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue(), utcNow };
     quote.setMilli(milli);

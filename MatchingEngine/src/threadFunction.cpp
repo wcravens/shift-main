@@ -1,6 +1,6 @@
 #include "threadFunction.h"
 
-#include "globalvariables.h"
+#include "TimeSetting.h"
 
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
@@ -177,8 +177,8 @@ void createStockMarket(std::string symbol)
                 //stock->second.showglobal();
                 if (newquote.getSize() != 0) {
                     //decision 5 means this is a trade update from TRTH
-                    auto utc_now = timepara.simulationTimestamp();
-                    action newaction(
+                    auto utc_now = globalTimeSetting.simulationTimestamp();
+                    Action newaction(
                         newquote.getStockname(),
                         newquote.getPrice(),
                         newquote.getSize(),
@@ -238,7 +238,7 @@ void createStockMarket(std::string symbol)
             }
             }
 
-            for_each(stock->second.actions.begin(), stock->second.actions.end(), [](action& report) {
+            for_each(stock->second.actions.begin(), stock->second.actions.end(), [](Action& report) {
                 // send execution report to DatafeedEngine
                 // decision == 5 means this is a trade update from TRTH -> no need to send it to DatafeedEngine
                 if (report.decision != '5') {
