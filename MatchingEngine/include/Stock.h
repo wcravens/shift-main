@@ -42,37 +42,17 @@ private:
     std::list<Quote>::iterator m_thisQuote;
     std::list<Quote>::iterator m_thisGlobal;
 
-private: // never used
-    std::string levels_begin()
-    {
-        std::string findlevel = *m_levels.begin();
-        return findlevel;
-    }
-
-    void levels_popfront()
-    {
-        m_levels.pop_front();
-    }
-
-    bool levels_empty()
-    {
-        if (m_levels.empty())
-            return true;
-        else
-            return false;
-    }
-
 public:
     //order book update queue
     std::list<Newbook> orderbookupdate;
     std::list<Action> actions;
 
     Stock();
-    Stock(const Stock& _stock);
-    Stock(std::string name1);
+    Stock(const Stock& stock);
+    Stock(std::string name);
     ~Stock();
 
-    void setStockname(std::string name1);
+    void setStockname(std::string name);
     std::string getStockname();
 
     void setThisPrice()
@@ -92,19 +72,19 @@ public:
     void updateGlobalBid(Quote newquote);
     void updateGlobalAsk(Quote newquote);
 
-    void execute(int size1, Quote& quote2, char decision1, std::string destination1);
+    void execute(int size, Quote& quote, char decision, std::string destination);
     //decision, '2' means this is a trade record, '4' means cancel record;
-    void executeGlobal(int size1, Quote& quote2, char decision1, std::string destination1);
-    void doLimitBuy(Quote& newquote, std::string destination1);
+    void executeGlobal(int size, Quote& quote, char decision, std::string destination);
+    void doLimitBuy(Quote& newquote, std::string destination);
     //destination, "SHIFT" or thisquote.destination in global order book;
-    void doMarketBuy(Quote& newquote, std::string destination1);
-    void doCancelAsk(Quote& newquote, std::string destination1);
-    void doLimitSell(Quote& newquote, std::string destination1);
-    void doMarketSell(Quote& newquote, std::string destination1);
-    void doCancelBid(Quote& newquote, std::string destination1);
+    void doMarketBuy(Quote& newquote, std::string destination);
+    void doCancelAsk(Quote& newquote, std::string destination);
+    void doLimitSell(Quote& newquote, std::string destination);
+    void doMarketSell(Quote& newquote, std::string destination);
+    void doCancelBid(Quote& newquote, std::string destination);
 
-    void bidInsert(Quote quote1); //{insert into bid list, sorted from big to small}
-    void askInsert(Quote quote1); //{insert into ask list, sorted from small to big};
+    void bidInsert(Quote quote); //{insert into bid list, sorted from big to small}
+    void askInsert(Quote quote); //{insert into ask list, sorted from small to big};
 
     //void bid_delete(Price);
     //void ask_delete(Price);
@@ -113,15 +93,15 @@ public:
 
     void showGlobal();
 
-    void bookUpdate(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp _utctime);
-    void bookUpdate(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp _utctime);
+    void bookUpdate(char book, std::string symbol, double price, int size, FIX::UtcTimeStamp utctime);
+    void bookUpdate(char book, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp utctime);
 
     // hiukin
     // operation for local order
-    void doLocalLimitBuy(Quote& newquote, std::string destination1);
-    void doLocalLimitSell(Quote& newquote, std::string destination1);
-    void doLocalMarketBuy(Quote& newquote, std::string destination1);
-    void doLocalMarketSell(Quote& newquote, std::string destination1);
+    void doLocalLimitBuy(Quote& newquote, std::string destination);
+    void doLocalLimitSell(Quote& newquote, std::string destination);
+    void doLocalMarketBuy(Quote& newquote, std::string destination);
+    void doLocalMarketSell(Quote& newquote, std::string destination);
 
     std::string now_str();
 };

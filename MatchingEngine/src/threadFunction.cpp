@@ -16,7 +16,12 @@ using namespace std::chrono_literals;
 extern std::atomic<bool> timeout;
 extern std::map<std::string, Stock> stocklist;
 
-bool fileConfig_mode(std::string file_address, std::string& date, std::string& stime, std::string& etime, int& experiment_speed, std::vector<std::string>& symbols)
+bool fileConfigMode(std::string file_address,
+    std::string& date,
+    std::string& stime,
+    std::string& etime,
+    int& experiment_speed,
+    std::vector<std::string>& symbols)
 {
     std::ifstream fin(file_address, std::ios_base::in);
     if (fin.is_open()) {
@@ -51,7 +56,11 @@ bool fileConfig_mode(std::string file_address, std::string& date, std::string& s
     return true;
 }
 
-void inputConfig_mode(std::string& date, std::string& stime, std::string& etime, int& experiment_speed, std::vector<std::string>& symbols)
+void inputConfigMode(std::string& date,
+    std::string& stime,
+    std::string& etime,
+    int& experiment_speed,
+    std::vector<std::string>& symbols)
 {
     cout << "Please input simulation date (format: yyyy-mm-dd, e.g 2018-12-17):" << endl;
     cin >> date;

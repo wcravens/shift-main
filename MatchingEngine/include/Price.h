@@ -21,16 +21,16 @@ public:
     Price();
     ~Price();
 
-    void setPrice(double _price);
+    void setPrice(double price);
     double getPrice();
 
-    void setSize(int _size);
+    void setSize(int size);
     int getSize();
 
     Iterator begin() { return m_quotes.begin(); }
     Iterator end() { return m_quotes.end(); }
-    Iterator erase(Iterator _iter) { return m_quotes.erase(_iter); }
+    Iterator erase(Iterator iter) { return m_quotes.erase(iter); }
     bool empty() { return m_quotes.empty(); }
-    void push_back(const Quote& _quote) { m_quotes.push_back(_quote); }
-    void push_front(const Quote& _quote) { m_quotes.push_front(_quote); }
+    void push_back(const Quote& quote) { m_quotes.push_back(quote); }
+    void push_front(const Quote& quote) { m_quotes.push_front(quote); }
 };

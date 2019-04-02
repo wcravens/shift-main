@@ -19,9 +19,9 @@ Price::~Price() {}
  * @param price to be set.
  * @return None.
  */
-void Price::setPrice(double _price)
+void Price::setPrice(double price)
 {
-    m_price = _price;
+    m_price = price;
 }
 
 /**
@@ -39,9 +39,9 @@ double Price::getPrice()
  * @param size to be set.
  * @return None.
  */
-void Price::setSize(int _size)
+void Price::setSize(int size)
 {
-    m_size = _size;
+    m_size = size;
 }
 
 /**

@@ -11,13 +11,13 @@
 class Newbook {
 public:
     Newbook();
-    Newbook(char _book, std::string _symbol, double _price, int _size, FIX::UtcTimeStamp& _time);
-    Newbook(char _book, std::string _symbol, double _price, int _size, std::string _destination, FIX::UtcTimeStamp& _time);
-    Newbook(const Newbook& _newbook);
+    Newbook(char book, std::string symbol, double price, int size, FIX::UtcTimeStamp& time);
+    Newbook(char book, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp& time);
+    Newbook(const Newbook& other);
     void store();
     bool empty();
-    void get(Newbook& _newbook);
-    void copy(const Newbook& _newbook);
+    void get(Newbook& other);
+    void copy(const Newbook& other);
     std::string getSymbol();
     double getPrice();
     int getSize();

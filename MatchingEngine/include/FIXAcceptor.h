@@ -32,6 +32,20 @@
 class FIXAcceptor
     : public FIX::Application,
       public FIX::MessageCracker {
+public:
+    ~FIXAcceptor() override;
+
+    static FIXAcceptor* getInstance();
+
+    void addSymbol(const std::string& symbol);
+    const std::set<std::string>& getSymbols() const;
+
+    void connectBrokerageCenter(const std::string& configFile);
+    void disconnectBrokerageCenter();
+
+    void sendOrderBookUpdate2All(Newbook& update);
+    void sendExecutionReport2All(Action& report);
+
 private:
     static std::string s_senderID;
 
@@ -60,18 +74,4 @@ private:
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
-
-public:
-    ~FIXAcceptor() override;
-
-    static FIXAcceptor* getInstance();
-
-    void addSymbol(const std::string& symbol);
-    const std::set<std::string>& getSymbols() const;
-
-    void connectBrokerageCenter(const std::string& configFile);
-    void disconnectBrokerageCenter();
-
-    void sendOrderBookUpdate2All(Newbook& update);
-    void sendExecutionReport2All(Action& report);
 };

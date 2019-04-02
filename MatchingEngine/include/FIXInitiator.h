@@ -33,6 +33,23 @@
 
 class FIXInitiator : public FIX::Application,
                      public FIX::MessageCracker {
+public:
+    ~FIXInitiator() override;
+
+    static FIXInitiator* getInstance();
+
+    void connectDatafeedEngine(const std::string& configFile);
+    void disconnectDatafeedEngine();
+
+    void sendSecurityList(const std::string& requestID,
+        const boost::posix_time::ptime& startTime,
+        const boost::posix_time::ptime& endTime,
+        const std::vector<std::string>& symbols);
+    void sendMarketDataRequest();
+
+    void sendExecutionReport(Action& report);
+    void storeOrder(Quote& order);
+
 private:
     static std::string s_senderID;
     static std::string s_targetID;
@@ -55,21 +72,4 @@ private:
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::News&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::Quote&, const FIX::SessionID&) override;
-
-public:
-    ~FIXInitiator() override;
-
-    static FIXInitiator* getInstance();
-
-    void connectDatafeedEngine(const std::string& configFile);
-    void disconnectDatafeedEngine();
-
-    void sendSecurityList(const std::string& requestID,
-        const boost::posix_time::ptime& startTime,
-        const boost::posix_time::ptime& endTime,
-        const std::vector<std::string>& symbols);
-    void sendMarketDataRequest();
-
-    void sendExecutionReport(Action& report);
-    void storeOrder(Quote& order);
 };

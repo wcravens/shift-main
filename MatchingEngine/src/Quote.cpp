@@ -5,21 +5,21 @@
  * @param stockname, traderID, orderID, price, size, time, orderType
  * @return None.
  */
-Quote::Quote(std::string _stockname,
-    std::string _traderID,
-    std::string _orderID,
-    double _price,
-    int _size,
-    char _orderType,
-    FIX::UtcTimeStamp _time)
-    : m_stockname(std::move(_stockname))
-    , m_traderID(std::move(_traderID))
-    , m_orderID(std::move(_orderID))
-    , m_price(_price)
-    , m_size(_size)
-    , m_orderType(_orderType)
+Quote::Quote(std::string stockname,
+    std::string traderID,
+    std::string orderID,
+    double price,
+    int size,
+    char orderType,
+    FIX::UtcTimeStamp time)
+    : m_stockname(std::move(stockname))
+    , m_traderID(std::move(traderID))
+    , m_orderID(std::move(orderID))
+    , m_price(price)
+    , m_size(size)
+    , m_orderType(orderType)
     , m_destination("SHIFT")
-    , m_time(std::move(_time))
+    , m_time(std::move(time))
 {
 }
 
@@ -28,19 +28,19 @@ Quote::Quote(std::string _stockname,
  * @param stockname, price, size, destination, time
  * @return None.
  */
-Quote::Quote(std::string _stockname,
-    double _price,
-    int _size,
-    std::string _destination,
-    FIX::UtcTimeStamp _time)
-    : m_stockname(std::move(_stockname))
+Quote::Quote(std::string stockname,
+    double price,
+    int size,
+    std::string destination,
+    FIX::UtcTimeStamp time)
+    : m_stockname(std::move(stockname))
     , m_traderID("TR")
     , m_orderID("Thomson")
-    , m_price(_price)
-    , m_size(_size)
+    , m_price(price)
+    , m_size(size)
     , m_orderType('1')
-    , m_destination(std::move(_destination))
-    , m_time(std::move(_time))
+    , m_destination(std::move(destination))
+    , m_time(std::move(time))
 {
 }
 
@@ -49,18 +49,18 @@ Quote::Quote(std::string _stockname,
  * @param stockname, traderID, orderID, price, size, orderType
  * @return None.
  */
-Quote::Quote(std::string _stockname,
-    std::string _traderID,
-    std::string _orderID,
-    double _price,
-    int _size,
-    char _orderType)
-    : m_stockname(std::move(_stockname))
-    , m_traderID(std::move(_traderID))
-    , m_orderID(std::move(_orderID))
-    , m_price(_price)
-    , m_size(_size)
-    , m_orderType(_orderType)
+Quote::Quote(std::string stockname,
+    std::string traderID,
+    std::string orderID,
+    double price,
+    int size,
+    char orderType)
+    : m_stockname(std::move(stockname))
+    , m_traderID(std::move(traderID))
+    , m_orderID(std::move(orderID))
+    , m_price(price)
+    , m_size(size)
+    , m_orderType(orderType)
     , m_destination("SHIFT")
 {
 }
@@ -70,16 +70,16 @@ Quote::Quote(std::string _stockname,
  * @param the address of an exist Quote object
  * @return None.
  */
-Quote::Quote(const Quote& newquote)
-    : m_stockname(newquote.m_stockname)
-    , m_traderID(newquote.m_traderID)
-    , m_orderID(newquote.m_orderID)
-    , m_milli(newquote.m_milli)
-    , m_price(newquote.m_price)
-    , m_size(newquote.m_size)
-    , m_orderType(newquote.m_orderType)
-    , m_destination(newquote.m_destination)
-    , m_time(newquote.m_time)
+Quote::Quote(const Quote& other)
+    : m_stockname(other.m_stockname)
+    , m_traderID(other.m_traderID)
+    , m_orderID(other.m_orderID)
+    , m_milli(other.m_milli)
+    , m_price(other.m_price)
+    , m_size(other.m_size)
+    , m_orderType(other.m_orderType)
+    , m_destination(other.m_destination)
+    , m_time(other.m_time)
 {
 }
 
@@ -102,17 +102,17 @@ Quote::~Quote() {}
  * @param the address of an exist Quote object to be compared
  * @return None.
  */
-void Quote::operator=(const Quote& newquote)
+void Quote::operator=(const Quote& other)
 {
-    m_stockname = newquote.m_stockname;
-    m_traderID = newquote.m_traderID;
-    m_orderID = newquote.m_orderID;
-    m_milli = newquote.m_milli;
-    m_price = newquote.m_price;
-    m_size = newquote.m_size;
-    m_orderType = newquote.m_orderType;
-    m_destination = newquote.m_destination;
-    m_time = newquote.m_time;
+    m_stockname = other.m_stockname;
+    m_traderID = other.m_traderID;
+    m_orderID = other.m_orderID;
+    m_milli = other.m_milli;
+    m_price = other.m_price;
+    m_size = other.m_size;
+    m_orderType = other.m_orderType;
+    m_destination = other.m_destination;
+    m_time = other.m_time;
 }
 
 /**
@@ -120,9 +120,9 @@ void Quote::operator=(const Quote& newquote)
  * @param stockname to be set.
  * @return None.
  */
-void Quote::setStockname(std::string _stockname)
+void Quote::setStockname(std::string stockname)
 {
-    m_stockname = std::move(_stockname);
+    m_stockname = std::move(stockname);
 }
 
 /**
@@ -160,9 +160,9 @@ std::string Quote::getOrderID()
  * @param price to be set.
  * @return None.
  */
-void Quote::setPrice(double _price)
+void Quote::setPrice(double price)
 {
-    m_price = _price;
+    m_price = price;
 }
 
 /**
@@ -180,9 +180,9 @@ double Quote::getPrice()
  * @param size to be set.
  * @return None.
  */
-void Quote::setSize(int _size)
+void Quote::setSize(int size)
 {
-    m_size = _size;
+    m_size = size;
 }
 
 /**
@@ -210,9 +210,9 @@ FIX::UtcTimeStamp Quote::getTime()
  * @param orderType to be set.
  * @return None.
  */
-void Quote::setOrderType(char _orderType)
+void Quote::setOrderType(char orderType)
 {
-    m_orderType = _orderType;
+    m_orderType = orderType;
 }
 
 /**
@@ -230,9 +230,9 @@ char Quote::getOrderType()
  * @param mili to be set.
  * @return None.
  */
-void Quote::setMilli(long _milli)
+void Quote::setMilli(long milli)
 {
-    m_milli = _milli;
+    m_milli = milli;
 }
 
 /**
@@ -250,9 +250,9 @@ long Quote::getMilli()
  * @param destination to be set.
  * @return None.
  */
-void Quote::setDestination(std::string _destination)
+void Quote::setDestination(std::string destination)
 {
-    m_destination = std::move(_destination);
+    m_destination = std::move(destination);
 }
 
 /**

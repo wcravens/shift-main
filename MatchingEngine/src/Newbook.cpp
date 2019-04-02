@@ -16,17 +16,17 @@ Newbook::Newbook() {}
  * @brief   Constructor for the Newbook class.
  * @param   book, symbol, price, size, time
  */
-Newbook::Newbook(char _book,
-    std::string _symbol,
-    double _price,
-    int _size,
-    FIX::UtcTimeStamp& _time)
-    : m_book(_book)
-    , m_symbol(std::move(_symbol))
-    , m_price(_price)
-    , m_size(_size)
+Newbook::Newbook(char book,
+    std::string symbol,
+    double price,
+    int size,
+    FIX::UtcTimeStamp& time)
+    : m_book(book)
+    , m_symbol(std::move(symbol))
+    , m_price(price)
+    , m_size(size)
     , m_destination("SHIFT")
-    , m_time(std::move(_time))
+    , m_time(std::move(time))
 {
 }
 
@@ -34,18 +34,18 @@ Newbook::Newbook(char _book,
  * @brief   Constructor for the Newbook class.
  * @param   book, symbol, price, size, time, destination
  */
-Newbook::Newbook(char _book,
-    std::string _symbol,
-    double _price,
-    int _size,
-    std::string _destination,
-    FIX::UtcTimeStamp& _time)
-    : m_book(_book)
-    , m_symbol(std::move(_symbol))
-    , m_price(_price)
-    , m_size(_size)
-    , m_destination(_destination)
-    , m_time(std::move(_time))
+Newbook::Newbook(char book,
+    std::string symbol,
+    double price,
+    int size,
+    std::string destination,
+    FIX::UtcTimeStamp& time)
+    : m_book(book)
+    , m_symbol(std::move(symbol))
+    , m_price(price)
+    , m_size(size)
+    , m_destination(destination)
+    , m_time(std::move(time))
 {
 }
 
@@ -53,13 +53,13 @@ Newbook::Newbook(char _book,
  * @brief   Constructor for the Newbook class.
  * @param   the address of an exist Newbook object
  */
-Newbook::Newbook(const Newbook& _newbook)
-    : m_book(_newbook.m_book)
-    , m_symbol(_newbook.m_symbol)
-    , m_price(_newbook.m_price)
-    , m_size(_newbook.m_size)
-    , m_destination(_newbook.m_destination)
-    , m_time(_newbook.m_time)
+Newbook::Newbook(const Newbook& other)
+    : m_book(other.m_book)
+    , m_symbol(other.m_symbol)
+    , m_price(other.m_price)
+    , m_size(other.m_size)
+    , m_destination(other.m_destination)
+    , m_time(other.m_time)
 {
 }
 
@@ -79,19 +79,19 @@ void Newbook::store()
 bool Newbook::empty()
 {
     std::lock_guard<std::mutex> lock(nameNewbook::newbookMu);
-    bool _empty = nameNewbook::bookupdate.empty();
-    return _empty;
+    bool empty = nameNewbook::bookupdate.empty();
+    return empty;
 }
 
 /**
  * @brief   Get the Newbook object from specific address.
  * @param   An exist Newbook object.
  */
-void Newbook::get(Newbook& _newbook)
+void Newbook::get(Newbook& other)
 {
     std::lock_guard<std::mutex> lock(nameNewbook::newbookMu);
     m_listBegin = nameNewbook::bookupdate.begin();
-    _newbook.copy(*m_listBegin);
+    other.copy(*m_listBegin);
     nameNewbook::bookupdate.pop_front();
 }
 
@@ -99,14 +99,14 @@ void Newbook::get(Newbook& _newbook)
  * @brief   Make a copy of an existing Newbook object.
  * @param   An exist Newbook object.
  */
-void Newbook::copy(const Newbook& _newbook)
+void Newbook::copy(const Newbook& other)
 {
-    m_book = _newbook.m_book;
-    m_symbol = _newbook.m_symbol;
-    m_price = _newbook.m_price;
-    m_size = _newbook.m_size;
-    m_destination = _newbook.m_destination;
-    m_time = _newbook.m_time;
+    m_book = other.m_book;
+    m_symbol = other.m_symbol;
+    m_price = other.m_price;
+    m_size = other.m_size;
+    m_destination = other.m_destination;
+    m_time = other.m_time;
 }
 
 /**

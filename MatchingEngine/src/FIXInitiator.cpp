@@ -160,11 +160,11 @@ void FIXInitiator::sendExecutionReport(Action& report)
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
     message.setField(FIX::OrdStatus(report.decision));
-    message.setField(FIX::Symbol(report.stockname));
+    message.setField(FIX::Symbol(report.stockName));
     message.setField(FIX::Side(report.orderType1));
     message.setField(FIX::OrdType(report.orderType2));
     message.setField(FIX::Price(report.price));
-    message.setField(FIX::EffectiveTime(report.exetime, 6));
+    message.setField(FIX::EffectiveTime(report.execTime, 6));
     message.setField(FIX::LastMkt(report.destination));
     message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
     message.setField(FIX::CumQty(report.size));

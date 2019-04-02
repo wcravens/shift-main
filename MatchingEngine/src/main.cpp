@@ -100,10 +100,10 @@ int main(int ac, char* av[])
     std::vector<std::string> symbols;
 
     if (!params.isManualInput) {
-        if (!fileConfig_mode(configfile, date, stime, etime, experiment_speed, symbols))
+        if (!fileConfigMode(configfile, date, stime, etime, experiment_speed, symbols))
             return -1; // system stop
     } else {
-        inputConfig_mode(date, stime, etime, experiment_speed, symbols);
+        inputConfigMode(date, stime, etime, experiment_speed, symbols);
     }
 
     if (!params.simulationDate.empty()) {

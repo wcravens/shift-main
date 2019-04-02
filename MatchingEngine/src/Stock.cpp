@@ -6,13 +6,13 @@
 
 Stock::Stock() {}
 
-Stock::Stock(std::string _name)
-    : m_name(std::move(_name))
+Stock::Stock(std::string name)
+    : m_name(std::move(name))
 {
 }
 
-Stock::Stock(const Stock& _stock)
-    : m_name(_stock.m_name)
+Stock::Stock(const Stock& stock)
+    : m_name(stock.m_name)
 {
 }
 
@@ -71,9 +71,9 @@ bool Stock::getNewQuote(Quote& quote)
     return good;
 }
 
-void Stock::setStockname(std::string _name)
+void Stock::setStockname(std::string name)
 {
-    m_name = std::move(_name);
+    m_name = std::move(name);
 }
 
 std::string Stock::getStockname()
@@ -500,28 +500,28 @@ void Stock::askInsert(Quote newquote)
 //////////////////////////////////
 //new order book update method
 //////////////////////////////////
-void Stock::bookUpdate(char _book,
-    std::string _symbol,
-    double _price,
-    int _size,
-    FIX::UtcTimeStamp _utctime)
+void Stock::bookUpdate(char book,
+    std::string symbol,
+    double price,
+    int size,
+    FIX::UtcTimeStamp utctime)
 {
-    Newbook _newbook(_book, _symbol, _price, _size, _utctime);
+    Newbook newbook(book, symbol, price, size, utctime);
     //_newbook.store();
-    orderbookupdate.push_back(_newbook);
+    orderbookupdate.push_back(newbook);
     //cout<<_newbook.getsymbol()<<"\t"<<_newbook.getPrice()<<"\t"<<_newbook.getSize()<<endl;
 }
 
-void Stock::bookUpdate(char _book,
-    std::string _symbol,
-    double _price,
-    int _size,
-    std::string _destination,
-    FIX::UtcTimeStamp _utctime)
+void Stock::bookUpdate(char book,
+    std::string symbol,
+    double price,
+    int size,
+    std::string destination,
+    FIX::UtcTimeStamp time)
 {
-    Newbook _newbook(_book, _symbol, _price, _size, _destination, _utctime);
+    Newbook newbook(book, symbol, price, size, destination, time);
     //_newbook.store();
-    orderbookupdate.push_back(_newbook);
+    orderbookupdate.push_back(newbook);
     //cout<<_newbook.getsymbol()<<"\t"<<_newbook.getPrice()<<"\t"<<_newbook.getSize()<<endl;
 }
 
@@ -536,21 +536,21 @@ void Stock::level()
        << "Local: "
        << ";";
     //std::cout<<"Local Ask :\t"<<name<<endl;
-    unsigned int _depth = m_ask.size();
-    _depth = m_depth > _depth ? _depth : m_depth;
+    unsigned int depth = m_ask.size();
+    depth = m_depth > depth ? depth : m_depth;
     m_thisPrice = m_ask.begin();
-    for (unsigned int i = 0; i < _depth; i++) {
+    for (unsigned int i = 0; i < depth; i++) {
         ss << m_thisPrice->getPrice() << "," << m_thisPrice->getSize() << ",";
         //std::cout<<m_thisPrice->getPrice()<<" , "<<m_thisPrice->getSize()<<" ; ";
         m_thisPrice++;
     }
     ss << ";";
     //std::cout<<endl;
-    _depth = m_bid.size();
-    _depth = m_depth > _depth ? _depth : m_depth;
+    depth = m_bid.size();
+    depth = m_depth > depth ? depth : m_depth;
     //std::cout<<"Local Bid :\t"<<name<<endl;
     m_thisPrice = m_bid.begin();
-    for (unsigned int i = 0; i < _depth; i++) {
+    for (unsigned int i = 0; i < depth; i++) {
         ss << m_thisPrice->getPrice() << "," << m_thisPrice->getSize() << ",";
         //std::cout<<m_thisPrice->getPrice()<<" , "<<m_thisPrice->getSize()<<" ; ";
         m_thisPrice++;
@@ -570,15 +570,15 @@ void Stock::showGlobal()
     std::string newlevel;
     std::stringstream ss;
 
-    unsigned int _depth = m_globalAsk.size();
-    _depth = m_depth > _depth ? _depth : m_depth;
+    unsigned int depth = m_globalAsk.size();
+    depth = m_depth > depth ? depth : m_depth;
 
     ss << simulationmilliseconds << ";"
        << "Global: "
        << ";";
     //std::cout<<"Global Ask :\t"<<name<<endl;
     m_thisGlobal = m_globalAsk.begin();
-    for (unsigned int i = 0; i < _depth; i++) {
+    for (unsigned int i = 0; i < depth; i++) {
         ss << m_thisGlobal->getPrice() << "," << m_thisGlobal->getSize() << "," << m_thisGlobal->getDestination() << ",";
         //std::cout<<m_thisGlobal->price<<" , "<<m_thisGlobal->size<<" , "<<m_thisGlobal->destination<<" ; ";
         m_thisGlobal++;
@@ -587,10 +587,10 @@ void Stock::showGlobal()
     //std::cout<<endl;
     //std::cout<<"Global Bid :\t"<<name<<endl;
 
-    _depth = m_globalBid.size();
-    _depth = m_depth > _depth ? _depth : m_depth;
+    depth = m_globalBid.size();
+    depth = m_depth > depth ? depth : m_depth;
     m_thisGlobal = m_globalBid.begin();
-    for (unsigned int i = 0; i < _depth; i++) {
+    for (unsigned int i = 0; i < depth; i++) {
         ss << m_thisGlobal->getPrice() << "," << m_thisGlobal->getSize() << "," << m_thisGlobal->getDestination() << ",";
         //std::cout<<m_thisGlobal->price<<" , "<<m_thisGlobal->size<<" , "<<m_thisGlobal->destination<<" ; ";
         m_thisGlobal++;

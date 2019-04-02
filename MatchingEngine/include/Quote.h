@@ -20,55 +20,55 @@ private:
 public:
     friend class Stock;
     //for the server to receive
-    Quote(std::string _stockname,
-        std::string _traderID,
-        std::string _orderID,
-        double _price,
-        int _size,
-        char _orderType,
-        FIX::UtcTimeStamp _time);
+    Quote(std::string stockname,
+        std::string traderID,
+        std::string orderID,
+        double price,
+        int size,
+        char orderType,
+        FIX::UtcTimeStamp time);
 
-    Quote(std::string _stockname,
-        double _price,
-        int _size,
-        std::string _destination,
-        FIX::UtcTimeStamp _time);
+    Quote(std::string stockname,
+        double price,
+        int size,
+        std::string destination,
+        FIX::UtcTimeStamp time);
 
     // for the client to send
-    Quote(std::string _stockname,
-        std::string _traderID,
-        std::string _orderID,
-        double _price,
-        int _size,
-        char _orderType);
+    Quote(std::string stockname,
+        std::string traderID,
+        std::string orderID,
+        double price,
+        int size,
+        char orderType);
 
     Quote();
-    Quote(const Quote& _newquote);
+    Quote(const Quote& newquote);
     ~Quote();
 
     void operator=(const Quote& newquote);
 
-    void setStockname(std::string name1);
+    void setStockname(std::string name);
     std::string getStockname();
 
     std::string getTraderID();
 
     std::string getOrderID();
 
-    void setMilli(long _mili);
+    void setMilli(long milli);
     long getMilli();
 
-    void setPrice(double price1);
+    void setPrice(double price);
     double getPrice();
 
-    void setSize(int size1);
+    void setSize(int size);
     int getSize();
 
     FIX::UtcTimeStamp getTime();
 
-    void setOrderType(char ordertype1);
+    void setOrderType(char ordertype);
     char getOrderType();
 
-    void setDestination(std::string destination1);
+    void setDestination(std::string destination);
     std::string getDestination();
 };
