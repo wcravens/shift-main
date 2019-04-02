@@ -10,7 +10,7 @@
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/terminal/Common.h>
 
-extern std::map<std::string, Stock> stocklist;
+extern std::map<std::string, Stock> stockList;
 
 /* static */ std::string FIXAcceptor::s_senderID;
 
@@ -332,8 +332,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     quote.setMilli(milli);
 
     // Add new quote to buffer
-    auto stockIt = stocklist.find(pSymbol->getValue());
-    if (stockIt != stocklist.end()) {
+    auto stockIt = stockList.find(pSymbol->getValue());
+    if (stockIt != stockList.end()) {
         stockIt->second.bufNewLocal(quote);
     } else {
         return;

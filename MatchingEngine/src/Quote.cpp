@@ -2,17 +2,17 @@
 
 /**
  * @brief Constructor for the Quote class.
- * @param stockname, traderID, orderID, price, size, time, orderType
+ * @param stockName, traderID, orderID, price, size, time, orderType
  * @return None.
  */
-Quote::Quote(std::string stockname,
+Quote::Quote(std::string stockName,
     std::string traderID,
     std::string orderID,
     double price,
     int size,
     char orderType,
     FIX::UtcTimeStamp time)
-    : m_stockname(std::move(stockname))
+    : m_stockName(std::move(stockName))
     , m_traderID(std::move(traderID))
     , m_orderID(std::move(orderID))
     , m_price(price)
@@ -25,15 +25,15 @@ Quote::Quote(std::string stockname,
 
 /**
  * @brief Constructor for the Quote class.
- * @param stockname, price, size, destination, time
+ * @param stockName, price, size, destination, time
  * @return None.
  */
-Quote::Quote(std::string stockname,
+Quote::Quote(std::string stockName,
     double price,
     int size,
     std::string destination,
     FIX::UtcTimeStamp time)
-    : m_stockname(std::move(stockname))
+    : m_stockName(std::move(stockName))
     , m_traderID("TR")
     , m_orderID("Thomson")
     , m_price(price)
@@ -46,16 +46,16 @@ Quote::Quote(std::string stockname,
 
 /**
  * @brief Constructor for the Quote class.
- * @param stockname, traderID, orderID, price, size, orderType
+ * @param stockName, traderID, orderID, price, size, orderType
  * @return None.
  */
-Quote::Quote(std::string stockname,
+Quote::Quote(std::string stockName,
     std::string traderID,
     std::string orderID,
     double price,
     int size,
     char orderType)
-    : m_stockname(std::move(stockname))
+    : m_stockName(std::move(stockName))
     , m_traderID(std::move(traderID))
     , m_orderID(std::move(orderID))
     , m_price(price)
@@ -71,7 +71,7 @@ Quote::Quote(std::string stockname,
  * @return None.
  */
 Quote::Quote(const Quote& other)
-    : m_stockname(other.m_stockname)
+    : m_stockName(other.m_stockName)
     , m_traderID(other.m_traderID)
     , m_orderID(other.m_orderID)
     , m_milli(other.m_milli)
@@ -104,7 +104,7 @@ Quote::~Quote() {}
  */
 void Quote::operator=(const Quote& other)
 {
-    m_stockname = other.m_stockname;
+    m_stockName = other.m_stockName;
     m_traderID = other.m_traderID;
     m_orderID = other.m_orderID;
     m_milli = other.m_milli;
@@ -116,23 +116,23 @@ void Quote::operator=(const Quote& other)
 }
 
 /**
- * @brief Setter for stockname field of current Quote object.
- * @param stockname to be set.
+ * @brief Setter for stockName field of current Quote object.
+ * @param stockName to be set.
  * @return None.
  */
-void Quote::setStockname(std::string stockname)
+void Quote::setStockname(std::string stockName)
 {
-    m_stockname = std::move(stockname);
+    m_stockName = std::move(stockName);
 }
 
 /**
- * @brief Getter for stockname field of current Quote object.
+ * @brief Getter for stockName field of current Quote object.
  * @param None.
- * @return stockname of the current Quote object.
+ * @return stockName of the current Quote object.
  */
 std::string Quote::getStockname()
 {
-    return m_stockname;
+    return m_stockName;
 }
 
 /**

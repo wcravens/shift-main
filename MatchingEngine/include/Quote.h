@@ -7,7 +7,7 @@
 class Quote {
 
 private:
-    std::string m_stockname;
+    std::string m_stockName;
     std::string m_traderID;
     std::string m_orderID;
     long m_milli;
@@ -20,7 +20,7 @@ private:
 public:
     friend class Stock;
     //for the server to receive
-    Quote(std::string stockname,
+    Quote(std::string stockName,
         std::string traderID,
         std::string orderID,
         double price,
@@ -28,14 +28,14 @@ public:
         char orderType,
         FIX::UtcTimeStamp time);
 
-    Quote(std::string stockname,
+    Quote(std::string stockName,
         double price,
         int size,
         std::string destination,
         FIX::UtcTimeStamp time);
 
     // for the client to send
-    Quote(std::string stockname,
+    Quote(std::string stockName,
         std::string traderID,
         std::string orderID,
         double price,

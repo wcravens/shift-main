@@ -14,26 +14,26 @@
 using namespace std::chrono_literals;
 
 extern std::atomic<bool> timeout;
-extern std::map<std::string, Stock> stocklist;
+extern std::map<std::string, Stock> stockList;
 
-bool fileConfigMode(std::string file_address,
+bool fileConfigMode(std::string fileAddr,
     std::string& date,
     std::string& stime,
     std::string& etime,
-    int& experiment_speed,
+    int& experimentSpeed,
     std::vector<std::string>& symbols)
 {
-    std::ifstream fin(file_address, std::ios_base::in);
+    std::ifstream fin(fileAddr, std::ios_base::in);
     if (fin.is_open()) {
         std::string line;
         while (std::getline(fin, line)) {
-            std::istringstream is_line(line);
+            std::istringstream inStreamLine(line);
             std::string key;
-            if (std::getline(is_line, key, '=')) {
+            if (std::getline(inStreamLine, key, '=')) {
                 std::string value;
                 if (key[0] == '#')
                     continue;
-                if (std::getline(is_line, value)) {
+                if (std::getline(inStreamLine, value)) {
                     if (key == "stock")
                         symbols.push_back(value);
                     else if (key == "date")
@@ -43,14 +43,14 @@ bool fileConfigMode(std::string file_address,
                     else if (key == "endtime")
                         etime = value;
                     else if (key == "speed")
-                        experiment_speed = stoi(value);
+                        experimentSpeed = stoi(value);
                     cout << value << endl;
                 }
             }
         }
         fin.close();
     } else {
-        cout << "Cannot open " << file_address << '.' << endl;
+        cout << "Cannot open " << fileAddr << '.' << endl;
         return false;
     }
     return true;
@@ -59,7 +59,7 @@ bool fileConfigMode(std::string file_address,
 void inputConfigMode(std::string& date,
     std::string& stime,
     std::string& etime,
-    int& experiment_speed,
+    int& experimentSpeed,
     std::vector<std::string>& symbols)
 {
     cout << "Please input simulation date (format: yyyy-mm-dd, e.g 2018-12-17):" << endl;
@@ -75,22 +75,22 @@ void inputConfigMode(std::string& date,
     cout << endl;
 
     cout << "Please input experiment speed (1 is real time speed, 2 is double speed):" << endl;
-    cin >> experiment_speed;
+    cin >> experimentSpeed;
     cout << endl;
 
     cout << "Please refer to http://www.reuters.com/finance/stocks/lookup for stock tickers." << endl;
 
-    int numstocks = 1; // record the number of inputted stocks
+    int numStocks = 1; // record the number of inputted stocks
     while (1) {
         cout << endl
-             << "Please input stock number " << numstocks << " (to stop input, please type '0'):" << endl;
+             << "Please input stock number " << numStocks << " (to stop input, please type '0'):" << endl;
         std::string symbol;
         cin >> symbol;
         // exit when input is "0":
         if (symbol == "0")
             break;
         symbols.push_back(symbol);
-        ++numstocks;
+        ++numStocks;
     }
 }
 
@@ -98,31 +98,31 @@ void inputConfigMode(std::string& date,
 void createStockMarket(std::string symbol)
 {
     std::map<std::string, Stock>::iterator stock;
-    stock = stocklist.find(symbol);
-    std::string askexchange = ""; //for modify global book update
-    std::string bidexchange = ""; //for modify global book update
-    double askprice = 0; //for modify global book update
-    double bidprice = 0; //for modify global book update
-    int asksize = 0; //for modify global book update
-    int bidsize = 0; //for modify global book update
+    stock = stockList.find(symbol);
+    std::string askExchange = ""; //for modify global book update
+    std::string bidExchange = ""; //for modify global book update
+    double askPrice = 0; //for modify global book update
+    double bidPrice = 0; //for modify global book update
+    int askSize = 0; //for modify global book update
+    int bidSize = 0; //for modify global book update
 
     while (!timeout) {
         //Process Clients' Order
         char type;
-        Quote newquote;
-        if (!stock->second.getNewQuote(newquote)) {
+        Quote newQuote;
+        if (!stock->second.getNewQuote(newQuote)) {
             std::this_thread::sleep_for(50ms);
             continue;
         } else {
-            type = newquote.getOrderType();
+            type = newQuote.getOrderType();
 
             switch (type) {
             case '1': //limit buy
             {
-                stock->second.doLocalLimitBuy(newquote, "SHIFT");
-                //if(newquote.getsize()!=0) stock->second.checkglobalask(newquote,"limit");
-                if (newquote.getSize() != 0) {
-                    stock->second.bidInsert(newquote);
+                stock->second.doLocalLimitBuy(newQuote, "SHIFT");
+                //if(newQuote.getsize()!=0) stock->second.checkglobalask(newQuote,"limit");
+                if (newQuote.getSize() != 0) {
+                    stock->second.bidInsert(newQuote);
                     cout << "insert bid" << endl;
                 }
                 stock->second.level();
@@ -131,10 +131,10 @@ void createStockMarket(std::string symbol)
             }
             case '2': //limit sell
             {
-                stock->second.doLocalLimitSell(newquote, "SHIFT");
-                //if(newquote.getsize()!=0) stock->second.checkglobalbid(newquote,"limit");
-                if (newquote.getSize() != 0) {
-                    stock->second.askInsert(newquote);
+                stock->second.doLocalLimitSell(newQuote, "SHIFT");
+                //if(newQuote.getsize()!=0) stock->second.checkglobalbid(newQuote,"limit");
+                if (newQuote.getSize() != 0) {
+                    stock->second.askInsert(newQuote);
                     cout << "insert ask" << endl;
                 }
                 stock->second.level();
@@ -143,27 +143,27 @@ void createStockMarket(std::string symbol)
             }
             case '3': //market buy
             {
-                stock->second.doLocalMarketBuy(newquote, "SHIFT");
-                //if(newquote.getsize()!=0) stock->second.checkglobalask(newquote,"market");
-                if (newquote.getSize() != 0)
-                    stock->second.bidInsert(newquote);
+                stock->second.doLocalMarketBuy(newQuote, "SHIFT");
+                //if(newQuote.getsize()!=0) stock->second.checkglobalask(newQuote,"market");
+                if (newQuote.getSize() != 0)
+                    stock->second.bidInsert(newQuote);
                 stock->second.level();
                 //stock->second.showglobal();
                 break;
             }
             case '4': //market sell
             {
-                stock->second.doLocalMarketSell(newquote, "SHIFT");
-                //if(newquote.getsize()!=0) stock->second.checkglobalbid(newquote,"market");
-                if (newquote.getSize() != 0)
-                    stock->second.askInsert(newquote);
+                stock->second.doLocalMarketSell(newQuote, "SHIFT");
+                //if(newQuote.getsize()!=0) stock->second.checkglobalbid(newQuote,"market");
+                if (newQuote.getSize() != 0)
+                    stock->second.askInsert(newQuote);
                 stock->second.level();
                 //stock->second.showglobal();
                 break;
             }
             case '5': //cancel bid
             {
-                stock->second.doCancelBid(newquote, "SHIFT");
+                stock->second.doCancelBid(newQuote, "SHIFT");
                 stock->second.level();
                 //stock->second.showglobal();
                 std::cout << "done cancel bid" << endl;
@@ -171,7 +171,7 @@ void createStockMarket(std::string symbol)
             }
             case '6': //cancel ask
             {
-                stock->second.doCancelAsk(newquote, "SHIFT");
+                stock->second.doCancelAsk(newQuote, "SHIFT");
                 stock->second.level();
                 //stock->second.showglobal();
                 std::cout << "done cancel ask" << endl;
@@ -179,18 +179,18 @@ void createStockMarket(std::string symbol)
             }
             case '7': //trade from TR
             {
-                //cout<<"Global trade update: "<<newquote.getstockname()<<endl;
-                stock->second.doLimitBuy(newquote, "SHIFT");
-                stock->second.doLimitSell(newquote, "SHIFT");
+                //cout<<"Global trade update: "<<newQuote.getstockname()<<endl;
+                stock->second.doLimitBuy(newQuote, "SHIFT");
+                stock->second.doLimitSell(newQuote, "SHIFT");
                 stock->second.level();
                 //stock->second.showglobal();
-                if (newquote.getSize() != 0) {
+                if (newQuote.getSize() != 0) {
                     //decision 5 means this is a trade update from TRTH
-                    auto utc_now = globalTimeSetting.simulationTimestamp();
+                    auto now = globalTimeSetting.simulationTimestamp();
                     Action newaction(
-                        newquote.getStockname(),
-                        newquote.getPrice(),
-                        newquote.getSize(),
+                        newQuote.getStockname(),
+                        newQuote.getPrice(),
+                        newQuote.getSize(),
                         "T1",
                         "T2",
                         '1',
@@ -199,28 +199,28 @@ void createStockMarket(std::string symbol)
                         "o2",
                         '5',
                         "TRTH",
-                        newquote.getTime(),
-                        utc_now,
-                        utc_now);
+                        newQuote.getTime(),
+                        now,
+                        now);
                     stock->second.actions.push_back(newaction);
                 }
                 break;
             }
             case '8': //ask update from TR
             {
-                //cout<<"Global ask update: "<<newquote.getstockname()<<endl;
-                if (newquote.getDestination() == askexchange) {
-                    if (newquote.getPrice() == askprice && newquote.getSize() == asksize) {
+                //cout<<"Global ask update: "<<newQuote.getstockname()<<endl;
+                if (newQuote.getDestination() == askExchange) {
+                    if (newQuote.getPrice() == askPrice && newQuote.getSize() == askSize) {
                         break;
                     }
                 }
 
-                askexchange = newquote.getDestination();
-                askprice = newquote.getPrice();
-                asksize = newquote.getSize();
-                stock->second.doLimitSell(newquote, "SHIFT");
-                if (newquote.getSize() != 0)
-                    stock->second.updateGlobalAsk(newquote);
+                askExchange = newQuote.getDestination();
+                askPrice = newQuote.getPrice();
+                askSize = newQuote.getSize();
+                stock->second.doLimitSell(newQuote, "SHIFT");
+                if (newQuote.getSize() != 0)
+                    stock->second.updateGlobalAsk(newQuote);
                 stock->second.level();
                 //stock->second.showglobal();
 
@@ -228,18 +228,18 @@ void createStockMarket(std::string symbol)
             }
             case '9': //bid update from TR
             {
-                if (newquote.getDestination() == bidexchange) {
-                    if (newquote.getPrice() == bidprice && newquote.getSize() == bidsize) {
+                if (newQuote.getDestination() == bidExchange) {
+                    if (newQuote.getPrice() == bidPrice && newQuote.getSize() == bidSize) {
                         break;
                     }
                 }
 
-                bidexchange = newquote.getDestination();
-                bidprice = newquote.getPrice();
-                bidsize = newquote.getSize();
-                stock->second.doLimitBuy(newquote, "SHIFT");
-                if (newquote.getSize() != 0)
-                    stock->second.updateGlobalBid(newquote);
+                bidExchange = newQuote.getDestination();
+                bidPrice = newQuote.getPrice();
+                bidSize = newQuote.getSize();
+                stock->second.doLimitBuy(newQuote, "SHIFT");
+                if (newQuote.getSize() != 0)
+                    stock->second.updateGlobalBid(newQuote);
                 stock->second.level();
                 //stock->second.showglobal();
 
@@ -258,9 +258,9 @@ void createStockMarket(std::string symbol)
             });
             stock->second.actions.clear();
 
-            for_each(stock->second.orderbookupdate.begin(), stock->second.orderbookupdate.end(),
+            for_each(stock->second.orderBookUpdate.begin(), stock->second.orderBookUpdate.end(),
                 [](Newbook& _newbook) { FIXAcceptor::getInstance()->sendOrderBookUpdate2All(_newbook); });
-            stock->second.orderbookupdate.clear();
+            stock->second.orderBookUpdate.clear();
         }
     }
 }

@@ -27,7 +27,7 @@ using namespace std::chrono_literals;
 namespace po = boost::program_options;
 
 std::atomic<bool> timeout(false);
-std::map<std::string, Stock> stocklist;
+std::map<std::string, Stock> stockList;
 
 int main(int ac, char* av[])
 {
@@ -91,28 +91,28 @@ int main(int ac, char* av[])
         params.isManualInput = true;
     }
 
-    std::string configfile = params.configDir + "config.txt";
+    std::string configFile = params.configDir + "config.txt";
     std::string date = "2018-12-17";
     std::string stime = "09:30:00";
     std::string etime = "16:00:00";
-    int experiment_speed = 1;
+    int experimentSpeed = 1;
 
     std::vector<std::string> symbols;
 
     if (!params.isManualInput) {
-        if (!fileConfigMode(configfile, date, stime, etime, experiment_speed, symbols))
+        if (!fileConfigMode(configFile, date, stime, etime, experimentSpeed, symbols))
             return -1; // system stop
     } else {
-        inputConfigMode(date, stime, etime, experiment_speed, symbols);
+        inputConfigMode(date, stime, etime, experimentSpeed, symbols);
     }
 
     if (!params.simulationDate.empty()) {
         date = params.simulationDate;
     }
 
-    globalTimeSetting.initiate(date, stime, experiment_speed);
-    boost::posix_time::ptime pt_start(boost::posix_time::time_from_string(date + " " + stime));
-    boost::posix_time::ptime pt_end(boost::posix_time::time_from_string(date + " " + etime));
+    globalTimeSetting.initiate(date, stime, experimentSpeed);
+    boost::posix_time::ptime ptimeStart(boost::posix_time::time_from_string(date + " " + stime));
+    boost::posix_time::ptime ptimeEnd(boost::posix_time::time_from_string(date + " " + etime));
     std::string requestID = date + " :: " + std::to_string(symbols.size());
 
     //initiate connection to DB
@@ -126,23 +126,23 @@ int main(int ac, char* av[])
         std::string symbol;
         symbol = symbols[i];
         FIXAcceptor::getInstance()->addSymbol(symbol);
-        Stock newstock;
-        newstock.setStockname(symbol);
-        //store the new stock into stocklist
-        stocklist.insert(std::pair<std::string, Stock>(newstock.getStockname(), newstock));
+        Stock newStock;
+        newStock.setStockname(symbol);
+        //store the new stock into stockList
+        stockList.insert(std::pair<std::string, Stock>(newStock.getStockname(), newStock));
 
         for (unsigned int j = 0; j < symbols[i].size(); ++j) {
             if (symbols[i][j] == '.')
                 symbols[i][j] = '_';
         }
     }
-    if (symbols.size() != stocklist.size()) {
-        cout << "Error in creating Stock to stocklist" << endl;
+    if (symbols.size() != stockList.size()) {
+        cout << "Error in creating Stock to stockList" << endl;
         return 1;
     }
 
     //send request to DatafeedEngine for TRTH data
-    FIXInitiator::getInstance()->sendSecurityList(requestID, pt_start, pt_end, symbols);
+    FIXInitiator::getInstance()->sendSecurityList(requestID, ptimeStart, ptimeEnd, symbols);
     cout << "Please wait for the database signal until TRTH data ready..." << endl;
     getchar();
     getchar();
@@ -175,16 +175,16 @@ int main(int ac, char* av[])
     // Get the time offset in current day
     globalTimeSetting.setStartTime();
     //begin the matching thread
-    int stocknumber = stocklist.size();
-    cout << "Total " << stocknumber << " stocks are ready in the Matching Engine"
+    int numOfStock = stockList.size();
+    cout << "Total " << numOfStock << " stocks are ready in the Matching Engine"
          << endl
          << "Waiting for quotes..." << endl;
-    //std::thread  stockthreadlist[stocknumber];
-    std::vector<std::thread> stockthreadlist(stocknumber);
+    //std::thread  stockThreadList[numOfStock];
+    std::vector<std::thread> stockThreadList(numOfStock);
     {
         int i = 0;
-        for (std::map<std::string, Stock>::iterator thisStock = stocklist.begin(); thisStock != stocklist.end(); thisStock++) {
-            stockthreadlist[i] = std::thread(createStockMarket, thisStock->first);
+        for (std::map<std::string, Stock>::iterator thisStock = stockList.begin(); thisStock != stockList.end(); thisStock++) {
+            stockThreadList[i] = std::thread(createStockMarket, thisStock->first);
             ++i;
         }
     }
@@ -192,13 +192,13 @@ int main(int ac, char* av[])
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
     //sleep the main thread for set of time until exchange close time
-    pt_start += boost::posix_time::minutes(15);
-    while (pt_start < pt_end) {
+    ptimeStart += boost::posix_time::minutes(15);
+    while (ptimeStart < ptimeEnd) {
         FIXInitiator::getInstance()->sendMarketDataRequest();
-        pt_start += boost::posix_time::minutes(15);
-        std::this_thread::sleep_for(15min / experiment_speed);
+        ptimeStart += boost::posix_time::minutes(15);
+        std::this_thread::sleep_for(15min / experimentSpeed);
     }
-    std::this_thread::sleep_for(15min / experiment_speed);
+    std::this_thread::sleep_for(15min / experimentSpeed);
 
     std::this_thread::sleep_for(1min);
     timeout = true;
@@ -211,8 +211,8 @@ int main(int ac, char* av[])
 
     FIXInitiator::getInstance()->disconnectDatafeedEngine();
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();
-    for (int i = 0; i < stocknumber; i++) {
-        stockthreadlist[i].join();
+    for (int i = 0; i < numOfStock; i++) {
+        stockThreadList[i].join();
     }
 
     cout << "Success!" << endl;

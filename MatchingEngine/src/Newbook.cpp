@@ -3,7 +3,7 @@
 #include <mutex>
 
 namespace nameNewbook {
-std::list<Newbook> bookupdate;
+std::list<Newbook> bookUpdate;
 std::mutex newbookMu;
 }
 
@@ -69,7 +69,7 @@ Newbook::Newbook(const Newbook& other)
 void Newbook::store()
 {
     std::lock_guard<std::mutex> lock(nameNewbook::newbookMu);
-    nameNewbook::bookupdate.push_back(*this);
+    nameNewbook::bookUpdate.push_back(*this);
 }
 
 /**
@@ -79,7 +79,7 @@ void Newbook::store()
 bool Newbook::empty()
 {
     std::lock_guard<std::mutex> lock(nameNewbook::newbookMu);
-    bool empty = nameNewbook::bookupdate.empty();
+    bool empty = nameNewbook::bookUpdate.empty();
     return empty;
 }
 
@@ -90,9 +90,9 @@ bool Newbook::empty()
 void Newbook::get(Newbook& other)
 {
     std::lock_guard<std::mutex> lock(nameNewbook::newbookMu);
-    m_listBegin = nameNewbook::bookupdate.begin();
+    m_listBegin = nameNewbook::bookUpdate.begin();
     other.copy(*m_listBegin);
-    nameNewbook::bookupdate.pop_front();
+    nameNewbook::bookUpdate.pop_front();
 }
 
 /**
