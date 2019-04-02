@@ -81,8 +81,8 @@ namespace std {
 
 // Template specialization for std::swap<Guid>() --
 // See guid.cpp for the function definition
-template <>
-void swap(shift::crossguid::Guid& guid0, shift::crossguid::Guid& guid1);
+// template <>
+// void swap(shift::crossguid::Guid& guid0, shift::crossguid::Guid& guid1);
 
 // Specialization for std::hash<Guid> -- this implementation
 // uses std::hash<std::string> on the stringification of the guid
