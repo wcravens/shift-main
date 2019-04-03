@@ -71,7 +71,7 @@ int main(int ac, char* av[])
         cout << '\n'
              << desc << '\n'
              << endl;
-        return 1;
+        return 0;
     }
 
     if (vm.count(CSTR_CONFIG)) {
@@ -101,7 +101,7 @@ int main(int ac, char* av[])
 
     if (!params.isManualInput) {
         if (!fileConfig_mode(configfile, date, stime, etime, experiment_speed, symbols))
-            return -1; // system stop
+            return 3; // system stop
     } else {
         inputConfig_mode(date, stime, etime, experiment_speed, symbols);
     }
@@ -138,7 +138,7 @@ int main(int ac, char* av[])
     }
     if (symbols.size() != stocklist.size()) {
         cout << "Error in creating Stock to stocklist" << endl;
-        return 1;
+        return 4;
     }
 
     //send request to DatafeedEngine for TRTH data

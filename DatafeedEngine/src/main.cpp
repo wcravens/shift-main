@@ -83,7 +83,7 @@ int main(int ac, char* av[])
         cout << '\n'
              << desc << '\n'
              << endl;
-        return 1;
+        return 0;
     }
 
     if (vm.count(CSTR_CONFIG)) {
@@ -169,4 +169,6 @@ int main(int ac, char* av[])
         cout << "\nPlease press enter to close window: " << flush;
         std::getchar();
     }
+
+    return 0;
 }
