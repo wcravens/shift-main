@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 
     if (vm.count(CSTR_HELP)) {
         cout << desc << endl;
-        return 1;
+        return 0;
     }
 
     auto t1 = std::chrono::system_clock::now();
@@ -124,10 +124,10 @@ int main(int argc, char* argv[])
     web::json::value cred;
     utility::ifstream_t infCred{ strJsonDir + "cred.json" };
     if (!infCred.good()) {
-        cout << COLOR_WARNING "Warning: "
+        cout << COLOR_ERROR "ERROR: "
              << "Cannot successfully access cred.json!" << NO_COLOR << endl;
         cout << desc << endl;
-        return 0;
+        return 2;
     }
 
     shift::crypto::Decryptor dec{ cryptoKey };
@@ -160,10 +160,10 @@ int main(int argc, char* argv[])
 
     utility::ifstream_t infExtract(strJsonDir + "extract_raw.json");
     if (!infExtract.good()) {
-        cout << COLOR_WARNING "Warning: "
+        cout << COLOR_ERROR "ERROR: "
              << "Cannot successfully access extract_raw.json!" << NO_COLOR << endl;
         cout << desc << endl;
-        return 0;
+        return 3;
     }
 
     web::json::value cmdExtract;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
     } catch (const web::json::json_exception& e) {
         cerr << COLOR_ERROR "ERROR: "
              << "Please check and correct extract_raw.json" << NO_COLOR << endl;
-        return 1;
+        return 4;
     }
     // cout << "##########################################################" << endl;
     cmdExtract.serialize(cout);
@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
         // throw web::http::http_exception("Cannot get RawExtractionResults:JobId!");
         cerr << COLOR_ERROR "ERROR: "
              << "Cannot get RawExtractionResults:JobId!" << NO_COLOR << endl;
-        return 1;
+        return 5;
     }
 
     cout << endl;
@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
         // throw web::http::http_exception("Cannot retrieve(GET) raw data file!");
         cerr << COLOR_ERROR "ERROR: "
              << "Cannot retrieve(GET) raw data file!" << NO_COLOR << endl;
-        return 1;
+        return 6;
     }
 
     Concurrency::streams::fstream::open_ostream(strOutput + ".gz", std::ios::binary).then([&](Concurrency::streams::ostream os) {
@@ -259,10 +259,8 @@ int main(int argc, char* argv[])
     }
 
     auto t2 = std::chrono::system_clock::now();
-
-    cout << "Process took " << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << "s to run." << endl;
-
-    cout << endl;
+    cout << "Process took " << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << "s to run.\n"
+         << endl;
 
     return 0;
 }

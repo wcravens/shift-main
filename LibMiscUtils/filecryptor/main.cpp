@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 
     if (!bCryptable) { // this is not an allowed case anyway, so just print help to notify the user.
         cout << odsc << endl;
-        return 0;
+        return 1;
     }
 
     std::string key;
@@ -148,4 +148,6 @@ int main(int argc, char* argv[])
              << "A file issue occured! Operation was not successful." << NO_COLOR << endl;
         cout << odsc << endl;
     }
+
+    return 0;
 }
