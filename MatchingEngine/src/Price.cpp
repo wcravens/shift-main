@@ -1,41 +1,51 @@
 #include "Price.h"
 
-/**
- * @brief Setter for price field of current Price object.
- * @param price to be set.
- * @return None.
- */
+double Price::getPrice() const
+{
+    return m_price;
+}
+
+int Price::getSize() const
+{
+    return m_size;
+}
+
 void Price::setPrice(double price)
 {
     m_price = price;
 }
 
-/**
- * @brief Getter for price field of current Price object.
- * @param None.
- * @return price of the current Price object.
- */
-double Price::getPrice()
-{
-    return m_price;
-}
-
-/**
- * @brief Setter for size field of current Price object.
- * @param size to be set.
- * @return None.
- */
 void Price::setSize(int size)
 {
     m_size = size;
 }
 
-/**
- * @brief Getter for size field of current Price object.
- * @param None.
- * @return size of the current Price object.
- */
-int Price::getSize()
+bool Price::empty()
 {
-    return m_size;
+    return m_quotes.empty();
+}
+
+void Price::push_back(const Quote& quote)
+{
+    m_quotes.push_back(quote);
+}
+
+void Price::push_front(const Quote& quote)
+{
+    m_quotes.push_front(quote);
+}
+
+std::list<Quote>::iterator Price::begin()
+{
+    return m_quotes.begin();
+}
+
+std::list<Quote>::iterator Price::end()
+{
+    return m_quotes.end();
+}
+
+std::list<Quote>::iterator Price::erase(std::list<Quote>::iterator iter)
+{
+    return m_quotes.erase(iter);
 }
