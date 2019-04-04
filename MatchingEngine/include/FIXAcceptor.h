@@ -45,8 +45,8 @@ public:
     void connectBrokerageCenter(const std::string& configFile);
     void disconnectBrokerageCenter();
 
-    void sendOrderBookUpdate2All(NewBook& update);
-    void sendExecutionReport2All(Action& report);
+    void sendOrderBookUpdate2All(const NewBook& update);
+    void sendExecutionReport2All(const Action& report);
 
 private:
     FIXAcceptor() = default;

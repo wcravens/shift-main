@@ -21,8 +21,6 @@ struct Action {
     FIX::UtcTimeStamp time2;
 
     Action() = default;
-    ~Action() = default;
-
     Action(const std::string& stockName,
         double price,
         int size,
@@ -51,24 +49,6 @@ struct Action {
         , execTime(execTime)
         , time1(time1)
         , time2(time2)
-    {
-    }
-
-    Action(const Action& other)
-        : stockName(other.stockName)
-        , price(other.price)
-        , size(other.size)
-        , traderID1(other.traderID1)
-        , traderID2(other.traderID2)
-        , orderType1(other.orderType1)
-        , orderType2(other.orderType2)
-        , orderID1(other.orderID1)
-        , orderID2(other.orderID2)
-        , decision(other.decision)
-        , destination(other.destination)
-        , execTime(other.execTime)
-        , time1(other.time1)
-        , time2(other.time2)
     {
     }
 };

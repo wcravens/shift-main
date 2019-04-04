@@ -33,8 +33,8 @@ private:
     // buffer new quotes received from clients
     std::queue<Quote> m_newLocal;
 
-    std::mutex m_newGlobal_mu;
-    std::mutex m_newLocal_mu;
+    std::mutex m_mtxNewGlobal;
+    std::mutex m_mtxNewLocal;
 
     std::list<std::string> m_levels;
     std::list<Price>::iterator m_thisPrice;

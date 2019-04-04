@@ -11,25 +11,18 @@
 class NewBook {
 public:
     NewBook() = default;
-    virtual ~NewBook() = default;
+    NewBook(char book, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
+    NewBook(char book, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
 
-    NewBook(char book, std::string symbol, double price, int size, FIX::UtcTimeStamp& time);
-    NewBook(char book, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp& time);
-    NewBook(const NewBook& other);
-
-    void store();
-    bool empty();
-    void get(NewBook& other);
-    void copy(const NewBook& other);
-    std::string getSymbol();
-    double getPrice();
-    int getSize();
-    FIX::UtcTimeStamp getUTCTime();
-    char getBook();
-    std::string getDestination();
+    // Getters
+    char getBook() const;
+    const std::string& getSymbol() const;
+    double getPrice() const;
+    int getSize() const;
+    const std::string& getDestination() const;
+    const FIX::UtcTimeStamp& getUTCTime() const;
 
 private:
-    std::list<NewBook>::iterator m_listBegin;
     char m_book; // 'a' = local ask, 'b' = local bid, 'A' = global ask, 'B' = global bid
     std::string m_symbol;
     double m_price;

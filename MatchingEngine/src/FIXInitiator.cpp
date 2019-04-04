@@ -145,7 +145,7 @@ void FIXInitiator::sendMarketDataRequest()
 /**
  * @brief Send execution report to Datafeed Engine
  */
-void FIXInitiator::sendExecutionReport(Action& report)
+void FIXInitiator::sendExecutionReport(const Action& report)
 {
     FIX::Message message;
 

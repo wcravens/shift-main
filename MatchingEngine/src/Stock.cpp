@@ -21,7 +21,7 @@ Stock::~Stock() {}
 void Stock::bufNewGlobal(Quote& quote)
 {
     try {
-        std::lock_guard<std::mutex> lock(m_newGlobal_mu);
+        std::lock_guard<std::mutex> ngGuard(m_mtxNewGlobal);
         m_newGlobal.push(quote);
     } catch (std::exception& e) {
         cout << e.what() << endl;
@@ -31,7 +31,7 @@ void Stock::bufNewGlobal(Quote& quote)
 void Stock::bufNewLocal(Quote& quote)
 {
     try {
-        std::lock_guard<std::mutex> lock(m_newGlobal_mu);
+        std::lock_guard<std::mutex> nlGuard(m_mtxNewLocal);
         m_newLocal.push(quote);
     } catch (std::exception& e) {
         cout << e.what() << endl;
@@ -43,14 +43,14 @@ bool Stock::getNewQuote(Quote& quote)
     bool good = false;
     long now = globalTimeSetting.pastMilli(true);
 
-    std::lock_guard<std::mutex> g_lock(m_newGlobal_mu);
+    std::lock_guard<std::mutex> ngGuard(m_mtxNewGlobal);
     if (!m_newGlobal.empty()) {
         quote = m_newGlobal.front();
         if (quote.getMilli() < now) {
             good = true;
         }
     }
-    std::lock_guard<std::mutex> l_lock(m_newLocal_mu);
+    std::lock_guard<std::mutex> nlGuard(m_mtxNewLocal);
     if (!m_newLocal.empty()) {
         Quote* newLocal = &m_newLocal.front();
         if (good) {
@@ -474,23 +474,17 @@ void Stock::askInsert(Quote newQuote)
     }
 }
 
-//////////////////////////////////
-//new order book update method
-//////////////////////////////////
+///////////////////////////////
+// new order book update method
+///////////////////////////////
 void Stock::bookUpdate(char book, std::string symbol, double price, int size, FIX::UtcTimeStamp time)
 {
-    NewBook newBook(book, symbol, price, size, time);
-    //_newBook.store();
-    orderBookUpdate.push_back(newBook);
-    //cout<<_newBook.getsymbol()<<"\t"<<_newBook.getPrice()<<"\t"<<_newBook.getSize()<<endl;
+    orderBookUpdate.push_back({ book, symbol, price, size, time });
 }
 
 void Stock::bookUpdate(char book, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp time)
 {
-    NewBook newBook(book, symbol, price, size, destination, time);
-    //_newBook.store();
-    orderBookUpdate.push_back(newBook);
-    //cout<<_newBook.getsymbol()<<"\t"<<_newBook.getPrice()<<"\t"<<_newBook.getSize()<<endl;
+    orderBookUpdate.push_back({ book, symbol, price, size, destination, time });
 }
 
 void Stock::showLocal()

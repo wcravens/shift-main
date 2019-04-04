@@ -47,7 +47,7 @@ public:
     void sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
     void sendMarketDataRequest();
 
-    void sendExecutionReport(Action& report);
+    void sendExecutionReport(const Action& report);
     void storeOrder(Quote& order);
 
 private:

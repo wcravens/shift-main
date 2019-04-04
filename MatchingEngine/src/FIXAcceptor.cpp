@@ -96,7 +96,7 @@ void FIXAcceptor::disconnectBrokerageCenter()
 /*
  * @brief Send order book update to brokers
  */
-void FIXAcceptor::sendOrderBookUpdate2All(NewBook& update)
+void FIXAcceptor::sendOrderBookUpdate2All(const NewBook& update)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -129,7 +129,7 @@ void FIXAcceptor::sendOrderBookUpdate2All(NewBook& update)
 /**
  * @brief Sending execution report to brokers
  */
-void FIXAcceptor::sendExecutionReport2All(Action& report)
+void FIXAcceptor::sendExecutionReport2All(const Action& report)
 {
     FIX::Message message;
 
