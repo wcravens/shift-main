@@ -5,9 +5,9 @@
 #include <string>
 
 struct QuoteConfirm {
-    std::string clientID;
-    std::string orderID;
     std::string symbol;
+    std::string traderID;
+    std::string orderID;
     double price;
     int size;
     char orderType;

@@ -1,8 +1,8 @@
 #include "NewBook.h"
 
 /**
- * @brief   Constructor for the NewBook class.
- * @param   book, symbol, price, size, time
+ * @brief Constructor for the NewBook class.
+ * @param book, symbol, price, size, time
  */
 NewBook::NewBook(char book, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time)
     : m_book(book)
@@ -15,8 +15,8 @@ NewBook::NewBook(char book, const std::string& symbol, double price, int size, c
 }
 
 /**
- * @brief   Constructor for the NewBook class.
- * @param   book, symbol, price, size, time, destination
+ * @brief Constructor for the NewBook class.
+ * @param book, symbol, price, size, time, destination
  */
 NewBook::NewBook(char book, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
     : m_book(book)

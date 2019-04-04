@@ -5,6 +5,29 @@
 #include <string>
 
 class Quote {
+public:
+    Quote() = default;
+    Quote(const std::string& stockName, const std::string& traderID, const std::string& orderID, double price, int size, char orderType, const FIX::UtcTimeStamp& time);
+    Quote(const std::string& stockName, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+
+    // Getters
+    const std::string& getStockName() const;
+    const std::string& getTraderID() const;
+    const std::string& getOrderID() const;
+    long getMilli() const;
+    double getPrice() const;
+    int getSize() const;
+    char getOrderType() const;
+    const std::string& getDestination() const;
+    const FIX::UtcTimeStamp& getTime() const;
+
+    // Setters
+    void setStockName(const std::string& stockName);
+    void setMilli(long milli);
+    void setPrice(double price);
+    void setSize(int size);
+    void setOrderType(char orderType);
+    void setDestination(const std::string& destination);
 
 private:
     std::string m_stockName;
@@ -16,59 +39,4 @@ private:
     char m_orderType;
     std::string m_destination;
     FIX::UtcTimeStamp m_time;
-
-public:
-    friend class Stock;
-    // for the server to receive
-    Quote(std::string stockName,
-        std::string traderID,
-        std::string orderID,
-        double price,
-        int size,
-        char orderType,
-        FIX::UtcTimeStamp time);
-
-    Quote(std::string stockName,
-        double price,
-        int size,
-        std::string destination,
-        FIX::UtcTimeStamp time);
-
-    // for the client to send
-    Quote(std::string stockName,
-        std::string traderID,
-        std::string orderID,
-        double price,
-        int size,
-        char orderType);
-
-    Quote();
-    Quote(const Quote& other);
-    ~Quote();
-
-    void operator=(const Quote& other);
-
-    void setStockName(std::string stockName);
-    std::string getStockName();
-
-    std::string getTraderID();
-
-    std::string getOrderID();
-
-    void setMilli(long milli);
-    long getMilli();
-
-    void setPrice(double price);
-    double getPrice();
-
-    void setSize(int size);
-    int getSize();
-
-    FIX::UtcTimeStamp getTime();
-
-    void setOrderType(char orderType);
-    char getOrderType();
-
-    void setDestination(std::string destination);
-    std::string getDestination();
 };
