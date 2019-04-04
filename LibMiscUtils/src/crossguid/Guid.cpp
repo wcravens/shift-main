@@ -320,15 +320,3 @@ namespace crossguid {
 
 } // crossguid
 } // shift
-
-// Specialization for std::swap<Guid>() --
-// call member swap function of lhs, passing rhs
-namespace std {
-
-template <>
-void swap(shift::crossguid::Guid& lhs, shift::crossguid::Guid& rhs)
-{
-    lhs.swap(rhs);
-}
-
-} // std

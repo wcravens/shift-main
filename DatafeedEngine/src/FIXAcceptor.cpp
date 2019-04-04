@@ -138,14 +138,22 @@ void FIXAcceptor::disconnectMatchingEngine()
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_Quote));
 
+    // tm is always in local time and std::gmtime transforms time_t in tm disregarding timezone,
+    // since it assumes time_t is always in UTC (ours is in New York time)
     time_t secs = rawData.secs + static_cast<int>(rawData.microsecs);
+    tm* secs_tm = std::gmtime(&secs);
+
+    // A negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect
+    // More information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
+    secs_tm->tm_isdst = -1;
+    time_t utcSecs = std::mktime(secs_tm);
+
     int millisec = static_cast<int>((rawData.microsecs - static_cast<int>(rawData.microsecs)) * 1000000);
-    auto secs_gmt = std::mktime(std::gmtime(&secs));
 
     message.setField(FIX::QuoteID(shift::crossguid::newGuid().str()));
     message.setField(FIX::QuoteType(rawData.toq.front() == 'Q' ? 0 : 1));
     message.setField(FIX::Symbol(rawData.symbol));
-    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(secs_gmt, millisec, 6), 6));
+    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(utcSecs, millisec, 6), 6));
 
     FIX50SP2::Quote::NoPartyIDs idGroup1;
     idGroup1.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);

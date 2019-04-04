@@ -40,7 +40,6 @@ private:
     double m_lastHighPrice;
     double m_lastLowPrice;
     std::time_t m_lastOpenTime;
-    bool m_wasLastTransacSent;
 
     std::queue<Transaction> m_transacBuff;
     std::map<std::time_t, CandlestickDataPoint> m_history;

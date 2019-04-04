@@ -28,8 +28,8 @@ using voh_t = shift::terminal::VerboseOptHelper;
 int main(int ac, char* av[])
 {
     /**
-     * @brief Centralizes and classifies all necessary parameters and 
-     * hides them behind one variable to ease understanding and debugging. 
+     * @brief Centralizes and classifies all necessary parameters and
+     * hides them behind one variable to ease understanding and debugging.
      */
     struct {
         std::string configDir;
@@ -62,7 +62,7 @@ int main(int ac, char* av[])
         cout << '\n'
              << desc << '\n'
              << endl;
-        return 1;
+        return 0;
     }
 
     if (vm.count(CSTR_CONFIG)) {
@@ -115,5 +115,6 @@ int main(int ac, char* av[])
     tThrift.join();
     tCheck.join();
     tRecReq.join();
+
     return 0;
 }

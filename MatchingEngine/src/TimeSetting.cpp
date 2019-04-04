@@ -14,6 +14,10 @@ TimeSetting globalTimeSetting;
     // so this is the reason we need all this mess
     time_t ttLocal = boost::posix_time::to_time_t(localPtime);
     tm* tmLocal = std::gmtime(&ttLocal);
+
+    // A negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect
+    // More information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
+    tmLocal->tm_isdst = -1;
     time_t ttUtc = mktime(tmLocal);
     tm* tmUtc = std::gmtime(&ttUtc);
 
@@ -21,7 +25,7 @@ TimeSetting globalTimeSetting;
 }
 
 /**
- * @brief initiate member variables
+ * @brief Initiate member variables
  */
 void TimeSetting::initiate(std::string date, std::string stime, int speed)
 {

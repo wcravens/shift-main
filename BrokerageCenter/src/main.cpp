@@ -137,7 +137,7 @@ int main(int ac, char* av[])
         cout << '\n'
              << desc << '\n'
              << endl;
-        return 1;
+        return 0;
     }
 
     if (vm.count(CSTR_VERBOSE)) {
@@ -214,7 +214,7 @@ int main(int ac, char* av[])
             char cmd = cin.get();
             cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
             if ('Y' != cmd && 'y' != cmd)
-                return 1;
+                return 5;
         } else {
             cout << "DB connection OK.\n"
                  << endl;
@@ -258,7 +258,7 @@ int main(int ac, char* av[])
                 const auto res = shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + params.user.username + "';");
                 if (res.size()) {
                     cout << COLOR_WARNING "The user " << params.user.username << " already exists!" NO_COLOR << endl;
-                    return 1;
+                    return 0;
                 }
 
                 const auto insert = "INSERT INTO traders (username, password, firstname, lastname, email, super) VALUES ('"
@@ -271,7 +271,7 @@ int main(int ac, char* av[])
                     return 0;
                 }
 
-                return 5;
+                return 8;
             }
 
             break; // finished connection and continues
@@ -344,4 +344,6 @@ int main(int ac, char* av[])
         cout << "\nExecution finished. \nPlease press enter to close window: " << flush;
         std::getchar();
     }
+
+    return 0;
 }
