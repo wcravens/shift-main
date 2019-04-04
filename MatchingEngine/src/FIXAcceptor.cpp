@@ -96,7 +96,7 @@ void FIXAcceptor::disconnectBrokerageCenter()
 /*
  * @brief Send order book update to brokers
  */
-void FIXAcceptor::sendOrderBookUpdate2All(Newbook& update)
+void FIXAcceptor::sendOrderBookUpdate2All(NewBook& update)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Action.h"
-#include "Newbook.h"
+#include "NewBook.h"
 #include "QuoteConfirm.h"
 
 #include <mutex>
@@ -33,6 +33,8 @@ class FIXAcceptor
     : public FIX::Application,
       public FIX::MessageCracker {
 public:
+    static std::string s_senderID;
+
     ~FIXAcceptor() override;
 
     static FIXAcceptor* getInstance();
@@ -43,21 +45,8 @@ public:
     void connectBrokerageCenter(const std::string& configFile);
     void disconnectBrokerageCenter();
 
-    void sendOrderBookUpdate2All(Newbook& update);
+    void sendOrderBookUpdate2All(NewBook& update);
     void sendExecutionReport2All(Action& report);
-
-private:
-    static std::string s_senderID;
-
-    std::set<std::string> m_symbols;
-
-    // Do NOT change order of these unique_ptrs:
-    std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
-    std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
-    std::unique_ptr<FIX::Acceptor> m_acceptorPtr;
-
-    mutable std::mutex m_mtxTargetList;
-    std::unordered_set<std::string> m_targetList;
 
 private:
     FIXAcceptor() = default;
@@ -74,4 +63,14 @@ private:
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
+
+    std::set<std::string> m_symbols;
+
+    mutable std::mutex m_mtxTargetList;
+    std::unordered_set<std::string> m_targetList;
+
+    // Do NOT change order of these unique_ptrs:
+    std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
+    std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
+    std::unique_ptr<FIX::Acceptor> m_acceptorPtr;
 };

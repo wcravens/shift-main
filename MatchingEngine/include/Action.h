@@ -20,24 +20,23 @@ struct Action {
     FIX::UtcTimeStamp time1;
     FIX::UtcTimeStamp time2;
 
-    Action(){};
+    Action() = default;
+    ~Action() = default;
 
-    ~Action(){};
-
-    Action(std::string stockName,
+    Action(const std::string& stockName,
         double price,
         int size,
-        std::string traderID1,
-        std::string traderID2,
+        const std::string& traderID1,
+        const std::string& traderID2,
         char orderType1,
         char orderType2,
-        std::string orderID1,
-        std::string orderID2,
+        const std::string& orderID1,
+        const std::string& orderID2,
         char decision,
-        std::string destination,
-        FIX::UtcTimeStamp execTime,
-        FIX::UtcTimeStamp time1,
-        FIX::UtcTimeStamp time2)
+        const std::string& destination,
+        const FIX::UtcTimeStamp& execTime,
+        const FIX::UtcTimeStamp& time1,
+        const FIX::UtcTimeStamp& time2)
         : stockName(stockName)
         , price(price)
         , size(size)

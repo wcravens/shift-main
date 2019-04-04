@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Action.h"
-#include "Newbook.h"
+#include "NewBook.h"
 #include "Price.h"
 #include "Quote.h"
 
@@ -20,7 +20,7 @@ private:
 
     unsigned int m_depth = 5;
 
-    std::string m_stockName;
+    std::string m_name;
 
     std::list<Price> m_bid;
     std::list<Price> m_ask;
@@ -43,7 +43,7 @@ private:
 
 public:
     // order book update queue
-    std::list<Newbook> orderBookUpdate;
+    std::list<NewBook> orderBookUpdate;
     std::list<Action> actions;
 
     Stock();
@@ -51,8 +51,8 @@ public:
     Stock(std::string name);
     ~Stock();
 
-    void setStockName(std::string stockName);
-    std::string getStockName();
+    void setName(std::string name);
+    std::string getName();
 
     void setThisPrice()
     {

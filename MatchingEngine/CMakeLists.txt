@@ -31,7 +31,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/Action.h
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
     ${PROJECT_SOURCE_DIR}/include/FIXInitiator.h
-    ${PROJECT_SOURCE_DIR}/include/Newbook.h
+    ${PROJECT_SOURCE_DIR}/include/NewBook.h
     ${PROJECT_SOURCE_DIR}/include/Price.h
     ${PROJECT_SOURCE_DIR}/include/Quote.h
     ${PROJECT_SOURCE_DIR}/include/QuoteConfirm.h
@@ -44,7 +44,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/FIXAcceptor.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp
     ${PROJECT_SOURCE_DIR}/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/src/Newbook.cpp
+    ${PROJECT_SOURCE_DIR}/src/NewBook.cpp
     ${PROJECT_SOURCE_DIR}/src/Price.cpp
     ${PROJECT_SOURCE_DIR}/src/Quote.cpp
     ${PROJECT_SOURCE_DIR}/src/Stock.cpp

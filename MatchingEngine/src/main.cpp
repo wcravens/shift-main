@@ -128,8 +128,8 @@ int main(int ac, char* av[])
         symbol = symbols[i];
         FIXAcceptor::getInstance()->addSymbol(symbol);
         Stock newStock;
-        newStock.setStockName(symbol);
-        stockList.insert(std::pair<std::string, Stock>(newStock.getStockName(), newStock));
+        newStock.setName(symbol);
+        stockList.insert(std::pair<std::string, Stock>(newStock.getName(), newStock));
 
         for (unsigned int j = 0; j < symbols[i].size(); ++j) {
             if (symbols[i][j] == '.')

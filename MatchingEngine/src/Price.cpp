@@ -1,20 +1,6 @@
 #include "Price.h"
 
 /**
- * @brief Default constructor for the Newbook class.
- * @param None.
- * @return None.
- */
-Price::Price() {}
-
-/**
- * @brief Default destructor for the Newbook class.
- * @param None.
- * @return None.
- */
-Price::~Price() {}
-
-/**
  * @brief Setter for price field of current Price object.
  * @param price to be set.
  * @return None.

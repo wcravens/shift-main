@@ -46,7 +46,7 @@
 class FIXAcceptor : public FIX::Application,
                     public FIX::MessageCracker {
 public:
-    static std::string s_senderID; // Sender ID
+    static std::string s_senderID;
 
     ~FIXAcceptor() override;
 
@@ -61,7 +61,7 @@ public:
     void sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update);
     void sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
 
-    void sendConfirmationReport(const Report& report); // send order conformation report
+    void sendConfirmationReport(const Report& report);
     void sendPortfolioSummary(const std::string& username, const PortfolioSummary& summary);
     void sendPortfolioItem(const std::string& username, const PortfolioItem& item);
     void sendWaitingList(const std::string& username, const std::unordered_map<std::string, Order>& orders);

@@ -18,8 +18,8 @@ private:
     ListQuote m_quotes;
 
 public:
-    Price();
-    ~Price();
+    Price() = default;
+    ~Price() = default;
 
     void setPrice(double price);
     double getPrice();

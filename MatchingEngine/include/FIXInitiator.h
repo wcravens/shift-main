@@ -34,6 +34,9 @@
 class FIXInitiator : public FIX::Application,
                      public FIX::MessageCracker {
 public:
+    static std::string s_senderID;
+    static std::string s_targetID;
+
     ~FIXInitiator() override;
 
     static FIXInitiator* getInstance();
@@ -48,15 +51,6 @@ public:
     void storeOrder(Quote& order);
 
 private:
-    static std::string s_senderID;
-    static std::string s_targetID;
-
-    // DO NOT change order of these unique_ptrs:
-    std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
-    std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
-    std::unique_ptr<FIX::Initiator> m_initiatorPtr;
-
-private:
     FIXInitiator() = default;
 
     // QuickFIX methods
@@ -69,4 +63,9 @@ private:
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::News&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::Quote&, const FIX::SessionID&) override;
+
+    // DO NOT change order of these unique_ptrs:
+    std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
+    std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
+    std::unique_ptr<FIX::Initiator> m_initiatorPtr;
 };

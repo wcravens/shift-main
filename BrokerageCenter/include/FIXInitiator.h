@@ -30,8 +30,8 @@ class FIXInitiator : public FIX::Application,
                      public FIX::MessageCracker // Multiple inheritance
 {
 public:
-    static std::string s_senderID; // Sender ID
-    static std::string s_targetID; // Target ID
+    static std::string s_senderID;
+    static std::string s_targetID;
 
     ~FIXInitiator() override;
 

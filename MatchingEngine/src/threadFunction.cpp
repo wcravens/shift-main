@@ -246,7 +246,7 @@ void createStockMarket(std::string symbol)
             stock->second.actions.clear();
 
             for_each(stock->second.orderBookUpdate.begin(), stock->second.orderBookUpdate.end(),
-                [](Newbook& _newbook) { FIXAcceptor::getInstance()->sendOrderBookUpdate2All(_newbook); });
+                [](NewBook& _newBook) { FIXAcceptor::getInstance()->sendOrderBookUpdate2All(_newBook); });
             stock->second.orderBookUpdate.clear();
         }
     }

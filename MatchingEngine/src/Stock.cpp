@@ -71,14 +71,14 @@ bool Stock::getNewQuote(Quote& quote)
     return good;
 }
 
-void Stock::setStockName(std::string stockName)
+void Stock::setName(std::string name)
 {
-    m_stockName = std::move(stockName);
+    m_name = std::move(name);
 }
 
-std::string Stock::getStockName()
+std::string Stock::getName()
 {
-    return m_stockName;
+    return m_name;
 }
 
 // decision '2' means this is a trade record, '4' means cancel record; record trade or cancel with object actions
@@ -479,18 +479,18 @@ void Stock::askInsert(Quote newQuote)
 //////////////////////////////////
 void Stock::bookUpdate(char book, std::string symbol, double price, int size, FIX::UtcTimeStamp time)
 {
-    Newbook newbook(book, symbol, price, size, time);
-    //_newbook.store();
-    orderBookUpdate.push_back(newbook);
-    //cout<<_newbook.getsymbol()<<"\t"<<_newbook.getPrice()<<"\t"<<_newbook.getSize()<<endl;
+    NewBook newBook(book, symbol, price, size, time);
+    //_newBook.store();
+    orderBookUpdate.push_back(newBook);
+    //cout<<_newBook.getsymbol()<<"\t"<<_newBook.getPrice()<<"\t"<<_newBook.getSize()<<endl;
 }
 
 void Stock::bookUpdate(char book, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp time)
 {
-    Newbook newbook(book, symbol, price, size, destination, time);
-    //_newbook.store();
-    orderBookUpdate.push_back(newbook);
-    //cout<<_newbook.getsymbol()<<"\t"<<_newbook.getPrice()<<"\t"<<_newbook.getSize()<<endl;
+    NewBook newBook(book, symbol, price, size, destination, time);
+    //_newBook.store();
+    orderBookUpdate.push_back(newBook);
+    //cout<<_newBook.getsymbol()<<"\t"<<_newBook.getPrice()<<"\t"<<_newBook.getSize()<<endl;
 }
 
 void Stock::showLocal()
