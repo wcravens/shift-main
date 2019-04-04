@@ -74,7 +74,7 @@ static void s_broadcastOrderBooks()
 
 int main(int ac, char* av[])
 {
-    char tz[] = "TZ=America/New_York"; // specify the time zone to New York
+    char tz[] = "TZ=America/New_York"; // Set time zone to New York
     putenv(tz);
 
     /**
