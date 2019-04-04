@@ -19,7 +19,7 @@ private:
 
 public:
     friend class Stock;
-    //for the server to receive
+    // for the server to receive
     Quote(std::string stockName,
         std::string traderID,
         std::string orderID,

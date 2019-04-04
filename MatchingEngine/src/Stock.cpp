@@ -81,24 +81,19 @@ std::string Stock::getStockName()
     return m_stockName;
 }
 
-///decision can be '4' means cancel or '2' means trade, record trade or cancel with object actions, size=m_thisQuote->getSize()-quote2->getSize()
+// decision '2' means this is a trade record, '4' means cancel record; record trade or cancel with object actions
 void Stock::execute(int size, Quote& newQuote, char decision, std::string destination)
 {
-    int executeSize = std::min(m_thisQuote->getSize(), newQuote.getSize()); //////#include <algorithm>
+    int executeSize = std::min(m_thisQuote->getSize(), newQuote.getSize());
     m_thisPrice->setSize(m_thisPrice->getSize() - executeSize);
-    //int newQuotesize;
 
     if (size >= 0) {
         m_thisQuote->setSize(size);
-        //newQuotesize=0;
         newQuote.setSize(0);
-        //cout<<newQuote.getSize();
 
     } else {
         m_thisQuote->setSize(0);
-        //newQuotesize=-size;
         newQuote.setSize(-size);
-        //cout<<newQuote.getSize();
     }
 
     auto now = globalTimeSetting.simulationTimestamp();
@@ -119,14 +114,12 @@ void Stock::execute(int size, Quote& newQuote, char decision, std::string destin
         newQuote.getTime());
 
     actions.push_back(act);
-    //level();
-    // cout << "actions:  " << actions.begin()->time << actions.begin()->decision << endl;
-    //return newQuotesize;
 }
 
 void Stock::executeGlobal(int size, Quote& newQuote, char decision, std::string destination)
 {
     int executeSize = std::min(m_thisGlobal->getSize(), newQuote.getSize());
+
     if (size >= 0) {
         m_thisGlobal->setSize(size);
         newQuote.setSize(0);
@@ -153,11 +146,8 @@ void Stock::executeGlobal(int size, Quote& newQuote, char decision, std::string 
         newQuote.getTime());
 
     actions.push_back(act);
-    //level();
-    //cout<<"Global Actions happening!!!!"<<endl;
 }
 
-///////////////////////////////////////////////do limit buy
 void Stock::doLimitBuy(Quote& newQuote, std::string destination)
 {
     m_thisPrice = m_ask.begin();
@@ -194,10 +184,8 @@ void Stock::doLimitBuy(Quote& newQuote, std::string destination)
             ++m_thisPrice;
     }
     //if(newQuote.getSize()!=0){bid_insert(newQuote);}  //newQuote has large size so that it has to be listed in the bid list.
-    //level();
 }
 
-////////////////////////////////////////////////////////////////////////do limit sell
 void Stock::doLimitSell(Quote& newQuote, std::string destination)
 {
     m_thisPrice = m_bid.begin();
@@ -234,10 +222,8 @@ void Stock::doLimitSell(Quote& newQuote, std::string destination)
             ++m_thisPrice;
     }
     //if(newQuote.getSize()!=0){ask_insert(newQuote);}
-    //level();
 }
 
-///////////////////////////////////////////do market buy
 void Stock::doMarketBuy(Quote& newQuote, std::string destination)
 {
     m_thisPrice = m_ask.begin();
@@ -272,10 +258,8 @@ void Stock::doMarketBuy(Quote& newQuote, std::string destination)
             ++m_thisPrice;
     }
     //if(newQuote.getSize()!=0){bid_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
-    //level();
 }
 
-/////////////////////////////////////////////////////////////////////////do market sell
 void Stock::doMarketSell(Quote& newQuote, std::string destination)
 {
     m_thisPrice = m_bid.begin();
@@ -310,10 +294,8 @@ void Stock::doMarketSell(Quote& newQuote, std::string destination)
             ++m_thisPrice;
     }
     //if(newQuote.getSize()!=0){ask_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
-    //level();
 }
 
-///////////////////////////////////////////////do cancel in ask list
 void Stock::doCancelAsk(Quote& newQuote, std::string destination)
 {
     m_thisPrice = m_ask.begin();
@@ -354,10 +336,8 @@ void Stock::doCancelAsk(Quote& newQuote, std::string destination)
         }
     } else
         cout << "no such quote to be canceled.\n";
-    //level();
 }
 
-//////////////////////////////////////////////////////////////////////////do cancel bid
 void Stock::doCancelBid(Quote& newQuote, std::string destination)
 {
     m_thisPrice = m_bid.begin();
@@ -398,7 +378,6 @@ void Stock::doCancelBid(Quote& newQuote, std::string destination)
         }
     } else
         cout << "no such quote to be canceled.\n";
-    //level();
 }
 
 void Stock::bidInsert(Quote newQuote)
@@ -448,7 +427,6 @@ void Stock::bidInsert(Quote newQuote)
         newPrice.push_front(newQuote);
         m_bid.push_back(newPrice);
     }
-    //level();
 }
 
 void Stock::askInsert(Quote newQuote)
@@ -494,17 +472,12 @@ void Stock::askInsert(Quote newQuote)
         newPrice.push_front(newQuote);
         m_ask.push_back(newPrice);
     }
-    //level();
 }
 
 //////////////////////////////////
 //new order book update method
 //////////////////////////////////
-void Stock::bookUpdate(char book,
-    std::string symbol,
-    double price,
-    int size,
-    FIX::UtcTimeStamp time)
+void Stock::bookUpdate(char book, std::string symbol, double price, int size, FIX::UtcTimeStamp time)
 {
     Newbook newbook(book, symbol, price, size, time);
     //_newbook.store();
@@ -512,12 +485,7 @@ void Stock::bookUpdate(char book,
     //cout<<_newbook.getsymbol()<<"\t"<<_newbook.getPrice()<<"\t"<<_newbook.getSize()<<endl;
 }
 
-void Stock::bookUpdate(char book,
-    std::string symbol,
-    double price,
-    int size,
-    std::string destination,
-    FIX::UtcTimeStamp time)
+void Stock::bookUpdate(char book, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp time)
 {
     Newbook newbook(book, symbol, price, size, destination, time);
     //_newbook.store();
@@ -525,7 +493,7 @@ void Stock::bookUpdate(char book,
     //cout<<_newbook.getsymbol()<<"\t"<<_newbook.getPrice()<<"\t"<<_newbook.getSize()<<endl;
 }
 
-void Stock::level()
+void Stock::showLocal()
 {
     long simulationMilli = globalTimeSetting.pastMilli(true);
 
@@ -558,9 +526,7 @@ void Stock::level()
     ss << ";";
     //std::cout<<endl;
     newLevel = ss.str();
-    //levels.push_back(newLevel);
     //std::cout<<newLevel<<'\n';
-    //if(!actions.empty()){cout<<"  action not empty"<<"\n";} else cout<<"  empty"<<"\n";
 }
 
 void Stock::showGlobal()
@@ -598,7 +564,6 @@ void Stock::showGlobal()
     ss << ";";
     //std::cout<<endl;
     newLevel = ss.str();
-    //levels.push_back(newLevel);
     //std::cout<<newLevel<<'\n';
 }
 
@@ -641,7 +606,6 @@ void Stock::updateGlobalAsk(Quote newGlobal)
     }
     if (m_globalAsk.empty())
         m_globalAsk.push_back(newGlobal);
-    //showglobal();
 }
 
 void Stock::updateGlobalBid(Quote newGlobal)
@@ -671,7 +635,6 @@ void Stock::updateGlobalBid(Quote newGlobal)
     }
     if (m_globalBid.empty())
         m_globalBid.push_back(newGlobal);
-    //showglobal();
 }
 
 void Stock::checkGlobalBid(Quote& newQuote, std::string type)
@@ -714,7 +677,6 @@ void Stock::checkGlobalBid(Quote& newQuote, std::string type)
             }
         }
     }
-    //showglobal();
 }
 
 void Stock::checkGlobalAsk(Quote& newQuote, std::string type)
@@ -754,11 +716,8 @@ void Stock::checkGlobalAsk(Quote& newQuote, std::string type)
             }
         }
     }
-    //showglobal();
 }
 
-// hiukin
-///////////////////////////////////////////////do limit buy
 void Stock::doLocalLimitBuy(Quote& newQuote, std::string destination)
 {
     double localBestAsk, globalBestAsk;
@@ -852,10 +811,8 @@ void Stock::doLocalLimitBuy(Quote& newQuote, std::string destination)
         newQuote.setOrderType('1');
     }
     //if(newQuote.getSize()!=0){bid_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
-    //level();
 }
 
-////////////////////////////////////////////////////////////////////////do limit sell
 void Stock::doLocalLimitSell(Quote& newQuote, std::string destination)
 {
     double localBestBid, globalBestBid;
@@ -951,10 +908,8 @@ void Stock::doLocalLimitSell(Quote& newQuote, std::string destination)
         newQuote.setOrderType('2');
     }
     //if(newQuote.getSize()!=0){ask_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
-    //level();
 }
 
-///////////////////////////////////////////do market buy
 void Stock::doLocalMarketBuy(Quote& newQuote, std::string destination)
 {
     double localBestAsk, globalBestAsk;
@@ -1037,10 +992,8 @@ void Stock::doLocalMarketBuy(Quote& newQuote, std::string destination)
         }
     }
     //if(newQuote.getSize()!=0){bid_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
-    //level();
 }
 
-/////////////////////////////////////////////////////////////////////////do market sell
 void Stock::doLocalMarketSell(Quote& newQuote, std::string destination)
 {
     double localBestBid, globalBestBid;
@@ -1122,6 +1075,5 @@ void Stock::doLocalMarketSell(Quote& newQuote, std::string destination)
             }
         }
     }
-    //if(newQuote.getSize()!=0){ask_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
-    //level();
+    //if(newQuote.getSize()!=0){ask_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.showLocal
 }

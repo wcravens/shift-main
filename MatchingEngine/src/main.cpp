@@ -31,7 +31,7 @@ std::map<std::string, Stock> stockList;
 
 int main(int ac, char* av[])
 {
-    char tz[] = "TZ=America/New_York"; // specify the time zone to New York
+    char tz[] = "TZ=America/New_York"; // Set time zone to New York
     putenv(tz);
 
     /**
@@ -101,7 +101,7 @@ int main(int ac, char* av[])
 
     if (!params.isManualInput) {
         if (!fileConfigMode(configFile, date, stime, etime, experimentSpeed, symbols))
-            return 3; // system stop
+            return 3;
 
     } else {
         inputConfigMode(date, stime, etime, experimentSpeed, symbols);
@@ -116,20 +116,19 @@ int main(int ac, char* av[])
     boost::posix_time::ptime ptimeEnd(boost::posix_time::time_from_string(date + " " + etime));
     std::string requestID = date + " :: " + std::to_string(symbols.size());
 
-    //initiate connection to DB
+    // Initiate connection with DE
     FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
     cout << "Please wait for ready" << endl;
     sleep(3);
     getchar();
 
-    //send request to database, and create stock;
+    // Create stock list and Stock objects
     for (unsigned int i = 0; i < symbols.size(); ++i) {
         std::string symbol;
         symbol = symbols[i];
         FIXAcceptor::getInstance()->addSymbol(symbol);
         Stock newStock;
         newStock.setStockName(symbol);
-        //store the new stock into stockList
         stockList.insert(std::pair<std::string, Stock>(newStock.getStockName(), newStock));
 
         for (unsigned int j = 0; j < symbols[i].size(); ++j) {
@@ -142,13 +141,14 @@ int main(int ac, char* av[])
         return 4;
     }
 
-    //send request to DatafeedEngine for TRTH data
+    // Send request to DatafeedEngine for TRTH data
     FIXInitiator::getInstance()->sendSecurityList(requestID, ptimeStart, ptimeEnd, symbols);
     cout << "Please wait for the database signal until TRTH data ready..." << endl;
     getchar();
     getchar();
     FIXInitiator::getInstance()->sendMarketDataRequest();
-    //option to start the exchange
+
+    // Option to start the Exchange
     cout << endl
          << endl
          << endl
@@ -157,12 +157,12 @@ int main(int ac, char* av[])
          << endl;
 
     while (1) {
-        //int startExchange = 0;
+        // int startExchange = 0;
         cout << "To start exchange, please press '1'" << endl
              << "Please wait for the history data from database server, then type '1', to start this exchange..." << endl;
 
-        //if(cin>>startExchange){if(startExchange==1) break;}
-        //else{cin.clear();cin.ignore(255,'\n');}
+        // if (cin >> startExchange) { if (startExchange == 1) break; }
+        // else { cin.clear(); cin.ignore(255,'\n'); }
         break;
     }
     cout << endl
@@ -173,14 +173,15 @@ int main(int ac, char* av[])
          << endl
          << endl;
     // this_thread::sleep_for(120s);
+
     // Get the time offset in current day
     globalTimeSetting.setStartTime();
-    //begin the matching thread
+
+    // Begin Matching Engine threads
     int numOfStock = stockList.size();
     cout << "Total " << numOfStock << " stocks are ready in the Matching Engine"
          << endl
          << "Waiting for quotes..." << endl;
-    //std::thread  stockThreadList[numOfStock];
     std::vector<std::thread> stockThreadList(numOfStock);
     {
         int i = 0;
@@ -190,9 +191,10 @@ int main(int ac, char* av[])
         }
     }
 
+    // Initiate connection with BC
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
-    //sleep the main thread for set of time until exchange close time
+    // Request new market data every 15 minutes
     ptimeStart += boost::posix_time::minutes(15);
     while (ptimeStart < ptimeEnd) {
         FIXInitiator::getInstance()->sendMarketDataRequest();
@@ -203,12 +205,6 @@ int main(int ac, char* av[])
 
     std::this_thread::sleep_for(1min);
     timeout = true;
-    //{
-    //    boost::posix_time::time_duration timelaps=boost::posix_time::duration_from_string(etime)-boost::posix_time::duration_from_string(stime)
-    //                                                +boost::posix_time::minutes(5);
-    //    std::this_thread::sleep_for(timelaps.total_seconds() * 1s);
-    //    timeout=true;
-    //}
 
     FIXInitiator::getInstance()->disconnectDatafeedEngine();
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();

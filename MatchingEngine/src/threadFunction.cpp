@@ -85,22 +85,22 @@ void inputConfigMode(std::string& date, std::string& stime, std::string& etime, 
     }
 }
 
-//function to start one stock exchange matching, for exchange thread
+// Function to start one stock matching engine, for exchange thread
 void createStockMarket(std::string symbol)
 {
     std::map<std::string, Stock>::iterator stock;
     stock = stockList.find(symbol);
-    std::string askExchange = ""; //for modify global book update
-    std::string bidExchange = ""; //for modify global book update
-    double askPrice = 0; //for modify global book update
-    double bidPrice = 0; //for modify global book update
-    int askSize = 0; //for modify global book update
-    int bidSize = 0; //for modify global book update
+    std::string askExchange = ""; // for modify global book update
+    std::string bidExchange = ""; // for modify global book update
+    double askPrice = 0; // for modify global book update
+    double bidPrice = 0; // for modify global book update
+    int askSize = 0; // for modify global book update
+    int bidSize = 0; // for modify global book update
 
-    while (!timeout) {
-        //Process Clients' Order
+    while (!timeout) { // process orders
         char type;
         Quote newQuote;
+
         if (!stock->second.getNewQuote(newQuote)) {
             std::this_thread::sleep_for(50ms);
             continue;
@@ -108,75 +108,75 @@ void createStockMarket(std::string symbol)
             type = newQuote.getOrderType();
 
             switch (type) {
-            case '1': //limit buy
+            case '1': // limit buy
             {
                 stock->second.doLocalLimitBuy(newQuote, "SHIFT");
-                //if(newQuote.getsize()!=0) stock->second.checkglobalask(newQuote,"limit");
+                // if (newQuote.getsize() != 0) stock->second.checkGlobalAsk(newQuote, "limit");
                 if (newQuote.getSize() != 0) {
                     stock->second.bidInsert(newQuote);
-                    cout << "insert bid" << endl;
+                    cout << "Insert Bid" << endl;
                 }
-                stock->second.level();
-                //stock->second.showglobal();
+                // stock->second.showLocal();
+                // stock->second.showGlobal();
                 break;
             }
-            case '2': //limit sell
+            case '2': // limit sell
             {
                 stock->second.doLocalLimitSell(newQuote, "SHIFT");
-                //if(newQuote.getsize()!=0) stock->second.checkglobalbid(newQuote,"limit");
+                // if (newQuote.getsize() != 0) stock->second.checkGlobalBid(newQuote, "limit");
                 if (newQuote.getSize() != 0) {
                     stock->second.askInsert(newQuote);
-                    cout << "insert ask" << endl;
+                    cout << "Insert Ask" << endl;
                 }
-                stock->second.level();
-                //stock->second.showglobal();
+                // stock->second.showLocal();
+                // stock->second.showGlobal();
                 break;
             }
-            case '3': //market buy
+            case '3': // market buy
             {
                 stock->second.doLocalMarketBuy(newQuote, "SHIFT");
-                //if(newQuote.getsize()!=0) stock->second.checkglobalask(newQuote,"market");
+                // if (newQuote.getsize() != 0) stock->second.checkGlobalAsk(newQuote, "market");
                 if (newQuote.getSize() != 0)
                     stock->second.bidInsert(newQuote);
-                stock->second.level();
-                //stock->second.showglobal();
+                // stock->second.showLocal();
+                // stock->second.showGlobal();
                 break;
             }
-            case '4': //market sell
+            case '4': // market sell
             {
                 stock->second.doLocalMarketSell(newQuote, "SHIFT");
-                //if(newQuote.getsize()!=0) stock->second.checkglobalbid(newQuote,"market");
+                // if (newQuote.getsize() != 0) stock->second.checkGlobalBid(newQuote, "market");
                 if (newQuote.getSize() != 0)
                     stock->second.askInsert(newQuote);
-                stock->second.level();
-                //stock->second.showglobal();
+                // stock->second.showLocal();
+                // stock->second.showGlobal();
                 break;
             }
-            case '5': //cancel bid
+            case '5': // cancel bid
             {
                 stock->second.doCancelBid(newQuote, "SHIFT");
-                stock->second.level();
-                //stock->second.showglobal();
-                std::cout << "done cancel bid" << endl;
+                // stock->second.showLocal();
+                // stock->second.showGlobal();
+                std::cout << "Cancel Bid Done" << endl;
                 break;
             }
-            case '6': //cancel ask
+            case '6': // cancel ask
             {
                 stock->second.doCancelAsk(newQuote, "SHIFT");
-                stock->second.level();
-                //stock->second.showglobal();
-                std::cout << "done cancel ask" << endl;
+                // stock->second.showLocal();
+                // stock->second.showglobal();
+                std::cout << "Cancel Ask Done" << endl;
                 break;
             }
-            case '7': //trade from TR
+            case '7': // trade from TR
             {
-                //cout<<"Global trade update: "<<newQuote.getstockName()<<endl;
+                // cout << "Global trade update: " << newQuote.getStockName() << endl;
                 stock->second.doLimitBuy(newQuote, "SHIFT");
                 stock->second.doLimitSell(newQuote, "SHIFT");
-                stock->second.level();
-                //stock->second.showglobal();
+                // stock->second.showLocal();
+                // stock->second.showGlobal();
                 if (newQuote.getSize() != 0) {
-                    //decision 5 means this is a trade update from TRTH
+                    // Decision '5' means this is a trade update from TRTH
                     auto now = globalTimeSetting.simulationTimestamp();
                     Action newaction(
                         newQuote.getStockName(),
@@ -197,54 +197,50 @@ void createStockMarket(std::string symbol)
                 }
                 break;
             }
-            case '8': //ask update from TR
+            case '8': // ask update from TR
             {
-                //cout<<"Global ask update: "<<newQuote.getstockName()<<endl;
+                // cout << "Global ask update: " << newQuote.getStockName() << endl;
                 if (newQuote.getDestination() == askExchange) {
                     if (newQuote.getPrice() == askPrice && newQuote.getSize() == askSize) {
                         break;
                     }
                 }
-
                 askExchange = newQuote.getDestination();
                 askPrice = newQuote.getPrice();
                 askSize = newQuote.getSize();
                 stock->second.doLimitSell(newQuote, "SHIFT");
                 if (newQuote.getSize() != 0)
                     stock->second.updateGlobalAsk(newQuote);
-                stock->second.level();
-                //stock->second.showglobal();
-
+                // stock->second.showLocal();
+                // stock->second.showGlobal();
                 break;
             }
-            case '9': //bid update from TR
+            case '9': // bid update from TR
             {
                 if (newQuote.getDestination() == bidExchange) {
                     if (newQuote.getPrice() == bidPrice && newQuote.getSize() == bidSize) {
                         break;
                     }
                 }
-
                 bidExchange = newQuote.getDestination();
                 bidPrice = newQuote.getPrice();
                 bidSize = newQuote.getSize();
                 stock->second.doLimitBuy(newQuote, "SHIFT");
                 if (newQuote.getSize() != 0)
                     stock->second.updateGlobalBid(newQuote);
-                stock->second.level();
-                //stock->second.showglobal();
-
+                // stock->second.showLocal();
+                // stock->second.showGlobal();
                 break;
             }
             }
 
             for_each(stock->second.actions.begin(), stock->second.actions.end(), [](Action& report) {
-                // send execution report to DatafeedEngine
-                // decision == 5 means this is a trade update from TRTH -> no need to send it to DatafeedEngine
+                // Send execution report to DatafeedEngine
+                // Decision '5' means this is a trade update from TRTH -> no need to send it to DatafeedEngine
                 if (report.decision != '5') {
                     FIXInitiator::getInstance()->sendExecutionReport(report);
                 }
-                // send execution report to BrokerageCenter
+                // Send execution report to BrokerageCenter
                 FIXAcceptor::getInstance()->sendExecutionReport2All(report);
             });
             stock->second.actions.clear();

@@ -28,22 +28,21 @@ private:
     std::list<Quote> m_globalBid;
     std::list<Quote> m_globalAsk;
 
-    //buffer new quotes & trades received from database
+    // buffer new quotes & trades received from database
     std::queue<Quote> m_newGlobal;
-    //buffer new quotes received from clients
+    // buffer new quotes received from clients
     std::queue<Quote> m_newLocal;
 
     std::mutex m_newGlobal_mu;
     std::mutex m_newLocal_mu;
 
-    //list<action> actions;
     std::list<std::string> m_levels;
     std::list<Price>::iterator m_thisPrice;
     std::list<Quote>::iterator m_thisQuote;
     std::list<Quote>::iterator m_thisGlobal;
 
 public:
-    //order book update queue
+    // order book update queue
     std::list<Newbook> orderBookUpdate;
     std::list<Action> actions;
 
@@ -60,44 +59,39 @@ public:
         m_thisPrice = m_ask.begin();
     }
 
-    //buffer new quotes & trades received from database and clients
+    // buffer new quotes & trades received from database and clients
     void bufNewGlobal(Quote& quote);
     void bufNewLocal(Quote& quote);
-    //retrieve earlist quote buffered in new_global or new_local
+    // retrieve earliest quote buffered in newGlobal or newLocal
     bool getNewQuote(Quote& quote);
 
-    void checkGlobalBid(Quote& newQuote, std::string type); //newQuote to find execute in global orderbook
-    void checkGlobalAsk(Quote& newQuote, std::string type); //newQuote to find execute in global orderbook
-    //void checklocal(ListPrice prices, globalprice newglobal);  // newglobal price to find execute in local orderbook!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    void checkGlobalBid(Quote& newQuote, std::string type);
+    void checkGlobalAsk(Quote& newQuote, std::string type);
     void updateGlobalBid(Quote newQuote);
     void updateGlobalAsk(Quote newQuote);
 
+    // decision '2' means this is a trade record, '4' means cancel record
     void execute(int size, Quote& quote, char decision, std::string destination);
-    //decision, '2' means this is a trade record, '4' means cancel record;
     void executeGlobal(int size, Quote& quote, char decision, std::string destination);
     void doLimitBuy(Quote& newQuote, std::string destination);
-    //destination, "SHIFT" or thisquote.destination in global order book;
     void doMarketBuy(Quote& newQuote, std::string destination);
     void doCancelAsk(Quote& newQuote, std::string destination);
     void doLimitSell(Quote& newQuote, std::string destination);
     void doMarketSell(Quote& newQuote, std::string destination);
     void doCancelBid(Quote& newQuote, std::string destination);
 
-    void bidInsert(Quote quote); //{insert into bid list, sorted from big to small}
-    void askInsert(Quote quote); //{insert into ask list, sorted from small to big};
+    // insert into bid list, sorted from highest to lowest
+    void bidInsert(Quote quote);
+    // insert into ask list, sorted from lowest to highest
+    void askInsert(Quote quote);
 
-    //void bid_delete(Price);
-    //void ask_delete(Price);
-    //bool findprice(double price, ListPrice prices); //
-    void level(); // {subtract the size from the quotes and the underlying price, do the recording}
-
+    void showLocal();
     void showGlobal();
 
     void bookUpdate(char book, std::string symbol, double price, int size, FIX::UtcTimeStamp time);
     void bookUpdate(char book, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp time);
 
-    // hiukin
-    // operation for local order
+    // local order book operations
     void doLocalLimitBuy(Quote& newQuote, std::string destination);
     void doLocalLimitSell(Quote& newQuote, std::string destination);
     void doLocalMarketBuy(Quote& newQuote, std::string destination);
