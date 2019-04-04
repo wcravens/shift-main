@@ -58,6 +58,7 @@ long TimeSetting::pastMilli(bool simTime) // FIXME: can be replaced by microseco
     std::chrono::high_resolution_clock highRezClock; // initiate a high resolution clock
     std::chrono::high_resolution_clock::time_point localNow = highRezClock.now(); // initiate a high resolution time point
     long milli = std::chrono::duration_cast<std::chrono::milliseconds>(localNow - m_startTimePoint).count();
+
     return simTime ? (m_speed * milli) : milli;
 }
 
@@ -67,6 +68,7 @@ long TimeSetting::pastMilli(bool simTime) // FIXME: can be replaced by microseco
 long TimeSetting::pastMilli(const FIX::UtcTimeStamp& utc, bool simTime)
 {
     long milli = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - m_hhmmss) * 1000 + utc.getMillisecond();
+
     return simTime ? (m_speed * milli) : milli;
 }
 
@@ -77,9 +79,9 @@ FIX::UtcTimeStamp TimeSetting::simulationTimestamp()
 {
     std::chrono::high_resolution_clock highRezClock;
     std::chrono::high_resolution_clock::time_point timeNow = highRezClock.now();
-    boost::posix_time::microseconds micro(
-        std::chrono::duration_cast<std::chrono::microseconds>(timeNow - m_startTimePoint).count() * m_speed);
+    boost::posix_time::microseconds micro(std::chrono::duration_cast<std::chrono::microseconds>(timeNow - m_startTimePoint).count() * m_speed);
     auto tmUtcSec = boost::posix_time::to_tm(m_utcDateTime + micro);
     auto timestampUtc = FIX::UtcTimeStamp(&tmUtcSec, (int)micro.fractional_seconds(), 6);
+
     return timestampUtc;
 }

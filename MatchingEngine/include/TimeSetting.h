@@ -8,22 +8,21 @@
 #include <string>
 
 class TimeSetting {
-private:
-    std::chrono::high_resolution_clock::time_point m_startTimePoint; // real time (not simulation time)
-    boost::posix_time::ptime m_utcDateTime;
-    time_t m_hhmmss;
-    int m_speed;
-
-protected:
-    static boost::posix_time::ptime getUTCPTime(const boost::posix_time::ptime& pt);
 
 public:
+    static boost::posix_time::ptime getUTCPTime(const boost::posix_time::ptime& pt);
+
     void initiate(std::string date, std::string stime, int speed = false);
     void setStartTime();
     long pastMilli(bool simTime = false);
     long pastMilli(const FIX::UtcTimeStamp& utc, bool simTime = false);
-
     FIX::UtcTimeStamp simulationTimestamp();
+
+private:
+    boost::posix_time::ptime m_utcDateTime;
+    time_t m_hhmmss;
+    int m_speed;
+    std::chrono::high_resolution_clock::time_point m_startTimePoint; // real time (not simulation time)
 };
 
 extern TimeSetting globalTimeSetting;
