@@ -111,7 +111,7 @@ void FIXAcceptor::sendOrderBookUpdate2All(Newbook& update)
     entryGroup.setField(FIX::Symbol(update.getSymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));
-    auto utc = update.getUtcTime();
+    auto utc = update.getUTCTime();
     entryGroup.setField(FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())));
     entryGroup.setField(FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)));
     entryGroup.setField(FIX::MDMkt(update.getDestination()));

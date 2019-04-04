@@ -43,13 +43,13 @@ public:
         char orderType);
 
     Quote();
-    Quote(const Quote& newquote);
+    Quote(const Quote& other);
     ~Quote();
 
-    void operator=(const Quote& newquote);
+    void operator=(const Quote& other);
 
-    void setStockname(std::string name);
-    std::string getStockname();
+    void setStockName(std::string stockName);
+    std::string getStockName();
 
     std::string getTraderID();
 
@@ -66,7 +66,7 @@ public:
 
     FIX::UtcTimeStamp getTime();
 
-    void setOrderType(char ordertype);
+    void setOrderType(char orderType);
     char getOrderType();
 
     void setDestination(std::string destination);

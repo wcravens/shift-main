@@ -71,14 +71,14 @@ bool Stock::getNewQuote(Quote& quote)
     return good;
 }
 
-void Stock::setStockname(std::string name)
+void Stock::setStockName(std::string stockName)
 {
-    m_name = std::move(name);
+    m_stockName = std::move(stockName);
 }
 
-std::string Stock::getStockname()
+std::string Stock::getStockName()
 {
-    return m_name;
+    return m_stockName;
 }
 
 ///decision can be '4' means cancel or '2' means trade, record trade or cancel with object actions, size=m_thisQuote->getSize()-quote2->getSize()
@@ -103,7 +103,7 @@ void Stock::execute(int size, Quote& newQuote, char decision, std::string destin
 
     auto now = globalTimeSetting.simulationTimestamp();
     Action act(
-        newQuote.getStockname(),
+        newQuote.getStockName(),
         m_thisQuote->getPrice(),
         executeSize,
         m_thisQuote->getTraderID(),
@@ -137,7 +137,7 @@ void Stock::executeGlobal(int size, Quote& newQuote, char decision, std::string 
 
     auto now = globalTimeSetting.simulationTimestamp();
     Action act(
-        newQuote.getStockname(),
+        newQuote.getStockName(),
         m_thisGlobal->getPrice(),
         executeSize,
         m_thisGlobal->getTraderID(),
@@ -604,7 +604,7 @@ void Stock::showGlobal()
 
 void Stock::updateGlobalAsk(Quote newGlobal)
 {
-    //globalprice newGlobal(newQuote.getstockname(), newQuote.getPrice(), newQuote.getSize(), newQuote.getdestination(), newQuote.gettime());
+    //globalprice newGlobal(newQuote.getstockName(), newQuote.getPrice(), newQuote.getSize(), newQuote.getDestination(), newQuote.getTime());
     bookUpdate('A', m_name, newGlobal.getPrice(), newGlobal.getSize(),
         newGlobal.getDestination(), globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
     m_thisGlobal = m_globalAsk.begin();

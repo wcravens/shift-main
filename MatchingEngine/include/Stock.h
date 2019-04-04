@@ -20,7 +20,7 @@ private:
 
     unsigned int m_depth = 5;
 
-    std::string m_name;
+    std::string m_stockName;
 
     std::list<Price> m_bid;
     std::list<Price> m_ask;
@@ -52,8 +52,8 @@ public:
     Stock(std::string name);
     ~Stock();
 
-    void setStockname(std::string name);
-    std::string getStockname();
+    void setStockName(std::string stockName);
+    std::string getStockName();
 
     void setThisPrice()
     {

@@ -131,7 +131,7 @@ int Newbook::getSize() { return m_size; }
  * @brief   Getter function for the field of time.
  * @return  The time of the current order book object.
  */
-FIX::UtcTimeStamp Newbook::getUtcTime() { return m_time; }
+FIX::UtcTimeStamp Newbook::getUTCTime() { return m_time; }
 
 /**
  * @brief   Getter function for the field of book.

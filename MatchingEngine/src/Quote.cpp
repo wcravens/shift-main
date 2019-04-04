@@ -120,7 +120,7 @@ void Quote::operator=(const Quote& other)
  * @param stockName to be set.
  * @return None.
  */
-void Quote::setStockname(std::string stockName)
+void Quote::setStockName(std::string stockName)
 {
     m_stockName = std::move(stockName);
 }
@@ -130,7 +130,7 @@ void Quote::setStockname(std::string stockName)
  * @param None.
  * @return stockName of the current Quote object.
  */
-std::string Quote::getStockname()
+std::string Quote::getStockName()
 {
     return m_stockName;
 }

@@ -206,7 +206,7 @@ void FIXInitiator::storeOrder(Quote& order)
 
     message.setField(FIX::ClOrdID(order.getOrderID()));
     message.setField(FIX::Price(order.getPrice()));
-    message.setField(FIX::Symbol(order.getStockname()));
+    message.setField(FIX::Symbol(order.getStockName()));
     message.setField(::FIXFIELD_SIDE_BUY); // Required by FIX
     message.setField(FIX::OrdType(order.getOrderType()));
     message.setField(FIX::OrderQty(order.getSize()));

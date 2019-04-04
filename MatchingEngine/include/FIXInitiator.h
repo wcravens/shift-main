@@ -41,10 +41,7 @@ public:
     void connectDatafeedEngine(const std::string& configFile);
     void disconnectDatafeedEngine();
 
-    void sendSecurityList(const std::string& requestID,
-        const boost::posix_time::ptime& startTime,
-        const boost::posix_time::ptime& endTime,
-        const std::vector<std::string>& symbols);
+    void sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
     void sendMarketDataRequest();
 
     void sendExecutionReport(Action& report);

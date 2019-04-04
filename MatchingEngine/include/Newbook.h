@@ -21,14 +21,14 @@ public:
     std::string getSymbol();
     double getPrice();
     int getSize();
-    FIX::UtcTimeStamp getUtcTime();
+    FIX::UtcTimeStamp getUTCTime();
     char getBook();
     std::string getDestination();
     virtual ~Newbook();
 
 private:
     std::list<Newbook>::iterator m_listBegin;
-    char m_book; //a=local ask, b=local bid, A=global ask, B=global bid
+    char m_book; // 'a' = local ask, 'b' = local bid, 'A' = global ask, 'B' = global bid
     std::string m_symbol;
     double m_price;
     int m_size;

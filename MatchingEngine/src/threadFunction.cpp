@@ -16,12 +16,7 @@ using namespace std::chrono_literals;
 extern std::atomic<bool> timeout;
 extern std::map<std::string, Stock> stockList;
 
-bool fileConfigMode(std::string fileAddr,
-    std::string& date,
-    std::string& stime,
-    std::string& etime,
-    int& experimentSpeed,
-    std::vector<std::string>& symbols)
+bool fileConfigMode(std::string fileAddr, std::string& date, std::string& stime, std::string& etime, int& experimentSpeed, std::vector<std::string>& symbols)
 {
     std::ifstream fin(fileAddr, std::ios_base::in);
     if (fin.is_open()) {
@@ -56,11 +51,7 @@ bool fileConfigMode(std::string fileAddr,
     return true;
 }
 
-void inputConfigMode(std::string& date,
-    std::string& stime,
-    std::string& etime,
-    int& experimentSpeed,
-    std::vector<std::string>& symbols)
+void inputConfigMode(std::string& date, std::string& stime, std::string& etime, int& experimentSpeed, std::vector<std::string>& symbols)
 {
     cout << "Please input simulation date (format: yyyy-mm-dd, e.g 2018-12-17):" << endl;
     cin >> date;
@@ -179,7 +170,7 @@ void createStockMarket(std::string symbol)
             }
             case '7': //trade from TR
             {
-                //cout<<"Global trade update: "<<newQuote.getstockname()<<endl;
+                //cout<<"Global trade update: "<<newQuote.getstockName()<<endl;
                 stock->second.doLimitBuy(newQuote, "SHIFT");
                 stock->second.doLimitSell(newQuote, "SHIFT");
                 stock->second.level();
@@ -188,7 +179,7 @@ void createStockMarket(std::string symbol)
                     //decision 5 means this is a trade update from TRTH
                     auto now = globalTimeSetting.simulationTimestamp();
                     Action newaction(
-                        newQuote.getStockname(),
+                        newQuote.getStockName(),
                         newQuote.getPrice(),
                         newQuote.getSize(),
                         "T1",
@@ -208,7 +199,7 @@ void createStockMarket(std::string symbol)
             }
             case '8': //ask update from TR
             {
-                //cout<<"Global ask update: "<<newQuote.getstockname()<<endl;
+                //cout<<"Global ask update: "<<newQuote.getstockName()<<endl;
                 if (newQuote.getDestination() == askExchange) {
                     if (newQuote.getPrice() == askPrice && newQuote.getSize() == askSize) {
                         break;

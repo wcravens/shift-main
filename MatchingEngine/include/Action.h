@@ -14,7 +14,7 @@ struct Action {
     char orderType2;
     std::string orderID1;
     std::string orderID2;
-    char decision; //cancel or traded
+    char decision; // trade ('2') or cancel ('4')
     std::string destination;
     FIX::UtcTimeStamp execTime;
     FIX::UtcTimeStamp time1;
