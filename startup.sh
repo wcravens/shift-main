@@ -53,40 +53,6 @@ function usage
 
 function startService
 {
-    # default installation path prefix
-    INSTALL_PREFIX="/usr/local"
-
-    # if installation did not use default installation path
-    if [ -f ~/.shift/${1}/install.log ]
-    then
-        source ~/.shift/${1}/install.log
-    fi
-
-    # if service is not installed, do not try to run it
-    ( command -v ${INSTALL_PREFIX}/bin/${1} >/dev/null ) || return
-
-    # start a new instance of the service
-    echo -e ${COLOR}
-    echo -ne "Starting ${1}...\r"
-    if [ ${LOG_FLAG} -ne 0 ]
-    then
-        nohup ${INSTALL_PREFIX}/bin/${1} ${3} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
-    else
-        nohup ${INSTALL_PREFIX}/bin/${1} ${3} </dev/null >/dev/null 2>&1 &
-    fi
-
-    # loading time
-    for (( i=${2} ; i>=1 ; i-- ))
-    do
-        echo -ne "Starting ${1}... ${i}\033[0K\r"
-        sleep 1
-    done
-    echo -n "Starting ${1}... done."
-    echo -e ${NO_COLOR}
-}
-
-function startVerboseCapableService
-{
 # default installation path prefix
     INSTALL_PREFIX="/usr/local"
 
@@ -427,7 +393,7 @@ then
     do
         case ${i} in
             1_DE )
-                startVerboseCapableService "DatafeedEngine" ${LOADING_TIME[1]} "-t ${TIME_OUT}"
+                startService "DatafeedEngine" ${LOADING_TIME[1]} "-t ${TIME_OUT}"
                 ;;
             2_ME )
                 [ ${SIMULATION_DATE} ] || startService "MatchingEngine" ${LOADING_TIME[2]}
@@ -436,19 +402,19 @@ then
             3_BC )
                 if [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
                 then
-                    startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT}"
+                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT}"
                 elif [ ${RESET_FLAG} -ne 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
                 then
-                    startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r"
+                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r"
                 elif [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -ne 0 ]
                 then
-                    startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -e"
+                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -e"
                 else
-                    startVerboseCapableService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r -e"
+                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r -e"
                 fi
                 ;;
             4_WC )
-                startVerboseCapableService "WebClient" ${LOADING_TIME[4]}
+                startService "WebClient" ${LOADING_TIME[4]}
                 ;;
             5_PS )
                 startPushServer ${LOADING_TIME[5]}
