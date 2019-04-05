@@ -194,7 +194,7 @@ void FIXInitiator::sendExecutionReport(const Action& report)
 /**
  * @brief Store order in Database Engine after confirmed
  */
-void FIXInitiator::storeOrder(Quote& order)
+void FIXInitiator::storeOrder(const Quote& order)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();

@@ -48,7 +48,7 @@ public:
     void sendMarketDataRequest();
 
     void sendExecutionReport(const Action& report);
-    void storeOrder(Quote& order);
+    void storeOrder(const Quote& order);
 
 private:
     FIXInitiator() = default;
