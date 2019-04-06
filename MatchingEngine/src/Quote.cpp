@@ -1,7 +1,7 @@
 #include "Quote.h"
 
-Quote::Quote(const std::string& stockName, const std::string& traderID, const std::string& orderID, double price, int size, char orderType, const FIX::UtcTimeStamp& time)
-    : m_stockName(stockName)
+Quote::Quote(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, char orderType, const FIX::UtcTimeStamp& time)
+    : m_symbol(symbol)
     , m_traderID(traderID)
     , m_orderID(orderID)
     , m_price(price)
@@ -12,8 +12,8 @@ Quote::Quote(const std::string& stockName, const std::string& traderID, const st
 {
 }
 
-Quote::Quote(const std::string& stockName, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
-    : m_stockName(stockName)
+Quote::Quote(const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
+    : m_symbol(symbol)
     , m_traderID("TR")
     , m_orderID("Thomson")
     , m_price(price)
@@ -24,9 +24,9 @@ Quote::Quote(const std::string& stockName, double price, int size, const std::st
 {
 }
 
-const std::string& Quote::getStockName() const
+const std::string& Quote::getSymbol() const
 {
-    return m_stockName;
+    return m_symbol;
 }
 
 const std::string& Quote::getTraderID() const
@@ -69,9 +69,9 @@ const FIX::UtcTimeStamp& Quote::getTime() const
     return m_time;
 }
 
-void Quote::setStockName(const std::string& stockName)
+void Quote::setSymbol(const std::string& symbol)
 {
-    m_stockName = stockName;
+    m_symbol = symbol;
 }
 
 void Quote::setMilli(long milli)

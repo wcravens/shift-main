@@ -7,11 +7,11 @@
 class Quote {
 public:
     Quote() = default;
-    Quote(const std::string& stockName, const std::string& traderID, const std::string& orderID, double price, int size, char orderType, const FIX::UtcTimeStamp& time);
-    Quote(const std::string& stockName, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+    Quote(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, char orderType, const FIX::UtcTimeStamp& time);
+    Quote(const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
 
     // Getters
-    const std::string& getStockName() const;
+    const std::string& getSymbol() const;
     const std::string& getTraderID() const;
     const std::string& getOrderID() const;
     long getMilli() const;
@@ -22,7 +22,7 @@ public:
     const FIX::UtcTimeStamp& getTime() const;
 
     // Setters
-    void setStockName(const std::string& stockName);
+    void setSymbol(const std::string& symbol);
     void setMilli(long milli);
     void setPrice(double price);
     void setSize(int size);
@@ -30,7 +30,7 @@ public:
     void setDestination(const std::string& destination);
 
 private:
-    std::string m_stockName;
+    std::string m_symbol;
     std::string m_traderID;
     std::string m_orderID;
     long m_milli;

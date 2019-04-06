@@ -94,7 +94,7 @@ void Stock::execute(int size, Quote& newQuote, char decision, const std::string&
 
     auto now = globalTimeSetting.simulationTimestamp();
     ExecutionReport report{
-        newQuote.getStockName(),
+        newQuote.getSymbol(),
         m_thisQuote->getPrice(),
         executeSize,
         m_thisQuote->getTraderID(),
@@ -127,7 +127,7 @@ void Stock::executeGlobal(int size, Quote& newQuote, char decision, const std::s
 
     auto now = globalTimeSetting.simulationTimestamp();
     ExecutionReport report{
-        newQuote.getStockName(),
+        newQuote.getSymbol(),
         m_thisGlobal->getPrice(),
         executeSize,
         m_thisGlobal->getTraderID(),
@@ -590,7 +590,7 @@ void Stock::updateGlobalBid(const Quote& newGlobal)
 
 void Stock::updateGlobalAsk(const Quote& newGlobal)
 {
-    //globalprice newGlobal(newQuote.getstockName(), newQuote.getPrice(), newQuote.getSize(), newQuote.getDestination(), newQuote.getTime());
+    //globalprice newGlobal(newQuote.getSymbol(), newQuote.getPrice(), newQuote.getSize(), newQuote.getDestination(), newQuote.getTime());
     bookUpdate(OrderBookEntry::Type::GLB_ASK, m_name, newGlobal.getPrice(), newGlobal.getSize(),
         newGlobal.getDestination(), globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
     m_thisGlobal = m_globalAsk.begin();

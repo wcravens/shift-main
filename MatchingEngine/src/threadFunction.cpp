@@ -170,7 +170,7 @@ void createStockMarket(std::string symbol)
             }
             case '7': // trade from TR
             {
-                // cout << "Global trade update: " << newQuote.getStockName() << endl;
+                // cout << "Global trade update: " << newQuote.getSymbol() << endl;
                 stock->second.doLimitBuy(newQuote, "SHIFT");
                 stock->second.doLimitSell(newQuote, "SHIFT");
                 // stock->second.showLocal();
@@ -179,7 +179,7 @@ void createStockMarket(std::string symbol)
                     // Decision '5' means this is a trade update from TRTH
                     auto now = globalTimeSetting.simulationTimestamp();
                     ExecutionReport report{
-                        newQuote.getStockName(),
+                        newQuote.getSymbol(),
                         newQuote.getPrice(),
                         newQuote.getSize(),
                         "T1",
@@ -200,7 +200,7 @@ void createStockMarket(std::string symbol)
             }
             case '8': // ask update from TR
             {
-                // cout << "Global ask update: " << newQuote.getStockName() << endl;
+                // cout << "Global ask update: " << newQuote.getSymbol() << endl;
                 if (newQuote.getDestination() == askExchange) {
                     if (newQuote.getPrice() == askPrice && newQuote.getSize() == askSize) {
                         break;
