@@ -234,7 +234,7 @@ void createStockMarket(std::string symbol)
             }
             }
 
-            for_each(stock->second.actions.begin(), stock->second.actions.end(), [](Action& report) {
+            for (const auto& report : stock->second.actions) {
                 // Send execution report to DatafeedEngine
                 // Decision '5' means this is a trade update from TRTH -> no need to send it to DatafeedEngine
                 if (report.decision != '5') {
@@ -242,11 +242,12 @@ void createStockMarket(std::string symbol)
                 }
                 // Send execution report to BrokerageCenter
                 FIXAcceptor::getInstance()->sendExecutionReport2All(report);
-            });
+            }
             stock->second.actions.clear();
 
-            for_each(stock->second.orderBookUpdates.begin(), stock->second.orderBookUpdates.end(),
-                [](OrderBookEntry& entry) { FIXAcceptor::getInstance()->sendOrderBookUpdate2All(entry); });
+            for (const auto& entry : stock->second.orderBookUpdates) {
+                FIXAcceptor::getInstance()->sendOrderBookUpdate2All(entry);
+            }
             stock->second.orderBookUpdates.clear();
         }
     }
