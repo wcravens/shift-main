@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Action.h"
+#include "ExecutionReport.h"
 #include "Quote.h"
 
 #include <string>
@@ -47,7 +47,7 @@ public:
     void sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
     void sendMarketDataRequest();
 
-    void sendExecutionReport(const Action& report);
+    void sendExecutionReport(const ExecutionReport& report);
     void storeOrder(const Quote& order);
 
 private:

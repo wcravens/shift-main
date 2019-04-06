@@ -145,7 +145,7 @@ void FIXInitiator::sendMarketDataRequest()
 /**
  * @brief Send execution report to Datafeed Engine
  */
-void FIXInitiator::sendExecutionReport(const Action& report)
+void FIXInitiator::sendExecutionReport(const ExecutionReport& report)
 {
     FIX::Message message;
 
@@ -160,7 +160,7 @@ void FIXInitiator::sendExecutionReport(const Action& report)
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
     message.setField(FIX::OrdStatus(report.decision));
-    message.setField(FIX::Symbol(report.stockName));
+    message.setField(FIX::Symbol(report.symbol));
     message.setField(FIX::Side(report.orderType1));
     message.setField(FIX::OrdType(report.orderType2));
     message.setField(FIX::Price(report.price));

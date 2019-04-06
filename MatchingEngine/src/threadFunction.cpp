@@ -178,7 +178,7 @@ void createStockMarket(std::string symbol)
                 if (newQuote.getSize() != 0) {
                     // Decision '5' means this is a trade update from TRTH
                     auto now = globalTimeSetting.simulationTimestamp();
-                    Action newaction(
+                    ExecutionReport report{
                         newQuote.getStockName(),
                         newQuote.getPrice(),
                         newQuote.getSize(),
@@ -192,8 +192,9 @@ void createStockMarket(std::string symbol)
                         "TRTH",
                         newQuote.getTime(),
                         now,
-                        now);
-                    stock->second.actions.push_back(newaction);
+                        now
+                    };
+                    stock->second.executionReports.push_back(report);
                 }
                 break;
             }
@@ -234,7 +235,7 @@ void createStockMarket(std::string symbol)
             }
             }
 
-            for (const auto& report : stock->second.actions) {
+            for (const auto& report : stock->second.executionReports) {
                 // Send execution report to DatafeedEngine
                 // Decision '5' means this is a trade update from TRTH -> no need to send it to DatafeedEngine
                 if (report.decision != '5') {
@@ -243,7 +244,7 @@ void createStockMarket(std::string symbol)
                 // Send execution report to BrokerageCenter
                 FIXAcceptor::getInstance()->sendExecutionReport2All(report);
             }
-            stock->second.actions.clear();
+            stock->second.executionReports.clear();
 
             for (const auto& entry : stock->second.orderBookUpdates) {
                 FIXAcceptor::getInstance()->sendOrderBookUpdate2All(entry);

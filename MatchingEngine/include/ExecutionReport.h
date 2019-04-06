@@ -4,8 +4,8 @@
 
 #include <string>
 
-struct Action {
-    std::string stockName;
+struct ExecutionReport {
+    std::string symbol;
     double price;
     int size;
     std::string traderID1;
@@ -20,8 +20,8 @@ struct Action {
     FIX::UtcTimeStamp time1;
     FIX::UtcTimeStamp time2;
 
-    Action() = default;
-    Action(const std::string& stockName,
+    ExecutionReport() = default;
+    ExecutionReport(const std::string& symbol,
         double price,
         int size,
         const std::string& traderID1,
@@ -35,7 +35,7 @@ struct Action {
         const FIX::UtcTimeStamp& execTime,
         const FIX::UtcTimeStamp& time1,
         const FIX::UtcTimeStamp& time2)
-        : stockName(stockName)
+        : symbol(symbol)
         , price(price)
         , size(size)
         , traderID1(traderID1)

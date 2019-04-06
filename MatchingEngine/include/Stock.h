@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Action.h"
+#include "ExecutionReport.h"
 #include "OrderBookEntry.h"
 #include "Price.h"
 #include "Quote.h"
@@ -14,7 +14,7 @@
 
 class Stock {
 public:
-    std::list<Action> actions;
+    std::list<ExecutionReport> executionReports;
     std::list<OrderBookEntry> orderBookUpdates;
 
     Stock() = default;

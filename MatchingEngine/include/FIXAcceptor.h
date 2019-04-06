@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Action.h"
+#include "ExecutionReport.h"
 #include "OrderBookEntry.h"
 #include "QuoteConfirm.h"
 
@@ -46,7 +46,7 @@ public:
     void disconnectBrokerageCenter();
 
     void sendOrderBookUpdate2All(const OrderBookEntry& update);
-    void sendExecutionReport2All(const Action& report);
+    void sendExecutionReport2All(const ExecutionReport& report);
 
 private:
     FIXAcceptor() = default;

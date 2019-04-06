@@ -93,7 +93,7 @@ void Stock::execute(int size, Quote& newQuote, char decision, const std::string&
     }
 
     auto now = globalTimeSetting.simulationTimestamp();
-    Action act(
+    ExecutionReport report{
         newQuote.getStockName(),
         m_thisQuote->getPrice(),
         executeSize,
@@ -107,9 +107,10 @@ void Stock::execute(int size, Quote& newQuote, char decision, const std::string&
         destination,
         now,
         m_thisQuote->getTime(),
-        newQuote.getTime());
+        newQuote.getTime()
+    };
 
-    actions.push_back(act);
+    executionReports.push_back(report);
 }
 
 void Stock::executeGlobal(int size, Quote& newQuote, char decision, const std::string& destination)
@@ -125,7 +126,7 @@ void Stock::executeGlobal(int size, Quote& newQuote, char decision, const std::s
     }
 
     auto now = globalTimeSetting.simulationTimestamp();
-    Action act(
+    ExecutionReport report{
         newQuote.getStockName(),
         m_thisGlobal->getPrice(),
         executeSize,
@@ -139,9 +140,10 @@ void Stock::executeGlobal(int size, Quote& newQuote, char decision, const std::s
         destination,
         now,
         m_thisGlobal->getTime(),
-        newQuote.getTime());
+        newQuote.getTime()
+    };
 
-    actions.push_back(act);
+    executionReports.push_back(report);
 }
 
 void Stock::doLimitBuy(Quote& newQuote, const std::string& destination)

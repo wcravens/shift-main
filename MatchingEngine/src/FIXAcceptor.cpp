@@ -129,7 +129,7 @@ void FIXAcceptor::sendOrderBookUpdate2All(const OrderBookEntry& update)
 /**
  * @brief Sending execution report to brokers
  */
-void FIXAcceptor::sendExecutionReport2All(const Action& report)
+void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
 {
     FIX::Message message;
 
@@ -143,7 +143,7 @@ void FIXAcceptor::sendExecutionReport2All(const Action& report)
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
     message.setField(FIX::OrdStatus(report.decision));
-    message.setField(FIX::Symbol(report.stockName));
+    message.setField(FIX::Symbol(report.symbol));
     message.setField(FIX::Side(report.orderType1));
     message.setField(FIX::OrdType(report.orderType2));
     message.setField(FIX::Price(report.price));

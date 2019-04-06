@@ -28,7 +28,7 @@ set(CONFIGDEFAULT
 )
 
 set(INCLUDE
-    ${PROJECT_SOURCE_DIR}/include/Action.h
+    ${PROJECT_SOURCE_DIR}/include/ExecutionReport.h
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
     ${PROJECT_SOURCE_DIR}/include/FIXInitiator.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookEntry.h
