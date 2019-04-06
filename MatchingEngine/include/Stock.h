@@ -18,11 +18,11 @@ public:
     std::list<OrderBookEntry> orderBookUpdates;
 
     Stock() = default;
-    Stock(const std::string& name);
+    Stock(const std::string& symbol);
     Stock(const Stock& other);
 
-    const std::string& getName() const;
-    void setName(const std::string& name);
+    const std::string& getSymbol() const;
+    void setSymbol(const std::string& symbol);
 
     // buffer new quotes & trades received from database and clients
     void bufNewGlobal(const Quote& quote);
@@ -63,7 +63,7 @@ public:
     void doLocalMarketSell(Quote& newQuote, const std::string& destination);
 
 private:
-    std::string m_name;
+    std::string m_symbol;
     unsigned int m_depth = 5;
 
     std::mutex m_mtxNewGlobal;

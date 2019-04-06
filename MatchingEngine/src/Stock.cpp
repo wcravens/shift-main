@@ -4,24 +4,24 @@
 
 #include <shift/miscutils/terminal/Common.h>
 
-Stock::Stock(const std::string& name)
-    : m_name(name)
+Stock::Stock(const std::string& symbol)
+    : m_symbol(symbol)
 {
 }
 
 Stock::Stock(const Stock& stock)
-    : m_name(stock.m_name)
+    : m_symbol(stock.m_symbol)
 {
 }
 
-const std::string& Stock::getName() const
+const std::string& Stock::getSymbol() const
 {
-    return m_name;
+    return m_symbol;
 }
 
-void Stock::setName(const std::string& name)
+void Stock::setSymbol(const std::string& symbol)
 {
-    m_name = name;
+    m_symbol = symbol;
 }
 
 void Stock::bufNewGlobal(const Quote& quote)
@@ -113,6 +113,7 @@ void Stock::execute(int size, Quote& newQuote, char decision, const std::string&
     executionReports.push_back(report);
 }
 
+// decision '2' means this is a trade record, '4' means cancel record; record trade or cancel with object actions
 void Stock::executeGlobal(int size, Quote& newQuote, char decision, const std::string& destination)
 {
     int executeSize = std::min(m_thisGlobal->getSize(), newQuote.getSize());
@@ -149,8 +150,7 @@ void Stock::executeGlobal(int size, Quote& newQuote, char decision, const std::s
 void Stock::doLimitBuy(Quote& newQuote, const std::string& destination)
 {
     m_thisPrice = m_localAsk.begin();
-    while (newQuote.getSize() != 0) //search list<Price> ask for best price, smaller than newQuote
-    {
+    while (newQuote.getSize() != 0) {
         if (m_thisPrice == m_localAsk.end())
             break;
         if (m_thisPrice->getPrice() <= newQuote.getPrice()) {
@@ -162,33 +162,28 @@ void Stock::doLimitBuy(Quote& newQuote, const std::string& destination)
                     ++m_thisQuote;
                     continue;
                 }
-                int size = m_thisQuote->getSize() - newQuote.getSize(); //compare the two sizes.
-                //cout<<'\n'<<size;
-                //newQuote.setSize(execute(size,newQuote,'T',destination));
+                int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
                 execute(size, newQuote, '2', destination);
-                //cout<<newQuote.getSize();
                 if (size <= 0) {
                     m_thisQuote = m_thisPrice->erase(m_thisQuote);
                 }
             }
         }
 
-        bookUpdate(OrderBookEntry::Type::LOC_ASK, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
-            globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+        bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
         if (m_thisPrice->empty()) {
             m_thisPrice = m_localAsk.erase(m_thisPrice);
         } else
             ++m_thisPrice;
     }
-    //if(newQuote.getSize()!=0){bid_insert(newQuote);}  //newQuote has large size so that it has to be listed in the bid list.
 }
 
 void Stock::doLimitSell(Quote& newQuote, const std::string& destination)
 {
     m_thisPrice = m_localBid.begin();
-    while (newQuote.getSize() != 0) //search list<Price> bid for best price, smaller than newQuote
-    {
+    while (newQuote.getSize() != 0) {
         if (m_thisPrice == m_localBid.end())
             break;
         if (m_thisPrice->getPrice() >= newQuote.getPrice()) {
@@ -200,33 +195,28 @@ void Stock::doLimitSell(Quote& newQuote, const std::string& destination)
                     ++m_thisQuote;
                     continue;
                 }
-                int size = m_thisQuote->getSize() - newQuote.getSize(); //compare the two sizes.
-                //cout<<'\n'<<size;
-                //newQuote.setSize(execute(size,newQuote,'T',destination));
+                int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
                 execute(size, newQuote, '2', destination);
-                //cout<<newQuote.getSize();
                 if (size <= 0) {
                     m_thisQuote = m_thisPrice->erase(m_thisQuote);
                 }
             }
         }
 
-        bookUpdate(OrderBookEntry::Type::LOC_BID, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
-            globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+        bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
         if (m_thisPrice->empty()) {
             m_thisPrice = m_localBid.erase(m_thisPrice);
         } else
             ++m_thisPrice;
     }
-    //if(newQuote.getSize()!=0){ask_insert(newQuote);}
 }
 
 void Stock::doMarketBuy(Quote& newQuote, const std::string& destination)
 {
     m_thisPrice = m_localAsk.begin();
-    while (newQuote.getSize() != 0) //search list<Price> ask for best price
-    {
+    while (newQuote.getSize() != 0) {
         if (m_thisPrice == m_localAsk.end())
             break;
         m_thisQuote = m_thisPrice->begin();
@@ -237,32 +227,27 @@ void Stock::doMarketBuy(Quote& newQuote, const std::string& destination)
                 ++m_thisQuote;
                 continue;
             }
-            int size = m_thisQuote->getSize() - newQuote.getSize(); //compare the two sizes.
-            //cout<<'\n'<<size;
-            //newQuote.setSize(execute(size,newQuote,'T',destination));
+            int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
             execute(size, newQuote, '2', destination);
-            //cout<<newQuote.getSize();
             if (size <= 0) {
                 m_thisQuote = m_thisPrice->erase(m_thisQuote);
             }
         }
 
-        bookUpdate(OrderBookEntry::Type::LOC_ASK, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
-            globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+        bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
         if (m_thisPrice->empty()) {
             m_thisPrice = m_localAsk.erase(m_thisPrice);
         } else
             ++m_thisPrice;
     }
-    //if(newQuote.getSize()!=0){bid_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
 }
 
 void Stock::doMarketSell(Quote& newQuote, const std::string& destination)
 {
     m_thisPrice = m_localBid.begin();
-    while (newQuote.getSize() != 0) //search list<Price> bid for best price
-    {
+    while (newQuote.getSize() != 0) {
         if (m_thisPrice == m_localBid.end())
             break;
         m_thisQuote = m_thisPrice->begin();
@@ -273,25 +258,21 @@ void Stock::doMarketSell(Quote& newQuote, const std::string& destination)
                 ++m_thisQuote;
                 continue;
             }
-            int size = m_thisQuote->getSize() - newQuote.getSize(); //compare the two sizes.
-            //cout<<'\n'<<size;
-            //newQuote.setSize(execute(size,newQuote,'T',destination));
+            int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
             execute(size, newQuote, '2', destination);
-            //cout<<newQuote.getSize();
             if (size <= 0) {
                 m_thisQuote = m_thisPrice->erase(m_thisQuote);
             }
         }
 
-        bookUpdate(OrderBookEntry::Type::LOC_BID, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
-            globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+        bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
         if (m_thisPrice->empty()) {
             m_thisPrice = m_localBid.erase(m_thisPrice);
         } else
             ++m_thisPrice;
     }
-    //if(newQuote.getSize()!=0){ask_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
 }
 
 void Stock::doCancelBid(Quote& newQuote, const std::string& destination)
@@ -313,8 +294,8 @@ void Stock::doCancelBid(Quote& newQuote, const std::string& destination)
                 int size = m_thisQuote->getSize() - newQuote.getSize();
                 execute(size, newQuote, '4', destination);
 
-                bookUpdate(OrderBookEntry::Type::LOC_BID, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
-                    globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+                bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+                    globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
                 if (size <= 0)
                     m_thisQuote = m_thisPrice->erase(m_thisQuote);
@@ -355,8 +336,8 @@ void Stock::doCancelAsk(Quote& newQuote, const std::string& destination)
                 int size = m_thisQuote->getSize() - newQuote.getSize();
                 execute(size, newQuote, '4', destination);
 
-                bookUpdate(OrderBookEntry::Type::LOC_ASK, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
-                    globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+                bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+                    globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
                 if (size <= 0)
                     m_thisQuote = m_thisPrice->erase(m_thisQuote);
@@ -380,21 +361,15 @@ void Stock::doCancelAsk(Quote& newQuote, const std::string& destination)
 
 void Stock::bidInsert(const Quote& newQuote)
 {
-    bookUpdate(OrderBookEntry::Type::LOC_BID, m_name, newQuote.getPrice(), newQuote.getSize(),
-        globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+    bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, newQuote.getPrice(), newQuote.getSize(),
+        globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
     m_thisPrice = m_localBid.begin();
 
     if (!m_localBid.empty()) {
-
-        /*double temp = m_thisPrice->getPrice();
-		m_thisPrice++;*/
-
         while (m_thisPrice != m_localBid.end() && m_thisPrice->getPrice() >= newQuote.getPrice()) {
             if (m_thisPrice->getPrice() == newQuote.getPrice()) {
                 m_thisPrice->push_back(newQuote);
                 m_thisPrice->setSize(m_thisPrice->getSize() + newQuote.getSize());
-
-                //bookupdate('b',name, m_thisPrice->getPrice(), m_thisPrice->getSize(), now_long()); //update the new price for broadcasting
 
                 break;
             }
@@ -429,15 +404,11 @@ void Stock::bidInsert(const Quote& newQuote)
 
 void Stock::askInsert(const Quote& newQuote)
 {
-    bookUpdate(OrderBookEntry::Type::LOC_ASK, m_name, newQuote.getPrice(), newQuote.getSize(),
-        globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+    bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, newQuote.getPrice(), newQuote.getSize(),
+        globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
     m_thisPrice = m_localAsk.begin();
 
     if (!m_localAsk.empty()) {
-
-        /*double temp = m_thisPrice->getPrice();
-		m_thisPrice++;*/
-
         while (m_thisPrice != m_localAsk.end() && m_thisPrice->getPrice() <= newQuote.getPrice()) {
             if (m_thisPrice->getPrice() == newQuote.getPrice()) {
                 m_thisPrice->push_back(newQuote);
@@ -472,9 +443,6 @@ void Stock::askInsert(const Quote& newQuote)
     }
 }
 
-///////////////////////////////
-// new order book update method
-///////////////////////////////
 void Stock::bookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time)
 {
     orderBookUpdates.push_back({ type, symbol, price, size, time });
@@ -495,30 +463,28 @@ void Stock::showLocal()
     ss << simulationMilli << ";"
        << "Local: "
        << ";";
-    //std::cout<<"Local Ask :\t"<<name<<endl;
+
     unsigned int depth = m_localAsk.size();
     depth = m_depth > depth ? depth : m_depth;
+
     m_thisPrice = m_localAsk.begin();
     for (unsigned int i = 0; i < depth; i++) {
         ss << m_thisPrice->getPrice() << "," << m_thisPrice->getSize() << ",";
-        //std::cout<<m_thisPrice->getPrice()<<" , "<<m_thisPrice->getSize()<<" ; ";
         m_thisPrice++;
     }
     ss << ";";
-    //std::cout<<endl;
+
     depth = m_localBid.size();
     depth = m_depth > depth ? depth : m_depth;
-    //std::cout<<"Local Bid :\t"<<name<<endl;
+
     m_thisPrice = m_localBid.begin();
     for (unsigned int i = 0; i < depth; i++) {
         ss << m_thisPrice->getPrice() << "," << m_thisPrice->getSize() << ",";
-        //std::cout<<m_thisPrice->getPrice()<<" , "<<m_thisPrice->getSize()<<" ; ";
         m_thisPrice++;
     }
     ss << ";";
-    //std::cout<<endl;
+
     newLevel = ss.str();
-    //std::cout<<newLevel<<'\n';
 }
 
 void Stock::showGlobal()
@@ -528,41 +494,37 @@ void Stock::showGlobal()
     std::string newLevel;
     std::stringstream ss;
 
-    unsigned int depth = m_globalAsk.size();
-    depth = m_depth > depth ? depth : m_depth;
-
     ss << simulationMilli << ";"
        << "Global: "
        << ";";
-    //std::cout<<"Global Ask :\t"<<name<<endl;
+
+    unsigned int depth = m_globalAsk.size();
+    depth = m_depth > depth ? depth : m_depth;
+
     m_thisGlobal = m_globalAsk.begin();
     for (unsigned int i = 0; i < depth; i++) {
         ss << m_thisGlobal->getPrice() << "," << m_thisGlobal->getSize() << "," << m_thisGlobal->getDestination() << ",";
-        //std::cout<<m_thisGlobal->price<<" , "<<m_thisGlobal->size<<" , "<<m_thisGlobal->destination<<" ; ";
         m_thisGlobal++;
     }
     ss << ";";
-    //std::cout<<endl;
-    //std::cout<<"Global Bid :\t"<<name<<endl;
 
     depth = m_globalBid.size();
     depth = m_depth > depth ? depth : m_depth;
+
     m_thisGlobal = m_globalBid.begin();
     for (unsigned int i = 0; i < depth; i++) {
         ss << m_thisGlobal->getPrice() << "," << m_thisGlobal->getSize() << "," << m_thisGlobal->getDestination() << ",";
-        //std::cout<<m_thisGlobal->price<<" , "<<m_thisGlobal->size<<" , "<<m_thisGlobal->destination<<" ; ";
         m_thisGlobal++;
     }
     ss << ";";
-    //std::cout<<endl;
+
     newLevel = ss.str();
-    //std::cout<<newLevel<<'\n';
 }
 
 void Stock::updateGlobalBid(const Quote& newGlobal)
 {
-    bookUpdate(OrderBookEntry::Type::GLB_BID, m_name, newGlobal.getPrice(), newGlobal.getSize(),
-        newGlobal.getDestination(), globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+    bookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, newGlobal.getPrice(), newGlobal.getSize(),
+        newGlobal.getDestination(), globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
     m_thisGlobal = m_globalBid.begin();
     while (!m_globalBid.empty()) {
         if (m_thisGlobal == m_globalBid.end()) {
@@ -590,26 +552,14 @@ void Stock::updateGlobalBid(const Quote& newGlobal)
 
 void Stock::updateGlobalAsk(const Quote& newGlobal)
 {
-    //globalprice newGlobal(newQuote.getSymbol(), newQuote.getPrice(), newQuote.getSize(), newQuote.getDestination(), newQuote.getTime());
-    bookUpdate(OrderBookEntry::Type::GLB_ASK, m_name, newGlobal.getPrice(), newGlobal.getSize(),
-        newGlobal.getDestination(), globalTimeSetting.simulationTimestamp()); //update the new price for broadcasting
+    bookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, newGlobal.getPrice(), newGlobal.getSize(),
+        newGlobal.getDestination(), globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
     m_thisGlobal = m_globalAsk.begin();
-    while (!m_globalAsk.empty()) //&&(m_thisGlobal->price>=newGlobal.price))
-    {
+    while (!m_globalAsk.empty()) {
         if (m_thisGlobal == m_globalAsk.end()) {
             m_globalAsk.push_back(newGlobal);
             break;
         } else if (m_thisGlobal->getPrice() < newGlobal.getPrice()) {
-            /*if(m_thisGlobal->destination==newGlobal.destination)
-			{
-				list<Quote>::iterator it;
-				it=m_thisGlobal;
-				++m_thisGlobal;
-				m_globalAsk.erase(it);
-				continue;
-			}
-			else m_thisGlobal++;*/
-
             std::list<Quote>::iterator it;
             it = m_thisGlobal;
             ++m_thisGlobal;
@@ -641,9 +591,8 @@ void Stock::checkGlobalBid(Quote& newQuote, const std::string& type)
                 int size = m_thisGlobal->getSize() - newQuote.getSize();
                 executeGlobal(size, newQuote, '2', m_thisGlobal->getDestination());
 
-                bookUpdate(OrderBookEntry::Type::GLB_BID, m_name, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
+                bookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
                     m_thisGlobal->getDestination(), globalTimeSetting.simulationTimestamp());
-                //cout<<size<<endl;
                 if (size <= 0) {
                     m_globalBid.pop_front();
                 }
@@ -656,11 +605,10 @@ void Stock::checkGlobalBid(Quote& newQuote, const std::string& type)
             if (m_globalBid.empty()) {
                 cout << "Global bid book is empty in checkglobalbid market." << endl;
                 break;
-            } else //if(m_thisGlobal->price>=newQuote.price)
-            {
+            } else {
                 int size = m_thisGlobal->getSize() - newQuote.getSize();
                 executeGlobal(size, newQuote, '2', m_thisGlobal->getDestination());
-                bookUpdate(OrderBookEntry::Type::GLB_BID, m_name, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
+                bookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
                     m_thisGlobal->getDestination(), globalTimeSetting.simulationTimestamp());
 
                 if (size <= 0) {
@@ -682,9 +630,8 @@ void Stock::checkGlobalAsk(Quote& newQuote, const std::string& type)
             } else if (m_thisGlobal->getPrice() <= newQuote.getPrice()) {
                 int size = m_thisGlobal->getSize() - newQuote.getSize();
                 executeGlobal(size, newQuote, '2', m_thisGlobal->getDestination());
-                bookUpdate(OrderBookEntry::Type::GLB_ASK, m_name, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
+                bookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
                     m_thisGlobal->getDestination(), globalTimeSetting.simulationTimestamp());
-                //cout<<size<<endl;
                 if (size <= 0) {
                     m_globalAsk.pop_front();
                 }
@@ -700,7 +647,7 @@ void Stock::checkGlobalAsk(Quote& newQuote, const std::string& type)
             } else {
                 int size = m_thisGlobal->getSize() - newQuote.getSize();
                 executeGlobal(size, newQuote, '2', m_thisGlobal->getDestination());
-                bookUpdate(OrderBookEntry::Type::GLB_ASK, m_name, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
+                bookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
                     m_thisGlobal->getDestination(), globalTimeSetting.simulationTimestamp());
                 if (size <= 0) {
                     m_globalAsk.pop_front();
@@ -769,16 +716,15 @@ void Stock::doLocalLimitBuy(Quote& newQuote, const std::string& destination)
         // compare the price
         if (localBestAsk <= globalBestAsk) {
             // trade with local order
-            int size = m_thisQuote->getSize() - newQuote.getSize(); //compare the two sizes.
+            int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
             execute(size, newQuote, '2', destination);
-            //cout<<newQuote.getSize();
             if (size <= 0) {
                 // remove executed quote
                 m_thisQuote = m_thisPrice->erase(m_thisQuote);
             }
 
-            //update the new price for broadcasting
-            bookUpdate(OrderBookEntry::Type::LOC_ASK, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            // update the new price for broadcasting
+            bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
                 globalTimeSetting.simulationTimestamp());
 
             // remove empty price
@@ -789,10 +735,10 @@ void Stock::doLocalLimitBuy(Quote& newQuote, const std::string& destination)
                 }
             }
         } else {
-            //trade with global order
+            // trade with global order
             int size = m_thisGlobal->getSize() - newQuote.getSize();
             executeGlobal(size, newQuote, '2', m_thisGlobal->getDestination());
-            bookUpdate(OrderBookEntry::Type::GLB_ASK, m_name, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
+            bookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
                 m_thisGlobal->getDestination(), globalTimeSetting.simulationTimestamp());
             if (size <= 0) {
                 m_globalAsk.pop_front();
@@ -802,7 +748,6 @@ void Stock::doLocalLimitBuy(Quote& newQuote, const std::string& destination)
         // recover to limit buy order
         newQuote.setOrderType('1');
     }
-    //if(newQuote.getSize()!=0){bid_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
 }
 
 void Stock::doLocalLimitSell(Quote& newQuote, const std::string& destination)
@@ -864,18 +809,15 @@ void Stock::doLocalLimitSell(Quote& newQuote, const std::string& destination)
         // compare the price
         if (localBestBid >= globalBestBid) {
             // trade with local order
-            int size = m_thisQuote->getSize() - newQuote.getSize(); //compare the two sizes.
-            //cout<<'\n'<<size;
-            //newQuote.setSize(execute(size,newQuote,'T',destination));
+            int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
             execute(size, newQuote, '2', destination);
-            //cout<<newQuote.getSize();
             if (size <= 0) {
                 // remove executed quote
                 m_thisQuote = m_thisPrice->erase(m_thisQuote);
             }
 
-            //update the new price for broadcasting
-            bookUpdate(OrderBookEntry::Type::LOC_BID, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            // update the new price for broadcasting
+            bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
                 globalTimeSetting.simulationTimestamp());
 
             // remove empty price
@@ -886,10 +828,10 @@ void Stock::doLocalLimitSell(Quote& newQuote, const std::string& destination)
                 }
             }
         } else {
-            //trade with global order
+            // trade with global order
             int size = m_thisGlobal->getSize() - newQuote.getSize();
             executeGlobal(size, newQuote, '2', m_thisGlobal->getDestination());
-            bookUpdate(OrderBookEntry::Type::GLB_BID, m_name, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
+            bookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
                 m_thisGlobal->getDestination(), globalTimeSetting.simulationTimestamp());
             if (size <= 0) {
                 m_globalBid.pop_front();
@@ -899,7 +841,6 @@ void Stock::doLocalLimitSell(Quote& newQuote, const std::string& destination)
         // recover to limit order
         newQuote.setOrderType('2');
     }
-    //if(newQuote.getSize()!=0){ask_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
 }
 
 void Stock::doLocalMarketBuy(Quote& newQuote, const std::string& destination)
@@ -951,18 +892,15 @@ void Stock::doLocalMarketBuy(Quote& newQuote, const std::string& destination)
 
         if (localBestAsk <= globalBestAsk) {
             // trade with local order
-            int size = m_thisQuote->getSize() - newQuote.getSize(); //compare the two sizes.
-            //cout<<'\n'<<size;
-            //newQuote.setSize(execute(size,newQuote,'T',destination));
+            int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes.
             execute(size, newQuote, '2', destination);
-            //cout<<newQuote.getSize();
             if (size <= 0) {
                 // remove executed quote
                 m_thisQuote = m_thisPrice->erase(m_thisQuote);
             }
 
-            //update the new price for broadcasting
-            bookUpdate(OrderBookEntry::Type::LOC_ASK, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            // update the new price for broadcasting
+            bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
                 globalTimeSetting.simulationTimestamp());
 
             // remove empty price
@@ -973,17 +911,16 @@ void Stock::doLocalMarketBuy(Quote& newQuote, const std::string& destination)
                 }
             }
         } else {
-            //trade with global order
+            // trade with global order
             int size = m_thisGlobal->getSize() - newQuote.getSize();
             executeGlobal(size, newQuote, '2', m_thisGlobal->getDestination());
-            bookUpdate(OrderBookEntry::Type::GLB_ASK, m_name, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
+            bookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
                 m_thisGlobal->getDestination(), globalTimeSetting.simulationTimestamp());
             if (size <= 0) {
                 m_globalAsk.pop_front();
             }
         }
     }
-    //if(newQuote.getSize()!=0){bid_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.
 }
 
 void Stock::doLocalMarketSell(Quote& newQuote, const std::string& destination)
@@ -1035,18 +972,15 @@ void Stock::doLocalMarketSell(Quote& newQuote, const std::string& destination)
 
         if (localBestBid >= globalBestBid) {
             // trade with local order
-            int size = m_thisQuote->getSize() - newQuote.getSize(); //compare the two sizes.
-            //cout<<'\n'<<size;
-            //newQuote.setSize(execute(size,newQuote,'T',destination));
+            int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
             execute(size, newQuote, '2', destination);
-            //cout<<newQuote.getSize();
             if (size <= 0) {
                 // remove executed quote
                 m_thisQuote = m_thisPrice->erase(m_thisQuote);
             }
 
-            //update the new price for broadcasting
-            bookUpdate(OrderBookEntry::Type::LOC_BID, m_name, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            // update the new price for broadcasting
+            bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
                 globalTimeSetting.simulationTimestamp());
 
             // remove empty price
@@ -1057,15 +991,14 @@ void Stock::doLocalMarketSell(Quote& newQuote, const std::string& destination)
                 }
             }
         } else {
-            //trade with global order
+            // trade with global order
             int size = m_thisGlobal->getSize() - newQuote.getSize();
             executeGlobal(size, newQuote, '2', m_thisGlobal->getDestination());
-            bookUpdate(OrderBookEntry::Type::GLB_BID, m_name, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
+            bookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, m_thisGlobal->getPrice(), m_thisGlobal->getSize(),
                 m_thisGlobal->getDestination(), globalTimeSetting.simulationTimestamp());
             if (size <= 0) {
                 m_globalBid.pop_front();
             }
         }
     }
-    //if(newQuote.getSize()!=0){ask_insert(newQuote);}  //newQuote has large size so that it has to be listed in the ask list.showLocal
 }
