@@ -6,7 +6,7 @@
 
 #include "ExecutionReport.h"
 #include "OrderBookEntry.h"
-#include "QuoteConfirm.h"
+#include "OrderConfirmation.h"
 
 #include <mutex>
 #include <set>
@@ -52,7 +52,7 @@ private:
     FIXAcceptor() = default;
 
     void sendSecurityList(const std::string& targetID);
-    void sendOrderConfirmation(const std::string& targetID, const QuoteConfirm& confirmation);
+    void sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation);
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

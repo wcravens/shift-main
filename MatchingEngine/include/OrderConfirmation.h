@@ -4,7 +4,7 @@
 
 #include <string>
 
-struct QuoteConfirm {
+struct OrderConfirmation {
     std::string symbol;
     std::string traderID;
     std::string orderID;

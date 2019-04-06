@@ -198,7 +198,7 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID)
 /**
  * @brief Send order confirmation to broker
  */
-void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const QuoteConfirm& confirmation)
+void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation)
 {
     FIX::Message message;
 
