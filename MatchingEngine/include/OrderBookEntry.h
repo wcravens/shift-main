@@ -8,14 +8,22 @@
 /**
  * @brief   Class to dealing with everything about new OrderBook.
  */
-class NewBook {
+class OrderBookEntry {
 public:
-    NewBook() = default;
-    NewBook(char book, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
-    NewBook(char book, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+    enum Type : char {
+        GLB_ASK = 'A',
+        GLB_BID = 'B',
+        LOC_ASK = 'a',
+        LOC_BID = 'b',
+        OTHER = 'e'
+    };
+
+    OrderBookEntry() = default;
+    OrderBookEntry(Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
+    OrderBookEntry(Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
 
     // Getters
-    char getBook() const;
+    Type getType() const;
     const std::string& getSymbol() const;
     double getPrice() const;
     int getSize() const;
@@ -23,7 +31,7 @@ public:
     const FIX::UtcTimeStamp& getUTCTime() const;
 
 private:
-    char m_book; // 'a' = local ask, 'b' = local bid, 'A' = global ask, 'B' = global bid
+    Type m_type;
     std::string m_symbol;
     double m_price;
     int m_size;

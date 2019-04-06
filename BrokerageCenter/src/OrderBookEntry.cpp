@@ -1,15 +1,5 @@
 #include "OrderBookEntry.h"
 
-/**
- * @brief   Constructs with corresponding parameters.
- * @param   type: The versioning of the Option Constract.
- * @param	symbol: The symbol of the order.
- * @param   price: The price of order.
- * @param	size: The contract size.
- * @param   destination: The security ID used as destination.
- * @param   date: FIX::UtcDateOnly for the date of order
- * @param   time: FIX::UtcTimeOnly for the time of order
- */
 OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
     : m_type{ type }
     , m_symbol{ symbol }
@@ -21,62 +11,36 @@ OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& sym
 {
 }
 
-/**
- * @brief   Getter of the order book type.
- * @return  The order book type.
- */
 OrderBookEntry::Type OrderBookEntry::getType() const
 {
     return m_type;
 }
 
-/**
- * @brief   Getter of the symbol of order.
- * @return  The symbol of order.
- */
 const std::string& OrderBookEntry::getSymbol() const
 {
     return m_symbol;
 }
 
-/**
- * @brief   Getter of the strike price of the constract.
- * @return  The order price.
- */
 double OrderBookEntry::getPrice() const
 {
     return m_price;
 }
 
-/**
- * @brief   Getter of the contract size.
- * @return  The size.
- */
 int OrderBookEntry::getSize() const
 {
     return m_size;
 }
 
-/**
- * @brief  Getter of security ID.
- * @return Security ID (as the destination).
- */
 const std::string& OrderBookEntry::getDestination() const
 {
     return m_destination;
 }
 
-/**
- * @brief   Return the date of order(FIX::UtcDateOnly)
- */
 const FIX::UtcDateOnly& OrderBookEntry::getDate() const
 {
     return m_date;
 }
 
-/**
- * @brief   Return the time of day of order(FIX::UtcTimeOnly)
- */
 const FIX::UtcTimeOnly& OrderBookEntry::getTime() const
 {
     return m_time;

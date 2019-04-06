@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Action.h"
-#include "NewBook.h"
+#include "OrderBookEntry.h"
 #include "Price.h"
 #include "Quote.h"
 
@@ -15,7 +15,7 @@
 class Stock {
 public:
     std::list<Action> actions;
-    std::list<NewBook> orderBookUpdates;
+    std::list<OrderBookEntry> orderBookUpdates;
 
     Stock() = default;
     Stock(const std::string& name);
@@ -45,8 +45,8 @@ public:
     // insert into ask list, sorted from lowest to highest
     void askInsert(const Quote& quote);
 
-    void bookUpdate(char book, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
-    void bookUpdate(char book, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+    void bookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
+    void bookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
 
     void showLocal();
     void showGlobal();

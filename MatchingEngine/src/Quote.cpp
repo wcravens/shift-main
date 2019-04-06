@@ -1,9 +1,5 @@
 #include "Quote.h"
 
-/**
- * @brief Constructor for the Quote class.
- * @param stockName, traderID, orderID, price, size, time, orderType
- */
 Quote::Quote(const std::string& stockName, const std::string& traderID, const std::string& orderID, double price, int size, char orderType, const FIX::UtcTimeStamp& time)
     : m_stockName(stockName)
     , m_traderID(traderID)
@@ -16,10 +12,6 @@ Quote::Quote(const std::string& stockName, const std::string& traderID, const st
 {
 }
 
-/**
- * @brief Constructor for the Quote class.
- * @param stockName, price, size, destination, time
- */
 Quote::Quote(const std::string& stockName, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
     : m_stockName(stockName)
     , m_traderID("TR")

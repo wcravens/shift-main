@@ -96,7 +96,7 @@ void FIXAcceptor::disconnectBrokerageCenter()
 /*
  * @brief Send order book update to brokers
  */
-void FIXAcceptor::sendOrderBookUpdate2All(const NewBook& update)
+void FIXAcceptor::sendOrderBookUpdate2All(const OrderBookEntry& update)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -107,7 +107,7 @@ void FIXAcceptor::sendOrderBookUpdate2All(const NewBook& update)
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
     entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
-    entryGroup.setField(FIX::MDEntryType(update.getBook()));
+    entryGroup.setField(FIX::MDEntryType(update.getType()));
     entryGroup.setField(FIX::Symbol(update.getSymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));

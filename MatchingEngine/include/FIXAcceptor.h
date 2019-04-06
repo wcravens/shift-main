@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Action.h"
-#include "NewBook.h"
+#include "OrderBookEntry.h"
 #include "QuoteConfirm.h"
 
 #include <mutex>
@@ -45,7 +45,7 @@ public:
     void connectBrokerageCenter(const std::string& configFile);
     void disconnectBrokerageCenter();
 
-    void sendOrderBookUpdate2All(const NewBook& update);
+    void sendOrderBookUpdate2All(const OrderBookEntry& update);
     void sendExecutionReport2All(const Action& report);
 
 private:
