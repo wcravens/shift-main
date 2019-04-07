@@ -15,7 +15,6 @@ public:
         OTHER = 'e'
     };
 
-    OrderBookEntry() = default;
     OrderBookEntry(Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
     OrderBookEntry(Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
 
