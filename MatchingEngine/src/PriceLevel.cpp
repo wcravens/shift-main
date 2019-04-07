@@ -22,30 +22,30 @@ void PriceLevel::setSize(int size)
 
 bool PriceLevel::empty()
 {
-    return m_quotes.empty();
+    return m_orders.empty();
 }
 
-void PriceLevel::push_back(const Quote& quote)
+void PriceLevel::push_back(const Order& order)
 {
-    m_quotes.push_back(quote);
+    m_orders.push_back(order);
 }
 
-void PriceLevel::push_front(const Quote& quote)
+void PriceLevel::push_front(const Order& order)
 {
-    m_quotes.push_front(quote);
+    m_orders.push_front(order);
 }
 
-std::list<Quote>::iterator PriceLevel::begin()
+std::list<Order>::iterator PriceLevel::begin()
 {
-    return m_quotes.begin();
+    return m_orders.begin();
 }
 
-std::list<Quote>::iterator PriceLevel::end()
+std::list<Order>::iterator PriceLevel::end()
 {
-    return m_quotes.end();
+    return m_orders.end();
 }
 
-std::list<Quote>::iterator PriceLevel::erase(std::list<Quote>::iterator iter)
+std::list<Order>::iterator PriceLevel::erase(std::list<Order>::iterator iter)
 {
-    return m_quotes.erase(iter);
+    return m_orders.erase(iter);
 }

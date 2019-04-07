@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ExecutionReport.h"
-#include "Quote.h"
+#include "Order.h"
 
 #include <string>
 #include <vector>
@@ -48,7 +48,7 @@ public:
     void sendMarketDataRequest();
 
     void sendExecutionReport(const ExecutionReport& report);
-    void storeOrder(const Quote& order);
+    void storeOrder(const Order& order);
 
 private:
     FIXInitiator() = default;

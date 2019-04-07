@@ -328,13 +328,13 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     long milli = globalTimeSetting.pastMilli();
     FIX::UtcTimeStamp utcNow = globalTimeSetting.simulationTimestamp();
 
-    Quote quote{ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue(), utcNow };
-    quote.setMilli(milli);
+    Order order{ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), static_cast<Order::Type>(pOrderType->getValue()), utcNow };
+    order.setMilli(milli);
 
     // Add new quote to buffer
     auto stockIt = stockList.find(pSymbol->getValue());
     if (stockIt != stockList.end()) {
-        stockIt->second.bufNewLocal(quote);
+        stockIt->second.bufNewLocalOrder(order);
     } else {
         return;
     }

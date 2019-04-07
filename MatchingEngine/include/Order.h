@@ -4,11 +4,23 @@
 
 #include <string>
 
-class Quote {
+class Order {
 public:
-    Quote() = default;
-    Quote(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, char orderType, const FIX::UtcTimeStamp& time);
-    Quote(const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+    enum Type : char {
+        LIMIT_BUY = '1',
+        LIMIT_SELL = '2',
+        MARKET_BUY = '3',
+        MARKET_SELL = '4',
+        CANCEL_BID = '5',
+        CANCEL_ASK = '6',
+        TRTH_TRADE = '7',
+        TRTH_BID = '8',
+        TRTH_ASK = '9',
+    };
+
+    Order() = default;
+    Order(const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+    Order(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, Type type, const FIX::UtcTimeStamp& time);
 
     // Getters
     const std::string& getSymbol() const;
@@ -17,7 +29,7 @@ public:
     long getMilli() const;
     double getPrice() const;
     int getSize() const;
-    char getOrderType() const;
+    Type getType() const;
     const std::string& getDestination() const;
     const FIX::UtcTimeStamp& getTime() const;
 
@@ -26,7 +38,7 @@ public:
     void setMilli(long milli);
     void setPrice(double price);
     void setSize(int size);
-    void setOrderType(char orderType);
+    void setType(Type type);
     void setDestination(const std::string& destination);
 
 private:
@@ -36,7 +48,7 @@ private:
     long m_milli;
     double m_price;
     int m_size;
-    char m_orderType;
+    Type m_type;
     std::string m_destination;
     FIX::UtcTimeStamp m_time;
 };

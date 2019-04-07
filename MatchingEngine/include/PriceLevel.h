@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Quote.h"
+#include "Order.h"
 
 #include <list>
 
@@ -15,15 +15,15 @@ public:
     void setSize(int size);
 
     bool empty();
-    void push_back(const Quote& quote);
-    void push_front(const Quote& quote);
+    void push_back(const Order& order);
+    void push_front(const Order& order);
 
-    std::list<Quote>::iterator begin();
-    std::list<Quote>::iterator end();
-    std::list<Quote>::iterator erase(std::list<Quote>::iterator iter);
+    std::list<Order>::iterator begin();
+    std::list<Order>::iterator end();
+    std::list<Order>::iterator erase(std::list<Order>::iterator iter);
 
 private:
     double m_price;
     int m_size;
-    std::list<Quote> m_quotes;
+    std::list<Order> m_orders;
 };

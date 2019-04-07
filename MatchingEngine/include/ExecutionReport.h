@@ -1,6 +1,8 @@
 #pragma once
 
-#include <quickfix/Application.h>
+#include "Order.h"
+
+#include <quickfix/FieldTypes.h>
 
 #include <string>
 
@@ -10,8 +12,8 @@ struct ExecutionReport {
     int size;
     std::string traderID1;
     std::string traderID2;
-    char orderType1;
-    char orderType2;
+    Order::Type orderType1;
+    Order::Type orderType2;
     std::string orderID1;
     std::string orderID2;
     char decision; // trade ('2') or cancel ('4')
@@ -25,8 +27,8 @@ struct ExecutionReport {
         int size,
         const std::string& traderID1,
         const std::string& traderID2,
-        char orderType1,
-        char orderType2,
+        Order::Type orderType1,
+        Order::Type orderType2,
         const std::string& orderID1,
         const std::string& orderID2,
         char decision,

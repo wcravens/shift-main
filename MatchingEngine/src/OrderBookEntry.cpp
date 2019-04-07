@@ -1,21 +1,21 @@
 #include "OrderBookEntry.h"
 
-OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time)
-    : m_type(type)
-    , m_symbol(symbol)
-    , m_price(price)
-    , m_size(size)
-    , m_destination("SHIFT")
-    , m_time(time)
-{
-}
-
 OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
     : m_type(type)
     , m_symbol(symbol)
     , m_price(price)
     , m_size(size)
     , m_destination(destination)
+    , m_time(time)
+{
+}
+
+OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time)
+    : m_type(type)
+    , m_symbol(symbol)
+    , m_price(price)
+    , m_size(size)
+    , m_destination("SHIFT")
     , m_time(time)
 {
 }
