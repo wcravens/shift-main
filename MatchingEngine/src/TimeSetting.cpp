@@ -9,17 +9,17 @@ TimeSetting globalTimeSetting;
  */
 /* static */ boost::posix_time::ptime TimeSetting::getUTCPTime(const boost::posix_time::ptime& localPtime)
 {
-    // time_t is always assumed to be UTC,
+    // std::time_t is always assumed to be UTC,
     // but boost's ptime does not have time zone information,
     // so this is the reason we need all this mess
-    time_t ttLocal = boost::posix_time::to_time_t(localPtime);
-    tm* tmLocal = std::gmtime(&ttLocal);
+    std::time_t ttLocal = boost::posix_time::to_time_t(localPtime);
+    std::tm* tmLocal = std::gmtime(&ttLocal);
 
     // A negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect
     // More information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
     tmLocal->tm_isdst = -1;
-    time_t ttUtc = mktime(tmLocal);
-    tm* tmUtc = std::gmtime(&ttUtc);
+    std::time_t ttUtc = mktime(tmLocal);
+    std::tm* tmUtc = std::gmtime(&ttUtc);
 
     return boost::posix_time::ptime_from_tm(*tmUtc);
 }
