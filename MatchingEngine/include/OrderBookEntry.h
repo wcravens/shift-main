@@ -5,9 +5,6 @@
 
 #include <quickfix/FieldTypes.h>
 
-/**
- * @brief   Class to dealing with everything about new OrderBook.
- */
 class OrderBookEntry {
 public:
     enum Type : char {

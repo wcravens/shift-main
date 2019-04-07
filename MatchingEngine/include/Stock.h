@@ -2,7 +2,7 @@
 
 #include "ExecutionReport.h"
 #include "OrderBookEntry.h"
-#include "Price.h"
+#include "PriceLevel.h"
 #include "Quote.h"
 
 #include <list>
@@ -76,10 +76,10 @@ private:
 
     std::list<Quote> m_globalBid;
     std::list<Quote> m_globalAsk;
-    std::list<Price> m_localBid;
-    std::list<Price> m_localAsk;
+    std::list<PriceLevel> m_localBid;
+    std::list<PriceLevel> m_localAsk;
 
     std::list<Quote>::iterator m_thisGlobal;
+    std::list<PriceLevel>::iterator m_thisPriceLevel;
     std::list<Quote>::iterator m_thisQuote;
-    std::list<Price>::iterator m_thisPrice;
 };

@@ -4,13 +4,8 @@
 
 #include <list>
 
-/**
- * @brief A class for all Price object.
- */
-class Price {
+class PriceLevel {
 public:
-    Price() = default;
-
     // Getters
     double getPrice() const;
     int getSize() const;

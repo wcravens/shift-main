@@ -81,7 +81,7 @@ bool Stock::getNewQuote(Quote& quote)
 void Stock::execute(int size, Quote& newQuote, char decision, const std::string& destination)
 {
     int executeSize = std::min(m_thisQuote->getSize(), newQuote.getSize());
-    m_thisPrice->setSize(m_thisPrice->getSize() - executeSize);
+    m_thisPriceLevel->setSize(m_thisPriceLevel->getSize() - executeSize);
 
     if (size >= 0) {
         m_thisQuote->setSize(size);
@@ -149,14 +149,14 @@ void Stock::executeGlobal(int size, Quote& newQuote, char decision, const std::s
 
 void Stock::doLimitBuy(Quote& newQuote, const std::string& destination)
 {
-    m_thisPrice = m_localAsk.begin();
+    m_thisPriceLevel = m_localAsk.begin();
     while (newQuote.getSize() != 0) {
-        if (m_thisPrice == m_localAsk.end())
+        if (m_thisPriceLevel == m_localAsk.end())
             break;
-        if (m_thisPrice->getPrice() <= newQuote.getPrice()) {
-            m_thisQuote = m_thisPrice->begin();
+        if (m_thisPriceLevel->getPrice() <= newQuote.getPrice()) {
+            m_thisQuote = m_thisPriceLevel->begin();
             while (newQuote.getSize() != 0) {
-                if (m_thisQuote == m_thisPrice->end())
+                if (m_thisQuote == m_thisPriceLevel->end())
                     break;
                 if (m_thisQuote->getTraderID() == newQuote.getTraderID()) {
                     ++m_thisQuote;
@@ -165,31 +165,31 @@ void Stock::doLimitBuy(Quote& newQuote, const std::string& destination)
                 int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
                 execute(size, newQuote, '2', destination);
                 if (size <= 0) {
-                    m_thisQuote = m_thisPrice->erase(m_thisQuote);
+                    m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
                 }
             }
         }
 
-        bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+        bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
             globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
-        if (m_thisPrice->empty()) {
-            m_thisPrice = m_localAsk.erase(m_thisPrice);
+        if (m_thisPriceLevel->empty()) {
+            m_thisPriceLevel = m_localAsk.erase(m_thisPriceLevel);
         } else
-            ++m_thisPrice;
+            ++m_thisPriceLevel;
     }
 }
 
 void Stock::doLimitSell(Quote& newQuote, const std::string& destination)
 {
-    m_thisPrice = m_localBid.begin();
+    m_thisPriceLevel = m_localBid.begin();
     while (newQuote.getSize() != 0) {
-        if (m_thisPrice == m_localBid.end())
+        if (m_thisPriceLevel == m_localBid.end())
             break;
-        if (m_thisPrice->getPrice() >= newQuote.getPrice()) {
-            m_thisQuote = m_thisPrice->begin();
+        if (m_thisPriceLevel->getPrice() >= newQuote.getPrice()) {
+            m_thisQuote = m_thisPriceLevel->begin();
             while (newQuote.getSize() != 0) {
-                if (m_thisQuote == m_thisPrice->end())
+                if (m_thisQuote == m_thisPriceLevel->end())
                     break;
                 if (m_thisQuote->getTraderID() == newQuote.getTraderID()) {
                     ++m_thisQuote;
@@ -198,30 +198,30 @@ void Stock::doLimitSell(Quote& newQuote, const std::string& destination)
                 int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
                 execute(size, newQuote, '2', destination);
                 if (size <= 0) {
-                    m_thisQuote = m_thisPrice->erase(m_thisQuote);
+                    m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
                 }
             }
         }
 
-        bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+        bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
             globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
-        if (m_thisPrice->empty()) {
-            m_thisPrice = m_localBid.erase(m_thisPrice);
+        if (m_thisPriceLevel->empty()) {
+            m_thisPriceLevel = m_localBid.erase(m_thisPriceLevel);
         } else
-            ++m_thisPrice;
+            ++m_thisPriceLevel;
     }
 }
 
 void Stock::doMarketBuy(Quote& newQuote, const std::string& destination)
 {
-    m_thisPrice = m_localAsk.begin();
+    m_thisPriceLevel = m_localAsk.begin();
     while (newQuote.getSize() != 0) {
-        if (m_thisPrice == m_localAsk.end())
+        if (m_thisPriceLevel == m_localAsk.end())
             break;
-        m_thisQuote = m_thisPrice->begin();
+        m_thisQuote = m_thisPriceLevel->begin();
         while (newQuote.getSize() != 0) {
-            if (m_thisQuote == m_thisPrice->end())
+            if (m_thisQuote == m_thisPriceLevel->end())
                 break;
             if (m_thisQuote->getTraderID() == newQuote.getTraderID()) {
                 ++m_thisQuote;
@@ -230,29 +230,29 @@ void Stock::doMarketBuy(Quote& newQuote, const std::string& destination)
             int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
             execute(size, newQuote, '2', destination);
             if (size <= 0) {
-                m_thisQuote = m_thisPrice->erase(m_thisQuote);
+                m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
             }
         }
 
-        bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+        bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
             globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
-        if (m_thisPrice->empty()) {
-            m_thisPrice = m_localAsk.erase(m_thisPrice);
+        if (m_thisPriceLevel->empty()) {
+            m_thisPriceLevel = m_localAsk.erase(m_thisPriceLevel);
         } else
-            ++m_thisPrice;
+            ++m_thisPriceLevel;
     }
 }
 
 void Stock::doMarketSell(Quote& newQuote, const std::string& destination)
 {
-    m_thisPrice = m_localBid.begin();
+    m_thisPriceLevel = m_localBid.begin();
     while (newQuote.getSize() != 0) {
-        if (m_thisPrice == m_localBid.end())
+        if (m_thisPriceLevel == m_localBid.end())
             break;
-        m_thisQuote = m_thisPrice->begin();
+        m_thisQuote = m_thisPriceLevel->begin();
         while (newQuote.getSize() != 0) {
-            if (m_thisQuote == m_thisPrice->end())
+            if (m_thisQuote == m_thisPriceLevel->end())
                 break;
             if (m_thisQuote->getTraderID() == newQuote.getTraderID()) {
                 ++m_thisQuote;
@@ -261,48 +261,48 @@ void Stock::doMarketSell(Quote& newQuote, const std::string& destination)
             int size = m_thisQuote->getSize() - newQuote.getSize(); // compare the two sizes
             execute(size, newQuote, '2', destination);
             if (size <= 0) {
-                m_thisQuote = m_thisPrice->erase(m_thisQuote);
+                m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
             }
         }
 
-        bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+        bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
             globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
-        if (m_thisPrice->empty()) {
-            m_thisPrice = m_localBid.erase(m_thisPrice);
+        if (m_thisPriceLevel->empty()) {
+            m_thisPriceLevel = m_localBid.erase(m_thisPriceLevel);
         } else
-            ++m_thisPrice;
+            ++m_thisPriceLevel;
     }
 }
 
 void Stock::doCancelBid(Quote& newQuote, const std::string& destination)
 {
-    m_thisPrice = m_localBid.begin();
-    while (m_thisPrice != m_localBid.end()) {
-        if (m_thisPrice->getPrice() > newQuote.getPrice()) {
-            ++m_thisPrice;
+    m_thisPriceLevel = m_localBid.begin();
+    while (m_thisPriceLevel != m_localBid.end()) {
+        if (m_thisPriceLevel->getPrice() > newQuote.getPrice()) {
+            ++m_thisPriceLevel;
         } else
             break;
     }
-    if (m_thisPrice == m_localBid.end())
+    if (m_thisPriceLevel == m_localBid.end())
         cout << "no such quote to be canceled.\n";
-    else if (m_thisPrice->getPrice() == newQuote.getPrice()) {
-        m_thisQuote = m_thisPrice->begin();
+    else if (m_thisPriceLevel->getPrice() == newQuote.getPrice()) {
+        m_thisQuote = m_thisPriceLevel->begin();
         int undone = 1;
-        while (m_thisQuote != m_thisPrice->end()) {
+        while (m_thisQuote != m_thisPriceLevel->end()) {
             if (m_thisQuote->getOrderID() == newQuote.getOrderID()) {
                 int size = m_thisQuote->getSize() - newQuote.getSize();
                 execute(size, newQuote, '4', destination);
 
-                bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+                bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
                     globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
                 if (size <= 0)
-                    m_thisQuote = m_thisPrice->erase(m_thisQuote);
-                if (m_thisPrice->empty()) {
-                    m_localBid.erase(m_thisPrice);
+                    m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
+                if (m_thisPriceLevel->empty()) {
+                    m_localBid.erase(m_thisPriceLevel);
                     undone = 0;
-                } else if (m_thisQuote != m_thisPrice->begin())
+                } else if (m_thisQuote != m_thisPriceLevel->begin())
                     --m_thisQuote;
                 break;
             } else {
@@ -310,7 +310,7 @@ void Stock::doCancelBid(Quote& newQuote, const std::string& destination)
             }
         }
         if (undone) {
-            if (m_thisQuote == m_thisPrice->end())
+            if (m_thisQuote == m_thisPriceLevel->end())
                 cout << "no such quote to be canceled.\n";
         }
     } else
@@ -319,32 +319,32 @@ void Stock::doCancelBid(Quote& newQuote, const std::string& destination)
 
 void Stock::doCancelAsk(Quote& newQuote, const std::string& destination)
 {
-    m_thisPrice = m_localAsk.begin();
-    while (m_thisPrice != m_localAsk.end()) {
-        if (m_thisPrice->getPrice() < newQuote.getPrice()) {
-            ++m_thisPrice;
+    m_thisPriceLevel = m_localAsk.begin();
+    while (m_thisPriceLevel != m_localAsk.end()) {
+        if (m_thisPriceLevel->getPrice() < newQuote.getPrice()) {
+            ++m_thisPriceLevel;
         } else
             break;
     }
-    if (m_thisPrice == m_localAsk.end())
+    if (m_thisPriceLevel == m_localAsk.end())
         cout << "no such quote to be canceled.\n";
-    else if (m_thisPrice->getPrice() == newQuote.getPrice()) {
-        m_thisQuote = m_thisPrice->begin();
+    else if (m_thisPriceLevel->getPrice() == newQuote.getPrice()) {
+        m_thisQuote = m_thisPriceLevel->begin();
         int undone = 1;
-        while (m_thisQuote != m_thisPrice->end()) {
+        while (m_thisQuote != m_thisPriceLevel->end()) {
             if (m_thisQuote->getOrderID() == newQuote.getOrderID()) {
                 int size = m_thisQuote->getSize() - newQuote.getSize();
                 execute(size, newQuote, '4', destination);
 
-                bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+                bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
                     globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
 
                 if (size <= 0)
-                    m_thisQuote = m_thisPrice->erase(m_thisQuote);
-                if (m_thisPrice->empty()) {
-                    m_localAsk.erase(m_thisPrice);
+                    m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
+                if (m_thisPriceLevel->empty()) {
+                    m_localAsk.erase(m_thisPriceLevel);
                     undone = 0;
-                } else if (m_thisQuote != m_thisPrice->begin())
+                } else if (m_thisQuote != m_thisPriceLevel->begin())
                     --m_thisQuote;
                 break;
             } else {
@@ -352,7 +352,7 @@ void Stock::doCancelAsk(Quote& newQuote, const std::string& destination)
             }
         }
         if (undone) {
-            if (m_thisQuote == m_thisPrice->end())
+            if (m_thisQuote == m_thisPriceLevel->end())
                 cout << "no such quote to be canceled.\n";
         }
     } else
@@ -363,42 +363,42 @@ void Stock::bidInsert(const Quote& newQuote)
 {
     bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, newQuote.getPrice(), newQuote.getSize(),
         globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
-    m_thisPrice = m_localBid.begin();
+    m_thisPriceLevel = m_localBid.begin();
 
     if (!m_localBid.empty()) {
-        while (m_thisPrice != m_localBid.end() && m_thisPrice->getPrice() >= newQuote.getPrice()) {
-            if (m_thisPrice->getPrice() == newQuote.getPrice()) {
-                m_thisPrice->push_back(newQuote);
-                m_thisPrice->setSize(m_thisPrice->getSize() + newQuote.getSize());
+        while (m_thisPriceLevel != m_localBid.end() && m_thisPriceLevel->getPrice() >= newQuote.getPrice()) {
+            if (m_thisPriceLevel->getPrice() == newQuote.getPrice()) {
+                m_thisPriceLevel->push_back(newQuote);
+                m_thisPriceLevel->setSize(m_thisPriceLevel->getSize() + newQuote.getSize());
 
                 break;
             }
-            m_thisPrice++;
+            m_thisPriceLevel++;
         }
 
-        if (m_thisPrice == m_localBid.end()) {
-            Price newPrice;
-            newPrice.setPrice(newQuote.getPrice());
-            newPrice.setSize(newQuote.getSize());
+        if (m_thisPriceLevel == m_localBid.end()) {
+            PriceLevel newPriceLevel;
+            newPriceLevel.setPrice(newQuote.getPrice());
+            newPriceLevel.setSize(newQuote.getSize());
 
-            newPrice.push_front(newQuote);
-            m_localBid.push_back(newPrice);
-        } else if (m_thisPrice->getPrice() < newQuote.getPrice()) {
-            Price newPrice;
-            newPrice.setPrice(newQuote.getPrice());
-            newPrice.setSize(newQuote.getSize());
+            newPriceLevel.push_front(newQuote);
+            m_localBid.push_back(newPriceLevel);
+        } else if (m_thisPriceLevel->getPrice() < newQuote.getPrice()) {
+            PriceLevel newPriceLevel;
+            newPriceLevel.setPrice(newQuote.getPrice());
+            newPriceLevel.setSize(newQuote.getSize());
 
-            newPrice.push_front(newQuote);
-            m_localBid.insert(m_thisPrice, newPrice);
+            newPriceLevel.push_front(newQuote);
+            m_localBid.insert(m_thisPriceLevel, newPriceLevel);
         }
 
     } else {
-        Price newPrice;
-        newPrice.setPrice(newQuote.getPrice());
-        newPrice.setSize(newQuote.getSize());
+        PriceLevel newPriceLevel;
+        newPriceLevel.setPrice(newQuote.getPrice());
+        newPriceLevel.setSize(newQuote.getSize());
 
-        newPrice.push_front(newQuote);
-        m_localBid.push_back(newPrice);
+        newPriceLevel.push_front(newQuote);
+        m_localBid.push_back(newPriceLevel);
     }
 }
 
@@ -406,40 +406,40 @@ void Stock::askInsert(const Quote& newQuote)
 {
     bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, newQuote.getPrice(), newQuote.getSize(),
         globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
-    m_thisPrice = m_localAsk.begin();
+    m_thisPriceLevel = m_localAsk.begin();
 
     if (!m_localAsk.empty()) {
-        while (m_thisPrice != m_localAsk.end() && m_thisPrice->getPrice() <= newQuote.getPrice()) {
-            if (m_thisPrice->getPrice() == newQuote.getPrice()) {
-                m_thisPrice->push_back(newQuote);
-                m_thisPrice->setSize(m_thisPrice->getSize() + newQuote.getSize());
+        while (m_thisPriceLevel != m_localAsk.end() && m_thisPriceLevel->getPrice() <= newQuote.getPrice()) {
+            if (m_thisPriceLevel->getPrice() == newQuote.getPrice()) {
+                m_thisPriceLevel->push_back(newQuote);
+                m_thisPriceLevel->setSize(m_thisPriceLevel->getSize() + newQuote.getSize());
                 break;
             }
-            m_thisPrice++;
+            m_thisPriceLevel++;
         }
 
-        if (m_thisPrice == m_localAsk.end()) {
-            Price newPrice;
-            newPrice.setPrice(newQuote.getPrice());
-            newPrice.setSize(newQuote.getSize());
+        if (m_thisPriceLevel == m_localAsk.end()) {
+            PriceLevel newPriceLevel;
+            newPriceLevel.setPrice(newQuote.getPrice());
+            newPriceLevel.setSize(newQuote.getSize());
 
-            newPrice.push_front(newQuote);
-            m_localAsk.push_back(newPrice);
-        } else if (m_thisPrice->getPrice() > newQuote.getPrice()) {
-            Price newPrice;
-            newPrice.setPrice(newQuote.getPrice());
-            newPrice.setSize(newQuote.getSize());
+            newPriceLevel.push_front(newQuote);
+            m_localAsk.push_back(newPriceLevel);
+        } else if (m_thisPriceLevel->getPrice() > newQuote.getPrice()) {
+            PriceLevel newPriceLevel;
+            newPriceLevel.setPrice(newQuote.getPrice());
+            newPriceLevel.setSize(newQuote.getSize());
 
-            newPrice.push_front(newQuote);
-            m_localAsk.insert(m_thisPrice, newPrice);
+            newPriceLevel.push_front(newQuote);
+            m_localAsk.insert(m_thisPriceLevel, newPriceLevel);
         }
     } else {
-        Price newPrice;
-        newPrice.setPrice(newQuote.getPrice());
-        newPrice.setSize(newQuote.getSize());
+        PriceLevel newPriceLevel;
+        newPriceLevel.setPrice(newQuote.getPrice());
+        newPriceLevel.setSize(newQuote.getSize());
 
-        newPrice.push_front(newQuote);
-        m_localAsk.push_back(newPrice);
+        newPriceLevel.push_front(newQuote);
+        m_localAsk.push_back(newPriceLevel);
     }
 }
 
@@ -467,20 +467,20 @@ void Stock::showLocal()
     unsigned int depth = m_localAsk.size();
     depth = m_depth > depth ? depth : m_depth;
 
-    m_thisPrice = m_localAsk.begin();
+    m_thisPriceLevel = m_localAsk.begin();
     for (unsigned int i = 0; i < depth; i++) {
-        ss << m_thisPrice->getPrice() << "," << m_thisPrice->getSize() << ",";
-        m_thisPrice++;
+        ss << m_thisPriceLevel->getPrice() << "," << m_thisPriceLevel->getSize() << ",";
+        m_thisPriceLevel++;
     }
     ss << ";";
 
     depth = m_localBid.size();
     depth = m_depth > depth ? depth : m_depth;
 
-    m_thisPrice = m_localBid.begin();
+    m_thisPriceLevel = m_localBid.begin();
     for (unsigned int i = 0; i < depth; i++) {
-        ss << m_thisPrice->getPrice() << "," << m_thisPrice->getSize() << ",";
-        m_thisPrice++;
+        ss << m_thisPriceLevel->getPrice() << "," << m_thisPriceLevel->getSize() << ",";
+        m_thisPriceLevel++;
     }
     ss << ";";
 
@@ -663,9 +663,9 @@ void Stock::doLocalLimitBuy(Quote& newQuote, const std::string& destination)
     double maxAskPrice = 10000.0;
 
     // init
-    m_thisPrice = m_localAsk.begin();
-    if (m_thisPrice != m_localAsk.end()) {
-        m_thisQuote = m_thisPrice->begin();
+    m_thisPriceLevel = m_localAsk.begin();
+    if (m_thisPriceLevel != m_localAsk.end()) {
+        m_thisQuote = m_thisPriceLevel->begin();
     }
     while (newQuote.getSize() != 0) {
 
@@ -674,11 +674,11 @@ void Stock::doLocalLimitBuy(Quote& newQuote, const std::string& destination)
         globalBestAsk = maxAskPrice;
 
         // get the best local price
-        if (m_thisPrice != m_localAsk.end()) {
-            if (m_thisQuote == m_thisPrice->end()) {
-                // if m_thisQuote reach end(), go to next m_thisPrice
-                ++m_thisPrice;
-                m_thisQuote = m_thisPrice->begin();
+        if (m_thisPriceLevel != m_localAsk.end()) {
+            if (m_thisQuote == m_thisPriceLevel->end()) {
+                // if m_thisQuote reach end(), go to next m_thisPriceLevel
+                ++m_thisPriceLevel;
+                m_thisQuote = m_thisPriceLevel->begin();
                 continue;
             } else {
                 if (m_thisQuote->getTraderID() == newQuote.getTraderID()) {
@@ -720,18 +720,18 @@ void Stock::doLocalLimitBuy(Quote& newQuote, const std::string& destination)
             execute(size, newQuote, '2', destination);
             if (size <= 0) {
                 // remove executed quote
-                m_thisQuote = m_thisPrice->erase(m_thisQuote);
+                m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
             }
 
             // update the new price for broadcasting
-            bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
                 globalTimeSetting.simulationTimestamp());
 
             // remove empty price
-            if (m_thisPrice->empty()) {
-                m_thisPrice = m_localAsk.erase(m_thisPrice);
-                if (m_thisPrice != m_localAsk.end()) {
-                    m_thisQuote = m_thisPrice->begin();
+            if (m_thisPriceLevel->empty()) {
+                m_thisPriceLevel = m_localAsk.erase(m_thisPriceLevel);
+                if (m_thisPriceLevel != m_localAsk.end()) {
+                    m_thisQuote = m_thisPriceLevel->begin();
                 }
             }
         } else {
@@ -756,9 +756,9 @@ void Stock::doLocalLimitSell(Quote& newQuote, const std::string& destination)
     double minBidPrice = 0.0;
 
     // init
-    m_thisPrice = m_localBid.begin();
-    if (m_thisPrice != m_localBid.end()) {
-        m_thisQuote = m_thisPrice->begin();
+    m_thisPriceLevel = m_localBid.begin();
+    if (m_thisPriceLevel != m_localBid.end()) {
+        m_thisQuote = m_thisPriceLevel->begin();
     }
     while (newQuote.getSize() != 0) {
 
@@ -767,11 +767,11 @@ void Stock::doLocalLimitSell(Quote& newQuote, const std::string& destination)
         globalBestBid = minBidPrice;
 
         // get the best local price
-        if (m_thisPrice != m_localBid.end()) {
-            if (m_thisQuote == m_thisPrice->end()) {
-                // if m_thisQuote reach end(), go to next m_thisPrice
-                ++m_thisPrice;
-                m_thisQuote = m_thisPrice->begin();
+        if (m_thisPriceLevel != m_localBid.end()) {
+            if (m_thisQuote == m_thisPriceLevel->end()) {
+                // if m_thisQuote reach end(), go to next m_thisPriceLevel
+                ++m_thisPriceLevel;
+                m_thisQuote = m_thisPriceLevel->begin();
                 continue;
             } else {
                 if (m_thisQuote->getTraderID() == newQuote.getTraderID()) {
@@ -813,18 +813,18 @@ void Stock::doLocalLimitSell(Quote& newQuote, const std::string& destination)
             execute(size, newQuote, '2', destination);
             if (size <= 0) {
                 // remove executed quote
-                m_thisQuote = m_thisPrice->erase(m_thisQuote);
+                m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
             }
 
             // update the new price for broadcasting
-            bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
                 globalTimeSetting.simulationTimestamp());
 
             // remove empty price
-            if (m_thisPrice->empty()) {
-                m_thisPrice = m_localBid.erase(m_thisPrice);
-                if (m_thisPrice != m_localBid.end()) {
-                    m_thisQuote = m_thisPrice->begin();
+            if (m_thisPriceLevel->empty()) {
+                m_thisPriceLevel = m_localBid.erase(m_thisPriceLevel);
+                if (m_thisPriceLevel != m_localBid.end()) {
+                    m_thisQuote = m_thisPriceLevel->begin();
                 }
             }
         } else {
@@ -849,9 +849,9 @@ void Stock::doLocalMarketBuy(Quote& newQuote, const std::string& destination)
     double maxAskPrice = 10000.0;
 
     // init
-    m_thisPrice = m_localAsk.begin();
-    if (m_thisPrice != m_localAsk.end()) {
-        m_thisQuote = m_thisPrice->begin();
+    m_thisPriceLevel = m_localAsk.begin();
+    if (m_thisPriceLevel != m_localAsk.end()) {
+        m_thisQuote = m_thisPriceLevel->begin();
     }
     while (newQuote.getSize() != 0) {
 
@@ -860,11 +860,11 @@ void Stock::doLocalMarketBuy(Quote& newQuote, const std::string& destination)
         globalBestAsk = maxAskPrice;
 
         // get the best local price
-        if (m_thisPrice != m_localAsk.end()) {
-            if (m_thisQuote == m_thisPrice->end()) {
-                // if m_thisQuote reach end(), go to next m_thisPrice
-                ++m_thisPrice;
-                m_thisQuote = m_thisPrice->begin();
+        if (m_thisPriceLevel != m_localAsk.end()) {
+            if (m_thisQuote == m_thisPriceLevel->end()) {
+                // if m_thisQuote reach end(), go to next m_thisPriceLevel
+                ++m_thisPriceLevel;
+                m_thisQuote = m_thisPriceLevel->begin();
                 continue;
             } else {
                 if (m_thisQuote->getTraderID() == newQuote.getTraderID()) {
@@ -896,18 +896,18 @@ void Stock::doLocalMarketBuy(Quote& newQuote, const std::string& destination)
             execute(size, newQuote, '2', destination);
             if (size <= 0) {
                 // remove executed quote
-                m_thisQuote = m_thisPrice->erase(m_thisQuote);
+                m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
             }
 
             // update the new price for broadcasting
-            bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            bookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
                 globalTimeSetting.simulationTimestamp());
 
             // remove empty price
-            if (m_thisPrice->empty()) {
-                m_thisPrice = m_localAsk.erase(m_thisPrice);
-                if (m_thisPrice != m_localAsk.end()) {
-                    m_thisQuote = m_thisPrice->begin();
+            if (m_thisPriceLevel->empty()) {
+                m_thisPriceLevel = m_localAsk.erase(m_thisPriceLevel);
+                if (m_thisPriceLevel != m_localAsk.end()) {
+                    m_thisQuote = m_thisPriceLevel->begin();
                 }
             }
         } else {
@@ -929,9 +929,9 @@ void Stock::doLocalMarketSell(Quote& newQuote, const std::string& destination)
     double minBidPrice = 0.0;
 
     // init
-    m_thisPrice = m_localBid.begin();
-    if (m_thisPrice != m_localBid.end()) {
-        m_thisQuote = m_thisPrice->begin();
+    m_thisPriceLevel = m_localBid.begin();
+    if (m_thisPriceLevel != m_localBid.end()) {
+        m_thisQuote = m_thisPriceLevel->begin();
     }
     while (newQuote.getSize() != 0) {
 
@@ -940,11 +940,11 @@ void Stock::doLocalMarketSell(Quote& newQuote, const std::string& destination)
         globalBestBid = minBidPrice;
 
         // get the best local price
-        if (m_thisPrice != m_localBid.end()) {
-            if (m_thisQuote == m_thisPrice->end()) {
-                // if m_thisQuote reach end(), go to next m_thisPrice
-                ++m_thisPrice;
-                m_thisQuote = m_thisPrice->begin();
+        if (m_thisPriceLevel != m_localBid.end()) {
+            if (m_thisQuote == m_thisPriceLevel->end()) {
+                // if m_thisQuote reach end(), go to next m_thisPriceLevel
+                ++m_thisPriceLevel;
+                m_thisQuote = m_thisPriceLevel->begin();
                 continue;
             } else {
                 if (m_thisQuote->getTraderID() == newQuote.getTraderID()) {
@@ -976,18 +976,18 @@ void Stock::doLocalMarketSell(Quote& newQuote, const std::string& destination)
             execute(size, newQuote, '2', destination);
             if (size <= 0) {
                 // remove executed quote
-                m_thisQuote = m_thisPrice->erase(m_thisQuote);
+                m_thisQuote = m_thisPriceLevel->erase(m_thisQuote);
             }
 
             // update the new price for broadcasting
-            bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPrice->getPrice(), m_thisPrice->getSize(),
+            bookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
                 globalTimeSetting.simulationTimestamp());
 
             // remove empty price
-            if (m_thisPrice->empty()) {
-                m_thisPrice = m_localBid.erase(m_thisPrice);
-                if (m_thisPrice != m_localBid.end()) {
-                    m_thisQuote = m_thisPrice->begin();
+            if (m_thisPriceLevel->empty()) {
+                m_thisPriceLevel = m_localBid.erase(m_thisPriceLevel);
+                if (m_thisPriceLevel != m_localBid.end()) {
+                    m_thisQuote = m_thisPriceLevel->begin();
                 }
             }
         } else {
