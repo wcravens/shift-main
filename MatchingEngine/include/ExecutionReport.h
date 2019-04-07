@@ -20,7 +20,6 @@ struct ExecutionReport {
     FIX::UtcTimeStamp time1;
     FIX::UtcTimeStamp time2;
 
-    ExecutionReport() = default;
     ExecutionReport(const std::string& symbol,
         double price,
         int size,
