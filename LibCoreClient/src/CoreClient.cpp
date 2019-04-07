@@ -16,19 +16,19 @@
 using namespace std::chrono_literals;
 
 shift::CoreClient::CoreClient()
-    : m_fixInitiator{ nullptr }
-    , m_verbose{ false }
-    , m_submittedOrdersSize{ 0 }
-    , m_waitingListSize{ 0 }
+    : m_fixInitiator(nullptr)
+    , m_verbose(false)
+    , m_submittedOrdersSize(0)
+    , m_waitingListSize(0)
 {
 }
 
 shift::CoreClient::CoreClient(const std::string& username)
-    : m_fixInitiator{ nullptr }
-    , m_username{ username }
-    , m_verbose{ false }
-    , m_submittedOrdersSize{ 0 }
-    , m_waitingListSize{ 0 }
+    : m_fixInitiator(nullptr)
+    , m_username(username)
+    , m_verbose(false)
+    , m_submittedOrdersSize(0)
+    , m_waitingListSize(0)
 {
 }
 

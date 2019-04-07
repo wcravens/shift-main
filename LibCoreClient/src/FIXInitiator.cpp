@@ -52,11 +52,11 @@ static const auto& FIXFIELD_PARTYROLE_CLIENTID = FIX::PartyRole(FIX::PartyRole_C
  * @brief Default constructor for FIXInitiator object.
  */
 shift::FIXInitiator::FIXInitiator()
-    : m_connected{ false }
-    , m_verbose{ false }
-    , m_logonSuccess{ false }
-    , m_openPricesReady{ false }
-    , m_lastTradeTime{ std::chrono::system_clock::time_point() }
+    : m_connected(false)
+    , m_verbose(false)
+    , m_logonSuccess(false)
+    , m_openPricesReady(false)
+    , m_lastTradeTime(std::chrono::system_clock::time_point())
 {
 }
 
