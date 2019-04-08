@@ -1,12 +1,21 @@
 #include "OrderBookEntry.h"
 
-OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
+OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
     : m_type(type)
     , m_symbol(symbol)
     , m_price(price)
     , m_size(size)
     , m_destination(destination)
-    , m_date(date)
+    , m_time(time)
+{
+}
+
+OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time)
+    : m_type(type)
+    , m_symbol(symbol)
+    , m_price(price)
+    , m_size(size)
+    , m_destination("SHIFT")
     , m_time(time)
 {
 }
@@ -36,12 +45,7 @@ const std::string& OrderBookEntry::getDestination() const
     return m_destination;
 }
 
-const FIX::UtcDateOnly& OrderBookEntry::getDate() const
-{
-    return m_date;
-}
-
-const FIX::UtcTimeOnly& OrderBookEntry::getTime() const
+const FIX::UtcTimeStamp& OrderBookEntry::getUTCTime() const
 {
     return m_time;
 }

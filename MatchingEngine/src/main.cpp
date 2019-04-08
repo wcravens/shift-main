@@ -10,6 +10,7 @@
 #include <boost/program_options.hpp>
 
 #include <shift/miscutils/terminal/Common.h>
+#include <shift/miscutils/terminal/Options.h>
 
 using namespace std::chrono_literals;
 
@@ -18,6 +19,8 @@ using namespace std::chrono_literals;
     "help"
 #define CSTR_CONFIG \
     "config"
+#define CSTR_VERBOSE \
+    "verbose"
 #define CSTR_DATE \
     "date"
 #define CSTR_MANUAL \
@@ -25,6 +28,8 @@ using namespace std::chrono_literals;
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
+/* 'using' is the same as 'typedef' */
+using voh_t = shift::terminal::VerboseOptHelper;
 
 std::atomic<bool> timeout(false);
 std::map<std::string, Stock> stockList;
@@ -39,18 +44,22 @@ int main(int ac, char* av[])
      * hides them behind one variable to ease understanding and debugging.
      */
     struct {
-        bool isManualInput;
         std::string configDir;
+        bool isVerbose;
         std::string simulationDate;
+        bool isManualInput;
     } params = {
-        false,
         "/usr/local/share/shift/MatchingEngine/", // default installation folder for configuration
+        true,
+        "2018-12-17",
+        false,
     };
 
     po::options_description desc("\nUSAGE: ./MatchingEngine [options] <args>\n\n\tThis is the MatchingEngine.\n\tThe server connects with DatafeedEngine and BrokerageCenter instances and runs in background.\n\nOPTIONS");
     desc.add_options() // <--- every line-end from here needs a comment mark so that to prevent auto formating into single line
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
+        (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         (CSTR_DATE ",d", po::value<std::string>(), "simulation date") //
         (CSTR_MANUAL ",m", "set manual input of all parameters") //
         ; // add_options
@@ -83,6 +92,12 @@ int main(int ac, char* av[])
              << endl;
     }
 
+    if (vm.count(CSTR_VERBOSE)) {
+        params.isVerbose = true;
+    }
+
+    voh_t voh(cout, params.isVerbose);
+
     if (vm.count(CSTR_DATE)) {
         params.simulationDate = vm[CSTR_DATE].as<std::string>();
     }
@@ -92,7 +107,7 @@ int main(int ac, char* av[])
     }
 
     std::string configFile = params.configDir + "config.txt";
-    std::string date = "2018-12-17";
+    std::string date = params.simulationDate;
     std::string stime = "09:30:00";
     std::string etime = "16:00:00";
     int experimentSpeed = 1;
@@ -128,8 +143,8 @@ int main(int ac, char* av[])
         symbol = symbols[i];
         FIXAcceptor::getInstance()->addSymbol(symbol);
         Stock newStock;
-        newStock.setName(symbol);
-        stockList.insert(std::pair<std::string, Stock>(newStock.getName(), newStock));
+        newStock.setSymbol(symbol);
+        stockList.insert(std::pair<std::string, Stock>(newStock.getSymbol(), newStock));
 
         for (unsigned int j = 0; j < symbols[i].size(); ++j) {
             if (symbols[i][j] == '.')

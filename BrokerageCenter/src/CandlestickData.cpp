@@ -34,13 +34,13 @@ CandlestickData::CandlestickData()
 {
 }
 
-CandlestickData::CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
-    : m_symbol(std::move(symbol))
-    , m_lastPrice{ currPrice }
-    , m_lastOpenPrice{ currOpenPrice }
-    , m_lastClosePrice{ currClosePrice }
-    , m_lastHighPrice{ currHighPrice }
-    , m_lastLowPrice{ currLowPrice }
+CandlestickData::CandlestickData(const std::string& symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
+    : m_symbol(symbol)
+    , m_lastPrice(currPrice)
+    , m_lastOpenPrice(currOpenPrice)
+    , m_lastClosePrice(currClosePrice)
+    , m_lastHighPrice(currHighPrice)
+    , m_lastLowPrice(currLowPrice)
     , m_lastOpenTime(currOpenTime)
 {
 }

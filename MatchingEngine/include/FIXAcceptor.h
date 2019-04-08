@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Action.h"
-#include "NewBook.h"
-#include "QuoteConfirm.h"
+#include "ExecutionReport.h"
+#include "OrderBookEntry.h"
+#include "OrderConfirmation.h"
 
 #include <mutex>
 #include <set>
@@ -45,14 +45,14 @@ public:
     void connectBrokerageCenter(const std::string& configFile);
     void disconnectBrokerageCenter();
 
-    void sendOrderBookUpdate2All(const NewBook& update);
-    void sendExecutionReport2All(const Action& report);
+    void sendOrderBookUpdate2All(const OrderBookEntry& update);
+    void sendExecutionReport2All(const ExecutionReport& report);
 
 private:
     FIXAcceptor() = default;
 
     void sendSecurityList(const std::string& targetID);
-    void sendOrderConfirmation(const std::string& targetID, const QuoteConfirm& confirmation);
+    void sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation);
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

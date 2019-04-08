@@ -26,10 +26,10 @@
     FIXAcceptor::getInstance()->sendPortfolioItem(username, item);
 }
 
-RiskManagement::RiskManagement(std::string username, double buyingPower)
-    : m_username(std::move(username))
-    , m_porfolioSummary{ buyingPower }
-    , m_pendingShortCashAmount{ 0.0 }
+RiskManagement::RiskManagement(const std::string& username, double buyingPower)
+    : m_username(username)
+    , m_porfolioSummary(buyingPower)
+    , m_pendingShortCashAmount(0.0)
 {
     // Create "empty" waiting list:
     // This is required to be able to send empty waiting lists to clients,
@@ -37,10 +37,10 @@ RiskManagement::RiskManagement(std::string username, double buyingPower)
     m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", username };
 }
 
-RiskManagement::RiskManagement(std::string username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
-    : m_username(std::move(username))
-    , m_porfolioSummary{ buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares }
-    , m_pendingShortCashAmount{ 0.0 }
+RiskManagement::RiskManagement(const std::string& username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
+    : m_username(username)
+    , m_porfolioSummary(buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares)
+    , m_pendingShortCashAmount(0.0)
 {
     // Create "empty" waiting list:
     // This is required to be able to send empty waiting lists to clients,

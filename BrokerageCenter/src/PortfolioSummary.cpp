@@ -1,29 +1,29 @@
 #include "PortfolioSummary.h"
 
 PortfolioSummary::PortfolioSummary(double buyingPower)
-    : m_buyingPower{ buyingPower }
-    , m_holdingBalance{ 0.0 }
-    , m_borrowedBalance{ 0.0 }
-    , m_totalPL{ 0.0 }
-    , m_totalShares{ 0 }
+    : m_buyingPower(buyingPower)
+    , m_holdingBalance(0.0)
+    , m_borrowedBalance(0.0)
+    , m_totalPL(0.0)
+    , m_totalShares(0)
 {
 }
 
 PortfolioSummary::PortfolioSummary(double buyingPower, int totalShares)
-    : m_buyingPower{ buyingPower }
-    , m_holdingBalance{ 0.0 }
-    , m_borrowedBalance{ 0.0 }
-    , m_totalPL{ 0.0 }
-    , m_totalShares{ totalShares }
+    : m_buyingPower(buyingPower)
+    , m_holdingBalance(0.0)
+    , m_borrowedBalance(0.0)
+    , m_totalPL(0.0)
+    , m_totalShares(totalShares)
 {
 }
 
 PortfolioSummary::PortfolioSummary(double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
-    : m_buyingPower{ buyingPower }
-    , m_holdingBalance{ holdingBalance }
-    , m_borrowedBalance{ borrowedBalance }
-    , m_totalPL{ totalPL }
-    , m_totalShares{ totalShares }
+    : m_buyingPower(buyingPower)
+    , m_holdingBalance(holdingBalance)
+    , m_borrowedBalance(borrowedBalance)
+    , m_totalPL(totalPL)
+    , m_totalShares(totalShares)
 {
 }
 

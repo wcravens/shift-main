@@ -28,13 +28,13 @@ set(CONFIGDEFAULT
 )
 
 set(INCLUDE
-    ${PROJECT_SOURCE_DIR}/include/Action.h
+    ${PROJECT_SOURCE_DIR}/include/ExecutionReport.h
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
     ${PROJECT_SOURCE_DIR}/include/FIXInitiator.h
-    ${PROJECT_SOURCE_DIR}/include/NewBook.h
-    ${PROJECT_SOURCE_DIR}/include/Price.h
-    ${PROJECT_SOURCE_DIR}/include/Quote.h
-    ${PROJECT_SOURCE_DIR}/include/QuoteConfirm.h
+    ${PROJECT_SOURCE_DIR}/include/Order.h
+    ${PROJECT_SOURCE_DIR}/include/OrderBookEntry.h
+    ${PROJECT_SOURCE_DIR}/include/PriceLevel.h
+    ${PROJECT_SOURCE_DIR}/include/OrderConfirmation.h
     ${PROJECT_SOURCE_DIR}/include/Stock.h
     ${PROJECT_SOURCE_DIR}/include/threadFunction.h
     ${PROJECT_SOURCE_DIR}/include/TimeSetting.h
@@ -44,9 +44,9 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/FIXAcceptor.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp
     ${PROJECT_SOURCE_DIR}/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/src/NewBook.cpp
-    ${PROJECT_SOURCE_DIR}/src/Price.cpp
-    ${PROJECT_SOURCE_DIR}/src/Quote.cpp
+    ${PROJECT_SOURCE_DIR}/src/Order.cpp
+    ${PROJECT_SOURCE_DIR}/src/OrderBookEntry.cpp
+    ${PROJECT_SOURCE_DIR}/src/PriceLevel.cpp
     ${PROJECT_SOURCE_DIR}/src/Stock.cpp
     ${PROJECT_SOURCE_DIR}/src/threadFunction.cpp
     ${PROJECT_SOURCE_DIR}/src/TimeSetting.cpp

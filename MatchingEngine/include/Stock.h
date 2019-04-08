@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Action.h"
-#include "NewBook.h"
-#include "Price.h"
-#include "Quote.h"
+#include "ExecutionReport.h"
+#include "Order.h"
+#include "OrderBookEntry.h"
+#include "PriceLevel.h"
 
 #include <list>
 #include <mutex>
@@ -14,72 +14,67 @@
 
 class Stock {
 public:
-    std::list<Action> actions;
-    std::list<NewBook> orderBookUpdates;
+    std::list<ExecutionReport> executionReports;
+    std::list<OrderBookEntry> orderBookUpdates;
 
     Stock() = default;
-    Stock(const std::string& name);
+    Stock(const std::string& symbol);
     Stock(const Stock& other);
 
-    const std::string& getName() const;
-    void setName(const std::string& name);
+    const std::string& getSymbol() const;
+    void setSymbol(const std::string& symbol);
 
-    // buffer new quotes & trades received from database and clients
-    void bufNewGlobal(const Quote& quote);
-    void bufNewLocal(const Quote& quote);
-    // retrieve earliest quote buffered in newGlobal or newLocal
-    bool getNewQuote(Quote& quote);
+    void bufNewGlobalOrder(const Order& order);
+    void bufNewLocalOrder(const Order& order);
+    bool getNextOrder(Order& nextOrder);
 
-    // decision '2' means this is a trade record, '4' means cancel record
-    void execute(int size, Quote& quote, char decision, const std::string& destination);
-    void executeGlobal(int size, Quote& quote, char decision, const std::string& destination);
-    void doLimitBuy(Quote& newQuote, const std::string& destination);
-    void doLimitSell(Quote& newQuote, const std::string& destination);
-    void doMarketBuy(Quote& newQuote, const std::string& destination);
-    void doMarketSell(Quote& newQuote, const std::string& destination);
-    void doCancelBid(Quote& newQuote, const std::string& destination);
-    void doCancelAsk(Quote& newQuote, const std::string& destination);
+    void executeGlobalOrder(int size, Order& newOrder, char decision, const std::string& destination);
+    void executeLocalOrder(int size, Order& newOrder, char decision, const std::string& destination);
 
-    // insert into bid list, sorted from highest to lowest
-    void bidInsert(const Quote& quote);
-    // insert into ask list, sorted from lowest to highest
-    void askInsert(const Quote& quote);
+    void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+    void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
 
-    void bookUpdate(char book, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
-    void bookUpdate(char book, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+    void showGlobalOrderBooks();
+    void showLocalOrderBooks();
 
-    void showLocal();
-    void showGlobal();
+    void doLimitBuy(Order& newOrder, const std::string& destination);
+    void doLimitSell(Order& newOrder, const std::string& destination);
+    void doMarketBuy(Order& newOrder, const std::string& destination);
+    void doMarketSell(Order& newOrder, const std::string& destination);
+    void doCancelBid(Order& newOrder, const std::string& destination);
+    void doCancelAsk(Order& newOrder, const std::string& destination);
 
-    void updateGlobalBid(const Quote& newQuote);
-    void updateGlobalAsk(const Quote& newQuote);
-    void checkGlobalBid(Quote& newQuote, const std::string& type);
-    void checkGlobalAsk(Quote& newQuote, const std::string& type);
+    void updateGlobalBids(const Order& order);
+    void updateGlobalAsks(const Order& order);
 
-    // local order book operations
-    void doLocalLimitBuy(Quote& newQuote, const std::string& destination);
-    void doLocalLimitSell(Quote& newQuote, const std::string& destination);
-    void doLocalMarketBuy(Quote& newQuote, const std::string& destination);
-    void doLocalMarketSell(Quote& newQuote, const std::string& destination);
+    void doLocalLimitBuy(Order& newOrder, const std::string& destination);
+    void doLocalLimitSell(Order& newOrder, const std::string& destination);
+    void doLocalMarketBuy(Order& newOrder, const std::string& destination);
+    void doLocalMarketSell(Order& newOrder, const std::string& destination);
+
+    void insertLocalBid(const Order& order);
+    void insertLocalAsk(const Order& order);
 
 private:
-    std::string m_name;
+    std::string m_symbol;
     unsigned int m_depth = 5;
 
-    std::mutex m_mtxNewGlobal;
-    std::mutex m_mtxNewLocal;
-
     // buffer new quotes & trades received from DE
-    std::queue<Quote> m_newGlobal;
-    // buffer new quotes received from clients
-    std::queue<Quote> m_newLocal;
+    std::mutex m_mtxNewGlobalOrders;
+    std::queue<Order> m_newGlobalOrders;
 
-    std::list<Quote> m_globalBid;
-    std::list<Quote> m_globalAsk;
-    std::list<Price> m_localBid;
-    std::list<Price> m_localAsk;
+    std::list<Order> m_globalBids;
+    std::list<Order> m_globalAsks;
 
-    std::list<Quote>::iterator m_thisGlobal;
-    std::list<Quote>::iterator m_thisQuote;
-    std::list<Price>::iterator m_thisPrice;
+    std::list<Order>::iterator m_thisGlobalOrder;
+
+    // buffer new orders received from clients
+    std::queue<Order> m_newLocalOrders;
+    std::mutex m_mtxNewLocalOrders;
+
+    std::list<PriceLevel> m_localBids;
+    std::list<PriceLevel> m_localAsks;
+
+    std::list<PriceLevel>::iterator m_thisPriceLevel;
+    std::list<Order>::iterator m_thisLocalOrder;
 };

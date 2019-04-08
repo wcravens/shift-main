@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Action.h"
-#include "Quote.h"
+#include "ExecutionReport.h"
+#include "Order.h"
 
 #include <string>
 #include <vector>
@@ -47,8 +47,8 @@ public:
     void sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
     void sendMarketDataRequest();
 
-    void sendExecutionReport(const Action& report);
-    void storeOrder(Quote& order);
+    void sendExecutionReport(const ExecutionReport& report);
+    void storeOrder(const Order& order);
 
 private:
     FIXInitiator() = default;

@@ -20,7 +20,7 @@ public:
 
 private:
     boost::posix_time::ptime m_utcDateTime;
-    time_t m_hhmmss;
+    std::time_t m_hhmmss;
     int m_speed;
     std::chrono::high_resolution_clock::time_point m_startTimePoint; // real time (not simulation time)
 };

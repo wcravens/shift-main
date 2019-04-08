@@ -30,11 +30,11 @@ public:
     const FIX::UtcTimeOnly& getTime() const;
 
 private:
-    Type m_type; // The versioning of the Option Constract of the order book. Update type : a=local ask, b=local bid, A=global ask, B=global bid, smaller ask, bigger bid
-    std::string m_symbol; // The symbol of the order.
-    double m_price; // The price of the order.
-    int m_size; // The size of the order
-    std::string m_destination; // The destination of the order.
+    Type m_type;
+    std::string m_symbol;
+    double m_price;
+    int m_size;
+    std::string m_destination;
     FIX::UtcDateOnly m_date;
     FIX::UtcTimeOnly m_time;
 };

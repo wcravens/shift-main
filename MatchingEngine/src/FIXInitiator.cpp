@@ -145,7 +145,7 @@ void FIXInitiator::sendMarketDataRequest()
 /**
  * @brief Send execution report to Datafeed Engine
  */
-void FIXInitiator::sendExecutionReport(const Action& report)
+void FIXInitiator::sendExecutionReport(const ExecutionReport& report)
 {
     FIX::Message message;
 
@@ -160,7 +160,7 @@ void FIXInitiator::sendExecutionReport(const Action& report)
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
     message.setField(FIX::OrdStatus(report.decision));
-    message.setField(FIX::Symbol(report.stockName));
+    message.setField(FIX::Symbol(report.symbol));
     message.setField(FIX::Side(report.orderType1));
     message.setField(FIX::OrdType(report.orderType2));
     message.setField(FIX::Price(report.price));
@@ -194,7 +194,7 @@ void FIXInitiator::sendExecutionReport(const Action& report)
 /**
  * @brief Store order in Database Engine after confirmed
  */
-void FIXInitiator::storeOrder(Quote& order)
+void FIXInitiator::storeOrder(const Order& order)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -206,9 +206,9 @@ void FIXInitiator::storeOrder(Quote& order)
 
     message.setField(FIX::ClOrdID(order.getOrderID()));
     message.setField(FIX::Price(order.getPrice()));
-    message.setField(FIX::Symbol(order.getStockName()));
+    message.setField(FIX::Symbol(order.getSymbol()));
     message.setField(::FIXFIELD_SIDE_BUY); // Required by FIX
-    message.setField(FIX::OrdType(order.getOrderType()));
+    message.setField(FIX::OrdType(order.getType()));
     message.setField(FIX::OrderQty(order.getSize()));
     message.setField(FIX::TransactTime(6));
 
@@ -386,11 +386,11 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         return;
     }
 
-    Quote newQuote{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()) / 100, pBuyerID->getValue(), pTransactTime->getValue() };
-    newQuote.setOrderType('7'); // Update as "trade" from Global
+    Order order{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()) / 100, pBuyerID->getValue(), pTransactTime->getValue() };
+    order.setType(Order::Type::TRTH_TRADE); // Update as "trade" from Global
 
     long mili = globalTimeSetting.pastMilli(pTransactTime->getValue());
-    newQuote.setMilli(mili);
+    order.setMilli(mili);
 
     if (ordType == 0) { // Quote
 
@@ -400,16 +400,16 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         message.getGroup(2, *pIDGroup);
         pIDGroup->getField(*pSellerID);
 
-        Quote newQuote2{ pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), pSellerID->getValue(), pTransactTime->getValue() };
-        newQuote2.setOrderType('8'); // Update as "ask" from Global
-        newQuote2.setMilli(mili);
+        Order order2{ pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), pSellerID->getValue(), pTransactTime->getValue() };
+        order2.setType(Order::Type::TRTH_ASK); // Update as "ask" from Global
+        order2.setMilli(mili);
 
-        newQuote.setSize(static_cast<int>(pBidSize->getValue()));
-        newQuote.setOrderType('9'); // Update as "bid" from Global
+        order.setSize(static_cast<int>(pBidSize->getValue()));
+        order.setType(Order::Type::TRTH_BID); // Update as "bid" from Global
 
-        stockIt->second.bufNewGlobal(newQuote2);
+        stockIt->second.bufNewGlobalOrder(order2);
     }
-    stockIt->second.bufNewGlobal(newQuote);
+    stockIt->second.bufNewGlobalOrder(order);
 
     if (prevCnt) { // > 1 threads
         delete pSymbol;

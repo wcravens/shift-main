@@ -21,8 +21,8 @@ public:
     static void s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary);
     static void s_sendPortfolioItemToClient(const std::string& username, const PortfolioItem& item);
 
-    RiskManagement(std::string username, double buyingPower);
-    RiskManagement(std::string username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio summary.
+    RiskManagement(const std::string& username, double buyingPower);
+    RiskManagement(const std::string& username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio summary.
 
     ~RiskManagement();
 

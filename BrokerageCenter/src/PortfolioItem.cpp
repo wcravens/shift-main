@@ -11,9 +11,9 @@ PortfolioItem::PortfolioItem(const std::string& symbol)
 }
 
 PortfolioItem::PortfolioItem(const std::string& symbol, int shares, double price)
-    : m_symbol{ symbol }
-    , m_borrowedBalance{ 0.0 }
-    , m_pl{ 0.0 }
+    : m_symbol(symbol)
+    , m_borrowedBalance(0.0)
+    , m_pl(0.0)
 {
     if (shares >= 0) {
         m_longPrice = price;
@@ -29,13 +29,13 @@ PortfolioItem::PortfolioItem(const std::string& symbol, int shares, double price
 }
 
 PortfolioItem::PortfolioItem(const std::string& symbol, double borrowedBalace, double pl, double longPrice, double shortPrice, int longShares, int shortShares)
-    : m_symbol{ symbol }
-    , m_borrowedBalance{ borrowedBalace }
-    , m_pl{ pl }
-    , m_longPrice{ longPrice }
-    , m_shortPrice{ shortPrice }
-    , m_longShares{ longShares }
-    , m_shortShares{ shortShares }
+    : m_symbol(symbol)
+    , m_borrowedBalance(borrowedBalace)
+    , m_pl(pl)
+    , m_longPrice(longPrice)
+    , m_shortPrice(shortPrice)
+    , m_longShares(longShares)
+    , m_shortShares(shortShares)
 {
 }
 

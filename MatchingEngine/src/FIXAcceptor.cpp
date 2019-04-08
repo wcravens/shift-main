@@ -96,7 +96,7 @@ void FIXAcceptor::disconnectBrokerageCenter()
 /*
  * @brief Send order book update to brokers
  */
-void FIXAcceptor::sendOrderBookUpdate2All(const NewBook& update)
+void FIXAcceptor::sendOrderBookUpdate2All(const OrderBookEntry& update)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -107,7 +107,7 @@ void FIXAcceptor::sendOrderBookUpdate2All(const NewBook& update)
 
     FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
     entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
-    entryGroup.setField(FIX::MDEntryType(update.getBook()));
+    entryGroup.setField(FIX::MDEntryType(update.getType()));
     entryGroup.setField(FIX::Symbol(update.getSymbol()));
     entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
     entryGroup.setField(FIX::MDEntrySize(update.getSize()));
@@ -129,7 +129,7 @@ void FIXAcceptor::sendOrderBookUpdate2All(const NewBook& update)
 /**
  * @brief Sending execution report to brokers
  */
-void FIXAcceptor::sendExecutionReport2All(const Action& report)
+void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
 {
     FIX::Message message;
 
@@ -143,7 +143,7 @@ void FIXAcceptor::sendExecutionReport2All(const Action& report)
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
     message.setField(FIX::OrdStatus(report.decision));
-    message.setField(FIX::Symbol(report.stockName));
+    message.setField(FIX::Symbol(report.symbol));
     message.setField(FIX::Side(report.orderType1));
     message.setField(FIX::OrdType(report.orderType2));
     message.setField(FIX::Price(report.price));
@@ -198,7 +198,7 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID)
 /**
  * @brief Send order confirmation to broker
  */
-void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const QuoteConfirm& confirmation)
+void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation)
 {
     FIX::Message message;
 
@@ -328,13 +328,13 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     long milli = globalTimeSetting.pastMilli();
     FIX::UtcTimeStamp utcNow = globalTimeSetting.simulationTimestamp();
 
-    Quote quote{ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue(), utcNow };
-    quote.setMilli(milli);
+    Order order{ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), static_cast<Order::Type>(pOrderType->getValue()), utcNow };
+    order.setMilli(milli);
 
     // Add new quote to buffer
     auto stockIt = stockList.find(pSymbol->getValue());
     if (stockIt != stockList.end()) {
-        stockIt->second.bufNewLocal(quote);
+        stockIt->second.bufNewLocalOrder(order);
     } else {
         return;
     }
