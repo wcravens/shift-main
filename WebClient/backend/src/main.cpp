@@ -20,7 +20,7 @@ using namespace std::chrono_literals;
 #define CSTR_VERBOSE \
     "verbose"
 #define CSTR_DBLOGIN_TXT \
-    "config/dbLogin.txt"
+    "dbLogin.txt"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;

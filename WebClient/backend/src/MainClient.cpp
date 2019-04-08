@@ -3,6 +3,8 @@
 #include "MyZMQ.h"
 #include "UserClient.h"
 
+#include <fstream>
+#include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 
 MainClient::MainClient(const std::string& username)
@@ -243,14 +245,15 @@ void MainClient::sendCompanyNamesToFront()
 
 void MainClient::sendDBLoginToFront(const std::string& cryptoKey, const std::string& fileName)
 {
-    // TODO: decreption
+    auto login = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
     std::ostringstream out;
     out << "{\"category\": \"loginCredential\", \"data\":"
         << "{\"data\": "
         << "\" <?php"
-        << "    $db_config['dsn'] = 'pgsql:host=127.0.0.1;dbname=shift_brokeragecenter';"
-        << "    $db_config['user'] = 'hanlonpgsql4';"
-        << "    $db_config['pass'] = 'XIfyqPqM446M';\""
+        << "    $db_config['dsn'] = '" << login["host"] << ";dbname=" << login["dbname"] << "';"
+        << "    $db_config['user'] = '" << login["user"] << "';"
+        << "    $db_config['pass'] = '" << login["pass"] << "';\""
         << "} }";
+
     MyZMQ::getInstance().send(out.str());
 }
