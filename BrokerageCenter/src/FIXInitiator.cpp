@@ -544,6 +544,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pExecTime->getValue()
             };
 
+            FIXAcceptor::getInstance()->sendLastPrice2All(transac);
+
             if (FIX::OrdStatus_FILLED == *pStatus) { // TRADE
                 printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
                 printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
@@ -583,8 +585,6 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             } else { // FIX::OrdStatus_REPLACED: TRTH TRADE
                 BCDocuments::getInstance()->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
             }
-
-            FIXAcceptor::getInstance()->sendLastPrice2All(transac);
         } break;
         case FIX::OrdStatus_CANCELED: { // CANCELLATION
             printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
