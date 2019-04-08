@@ -8,7 +8,14 @@ class DB
         if (!empty(self::$dbh)) {
             return self::$dbh;
         }
-        require_once(getenv('SITE_ROOT')."/../config/db_config.php");
+
+        $db_config_path = getenv('SITE_ROOT')."/public/data/loginCredential.php";
+        while (file_exists($db_config_path) == false) {
+            sleep(1);
+        }
+        require_once($db_config_path);
+        unlink(realpath($db_config_path));
+
         self::$dbh = new PDO($db_config['dsn'], $db_config['user'], $db_config['pass'], array(
             PDO::ATTR_PERSISTENT => true
         ));

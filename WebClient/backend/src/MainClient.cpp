@@ -240,3 +240,17 @@ void MainClient::sendCompanyNamesToFront()
         << "] }";
     MyZMQ::getInstance().send(out.str());
 }
+
+void MainClient::sendDBLoginToFront(const std::string& cryptoKey, const std::string& fileName)
+{
+    // TODO: decreption
+    std::ostringstream out;
+    out << "{\"category\": \"loginCredential\", \"data\":"
+        << "{\"data\": "
+        << "\" <?php"
+        << "    $db_config['dsn'] = 'pgsql:host=127.0.0.1;dbname=shift_brokeragecenter';"
+        << "    $db_config['user'] = 'hanlonpgsql4';"
+        << "    $db_config['pass'] = 'XIfyqPqM446M';\""
+        << "} }";
+    MyZMQ::getInstance().send(out.str());
+}

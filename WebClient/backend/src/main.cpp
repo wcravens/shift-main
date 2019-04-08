@@ -19,6 +19,8 @@ using namespace std::chrono_literals;
     "config"
 #define CSTR_VERBOSE \
     "verbose"
+#define CSTR_DBLOGIN_TXT \
+    "config/dbLogin.txt"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -33,9 +35,11 @@ int main(int ac, char* av[])
      */
     struct {
         std::string configDir;
+        std::string cryptoKey;
         bool isVerbose;
     } params = {
         "/usr/local/share/shift/WebClient/", // default installation folder for configuration
+        "SHIFT123",  // built-in initial crypto key used for encrypting dbLogin.txt
         false,
     };
 
@@ -44,6 +48,7 @@ int main(int ac, char* av[])
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
+        // TODO: -k
         ; // add_options
 
     po::variables_map vm;
@@ -74,6 +79,8 @@ int main(int ac, char* av[])
              << endl;
     }
 
+    // TODO: user specified key
+
     if (vm.count(CSTR_VERBOSE)) {
         params.isVerbose = true;
     }
@@ -81,6 +88,7 @@ int main(int ac, char* av[])
     voh_t voh(cout, params.isVerbose);
 
     MainClient* pMClient = new MainClient("webclient");
+
     pMClient->setVerbose(params.isVerbose);
     shift::FIXInitiator::getInstance().connectBrokerageCenter(params.configDir + "initiator.cfg", pMClient, "password", params.isVerbose, 1000);
 
@@ -92,6 +100,7 @@ int main(int ac, char* av[])
 
     std::thread tRecReq(&MainClient::receiveRequestFromPHP, pMClient);
 
+    pMClient->sendDBLoginToFront(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
     pMClient->subAllOrderBook();
     pMClient->subAllCandleData();
     pMClient->sendStockListToFront();

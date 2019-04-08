@@ -66,6 +66,16 @@ class pusher implements WampServerInterface {
             }
         }
 
+        if($entryData['category'] == "loginCredential") {
+            if (file_exists('../../public/data/loginCredential.php'))
+                unlink('../../public/data/loginCredential.php');
+            if (!file_exists('../../public/data/')) {
+                mkdir('../../public/data/', 0777, true);
+            }
+            file_put_contents('../../public/data/loginCredential.php', $entryData['data']['data']);
+
+        }
+
         if($entryData['category'] == 'stockList'){
             $this->stockList = $entryData['data'];
             // delete stockList file if exists
