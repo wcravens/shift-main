@@ -19,8 +19,8 @@ using namespace std::chrono_literals;
     "config"
 #define CSTR_VERBOSE \
     "verbose"
-#define CSTR_DBLOGIN_TXT \
-    "dbLogin.txt"
+#define CSTR_KEY \
+    "crypto key"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -48,7 +48,7 @@ int main(int ac, char* av[])
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
-        // TODO: -k
+        (CSTR_KEY ",k", po::value<std::string>(), "specify a key for database credential decryption") //
         ; // add_options
 
     po::variables_map vm;
@@ -79,7 +79,14 @@ int main(int ac, char* av[])
              << endl;
     }
 
-    // TODO: user specified key
+    if (vm.count(CSTR_KEY)) {
+        params.cryptoKey = vm[CSTR_KEY].as<std::string>();
+        cout << COLOR "'crypto key' was set to "
+             << params.cryptoKey << ".\n" NO_COLOR << endl;
+    } else {
+        cout << COLOR << "'crypto key' was not set. Using default key: " << params.cryptoKey << NO_COLOR << '\n'
+             << endl;
+    }
 
     if (vm.count(CSTR_VERBOSE)) {
         params.isVerbose = true;
@@ -100,7 +107,7 @@ int main(int ac, char* av[])
 
     std::thread tRecReq(&MainClient::receiveRequestFromPHP, pMClient);
 
-    pMClient->sendDBLoginToFront(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+    pMClient->sendDBLoginToFront(params.cryptoKey, params.configDir + "dbLogin.txt");
     pMClient->subAllOrderBook();
     pMClient->subAllCandleData();
     pMClient->sendStockListToFront();
