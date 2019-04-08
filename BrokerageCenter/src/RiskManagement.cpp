@@ -16,36 +16,36 @@
     FIXInitiator::getInstance()->sendOrder(order);
 }
 
-/*static*/ inline void RiskManagement::s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary)
+/*static*/ inline void RiskManagement::s_sendPortfolioSummaryToUser(const std::string& userID, const PortfolioSummary& summary)
 {
-    FIXAcceptor::getInstance()->sendPortfolioSummary(username, summary);
+    FIXAcceptor::getInstance()->sendPortfolioSummary(userID, summary);
 }
 
-/*static*/ inline void RiskManagement::s_sendPortfolioItemToClient(const std::string& username, const PortfolioItem& item)
+/*static*/ inline void RiskManagement::s_sendPortfolioItemToUser(const std::string& userID, const PortfolioItem& item)
 {
-    FIXAcceptor::getInstance()->sendPortfolioItem(username, item);
+    FIXAcceptor::getInstance()->sendPortfolioItem(userID, item);
 }
 
-RiskManagement::RiskManagement(const std::string& username, double buyingPower)
-    : m_username(username)
+RiskManagement::RiskManagement(const std::string& userID, double buyingPower)
+    : m_userID(userID)
     , m_porfolioSummary(buyingPower)
     , m_pendingShortCashAmount(0.0)
 {
     // Create "empty" waiting list:
     // This is required to be able to send empty waiting lists to clients,
     // which will ignore any orders in the waiting list with size 0.
-    m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", username };
+    m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", userID };
 }
 
-RiskManagement::RiskManagement(const std::string& username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
-    : m_username(username)
+RiskManagement::RiskManagement(const std::string& userID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
+    : m_userID(userID)
     , m_porfolioSummary(buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares)
     , m_pendingShortCashAmount(0.0)
 {
     // Create "empty" waiting list:
     // This is required to be able to send empty waiting lists to clients,
     // which will ignore any orders in the waiting list with size 0.
-    m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", username };
+    m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", userID };
 }
 
 RiskManagement::~RiskManagement()
@@ -83,10 +83,10 @@ void RiskManagement::sendPortfolioHistory()
     std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
     std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-    s_sendPortfolioSummaryToClient(m_username, m_porfolioSummary);
+    s_sendPortfolioSummaryToUser(m_userID, m_porfolioSummary);
 
     for (auto& i : m_portfolioItems)
-        s_sendPortfolioItemToClient(m_username, i.second);
+        s_sendPortfolioItemToUser(m_userID, i.second);
 }
 
 void RiskManagement::updateWaitingList(const Report& report)
@@ -114,7 +114,7 @@ void RiskManagement::sendWaitingList() const
 {
     std::lock_guard<std::mutex> guard(m_mtxWaitingList);
     if (!m_waitingList.empty())
-        FIXAcceptor::getInstance()->sendWaitingList(m_username, m_waitingList);
+        FIXAcceptor::getInstance()->sendWaitingList(m_userID, m_waitingList);
 }
 
 void RiskManagement::enqueueOrder(Order&& order)
@@ -142,7 +142,7 @@ void RiskManagement::processOrder()
 
             if (!DBConnector::s_isPortfolioDBReadOnly) {
                 auto lock{ DBConnector::getInstance()->lockPSQL() };
-                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_username + "'), '" + orderPtr->getSymbol() + "');", "");
+                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ('" + m_userID + "','" + orderPtr->getSymbol() + "');", "");
             }
         }
 
@@ -361,8 +361,8 @@ void RiskManagement::processExecRpt()
                 std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
                 std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
 
-                s_sendPortfolioSummaryToClient(m_username, m_porfolioSummary);
-                s_sendPortfolioItemToClient(m_username, m_portfolioItems[reportPtr->orderSymbol]);
+                s_sendPortfolioSummaryToUser(m_userID, m_porfolioSummary);
+                s_sendPortfolioItemToUser(m_userID, m_portfolioItems[reportPtr->orderSymbol]);
 
                 wasPortfolioSent = true;
             }
@@ -382,9 +382,9 @@ void RiskManagement::processExecRpt()
                         + ", short_shares = " + std::to_string(item.getShortShares())
                         + "\n" // PK == (id, symbol):
                           "WHERE symbol = '"
-                        + reportPtr->orderSymbol + "' AND id = (SELECT id FROM traders WHERE username = '"
-                        + m_username + "');",
-                    COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_username + "]!\n" NO_COLOR);
+                        + reportPtr->orderSymbol + "' AND id = '"
+                        + m_userID + "';",
+                    COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_userID + "]!\n" NO_COLOR);
 
                 DBConnector::getInstance()->doQuery(
                     "UPDATE portfolio_summary" // presume that we have got the user's uuid already in it
@@ -396,9 +396,9 @@ void RiskManagement::processExecRpt()
                         + ", total_pl = " + std::to_string(m_porfolioSummary.getTotalPL())
                         + ", total_shares = " + std::to_string(m_porfolioSummary.getTotalShares())
                         + "\n" // PK == id:
-                          "WHERE id = (SELECT id FROM traders WHERE username = '"
-                        + m_username + "');",
-                    COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_username + "]!\n" NO_COLOR);
+                          "WHERE id = '"
+                        + m_userID + "';",
+                    COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_userID + "]!\n" NO_COLOR);
             }
         }
 
@@ -498,7 +498,7 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
         s_sendOrderToME(order);
     } else {
         Report report{
-            m_username,
+            m_userID,
             order.getID(),
             order.getType(),
             order.getSymbol(),

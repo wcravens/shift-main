@@ -91,7 +91,7 @@ void OrderBook::onSubscribeOrderBook(const std::string& targetID)
 }
 
 /**
-*   @brief  Thread-safely unregisters a user from the list by username.
+*   @brief  Thread-safely unregisters a target.
 *   @return nothing
 */
 void OrderBook::onUnsubscribeOrderBook(const std::string& targetID)

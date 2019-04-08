@@ -51,12 +51,18 @@ bool shift::CoreClient::isConnected()
     return (m_fixInitiator && m_fixInitiator->isConnected());
 }
 
-void shift::CoreClient::setUsername(const std::string& username)
+void shift::CoreClient::setUserID(const std::string& id)
 {
-    m_username = username;
+    m_userID = id;
+    // cout << "username == " << m_username << ", userID == " << id << endl;
 }
 
-std::string shift::CoreClient::getUsername()
+std::string shift::CoreClient::getUserID() const
+{
+    return m_userID;
+}
+
+std::string shift::CoreClient::getUsername() const
 {
     return m_username;
 }
@@ -87,7 +93,7 @@ void shift::CoreClient::submitOrder(const shift::Order& order)
         m_submittedOrdersSize++;
     }
 
-    return m_fixInitiator->submitOrder(order, m_username);
+    return m_fixInitiator->submitOrder(order, getUserID());
 }
 
 /**
@@ -112,7 +118,7 @@ void shift::CoreClient::submitCancellation(shift::Order order)
 
     order.setSize(order.getSize() - order.getExecutedSize());
 
-    return m_fixInitiator->submitOrder(order, m_username);
+    return m_fixInitiator->submitOrder(order, getUserID());
 }
 
 shift::PortfolioSummary shift::CoreClient::getPortfolioSummary()

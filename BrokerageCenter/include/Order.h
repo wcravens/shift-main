@@ -26,7 +26,7 @@ struct Order {
     };
 
     Order() = default;
-    Order(Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& username);
+    Order(Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& userID);
 
     Type getType() const;
     static const char* s_typeToString(Type type);
@@ -35,7 +35,7 @@ struct Order {
     int getExecutedSize() const;
     double getPrice() const;
     const std::string& getID() const;
-    const std::string& getUsername() const;
+    const std::string& getUserID() const;
     Status getStatus() const;
 
     // Setters
@@ -45,7 +45,7 @@ struct Order {
     void setExecutedSize(int executedSize);
     void setPrice(double price);
     void setID(const std::string& id);
-    void setUsername(const std::string& username);
+    void setUserID(const std::string& userID);
     void setStatus(Status status);
 
 private:
@@ -55,6 +55,6 @@ private:
     int m_executedSize;
     double m_price;
     std::string m_id;
-    std::string m_username;
+    std::string m_userID;
     Status m_status;
 };

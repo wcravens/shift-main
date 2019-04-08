@@ -34,6 +34,7 @@
 #include <quickfix/fix50sp2/PositionReport.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 #include <quickfix/fix50sp2/SecurityStatus.h>
+#include <quickfix/fix50sp2/UserResponse.h>
 
 // Sending Message Types
 #include <quickfix/fix50sp2/MarketDataRequest.h>
@@ -50,7 +51,7 @@
 
 namespace shift {
 
-/** 
+/**
  * @brief FIX Initiator for LibCoreClient to communicate with Brokerage Center
  */
 class CORECLIENT_EXPORTS CoreClient;
@@ -77,14 +78,16 @@ public:
     // Call this function to attach both ways
     R_REMOVE void attach(shift::CoreClient* client, const std::string& password = "NA", int timeout = 0);
 
-    // call this function to send webClient username to and register at BC
-    void webClientSendUsername(const std::string& username);
+    // call this function to send webClient username to and register at BC, with a userID as response for LC internal use.
+    void registerUserInBCWaitResponse(shift::CoreClient* client);
 
     std::vector<CoreClient*> getAttachedClients();
-    R_REMOVE CoreClient* getMainClient();
-    CoreClient* getClient(const std::string& name);
+    R_REMOVE CoreClient* getSuperUser();
+    CoreClient* getClient(const std::string& name); // for end-clients compartabiliy use
 
 protected:
+    CoreClient* getClientByUserID(const std::string& userID); // for core-client internal use
+
     R_FIXINIT bool isConnected();
 
     // Inline methods
@@ -96,7 +99,7 @@ protected:
     // FIXInitiator - QuickFIX methods
     R_FIXINIT void sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
     R_FIXINIT void sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
-    R_FIXINIT void submitOrder(const shift::Order&, const std::string& username = "");
+    R_FIXINIT void submitOrder(const shift::Order&, const std::string& userID = "");
 
     R_FIXINIT void onCreate(const FIX::SessionID&) override;
     R_FIXINIT void onLogon(const FIX::SessionID&) override;
@@ -113,6 +116,7 @@ protected:
     R_FIXINIT void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::PositionReport&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::MassQuoteAcknowledgement&, const FIX::SessionID&) override;
+    R_FIXINIT void onMessage(const FIX50SP2::UserResponse& message, const FIX::SessionID&) override;
 
     // Price methods
     R_FIXSUB double getOpenPrice(const std::string& symbol);
@@ -152,8 +156,9 @@ private:
     R_FIXINIT std::unique_ptr<FIX::SocketInitiator> m_pSocketInitiator;
 
     // FIXInitiator - Logon related
-    R_FIXINIT std::string m_username;
-    R_FIXINIT std::string m_password;
+    R_FIXINIT std::string m_superUsername;
+    R_FIXINIT std::string m_superUserPsw;
+    R_FIXINIT std::string m_superUserID;
     R_FIXINIT std::atomic<bool> m_connected;
     R_FIXINIT std::atomic<bool> m_verbose;
     R_FIXINIT std::atomic<bool> m_logonSuccess;
@@ -161,8 +166,8 @@ private:
     R_FIXINIT std::condition_variable m_cvLogon;
 
     // FIXInitiator - Subscriber management
-    R_FIXINIT std::mutex m_mtxUsernameClientMap;
-    R_FIXINIT std::unordered_map<std::string, CoreClient*> m_usernameClientMap;
+    R_FIXINIT std::mutex m_mtxClientByUserID;
+    R_FIXINIT std::unordered_map<std::string, CoreClient*> m_clientByUserID;
 
     R_TODO std::atomic<bool> m_openPricesReady;
     R_FIXSUB std::mutex m_mtxOpenPrices;
@@ -171,6 +176,10 @@ private:
     R_FIXSUB std::chrono::system_clock::time_point m_lastTradeTime;
 
     R_FIXSUB std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
+
+    std::mutex m_mtxUserIDByUsername;
+    std::condition_variable m_cvUserIDByUsername;
+    std::unordered_map<std::string, std::string> m_userIDByUsername;
 
     std::mutex m_mtxStockList;
     std::condition_variable m_cvStockList;

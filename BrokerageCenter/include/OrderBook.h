@@ -26,10 +26,10 @@ public:
     void spawn();
     // void stop();
 
-    void onSubscribeOrderBook(const std::string& username);
-    void onUnsubscribeOrderBook(const std::string& username);
+    void onSubscribeOrderBook(const std::string& userID);
+    void onUnsubscribeOrderBook(const std::string& userID);
 
-    void broadcastWholeOrderBookToOne(const std::string& username);
+    void broadcastWholeOrderBookToOne(const std::string& userID);
     void broadcastWholeOrderBookToAll();
     void broadcastSingleUpdateToAll(const OrderBookEntry& update);
 
