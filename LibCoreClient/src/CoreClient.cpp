@@ -54,7 +54,7 @@ bool shift::CoreClient::isConnected()
 void shift::CoreClient::setUserID(const std::string& id)
 {
     m_userID = id;
-    cout << "username == " << m_username << ", userID == " << id << endl;
+    // cout << "username == " << m_username << ", userID == " << id << endl;
 }
 
 std::string shift::CoreClient::getUserID() const

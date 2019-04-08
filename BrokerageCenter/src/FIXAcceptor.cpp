@@ -241,10 +241,10 @@ void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& targetList
  */
 void FIXAcceptor::sendConfirmationReport(const Report& report)
 {
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(report.username);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserID(report.userID);
     if (::STDSTR_NULL == targetID) {
         cout << "sendConfirmationReport(): ";
-        cout << report.username << " does not exist: Target computer ID not identified!" << endl;
+        cout << report.userID << " does not exist. Target computer ID not identified!" << endl;
         return;
     }
 
@@ -276,7 +276,7 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     idGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup.setField(FIX::PartyID(report.username));
+    idGroup.setField(FIX::PartyID(report.userID));
     message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
@@ -285,12 +285,12 @@ void FIXAcceptor::sendConfirmationReport(const Report& report)
 /**
  * @brief Send Portfolio Summary to LC
  */
-void FIXAcceptor::sendPortfolioSummary(const std::string& username, const PortfolioSummary& summary)
+void FIXAcceptor::sendPortfolioSummary(const std::string& userID, const PortfolioSummary& summary)
 {
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserID(userID);
     if (::STDSTR_NULL == targetID) {
         cout << "sendPortfolioSummary(): ";
-        cout << username << " does not exist: Target computer ID not identified!" << endl;
+        cout << userID << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
 
@@ -308,10 +308,10 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& username, const Portfo
     message.setField(::FIXFIELD_SECURITYTYPE_CASH);
     message.setField(FIX::PriceDelta(summary.getTotalPL()));
 
-    FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
-    usernameGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    usernameGroup.setField(FIX::PartyID(username));
-    message.addGroup(usernameGroup);
+    FIX50SP2::PositionReport::NoPartyIDs userIDGroup;
+    userIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
+    userIDGroup.setField(FIX::PartyID(userID));
+    message.addGroup(userIDGroup);
 
     FIX50SP2::PositionReport::NoPositions qtyGroup;
     qtyGroup.setField(FIX::LongQty(summary.getTotalShares()));
@@ -331,12 +331,12 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& username, const Portfo
 /**
  * @brief Send Portfolio Item to LC
  */
-void FIXAcceptor::sendPortfolioItem(const std::string& username, const PortfolioItem& item)
+void FIXAcceptor::sendPortfolioItem(const std::string& userID, const PortfolioItem& item)
 {
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserID(userID);
     if (::STDSTR_NULL == targetID) {
         cout << "sendPortfolioItem(): ";
-        cout << username << " does not exist: Target computer ID not identified!" << endl;
+        cout << userID << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
 
@@ -356,10 +356,10 @@ void FIXAcceptor::sendPortfolioItem(const std::string& username, const Portfolio
     message.setField(FIX::PriorSettlPrice(item.getShortPrice()));
     message.setField(FIX::PriceDelta(item.getPL()));
 
-    FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
-    usernameGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    usernameGroup.setField(FIX::PartyID(username));
-    message.addGroup(usernameGroup);
+    FIX50SP2::PositionReport::NoPartyIDs userIDGroup;
+    userIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
+    userIDGroup.setField(FIX::PartyID(userID));
+    message.addGroup(userIDGroup);
 
     FIX50SP2::PositionReport::NoPositions qtyGroup;
     qtyGroup.setField(FIX::LongQty(item.getLongShares()));
@@ -369,12 +369,12 @@ void FIXAcceptor::sendPortfolioItem(const std::string& username, const Portfolio
     FIX::Session::sendToTarget(message);
 }
 
-void FIXAcceptor::sendWaitingList(const std::string& username, const std::unordered_map<std::string, Order>& orders)
+void FIXAcceptor::sendWaitingList(const std::string& userID, const std::unordered_map<std::string, Order>& orders)
 {
-    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUsername(username);
+    const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserID(userID);
     if (::STDSTR_NULL == targetID) {
         cout << "sendWaitingList(): ";
-        cout << username << " does not exist: Target computer ID not identified!" << endl;
+        cout << userID << " does not exist: Target computer ID not identified!" << endl;
         return;
     }
 
@@ -387,7 +387,7 @@ void FIXAcceptor::sendWaitingList(const std::string& username, const std::unorde
     header.setField(FIX::MsgType(FIX::MsgType_MassQuoteAcknowledgement));
 
     message.setField(::FIXFIELD_QUOTESTATUS_ACCEPTED); // Required by FIX
-    message.setField(FIX::Account(username));
+    message.setField(FIX::Account(userID));
 
     FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets orderSetGroup;
     for (const auto& kv : orders) {
@@ -675,7 +675,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     FIX::NoPartyIDs numOfGroups;
     message.get(numOfGroups);
     if (numOfGroups.getValue() < 1) {
-        cout << "Cannot find username in NewOrderSingle!" << endl;
+        cout << "Cannot find userID in NewOrderSingle!" << endl;
         return;
     }
 
@@ -686,7 +686,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     static FIX::Price price;
 
     static FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    static FIX::PartyID username;
+    static FIX::PartyID userID;
 
     // #pragma GCC diagnostic ignored ....
 
@@ -697,7 +697,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     FIX::Price* pPrice;
 
     FIX50SP2::NewOrderSingle::NoPartyIDs* pIDGroup;
-    FIX::PartyID* pUsername;
+    FIX::PartyID* pUserID;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
@@ -713,7 +713,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         pOrderType = &orderType;
         pPrice = &price;
         pIDGroup = &idGroup;
-        pUsername = &username;
+        pUserID = &userID;
     } else { // > 1 threads; always safe way:
         pOrderID = new decltype(orderID);
         pSymbol = new decltype(symbol);
@@ -721,7 +721,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         pOrderType = new decltype(orderType);
         pPrice = new decltype(price);
         pIDGroup = new decltype(idGroup);
-        pUsername = new decltype(username);
+        pUserID = new decltype(userID);
     }
 
     message.get(*pOrderID);
@@ -731,11 +731,12 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     message.get(*pPrice);
 
     message.getGroup(1, *pIDGroup);
-    pIDGroup->get(*pUsername);
+    pIDGroup->get(*pUserID);
 
+    auto usernames = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT username FROM traders WHERE id = '" + pUserID->getValue() + "';"));
     synchPrint(COLOR_PROMPT "--------------------------------------\n" NO_COLOR "Order ID: "
         + pOrderID->getValue()
-        + "\nUsername: " + pUsername->getValue()
+        + "\nUsername: " + (usernames.size() ? usernames[0] : std::string("<???>")) + " (" + pUserID->getValue() + ')'
         + "\n\tType: " + Order::s_typeToString(static_cast<Order::Type>(pOrderType->getValue()))
         + "\n\tSymbol: " + pSymbol->getValue()
         + "\n\tSize: " + std::to_string(pSize->getValue())
@@ -750,11 +751,11 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    if (pUsername->getLength() == 0) {
-        cout << "username is empty" << endl;
+    if (pUserID->getLength() == 0) {
+        cout << "userID is empty" << endl;
         return;
-    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(pUsername->getValue())) {
-        cout << COLOR_ERROR "This username [" << pUsername->getValue() << "] is not register in the Brokerage Center" NO_COLOR << endl;
+    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUserID(pUserID->getValue())) {
+        cout << COLOR_ERROR "This user [" << pUserID->getValue() << "] is not register in the BrokerageCenter" NO_COLOR << endl;
         return;
     }
 
@@ -787,10 +788,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         sizeInt,
         pPrice->getValue(),
         pOrderID->getValue(),
-        pUsername->getValue()
+        pUserID->getValue()
     };
 
-    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(pUsername->getValue(), std::move(order));
+    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(pUserID->getValue(), std::move(order));
 
     if (prevCnt) { // > 1 threads
         delete pOrderID;
@@ -799,7 +800,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         delete pOrderType;
         delete pPrice;
         delete pIDGroup;
-        delete pUsername;
+        delete pUserID;
     }
 
     s_cntAtom--;

@@ -1,13 +1,13 @@
 #include "Order.h"
 
-Order::Order(Order::Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& username)
+Order::Order(Order::Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& userID)
     : m_type(type)
     , m_symbol(symbol)
     , m_size(size)
     , m_executedSize(0)
     , m_price(price)
     , m_id(id)
-    , m_username(username)
+    , m_userID(userID)
     , m_status(Order::Status::PENDING_NEW)
 {
 }
@@ -62,9 +62,9 @@ const std::string& Order::getID() const
     return m_id;
 }
 
-const std::string& Order::getUsername() const
+const std::string& Order::getUserID() const
 {
-    return m_username;
+    return m_userID;
 }
 
 Order::Status Order::getStatus() const
@@ -102,9 +102,9 @@ void Order::setID(const std::string& id)
     m_id = id;
 }
 
-void Order::setUsername(const std::string& username)
+void Order::setUserID(const std::string& userID)
 {
-    m_username = username;
+    m_userID = userID;
 }
 
 void Order::setStatus(Order::Status status)

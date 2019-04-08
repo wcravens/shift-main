@@ -61,35 +61,35 @@ void BCDocuments::attachCandlestickDataToSymbol(const std::string& symbol)
     candlePtr->spawn();
 }
 
-void BCDocuments::registerUserInDoc(const std::string& targetID, const std::string& username)
+void BCDocuments::registerUserInDoc(const std::string& targetID, const std::string& userID)
 {
-    std::lock_guard<std::mutex> guard(m_mtxUserTargetInfo);
-    m_mapName2TarID[username] = targetID;
+    std::lock_guard<std::mutex> guard(m_mtxUserID2TargetID);
+    m_userID2TargetID[userID] = targetID;
     registerTarget(targetID);
 }
 
 // removes all users affiliated to the target computer ID
 void BCDocuments::unregisterTargetFromDoc(const std::string& targetID)
 {
-    std::lock_guard<std::mutex> guard(m_mtxUserTargetInfo);
+    std::lock_guard<std::mutex> guard(m_mtxUserID2TargetID);
 
     unregisterTarget(targetID);
 
-    std::vector<std::string> usernames;
-    for (auto& kv : m_mapName2TarID)
+    std::vector<std::string> userIDs;
+    for (auto& kv : m_userID2TargetID)
         if (targetID == kv.second)
-            usernames.push_back(kv.first);
+            userIDs.push_back(kv.first);
 
-    for (auto& name : usernames)
-        m_mapName2TarID.erase(name);
+    for (const auto& userID : userIDs)
+        m_userID2TargetID.erase(userID);
 }
 
-std::string BCDocuments::getTargetIDByUsername(const std::string& username) const
+std::string BCDocuments::getTargetIDByUserID(const std::string& userID) const
 {
-    std::lock_guard<std::mutex> guard(m_mtxUserTargetInfo);
+    std::lock_guard<std::mutex> guard(m_mtxUserID2TargetID);
 
-    auto pos = m_mapName2TarID.find(username);
-    if (m_mapName2TarID.end() == pos)
+    auto pos = m_userID2TargetID.find(userID);
+    if (m_userID2TargetID.end() == pos)
         return ::STDSTR_NULL;
 
     return pos->second;
@@ -172,14 +172,14 @@ bool BCDocuments::manageSubscriptionInCandlestickData(bool isSubscribe, const st
     return true;
 }
 
-int BCDocuments::sendHistoryToUser(const std::string& username)
+int BCDocuments::sendHistoryToUser(const std::string& userID)
 {
     int res = 0;
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
+    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByUserID);
 
-    auto pos = m_riskManagementByName.find(username);
-    if (m_riskManagementByName.end() == pos) { // newly joined user ? (TODO)
-        pos = addRiskManagementToUserNoLock(username);
+    auto pos = m_riskManagementByUserID.find(userID);
+    if (m_riskManagementByUserID.end() == pos) { // newly joined user ? (TODO)
+        pos = addRiskManagementToUserNoLock(userID);
         res = 1;
     }
     pos->second->sendPortfolioHistory();
@@ -226,24 +226,20 @@ void BCDocuments::onNewTransacForCandlestickData(const std::string& symbol, cons
     m_candleBySymbol[symbol]->enqueueTransaction(transac);
 }
 
-void BCDocuments::onNewOrderForUserRiskManagement(const std::string& username, Order&& order)
+void BCDocuments::onNewOrderForUserRiskManagement(const std::string& userID, Order&& order)
 {
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-    addRiskManagementToUserNoLock(username);
-    m_riskManagementByName[username]->enqueueOrder(std::move(order));
+    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByUserID);
+    addRiskManagementToUserNoLock(userID);
+    m_riskManagementByUserID[userID]->enqueueOrder(std::move(order));
 }
 
-void BCDocuments::onNewReportForUserRiskManagement(const std::string& username, Report&& report)
+void BCDocuments::onNewReportForUserRiskManagement(const std::string& userID, Report&& report)
 {
-    if ("TR" == username)
+    if ("TR" == userID)
         return;
 
-    auto userName = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT username FROM traders WHERE id = '" + username + "';"));
-    if (userName.size() && "TR" == userName[0])
-        return;
-
-    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
-    m_riskManagementByName[username]->enqueueExecRpt(std::move(report));
+    std::lock_guard<std::mutex> guard(m_mtxRiskManagementByUserID);
+    m_riskManagementByUserID[userID]->enqueueExecRpt(std::move(report));
 }
 
 void BCDocuments::broadcastOrderBooks() const
@@ -254,9 +250,9 @@ void BCDocuments::broadcastOrderBooks() const
     }
 }
 
-std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDocuments::addRiskManagementToUserNoLock(const std::string& username)
+std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDocuments::addRiskManagementToUserNoLock(const std::string& userID)
 {
-    auto res = m_riskManagementByName.emplace(username, nullptr);
+    auto res = m_riskManagementByUserID.emplace(userID, nullptr);
     if (!res.second)
         return res.first;
 
@@ -267,16 +263,16 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
     const auto summary = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
         "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
         "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
-        "WHERE traders.id = '" // here presume we always has got current username in traders table
-            + username + "';",
+        "WHERE traders.id = '" // here presume we always has got current userID in traders table
+            + userID + "';",
         5);
 
     if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
         constexpr auto DEFAULT_BUYING_POWER = 1e6;
-        DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ('" + username + "'," + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
-        rmPtr.reset(new RiskManagement(username, DEFAULT_BUYING_POWER));
+        DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ('" + userID + "'," + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
+        rmPtr.reset(new RiskManagement(userID, DEFAULT_BUYING_POWER));
     } else // explicitly parameterize the summary
-        rmPtr.reset(new RiskManagement(username, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
+        rmPtr.reset(new RiskManagement(userID, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
 
     // populate portfolio items
     for (int row = 0; true; row++) {
@@ -284,7 +280,7 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
             "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
             "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
             "WHERE traders.id = '"
-                + username + "';",
+                + userID + "';",
             7,
             row);
         if (item.empty())

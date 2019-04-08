@@ -5,7 +5,7 @@
 #include <string>
 
 struct Report {
-    std::string username;
+    std::string userID;
     std::string orderID;
     Order::Type orderType;
     std::string orderSymbol;
@@ -17,7 +17,7 @@ struct Report {
     FIX::UtcTimeStamp execTime;
     FIX::UtcTimeStamp serverTime;
 
-    Report(const std::string& username,
+    Report(const std::string& userID,
         const std::string& orderID,
         Order::Type orderType,
         const std::string& orderSymbol,
@@ -28,7 +28,7 @@ struct Report {
         const std::string& destination,
         const FIX::UtcTimeStamp& execTime,
         const FIX::UtcTimeStamp& serverTime)
-        : username(username)
+        : userID(userID)
         , orderID(orderID)
         , orderType(orderType)
         , orderSymbol(orderSymbol)
@@ -42,7 +42,7 @@ struct Report {
     {
     }
 
-    Report(const std::string& username,
+    Report(const std::string& userID,
         const std::string& orderID,
         Order::Type orderType,
         const std::string& orderSymbol,
@@ -51,7 +51,7 @@ struct Report {
         double orderPrice,
         Order::Status orderStatus,
         const std::string& destination)
-        : username(username)
+        : userID(userID)
         , orderID(orderID)
         , orderType(orderType)
         , orderSymbol(orderSymbol)

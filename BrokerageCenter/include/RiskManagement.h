@@ -18,11 +18,11 @@
 class RiskManagement {
 public:
     static void s_sendOrderToME(const Order& order);
-    static void s_sendPortfolioSummaryToClient(const std::string& username, const PortfolioSummary& summary);
-    static void s_sendPortfolioItemToClient(const std::string& username, const PortfolioItem& item);
+    static void s_sendPortfolioSummaryToUser(const std::string& userID, const PortfolioSummary& summary);
+    static void s_sendPortfolioItemToUser(const std::string& userID, const PortfolioItem& item);
 
-    RiskManagement(const std::string& username, double buyingPower);
-    RiskManagement(const std::string& username, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio summary.
+    RiskManagement(const std::string& userID, double buyingPower);
+    RiskManagement(const std::string& userID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio summary.
 
     ~RiskManagement();
 
@@ -44,8 +44,7 @@ public:
     bool verifyAndSendOrder(const Order& order);
 
 private:
-    // int m_userID; // internal use
-    std::string m_username;
+    std::string m_userID;
 
     mutable std::mutex m_mtxOrder;
     mutable std::mutex m_mtxExecRpt;

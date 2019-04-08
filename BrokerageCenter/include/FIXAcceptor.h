@@ -62,9 +62,9 @@ public:
     void sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
 
     void sendConfirmationReport(const Report& report);
-    void sendPortfolioSummary(const std::string& username, const PortfolioSummary& summary);
-    void sendPortfolioItem(const std::string& username, const PortfolioItem& item);
-    void sendWaitingList(const std::string& username, const std::unordered_map<std::string, Order>& orders);
+    void sendPortfolioSummary(const std::string& userID, const PortfolioSummary& summary);
+    void sendPortfolioItem(const std::string& userID, const PortfolioItem& item);
+    void sendWaitingList(const std::string& userID, const std::unordered_map<std::string, Order>& orders);
 
 private:
     FIXAcceptor() = default;

@@ -102,7 +102,7 @@ void FIXInitiator::sendOrder(const Order& order)
 
     FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
     idGroup.set(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup.set(FIX::PartyID(order.getUsername()));
+    idGroup.set(FIX::PartyID(order.getUserID()));
     message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
@@ -313,7 +313,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         static FIX::TransactTime serverTime;
 
         static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-        static FIX::PartyID username;
+        static FIX::PartyID userID;
 
         // #pragma GCC diagnostic ignored ....
 
@@ -328,7 +328,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::TransactTime* pServerTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
-        FIX::PartyID* pUsername;
+        FIX::PartyID* pUserID;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
@@ -348,7 +348,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pCurrentSize = &currentSize;
             pServerTime = &serverTime;
             pIDGroup = &idGroup;
-            pUsername = &username;
+            pUserID = &userID;
         } else { // > 1 threads; always safe way:
             pOrderID = new decltype(orderID);
             pStatus = new decltype(status);
@@ -360,7 +360,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pCurrentSize = new decltype(currentSize);
             pServerTime = new decltype(serverTime);
             pIDGroup = new decltype(idGroup);
-            pUsername = new decltype(username);
+            pUserID = new decltype(userID);
         }
 
         message.get(*pOrderID);
@@ -374,10 +374,10 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         message.get(*pServerTime);
 
         message.getGroup(1, *pIDGroup);
-        pIDGroup->get(*pUsername);
+        pIDGroup->get(*pUserID);
 
         cout << "Confirmation Report: "
-             << pUsername->getValue() << "\t"
+             << pUserID->getValue() << "\t"
              << pOrderID->getValue() << "\t"
              << pOrderType->getValue() << "\t"
              << pSymbol->getValue() << "\t"
@@ -389,7 +389,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << pServerTime->getString() << endl;
 
         Report report{
-            pUsername->getValue(),
+            pUserID->getValue(),
             pOrderID->getValue(),
             static_cast<Order::Type>(pOrderType->getValue()),
             pSymbol->getValue(),
@@ -402,7 +402,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pServerTime->getValue()
         };
 
-        BCDocuments::getInstance()->onNewReportForUserRiskManagement(pUsername->getValue(), std::move(report));
+        BCDocuments::getInstance()->onNewReportForUserRiskManagement(pUserID->getValue(), std::move(report));
 
         if (prevCnt) { // > 1 threads
             delete pOrderID;
@@ -415,7 +415,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             delete pCurrentSize;
             delete pServerTime;
             delete pIDGroup;
-            delete pUsername;
+            delete pUserID;
         }
 
         s_cntAtom--;
@@ -442,8 +442,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         static FIX::TransactTime serverTime;
 
         static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-        static FIX::PartyID username1;
-        static FIX::PartyID username2;
+        static FIX::PartyID userID1;
+        static FIX::PartyID userID2;
 
         // #pragma GCC diagnostic ignored ....
 
@@ -460,8 +460,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::TransactTime* pServerTime;
 
         FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
-        FIX::PartyID* pUsername1;
-        FIX::PartyID* pUsername2;
+        FIX::PartyID* pUserID1;
+        FIX::PartyID* pUserID2;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
@@ -483,8 +483,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pExecutedSize = &executedSize;
             pServerTime = &serverTime;
             pIDGroup = &idGroup;
-            pUsername1 = &username1;
-            pUsername2 = &username2;
+            pUserID1 = &userID1;
+            pUserID2 = &userID2;
         } else { // > 1 threads; always safe way:
             pOrderID1 = new decltype(orderID1);
             pOrderID2 = new decltype(orderID2);
@@ -498,8 +498,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pExecutedSize = new decltype(executedSize);
             pServerTime = new decltype(serverTime);
             pIDGroup = new decltype(idGroup);
-            pUsername1 = new decltype(username1);
-            pUsername2 = new decltype(username2);
+            pUserID1 = new decltype(userID1);
+            pUserID2 = new decltype(userID2);
         }
 
         message.get(*pOrderID1);
@@ -515,13 +515,13 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         message.get(*pServerTime);
 
         message.getGroup(1, *pIDGroup);
-        pIDGroup->get(*pUsername1);
+        pIDGroup->get(*pUserID1);
         message.getGroup(2, *pIDGroup);
-        pIDGroup->get(*pUsername2);
+        pIDGroup->get(*pUserID2);
 
-        auto printRpts = [](bool rpt1or2, auto username, auto orderID, auto orderType, auto symbol, auto executedSize, auto price, auto status, auto destination, auto execTime, auto serverTime) {
+        auto printRpts = [](bool rpt1or2, auto userID, auto orderID, auto orderType, auto symbol, auto executedSize, auto price, auto status, auto destination, auto execTime, auto serverTime) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
-                 << username->getValue() << "\t"
+                 << userID->getValue() << "\t"
                  << orderID->getValue() << "\t"
                  << orderType->getValue() << "\t"
                  << symbol->getValue() << "\t"
@@ -545,11 +545,11 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             };
 
             if (FIX::OrdStatus_FILLED == *pStatus) { // TRADE
-                printRpts(true, pUsername1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
-                printRpts(false, pUsername2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
+                printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
+                printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 
                 Report report1{
-                    pUsername1->getValue(),
+                    pUserID1->getValue(),
                     pOrderID1->getValue(),
                     static_cast<Order::Type>(pOrderType1->getValue()),
                     pSymbol->getValue(),
@@ -563,7 +563,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 };
 
                 Report report2{
-                    pUsername2->getValue(),
+                    pUserID2->getValue(),
                     pOrderID2->getValue(),
                     static_cast<Order::Type>(pOrderType2->getValue()),
                     pSymbol->getValue(),
@@ -578,8 +578,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
                 auto* docs = BCDocuments::getInstance();
                 docs->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
-                docs->onNewReportForUserRiskManagement(pUsername1->getValue(), std::move(report1));
-                docs->onNewReportForUserRiskManagement(pUsername2->getValue(), std::move(report2));
+                docs->onNewReportForUserRiskManagement(pUserID1->getValue(), std::move(report1));
+                docs->onNewReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
             } else { // FIX::OrdStatus_REPLACED: TRTH TRADE
                 BCDocuments::getInstance()->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
             }
@@ -587,11 +587,11 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             FIXAcceptor::getInstance()->sendLastPrice2All(transac);
         } break;
         case FIX::OrdStatus_CANCELED: { // CANCELLATION
-            printRpts(true, pUsername1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
-            printRpts(false, pUsername2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
+            printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
+            printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 
             Report report2{
-                pUsername2->getValue(),
+                pUserID2->getValue(),
                 pOrderID2->getValue(),
                 static_cast<Order::Type>(pOrderType2->getValue()),
                 pSymbol->getValue(),
@@ -604,7 +604,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pServerTime->getValue()
             };
 
-            BCDocuments::getInstance()->onNewReportForUserRiskManagement(pUsername2->getValue(), std::move(report2));
+            BCDocuments::getInstance()->onNewReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
         } break;
         } // switch
 
@@ -621,8 +621,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             delete pExecutedSize;
             delete pServerTime;
             delete pIDGroup;
-            delete pUsername1;
-            delete pUsername2;
+            delete pUserID1;
+            delete pUserID2;
         }
 
         s_cntAtom--;

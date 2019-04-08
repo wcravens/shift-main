@@ -78,7 +78,7 @@ public:
     // Call this function to attach both ways
     R_REMOVE void attach(shift::CoreClient* client, const std::string& password = "NA", int timeout = 0);
 
-    // call this function to send webClient username to and register at BC
+    // call this function to send webClient username to and register at BC, with a userID as response for LC internal use.
     void registerUserInBCWaitResponse(shift::CoreClient* client);
 
     std::vector<CoreClient*> getAttachedClients();
@@ -99,7 +99,7 @@ protected:
     // FIXInitiator - QuickFIX methods
     R_FIXINIT void sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
     R_FIXINIT void sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
-    R_FIXINIT void submitOrder(const shift::Order&, const std::string& username = "");
+    R_FIXINIT void submitOrder(const shift::Order&, const std::string& userID = "");
 
     R_FIXINIT void onCreate(const FIX::SessionID&) override;
     R_FIXINIT void onLogon(const FIX::SessionID&) override;
@@ -156,7 +156,7 @@ private:
     R_FIXINIT std::unique_ptr<FIX::SocketInitiator> m_pSocketInitiator;
 
     // FIXInitiator - Logon related
-    R_FIXINIT std::string m_superUserName;
+    R_FIXINIT std::string m_superUsername;
     R_FIXINIT std::string m_superUserPsw;
     R_FIXINIT std::string m_superUserID;
     R_FIXINIT std::atomic<bool> m_connected;

@@ -91,7 +91,7 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
 {
     disconnectBrokerageCenter();
 
-    m_superUserName = client->getUsername();
+    m_superUsername = client->getUsername();
 
     std::istringstream iss{ password };
     shift::crypto::Encryptor enc;
@@ -99,7 +99,7 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
 
     m_verbose = verbose;
 
-    std::string senderCompID = m_superUserName;
+    std::string senderCompID = m_superUsername;
     std::transform(senderCompID.begin(), senderCompID.end(), senderCompID.begin(), ::toupper);
 
     FIX::SessionSettings settings(cfgFile);
@@ -112,13 +112,13 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     settings.set(sessionID, std::move(dict));
 
     if (commonDict.has("FileLogPath")) {
-        m_pLogFactory.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath") + "/" + m_superUserName));
+        m_pLogFactory.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath") + "/" + m_superUsername));
     } else {
         m_pLogFactory.reset(new FIX::ScreenLogFactory(false, false, m_verbose));
     }
 
     if (commonDict.has("FileStorePath")) {
-        m_pMessageStoreFactory.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath") + "/" + m_superUserName));
+        m_pMessageStoreFactory.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath") + "/" + m_superUsername));
     } else {
         m_pMessageStoreFactory.reset(new FIX::NullStoreFactory());
     }
@@ -224,12 +224,6 @@ void shift::FIXInitiator::attach(shift::CoreClient* client, const std::string& p
     client->attach(*this);
 }
 
-/**
- * @brief Method used by WebClient to send username
- * (since webclient use one client ID for all users)
- *
- * @param username as the name for the newly login user.
- */
 void shift::FIXInitiator::registerUserInBCWaitResponse(shift::CoreClient* client)
 {
     FIX::Message message;
@@ -258,18 +252,13 @@ std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
 
     std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
 
-    for (auto it = m_clientByUserID.begin(); it != m_clientByUserID.end(); ++it) {
-        if (it->first != m_superUserID) { // skip MainClient/super user
-            clientsVector.push_back(it->second);
+    for (const auto& kv : m_clientByUserID) {
+        if (kv.first != m_superUserID) { // skip MainClient/super user
+            clientsVector.push_back(kv.second);
         }
     }
 
     return clientsVector;
-}
-
-shift::CoreClient* shift::FIXInitiator::getSuperUser()
-{
-    return getClientByUserID(m_superUserID);
 }
 
 shift::CoreClient* shift::FIXInitiator::getClient(const std::string& username)
@@ -283,11 +272,6 @@ shift::CoreClient* shift::FIXInitiator::getClient(const std::string& username)
     return getClientByUserID(userID);
 }
 
-/**
- * @brief get CoreClient by client name.
- *
- * @param name as a string to provide the client name.
- */
 shift::CoreClient* shift::FIXInitiator::getClientByUserID(const std::string& userID)
 {
     std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
@@ -299,6 +283,11 @@ shift::CoreClient* shift::FIXInitiator::getClientByUserID(const std::string& use
     }
 
     return nullptr;
+}
+
+shift::CoreClient* shift::FIXInitiator::getSuperUser()
+{
+    return getClientByUserID(m_superUserID);
 }
 
 bool shift::FIXInitiator::isConnected()
@@ -445,9 +434,9 @@ void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool 
  * @brief Method to submit Order From FIXInitiator to Brokerage Center.
  *
  * @param order as a shift::Order object contains all required information.
- * @param username as name for the user/client who is submitting the order.
+ * @param userID as identifier for the user/client who is submitting the order.
  */
-void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::string& username)
+void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::string& userID /*= ""*/)
 {
     FIX::Message message;
     FIX::Header& header = message.getHeader();
@@ -466,8 +455,8 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
 
     FIX50SP2::NewOrderSingle::NoPartyIDs partyIDGroup;
     partyIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    if (username != "") {
-        partyIDGroup.setField(FIX::PartyID(username));
+    if (userID != "") {
+        partyIDGroup.setField(FIX::PartyID(userID));
     } else {
         // if (m_superUserID.empty())
         //     std::terminate();
@@ -537,9 +526,8 @@ void shift::FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
 void shift::FIXInitiator::toAdmin(FIX::Message& message, const FIX::SessionID&) // override
 {
     if (FIX::MsgType_Logon == message.getHeader().getField(FIX::FIELD::MsgType)) {
-        // set username and password in logon message
         FIXT11::Logon::NoMsgTypes msgTypeGroup;
-        msgTypeGroup.setField(FIX::RefMsgType(m_superUserName));
+        msgTypeGroup.setField(FIX::RefMsgType(m_superUsername));
         message.addGroup(msgTypeGroup);
         msgTypeGroup.setField(FIX::RefMsgType(m_superUserPsw));
         message.addGroup(msgTypeGroup);
@@ -581,7 +569,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::UserResponse& message, const
 
     {
         std::lock_guard<std::mutex> guard(m_mtxUserIDByUsername);
-        m_userIDByUsername[username] = userID.getValue();
+        m_userIDByUsername[username.getValue()] = userID.getValue();
     }
     m_cvUserIDByUsername.notify_one();
 }
@@ -1001,7 +989,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     static FIX::CumQty executedSize;
 
     static FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    static FIX::PartyID username;
+    static FIX::PartyID userID;
 
     // #pragma GCC diagnostic ignored ....
 
@@ -1011,7 +999,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     FIX::CumQty* pExecutedSize;
 
     FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
-    FIX::PartyID* pUsername;
+    FIX::PartyID* pUserID;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
@@ -1026,14 +1014,14 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
         pExecutedPrice = &executedPrice;
         pExecutedSize = &executedSize;
         pIDGroup = &idGroup;
-        pUsername = &username;
+        pUserID = &userID;
     } else { // > 1 threads; always safe way:
         pOrderID = new decltype(orderID);
         pStatus = new decltype(status);
         pExecutedPrice = new decltype(executedPrice);
         pExecutedSize = new decltype(executedSize);
         pIDGroup = new decltype(idGroup);
-        pUsername = new decltype(username);
+        pUserID = new decltype(userID);
     }
 
     message.get(*pOrderID);
@@ -1042,11 +1030,11 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     message.get(*pExecutedSize);
 
     message.getGroup(1, *pIDGroup);
-    pIDGroup->get(*pUsername);
+    pIDGroup->get(*pUserID);
 
     try {
-        getClientByUserID(pUsername->getValue())->storeExecution(pOrderID->getValue(), pExecutedSize->getValue(), pExecutedPrice->getValue(), static_cast<shift::Order::Status>(pStatus->getValue()));
-        getClientByUserID(pUsername->getValue())->receiveExecution(pOrderID->getValue());
+        getClientByUserID(pUserID->getValue())->storeExecution(pOrderID->getValue(), pExecutedSize->getValue(), pExecutedPrice->getValue(), static_cast<shift::Order::Status>(pStatus->getValue()));
+        getClientByUserID(pUserID->getValue())->receiveExecution(pOrderID->getValue());
     } catch (...) {
     }
 
@@ -1056,7 +1044,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
         delete pExecutedPrice;
         delete pExecutedSize;
         delete pIDGroup;
-        delete pUsername;
+        delete pUserID;
     }
 
     s_cntAtom--;
@@ -1081,8 +1069,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         static FIX::PriorSettlPrice shortPrice;
         static FIX::PriceDelta realizedPL;
 
-        static FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
-        static FIX::PartyID username;
+        static FIX50SP2::PositionReport::NoPartyIDs userIDGroup;
+        static FIX::PartyID userID;
 
         static FIX50SP2::PositionReport::NoPositions sizeGroup;
         static FIX::LongQty longSize;
@@ -1095,8 +1083,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         FIX::PriorSettlPrice* pShortPrice;
         FIX::PriceDelta* pRealizedPL;
 
-        FIX50SP2::PositionReport::NoPartyIDs* pUsernameGroup;
-        FIX::PartyID* pUsername;
+        FIX50SP2::PositionReport::NoPartyIDs* pUserIDGroup;
+        FIX::PartyID* pUserID;
 
         FIX50SP2::PositionReport::NoPositions* pSizeGroup;
         FIX::LongQty* pLongSize;
@@ -1114,8 +1102,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
             pLongPrice = &longPrice;
             pShortPrice = &shortPrice;
             pRealizedPL = &realizedPL;
-            pUsernameGroup = &usernameGroup;
-            pUsername = &username;
+            pUserIDGroup = &userIDGroup;
+            pUserID = &userID;
             pSizeGroup = &sizeGroup;
             pLongSize = &longSize;
             pShortSize = &shortSize;
@@ -1124,8 +1112,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
             pLongPrice = new decltype(longPrice);
             pShortPrice = new decltype(shortPrice);
             pRealizedPL = new decltype(realizedPL);
-            pUsernameGroup = new decltype(usernameGroup);
-            pUsername = new decltype(username);
+            pUserIDGroup = new decltype(userIDGroup);
+            pUserID = new decltype(userID);
             pSizeGroup = new decltype(sizeGroup);
             pLongSize = new decltype(longSize);
             pShortSize = new decltype(shortSize);
@@ -1136,8 +1124,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         message.get(*pShortPrice);
         message.get(*pRealizedPL);
 
-        message.getGroup(1, *pUsernameGroup);
-        pUsernameGroup->get(*pUsername);
+        message.getGroup(1, *pUserIDGroup);
+        pUserIDGroup->get(*pUserID);
 
         message.getGroup(1, *pSizeGroup);
         pSizeGroup->get(*pLongSize);
@@ -1152,8 +1140,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
         try {
-            getClientByUserID(pUsername->getValue())->storePortfolioItem(symbol, static_cast<int>(pLongSize->getValue()), static_cast<int>(pShortSize->getValue()), pLongPrice->getValue(), pShortPrice->getValue(), pRealizedPL->getValue());
-            getClientByUserID(pUsername->getValue())->receivePortfolioItem(symbol);
+            getClientByUserID(pUserID->getValue())->storePortfolioItem(symbol, static_cast<int>(pLongSize->getValue()), static_cast<int>(pShortSize->getValue()), pLongPrice->getValue(), pShortPrice->getValue(), pRealizedPL->getValue());
+            getClientByUserID(pUserID->getValue())->receivePortfolioItem(symbol);
         } catch (...) {
         }
 
@@ -1162,8 +1150,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
             delete pLongPrice;
             delete pShortPrice;
             delete pRealizedPL;
-            delete pUsernameGroup;
-            delete pUsername;
+            delete pUserIDGroup;
+            delete pUserID;
             delete pSizeGroup;
             delete pLongSize;
             delete pShortSize;
@@ -1176,8 +1164,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 
         static FIX::PriceDelta totalRealizedPL;
 
-        static FIX50SP2::PositionReport::NoPartyIDs usernameGroup;
-        static FIX::PartyID username;
+        static FIX50SP2::PositionReport::NoPartyIDs userIDGroup;
+        static FIX::PartyID userID;
 
         static FIX50SP2::PositionReport::NoPositions totalSharesGroup;
         static FIX::LongQty totalShares;
@@ -1189,8 +1177,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 
         FIX::PriceDelta* pTotalRealizedPL;
 
-        FIX50SP2::PositionReport::NoPartyIDs* pUsernameGroup;
-        FIX::PartyID* pUsername;
+        FIX50SP2::PositionReport::NoPartyIDs* pUserIDGroup;
+        FIX::PartyID* pUserID;
 
         FIX50SP2::PositionReport::NoPositions* pTotalSharesGroup;
         FIX::LongQty* pTotalShares;
@@ -1207,16 +1195,16 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 
         if (0 == prevCnt) { // sequential case; optimized:
             pTotalRealizedPL = &totalRealizedPL;
-            pUsernameGroup = &usernameGroup;
-            pUsername = &username;
+            pUserIDGroup = &userIDGroup;
+            pUserID = &userID;
             pTotalSharesGroup = &totalSharesGroup;
             pTotalShares = &totalShares;
             pTotalBuyingPowerGroup = &totalBuyingPowerGroup;
             pTotalBuyingPower = &totalBuyingPower;
         } else { // > 1 threads; always safe way:
             pTotalRealizedPL = new decltype(totalRealizedPL);
-            pUsernameGroup = new decltype(usernameGroup);
-            pUsername = new decltype(username);
+            pUserIDGroup = new decltype(userIDGroup);
+            pUserID = new decltype(userID);
             pTotalSharesGroup = new decltype(totalSharesGroup);
             pTotalShares = new decltype(totalShares);
             pTotalBuyingPowerGroup = new decltype(totalBuyingPowerGroup);
@@ -1225,8 +1213,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 
         message.get(*pTotalRealizedPL);
 
-        message.getGroup(1, *pUsernameGroup);
-        pUsernameGroup->get(*pUsername);
+        message.getGroup(1, *pUserIDGroup);
+        pUserIDGroup->get(*pUserID);
 
         message.getGroup(1, *pTotalSharesGroup);
         pTotalSharesGroup->get(*pTotalShares);
@@ -1235,15 +1223,15 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         pTotalBuyingPowerGroup->get(*pTotalBuyingPower);
 
         try {
-            getClientByUserID(pUsername->getValue())->storePortfolioSummary(pTotalBuyingPower->getValue(), static_cast<int>(pTotalShares->getValue()), pTotalRealizedPL->getValue());
-            getClientByUserID(pUsername->getValue())->receivePortfolioSummary();
+            getClientByUserID(pUserID->getValue())->storePortfolioSummary(pTotalBuyingPower->getValue(), static_cast<int>(pTotalShares->getValue()), pTotalRealizedPL->getValue());
+            getClientByUserID(pUserID->getValue())->receivePortfolioSummary();
         } catch (...) {
         }
 
         if (prevCnt) { // > 1 threads
             delete pTotalRealizedPL;
-            delete pUsernameGroup;
-            delete pUsername;
+            delete pUserIDGroup;
+            delete pUserID;
             delete pTotalSharesGroup;
             delete pTotalShares;
             delete pTotalBuyingPowerGroup;
@@ -1265,7 +1253,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     while (!m_connected)
         ;
 
-    static FIX::Account username;
+    static FIX::Account userID;
     static FIX::NoQuoteSets n;
 
     static FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
@@ -1279,7 +1267,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 
     // #pragma GCC diagnostic ignored ....
 
-    FIX::Account* pUsername;
+    FIX::Account* pUserID;
     FIX::NoQuoteSets* pN;
 
     FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets* pQuoteSetGroup;
@@ -1299,7 +1287,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     assert(s_cntAtom > 0);
 
     if (0 == prevCnt) { // sequential case; optimized:
-        pUsername = &username;
+        pUserID = &userID;
         pN = &n;
         pQuoteSetGroup = &quoteSetGroup;
         pOrderID = &orderID;
@@ -1310,7 +1298,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
         pExecutedSize = &executedSize;
         pStatus = &status;
     } else { // > 1 threads; always safe way:
-        pUsername = new decltype(username);
+        pUserID = new decltype(userID);
         pN = new decltype(n);
         pQuoteSetGroup = new decltype(quoteSetGroup);
         pOrderID = new decltype(orderID);
@@ -1322,7 +1310,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
         pStatus = new decltype(status);
     }
 
-    message.get(*pUsername);
+    message.get(*pUserID);
     message.get(*pN);
 
     std::vector<shift::Order> waitingList;
@@ -1365,13 +1353,13 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     }
 
     try {
-        getClientByUserID(pUsername->getValue())->storeWaitingList(std::move(waitingList));
-        getClientByUserID(pUsername->getValue())->receiveWaitingList();
+        getClientByUserID(pUserID->getValue())->storeWaitingList(std::move(waitingList));
+        getClientByUserID(pUserID->getValue())->receiveWaitingList();
     } catch (...) {
     }
 
     if (prevCnt) { // > 1 threads
-        delete pUsername;
+        delete pUserID;
         delete pN;
         delete pQuoteSetGroup;
         delete pOrderID;
