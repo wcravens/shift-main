@@ -402,7 +402,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pServerTime->getValue()
         };
 
-        BCDocuments::getInstance()->onNewReportForUserRiskManagement(username, std::move(report));
+        BCDocuments::getInstance()->onNewReportForUserRiskManagement(pUsername->getValue(), std::move(report));
 
         if (prevCnt) { // > 1 threads
             delete pOrderID;
@@ -604,7 +604,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pServerTime->getValue()
             };
 
-            BCDocuments::getInstance()->onNewReportForUserRiskManagement(username2.getValue(), std::move(report2));
+            BCDocuments::getInstance()->onNewReportForUserRiskManagement(pUsername2->getValue(), std::move(report2));
         } break;
         } // switch
 

@@ -21,7 +21,7 @@ MyZMQ::MyZMQ()
     m_otherall_socket->connect("tcp://localhost:5555");
 }
 
-/** 
+/**
  * @brief Method to get the singleton instance of MyZMQ.
  * @param None
  * @return MyZMQ&: reference of current MyZMQ instance
@@ -59,7 +59,7 @@ void MyZMQ::send(std::string msg)
 void MyZMQ::receiveReq()
 {
     // using dynamic cast to cast pointer to CoreClient to MainClient so that we can call it's member function
-    MainClient* mainClient = dynamic_cast<MainClient*>(shift::FIXInitiator::getInstance().getMainClient());
+    MainClient* mainClient = dynamic_cast<MainClient*>(shift::FIXInitiator::getInstance().getSuperUser());
 
     std::lock_guard<std::mutex> lock(m_mutex_reqrep);
     zmq::message_t request;

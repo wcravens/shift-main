@@ -237,6 +237,11 @@ void BCDocuments::onNewReportForUserRiskManagement(const std::string& username, 
 {
     if ("TR" == username)
         return;
+
+    auto userName = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT username FROM traders WHERE id = '" + username + "';"));
+    if (userName.size() && "TR" == userName[0])
+        return;
+
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByName);
     m_riskManagementByName[username]->enqueueExecRpt(std::move(report));
 }
@@ -262,13 +267,13 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
     const auto summary = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
         "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
         "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
-        "WHERE traders.username = '" // here presume we always has got current username in traders table
+        "WHERE traders.id = '" // here presume we always has got current username in traders table
             + username + "';",
         5);
 
     if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
         constexpr auto DEFAULT_BUYING_POWER = 1e6;
-        DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ((SELECT id FROM traders WHERE username = '" + username + "'), " + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
+        DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ('" + username + "'," + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
         rmPtr.reset(new RiskManagement(username, DEFAULT_BUYING_POWER));
     } else // explicitly parameterize the summary
         rmPtr.reset(new RiskManagement(username, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
@@ -278,7 +283,7 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
         const auto& item = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
             "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
             "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
-            "WHERE traders.username = '"
+            "WHERE traders.id = '"
                 + username + "';",
             7,
             row);

@@ -24,7 +24,7 @@
 #include <quickfix/Message.h>
 
 namespace shift {
-/** 
+/**
  * @brief Core class for LibCoreClient including all core functions
  */
 class CORECLIENT_EXPORTS FIXInitiator;
@@ -41,8 +41,9 @@ public:
     bool isVerbose();
     bool isConnected();
 
-    void setUsername(const std::string& username);
-    std::string getUsername();
+    void setUserID(const std::string& id);
+    std::string getUserID() const;
+    std::string getUsername() const;
     std::vector<CoreClient*> getAttachedClients();
 
     void submitOrder(const shift::Order& order);
@@ -123,6 +124,7 @@ protected:
 private:
     FIXInitiator* m_fixInitiator;
     std::string m_username;
+    std::string m_userID;
     bool m_verbose;
 
     std::mutex m_mutex_portfolioSummary;

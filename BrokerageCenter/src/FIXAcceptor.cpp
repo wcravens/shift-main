@@ -434,6 +434,22 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID, const std::unord
     FIX::Session::sendToTarget(message);
 }
 
+void FIXAcceptor::sendUserIDResponse(const std::string& targetID, const std::string& username, const std::string& userID)
+{
+    FIX::Message msgRes;
+
+    FIX::Header& header = msgRes.getHeader();
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::TargetCompID(targetID));
+    header.setField(FIX::MsgType(FIX::MsgType_UserResponse));
+
+    msgRes.setField(FIX::Username(username));
+    msgRes.setField(FIX::UserRequestID(userID));
+
+    FIX::Session::sendToTarget(msgRes);
+}
+
 /**
  * @brief Method called when a new Session is created.
  * Set Sender and Target Comp ID.
@@ -510,17 +526,29 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
 }
 
 /**
- * @brief General handler for incoming super & ordinal web users
+ * @brief General handler for incoming super & ordinal web users. After this point, usernames are represented by corresponding userIDs.
  */
 void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
 {
     FIX::Username username;
     message.get(username);
+    // not used:
+    FIX::UserRequestID userReqID;
+    message.get(userReqID);
 
-    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID().getValue(), username.getValue());
-    BCDocuments::getInstance()->sendHistoryToUser(username.getValue());
+    const auto idCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + username.getValue() + "';"));
+    if (idCol.empty()) {
+        cout << COLOR_ERROR "ERROR: Cannot retrieve id for user [" << username.getValue() << "]. Please check this user that is already added into 'traders'." NO_COLOR << endl;
+        return;
+    }
+    const auto& userID = idCol[0];
 
-    synchPrint(COLOR_PROMPT "Web user [" NO_COLOR + username.getValue() + COLOR_PROMPT "] was registered.\n\n" NO_COLOR);
+    sendUserIDResponse(sessionID.getTargetCompID().getValue(), username, userID);
+
+    BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID().getValue(), userID);
+    BCDocuments::getInstance()->sendHistoryToUser(userID);
+
+    synchPrint(COLOR_PROMPT "Web user [" NO_COLOR + username.getValue() + COLOR_PROMPT "](" NO_COLOR + userID + COLOR_PROMPT ") was registered.\n\n" NO_COLOR);
 }
 
 /*
@@ -726,7 +754,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         cout << "username is empty" << endl;
         return;
     } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUsername(pUsername->getValue())) {
-        cout << COLOR_ERROR "This username is not register in the Brokerage Center" NO_COLOR << endl;
+        cout << COLOR_ERROR "This username [" << pUsername->getValue() << "] is not register in the Brokerage Center" NO_COLOR << endl;
         return;
     }
 

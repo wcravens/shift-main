@@ -142,7 +142,7 @@ void RiskManagement::processOrder()
 
             if (!DBConnector::s_isPortfolioDBReadOnly) {
                 auto lock{ DBConnector::getInstance()->lockPSQL() };
-                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ((SELECT id FROM traders WHERE username = '" + m_username + "'), '" + orderPtr->getSymbol() + "');", "");
+                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ('" + m_username + "','" + orderPtr->getSymbol() + "');", "");
             }
         }
 
@@ -382,8 +382,8 @@ void RiskManagement::processExecRpt()
                         + ", short_shares = " + std::to_string(item.getShortShares())
                         + "\n" // PK == (id, symbol):
                           "WHERE symbol = '"
-                        + reportPtr->orderSymbol + "' AND id = (SELECT id FROM traders WHERE username = '"
-                        + m_username + "');",
+                        + reportPtr->orderSymbol + "' AND id = '"
+                        + m_username + "';",
                     COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_username + "]!\n" NO_COLOR);
 
                 DBConnector::getInstance()->doQuery(
@@ -396,8 +396,8 @@ void RiskManagement::processExecRpt()
                         + ", total_pl = " + std::to_string(m_porfolioSummary.getTotalPL())
                         + ", total_shares = " + std::to_string(m_porfolioSummary.getTotalShares())
                         + "\n" // PK == id:
-                          "WHERE id = (SELECT id FROM traders WHERE username = '"
-                        + m_username + "');",
+                          "WHERE id = '"
+                        + m_username + "';",
                     COLOR_WARNING "WARNING: UPDATE portfolio_summary failed for user [" + m_username + "]!\n" NO_COLOR);
             }
         }

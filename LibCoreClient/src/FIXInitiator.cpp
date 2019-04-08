@@ -71,8 +71,8 @@ shift::FIXInitiator::~FIXInitiator() // override
                 delete pair_type_orderBook.second;
 
     {
-        std::lock_guard<std::mutex> ucGuard(m_mtxUsernameClientMap);
-        m_usernameClientMap.clear();
+        std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
+        m_clientByUserID.clear();
     }
 
     disconnectBrokerageCenter();
@@ -91,15 +91,15 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
 {
     disconnectBrokerageCenter();
 
-    m_username = client->getUsername();
+    m_superUserName = client->getUsername();
 
     std::istringstream iss{ password };
     shift::crypto::Encryptor enc;
-    iss >> enc >> m_password;
+    iss >> enc >> m_superUserPsw;
 
     m_verbose = verbose;
 
-    std::string senderCompID = m_username;
+    std::string senderCompID = m_superUserName;
     std::transform(senderCompID.begin(), senderCompID.end(), senderCompID.begin(), ::toupper);
 
     FIX::SessionSettings settings(cfgFile);
@@ -112,13 +112,13 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     settings.set(sessionID, std::move(dict));
 
     if (commonDict.has("FileLogPath")) {
-        m_pLogFactory.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath") + "/" + m_username));
+        m_pLogFactory.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath") + "/" + m_superUserName));
     } else {
         m_pLogFactory.reset(new FIX::ScreenLogFactory(false, false, m_verbose));
     }
 
     if (commonDict.has("FileStorePath")) {
-        m_pMessageStoreFactory.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath") + "/" + m_username));
+        m_pMessageStoreFactory.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath") + "/" + m_superUserName));
     } else {
         m_pMessageStoreFactory.reset(new FIX::NullStoreFactory());
     }
@@ -139,6 +139,8 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
         m_cvStockList.wait_for(slUniqueLock, timeout * 1ms);
 
         attach(client);
+
+        m_superUserID = client->getUserID();
         m_connected = m_logonSuccess.load();
     } else {
         disconnectBrokerageCenter();
@@ -165,7 +167,7 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
 
     // Cancel all pending client requests
     try {
-        getMainClient()->cancelAllSamplePricesRequests();
+        getSuperUser()->cancelAllSamplePricesRequests();
     } catch (...) { // it is OK if there is no main client yet
     } // (we force a disconnect before every connection - even the first one)
 
@@ -212,11 +214,11 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
 void shift::FIXInitiator::attach(shift::CoreClient* client, const std::string& password, int timeout)
 {
     // TODO: add auth in BC and add lock after successful logon; use password to auth
-    webClientSendUsername(client->getUsername());
+    registerUserInBCWaitResponse(client);
 
     {
-        std::lock_guard<std::mutex> ucGuard(m_mtxUsernameClientMap);
-        m_usernameClientMap[client->getUsername()] = client;
+        std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
+        m_clientByUserID[client->getUserID()] = client;
     }
 
     client->attach(*this);
@@ -228,7 +230,7 @@ void shift::FIXInitiator::attach(shift::CoreClient* client, const std::string& p
  *
  * @param username as the name for the newly login user.
  */
-void shift::FIXInitiator::webClientSendUsername(const std::string& username)
+void shift::FIXInitiator::registerUserInBCWaitResponse(shift::CoreClient* client)
 {
     FIX::Message message;
 
@@ -240,19 +242,24 @@ void shift::FIXInitiator::webClientSendUsername(const std::string& username)
 
     message.setField(FIX::UserRequestID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_USERREQUESTTYPE_LOG_ON_USER); // Required by FIX
-    message.setField(FIX::Username(username));
+    message.setField(FIX::Username(client->getUsername()));
 
     FIX::Session::sendToTarget(message);
+
+    std::unique_lock<std::mutex> lock(m_mtxUserIDByUsername);
+    m_cvUserIDByUsername.wait(lock, [this, client] { return m_userIDByUsername[client->getUsername()].length(); }); // wait for userID update event
+
+    client->setUserID(m_userIDByUsername[client->getUsername()]);
 }
 
 std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
 {
     std::vector<shift::CoreClient*> clientsVector;
 
-    std::lock_guard<std::mutex> ucGuard(m_mtxUsernameClientMap);
+    std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
 
-    for (auto it = m_usernameClientMap.begin(); it != m_usernameClientMap.end(); ++it) {
-        if (it->first != m_username) { // skip MainClient
+    for (auto it = m_clientByUserID.begin(); it != m_clientByUserID.end(); ++it) {
+        if (it->first != m_superUserID) { // skip MainClient/super user
             clientsVector.push_back(it->second);
         }
     }
@@ -260,9 +267,20 @@ std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
     return clientsVector;
 }
 
-shift::CoreClient* shift::FIXInitiator::getMainClient()
+shift::CoreClient* shift::FIXInitiator::getSuperUser()
 {
-    return getClient(m_username);
+    return getClientByUserID(m_superUserID);
+}
+
+shift::CoreClient* shift::FIXInitiator::getClient(const std::string& username)
+{
+    std::string userID;
+    {
+        std::lock_guard<std::mutex> guard(m_mtxUserIDByUsername);
+        userID = m_userIDByUsername[username];
+    }
+
+    return getClientByUserID(userID);
 }
 
 /**
@@ -270,14 +288,14 @@ shift::CoreClient* shift::FIXInitiator::getMainClient()
  *
  * @param name as a string to provide the client name.
  */
-shift::CoreClient* shift::FIXInitiator::getClient(const std::string& name)
+shift::CoreClient* shift::FIXInitiator::getClientByUserID(const std::string& userID)
 {
-    std::lock_guard<std::mutex> ucGuard(m_mtxUsernameClientMap);
+    std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
 
-    if (m_usernameClientMap.find(name) != m_usernameClientMap.end()) {
-        return m_usernameClientMap[name];
+    if (m_clientByUserID.find(userID) != m_clientByUserID.end()) {
+        return m_clientByUserID[userID];
     } else {
-        throw std::range_error("Name not found: " + name);
+        throw std::range_error("User not found: " + userID);
     }
 
     return nullptr;
@@ -451,7 +469,9 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
     if (username != "") {
         partyIDGroup.setField(FIX::PartyID(username));
     } else {
-        partyIDGroup.setField(FIX::PartyID(m_username));
+        // if (m_superUserID.empty())
+        //     std::terminate();
+        partyIDGroup.setField(FIX::PartyID(m_superUserID));
     }
     message.addGroup(partyIDGroup);
 
@@ -486,7 +506,7 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
     {
         // Reregister connected web client users in BrokerageCenter
         for (const auto& client : getAttachedClients()) {
-            webClientSendUsername(client->getUsername());
+            registerUserInBCWaitResponse(client);
         }
 
         // Resubscribe to all previously subscribed order book data
@@ -519,9 +539,9 @@ void shift::FIXInitiator::toAdmin(FIX::Message& message, const FIX::SessionID&) 
     if (FIX::MsgType_Logon == message.getHeader().getField(FIX::FIELD::MsgType)) {
         // set username and password in logon message
         FIXT11::Logon::NoMsgTypes msgTypeGroup;
-        msgTypeGroup.setField(FIX::RefMsgType(m_username));
+        msgTypeGroup.setField(FIX::RefMsgType(m_superUserName));
         message.addGroup(msgTypeGroup);
-        msgTypeGroup.setField(FIX::RefMsgType(m_password));
+        msgTypeGroup.setField(FIX::RefMsgType(m_superUserPsw));
         message.addGroup(msgTypeGroup);
     }
 }
@@ -550,6 +570,20 @@ void shift::FIXInitiator::fromAdmin(const FIX::Message& message, const FIX::Sess
 void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
 {
     crack(message, sessionID);
+}
+
+void shift::FIXInitiator::onMessage(const FIX50SP2::UserResponse& message, const FIX::SessionID&) // override
+{
+    FIX::Username username;
+    message.get(username);
+    FIX::UserRequestID userID;
+    message.get(userID);
+
+    {
+        std::lock_guard<std::mutex> guard(m_mtxUserIDByUsername);
+        m_userIDByUsername[username] = userID.getValue();
+    }
+    m_cvUserIDByUsername.notify_one();
 }
 
 /**
@@ -641,7 +675,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
         m_lastTradeTime = std::chrono::system_clock::from_time_t(pSimulationTime->getValue().getTimeT());
 
         try {
-            getMainClient()->receiveLastPrice(symbol);
+            getSuperUser()->receiveLastPrice(symbol);
         } catch (...) {
         }
 
@@ -930,7 +964,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     }
 
     try {
-        getMainClient()->receiveCandlestickData(symbol, pOpenPrice->getValue(), pHighPrice->getValue(), pLowPrice->getValue(), pClosePrice->getValue(), pTimestamp->getValue());
+        getSuperUser()->receiveCandlestickData(symbol, pOpenPrice->getValue(), pHighPrice->getValue(), pLowPrice->getValue(), pClosePrice->getValue(), pTimestamp->getValue());
     } catch (...) {
     }
 
@@ -1011,8 +1045,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     pIDGroup->get(*pUsername);
 
     try {
-        getClient(pUsername->getValue())->storeExecution(pOrderID->getValue(), pExecutedSize->getValue(), pExecutedPrice->getValue(), static_cast<shift::Order::Status>(pStatus->getValue()));
-        getClient(pUsername->getValue())->receiveExecution(pOrderID->getValue());
+        getClientByUserID(pUsername->getValue())->storeExecution(pOrderID->getValue(), pExecutedSize->getValue(), pExecutedPrice->getValue(), static_cast<shift::Order::Status>(pStatus->getValue()));
+        getClientByUserID(pUsername->getValue())->receiveExecution(pOrderID->getValue());
     } catch (...) {
     }
 
@@ -1118,8 +1152,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
         try {
-            getClient(pUsername->getValue())->storePortfolioItem(symbol, static_cast<int>(pLongSize->getValue()), static_cast<int>(pShortSize->getValue()), pLongPrice->getValue(), pShortPrice->getValue(), pRealizedPL->getValue());
-            getClient(pUsername->getValue())->receivePortfolioItem(symbol);
+            getClientByUserID(pUsername->getValue())->storePortfolioItem(symbol, static_cast<int>(pLongSize->getValue()), static_cast<int>(pShortSize->getValue()), pLongPrice->getValue(), pShortPrice->getValue(), pRealizedPL->getValue());
+            getClientByUserID(pUsername->getValue())->receivePortfolioItem(symbol);
         } catch (...) {
         }
 
@@ -1201,8 +1235,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         pTotalBuyingPowerGroup->get(*pTotalBuyingPower);
 
         try {
-            getClient(pUsername->getValue())->storePortfolioSummary(pTotalBuyingPower->getValue(), static_cast<int>(pTotalShares->getValue()), pTotalRealizedPL->getValue());
-            getClient(pUsername->getValue())->receivePortfolioSummary();
+            getClientByUserID(pUsername->getValue())->storePortfolioSummary(pTotalBuyingPower->getValue(), static_cast<int>(pTotalShares->getValue()), pTotalRealizedPL->getValue());
+            getClientByUserID(pUsername->getValue())->receivePortfolioSummary();
         } catch (...) {
         }
 
@@ -1331,8 +1365,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
     }
 
     try {
-        getClient(username.getValue())->storeWaitingList(std::move(waitingList));
-        getClient(username.getValue())->receiveWaitingList();
+        getClientByUserID(pUsername->getValue())->storeWaitingList(std::move(waitingList));
+        getClientByUserID(pUsername->getValue())->receiveWaitingList();
     } catch (...) {
     }
 
