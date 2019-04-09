@@ -57,6 +57,15 @@ void shift::CoreClient::setUserID(const std::string& id)
     // cout << "username == " << m_username << ", userID == " << id << endl;
 }
 
+/*!
+ * \brief shift::CoreClient::setUserName This function is not effective if connection to BC is already established.
+ */
+void shift::CoreClient::setUserName(const std::string &name)
+{
+    if(!isConnected())
+        m_username = name;
+}
+
 std::string shift::CoreClient::getUserID() const
 {
     return m_userID;
