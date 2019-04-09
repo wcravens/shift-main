@@ -1,4 +1,4 @@
-/* 
+/*
 ** Connnector to DatafeedEngine
 **/
 
@@ -47,7 +47,6 @@ public:
     void sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
     void sendMarketDataRequest();
 
-    void sendExecutionReport(const ExecutionReport& report);
     void storeOrder(const Order& order);
 
 private:

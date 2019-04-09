@@ -154,14 +154,22 @@ void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
     message.setField(FIX::TransactTime(6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
-    idGroup1.set(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup1.set(FIX::PartyID(report.traderID1));
+    idGroup1.setField(::FIXFIELD_PARTYROLE_CLIENTID);
+    idGroup1.setField(FIX::PartyID(report.traderID1));
     message.addGroup(idGroup1);
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup2;
-    idGroup2.set(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup2.set(FIX::PartyID(report.traderID2));
+    idGroup2.setField(::FIXFIELD_PARTYROLE_CLIENTID);
+    idGroup2.setField(FIX::PartyID(report.traderID2));
     message.addGroup(idGroup2);
+
+    FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
+    timeGroup1.setField(FIX::TrdRegTimestamp(report.time1, 6));
+    message.addGroup(timeGroup1);
+
+    FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup2;
+    timeGroup2.setField(FIX::TrdRegTimestamp(report.time2, 6));
+    message.addGroup(timeGroup2);
 
     std::lock_guard<std::mutex> lock(m_mtxTargetList);
 

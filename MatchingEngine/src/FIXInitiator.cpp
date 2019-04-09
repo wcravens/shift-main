@@ -143,55 +143,6 @@ void FIXInitiator::sendMarketDataRequest()
 }
 
 /**
- * @brief Send execution report to Datafeed Engine
- */
-void FIXInitiator::sendExecutionReport(const ExecutionReport& report)
-{
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(s_targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
-
-    message.setField(FIX::OrderID(report.orderID1));
-    message.setField(FIX::SecondaryOrderID(report.orderID2));
-    message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
-    message.setField(FIX::OrdStatus(report.decision));
-    message.setField(FIX::Symbol(report.symbol));
-    message.setField(FIX::Side(report.orderType1));
-    message.setField(FIX::OrdType(report.orderType2));
-    message.setField(FIX::Price(report.price));
-    message.setField(FIX::EffectiveTime(report.execTime, 6));
-    message.setField(FIX::LastMkt(report.destination));
-    message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
-    message.setField(FIX::CumQty(report.size));
-    message.setField(FIX::TransactTime(6));
-
-    FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
-    idGroup1.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup1.setField(FIX::PartyID(report.traderID1));
-    message.addGroup(idGroup1);
-
-    FIX50SP2::ExecutionReport::NoPartyIDs idGroup2;
-    idGroup2.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup2.setField(FIX::PartyID(report.traderID2));
-    message.addGroup(idGroup2);
-
-    FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
-    timeGroup1.setField(FIX::TrdRegTimestamp(report.time1, 6));
-    message.addGroup(timeGroup1);
-
-    FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup2;
-    timeGroup2.setField(FIX::TrdRegTimestamp(report.time2, 6));
-    message.addGroup(timeGroup2);
-
-    FIX::Session::sendToTarget(message);
-}
-
-/**
  * @brief Store order in Database Engine after confirmed
  */
 void FIXInitiator::storeOrder(const Order& order)

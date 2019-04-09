@@ -5,6 +5,7 @@
 #include "FIXInitiator.h"
 
 #include "BCDocuments.h"
+#include "DBConnector.h"
 #include "FIXAcceptor.h"
 
 #include <atomic>
@@ -445,6 +446,10 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         static FIX::PartyID userID1;
         static FIX::PartyID userID2;
 
+        static FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup;
+        static FIX::TrdRegTimestamp utcTime1;
+        static FIX::TrdRegTimestamp utcTime2;
+
         // #pragma GCC diagnostic ignored ....
 
         FIX::OrderID* pOrderID1;
@@ -462,6 +467,10 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
         FIX::PartyID* pUserID1;
         FIX::PartyID* pUserID2;
+
+        FIX50SP2::ExecutionReport::NoTrdRegTimestamps* pTimeGroup;
+        FIX::TrdRegTimestamp* pUTCTime1;
+        FIX::TrdRegTimestamp* pUTCTime2;
 
         static std::atomic<unsigned int> s_cntAtom{ 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
@@ -485,6 +494,9 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pIDGroup = &idGroup;
             pUserID1 = &userID1;
             pUserID2 = &userID2;
+            pTimeGroup = &timeGroup;
+            pUTCTime1 = &utcTime1;
+            pUTCTime2 = &utcTime2;
         } else { // > 1 threads; always safe way:
             pOrderID1 = new decltype(orderID1);
             pOrderID2 = new decltype(orderID2);
@@ -500,6 +512,9 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pIDGroup = new decltype(idGroup);
             pUserID1 = new decltype(userID1);
             pUserID2 = new decltype(userID2);
+            pTimeGroup = new decltype(timeGroup);
+            pUTCTime1 = new decltype(utcTime1);
+            pUTCTime2 = new decltype(utcTime2);
         }
 
         message.get(*pOrderID1);
@@ -519,6 +534,11 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         message.getGroup(2, *pIDGroup);
         pIDGroup->get(*pUserID2);
 
+        message.getGroup(1, *pTimeGroup);
+        pTimeGroup->get(*pUTCTime1);
+        message.getGroup(2, *pTimeGroup);
+        pTimeGroup->get(*pUTCTime2);
+
         auto printRpts = [](bool rpt1or2, auto userID, auto orderID, auto orderType, auto symbol, auto executedSize, auto price, auto status, auto destination, auto execTime, auto serverTime) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")
                  << userID->getValue() << "\t"
@@ -533,7 +553,30 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                  << serverTime->getString() << endl;
         };
 
-        switch (*pStatus) {
+        if (pStatus->getValue() != FIX::ExecType_REPLACED // == '5', means this is a trade update from TRTH -> no need to store it
+            && (pStatus->getValue() == FIX::OrdStatus_FILLED || pStatus->getValue() == FIX::OrdStatus_CANCELED)) {
+            TradingRecord trade{
+                pServerTime->getValue(),
+                pExecTime->getValue(),
+                pSymbol->getValue(),
+                pPrice->getValue(),
+                static_cast<int>(pExecutedSize->getValue()),
+                pUserID1->getValue(),
+                pUserID2->getValue(),
+                pOrderID1->getValue(),
+                pOrderID2->getValue(),
+                pOrderType1->getValue(),
+                pOrderType2->getValue(),
+                pStatus->getValue(), // decision
+                pDestination->getValue(),
+                pUTCTime1->getValue(),
+                pUTCTime2->getValue()
+            };
+
+            DBConnector::getInstance()->insertTradingRecord(trade);
+        }
+
+        switch (pStatus->getValue()) {
         case FIX::OrdStatus_FILLED:
         case FIX::OrdStatus_REPLACED: {
             Transaction transac = {
@@ -546,7 +589,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
             FIXAcceptor::getInstance()->sendLastPrice2All(transac);
 
-            if (FIX::OrdStatus_FILLED == *pStatus) { // TRADE
+            if (FIX::OrdStatus_FILLED == pStatus->getValue()) { // TRADE
                 printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
                 printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 
@@ -623,6 +666,9 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             delete pIDGroup;
             delete pUserID1;
             delete pUserID2;
+            delete pUTCTime2;
+            delete pUTCTime1;
+            delete pTimeGroup;
         }
 
         s_cntAtom--;

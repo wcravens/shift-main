@@ -57,7 +57,6 @@ private:
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::MarketDataRequest&, const FIX::SessionID&) override;
-    void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override; // Receive execution report and save it into database
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;

@@ -64,9 +64,6 @@ public:
     // /*@brief Check if Trade & Quote is empty */
     // long checkEmpty(std::string tableName);
 
-    /*@brief Inserts trade history into the table used to save the trading records*/
-    bool insertTradingRecord(const TradingRecord& trade);
-
     /*@brief Convertor from CSV data to database records */
     bool saveCSVIntoDB(std::string csvName, std::string symbol, std::string date);
 
@@ -78,7 +75,6 @@ private:
     std::mutex m_mtxPSQL; // To mutual-exclusively access db
     PGconn* m_pConn;
     std::unordered_map<std::string, std::string> m_loginInfo;
-    static const std::string s_sessionID;
 };
 
 /**

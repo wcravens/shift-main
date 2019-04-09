@@ -2,17 +2,22 @@
 
 #include "BCDocuments.h"
 
+#include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/database/Common.h>
 #include <shift/miscutils/terminal/Common.h>
+#include <sstream>
 
 //----------------------------------------------------------------------------------------------------------------
 
 /*static*/ bool DBConnector::s_isPortfolioDBReadOnly = false;
+/*static*/ const std::string DBConnector::s_sessionID = shift::crossguid::newGuid().str();
 
 DBConnector::DBConnector()
     : m_pConn(nullptr)
 {
+    cout << "\nSession ID: " << s_sessionID << '\n'
+         << endl;
 }
 
 DBConnector::~DBConnector()
@@ -77,4 +82,46 @@ void DBConnector::disconnectDB()
 bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
 {
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
+}
+
+/**
+ * @brief Convert FIX::UtcTimeStamp to string used for date field in DB
+ */
+static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
+{
+    std::ostringstream os;
+    time_t t = ts.getTimeT();
+    if (localTime) {
+        os << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
+    } else {
+        os << std::put_time(std::gmtime(&t), "%Y-%m-%d %H:%M:%S");
+    }
+    os << '.';
+    os << ts.getFraction(6);
+    return os.str();
+}
+
+bool DBConnector::insertTradingRecord(const TradingRecord& trade)
+{
+    std::ostringstream temp;
+    temp << "INSERT INTO " << shift::database::PSQLTable<shift::database::BCTradingRecords>::name << " VALUES ('"
+         //  << s_sessionID << "','"
+         << s_utcToString(trade.realTime, true) << "','"
+         << s_utcToString(trade.execTime, true) << "','"
+         << trade.symbol << "','"
+         << trade.price << "','"
+         << trade.size << "','"
+         << trade.traderID1 << "','"
+         << trade.traderID2 << "','"
+         << trade.orderID1 << "','"
+         << trade.orderID2 << "','"
+         << trade.orderType1 << "','"
+         << trade.orderType2 << "','"
+         << s_utcToString(trade.time1, true) << "','"
+         << s_utcToString(trade.time2, true) << "','"
+         << trade.decision << "','"
+         << trade.destination << "');";
+
+    auto lock{ lockPSQL() };
+    return doQuery(temp.str(), COLOR_WARNING "Insert into [ " + std::string(shift::database::PSQLTable<shift::database::BCTradingRecords>::name) + " ] failed.\n" NO_COLOR);
 }

@@ -200,11 +200,6 @@ void createStockMarket(std::string symbol)
             }
 
             for (const auto& report : stock->second.executionReports) {
-                // Send execution report to DatafeedEngine
-                // Decision '5' means this is a trade update from TRTH -> no need to send it to DatafeedEngine
-                if (report.decision != '5') {
-                    FIXInitiator::getInstance()->sendExecutionReport(report);
-                }
                 // Send execution report to BrokerageCenter
                 FIXAcceptor::getInstance()->sendExecutionReport2All(report);
             }

@@ -6,7 +6,6 @@
 #include <ctime>
 #include <iomanip>
 
-#include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/terminal/Common.h>
 
 #define __DBG_DUMP_PQCMD false
@@ -44,23 +43,6 @@
     return symbol + '_' + yyyymmdd;
 }
 
-/**
- * @brief Convert FIX::UtcTimeStamp to string used for date field in DB
- */
-/* static */ std::string PSQL::s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
-{
-    std::ostringstream os;
-    time_t t = ts.getTimeT();
-    if (localTime) {
-        os << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
-    } else {
-        os << std::put_time(std::gmtime(&t), "%Y-%m-%d %H:%M:%S");
-    }
-    os << '.';
-    os << ts.getFraction(6);
-    return os.str();
-}
-
 //-----------------------------------------------------------------------------------------------
 
 /**
@@ -71,12 +53,9 @@
  *       It shall always use data types in DBFIXDataCarrier.h to transit data from/to FIX-related parts.
  */
 
-/*static*/ const std::string PSQL::s_sessionID = shift::crossguid::newGuid().str();
-
 PSQL::PSQL(std::unordered_map<std::string, std::string>&& info)
     : m_loginInfo(std::move(info))
 {
-    cout << "Session ID: " << s_sessionID << endl;
 }
 
 /*virtual*/ PSQL::~PSQL() /*= 0*/
@@ -140,8 +119,7 @@ void PSQL::init()
 
     cout << "Connection to database is good." << endl;
 
-    auto res = shift::database::checkCreateTable<shift::database::NamesOfTradeAndQuoteTables>(m_pConn)
-        && shift::database::checkCreateTable<shift::database::DETradingRecords>(m_pConn);
+    auto res = shift::database::checkCreateTable<shift::database::NamesOfTradeAndQuoteTables>(m_pConn);
     (void)res;
 }
 
@@ -497,34 +475,6 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 
 //     return 1;
 // }
-
-bool PSQL::insertTradingRecord(const TradingRecord& trade)
-{
-    std::ostringstream temp;
-    temp << "INSERT INTO " << shift::database::PSQLTable<shift::database::DETradingRecords>::name << " VALUES ('"
-         << s_sessionID << "','"
-         << s_utcToString(trade.realTime, true) << "','"
-         << s_utcToString(trade.execTime, true) << "','"
-         << trade.symbol << "','"
-         << trade.price << "','"
-         << trade.size << "','"
-         << trade.traderID1 << "','"
-         << trade.traderID2 << "','"
-         << trade.orderID1 << "','"
-         << trade.orderID2 << "','"
-         << trade.orderType1 << "','"
-         << trade.orderType2 << "','"
-         << s_utcToString(trade.time1, true) << "','"
-         << s_utcToString(trade.time2, true) << "','"
-         << trade.decision << "','"
-         << trade.destination << "');";
-
-    auto lock{ lockPSQL() };
-    if (!doQuery(temp.str(), COLOR_WARNING "Insert into [ " + std::string(shift::database::PSQLTable<shift::database::DETradingRecords>::name) + " ] failed.\n" NO_COLOR))
-        return false;
-
-    return true;
-}
 
 bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) // Date format: YYYY-MM-DD
 {

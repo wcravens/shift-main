@@ -134,8 +134,8 @@ namespace database {
                                                     ", price REAL"
                                                     ", size INTEGER"
 
-                                                    ", trader_id_1 UUID" // UUID: Map to traders.id
-                                                    ", trader_id_2 UUID" // ditto
+                                                    ", trader_id_1 VARCHAR(40)" // == UUID which maps to traders.id
+                                                    ", trader_id_2 VARCHAR(40)" // ditto
                                                     ", order_id_1 VARCHAR(40)"
                                                     ", order_id_2 VARCHAR(40)"
                                                     ", order_type_1 VARCHAR(2)"
@@ -146,15 +146,7 @@ namespace database {
                                                     ", decision CHAR"
                                                     ", destination VARCHAR(10)"
 
-                                                    ",  CONSTRAINT trading_records_pkey PRIMARY KEY (order_id_1, order_id_2)\
-                                                    \
-                                                 ,  CONSTRAINT trading_records_fkey_1 FOREIGN KEY (trader_id_1)\
-                                                        REFERENCES PUBLIC.traders (id) MATCH SIMPLE\
-                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
-                                                 ,  CONSTRAINT trading_records_fkey_2 FOREIGN KEY (trader_id_2)\
-                                                        REFERENCES PUBLIC.traders (id) MATCH SIMPLE\
-                                                        ON UPDATE NO ACTION ON DELETE NO ACTION\
-                                                )";
+                                                    ",  CONSTRAINT trading_records_pkey PRIMARY KEY (order_id_1, order_id_2))";
 
         static constexpr char sc_recordFormat[] = "( real_time, execute_time, symbol, price, size"
                                                   ", trader_id_1, trader_id_2, order_id_1, order_id_2, order_type_1"

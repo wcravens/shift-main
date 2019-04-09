@@ -9,11 +9,14 @@
 #include <unordered_map>
 #include <vector>
 
+#include "TradingRecord.h"
+
 #include <postgresql/libpq-fe.h>
 
 class DBConnector {
 public:
     static bool s_isPortfolioDBReadOnly; // E.g. useful for research purpose when true
+    static const std::string s_sessionID;
 
     ~DBConnector();
 
@@ -27,6 +30,9 @@ public:
     void disconnectDB();
 
     bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
+
+    /*@brief Inserts trade history into the table used to save the trading records*/
+    bool insertTradingRecord(const TradingRecord& trade);
 
 protected:
     PGconn* m_pConn;
