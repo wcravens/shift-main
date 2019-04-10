@@ -58,9 +58,9 @@ void shift::CoreClient::setUserID(const std::string& id)
 }
 
 /*!
- * \brief shift::CoreClient::setUserName This function is not effective if connection to BC is already established.
+ * \brief shift::CoreClient::setUsername This function is not effective if connection to BC is already established.
  */
-void shift::CoreClient::setUserName(const std::string &name)
+void shift::CoreClient::setUsername(const std::string &name)
 {
     if(!isConnected())
         m_username = name;

@@ -42,7 +42,7 @@ public:
     bool isConnected();
 
     void setUserID(const std::string& id);
-    void setUserName(const std::string& name);
+    void setUsername(const std::string& name);
     std::string getUserID() const;
     std::string getUsername() const;
     std::vector<CoreClient*> getAttachedClients();

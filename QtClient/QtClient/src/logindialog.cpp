@@ -34,7 +34,7 @@ void LoginDialog::on_exit_button_clicked()
 
 void LoginDialog::on_login_button_clicked()
 {
-    Global::qt_core_client.setUserName(ui->UsernameText->text().toStdString());
+    Global::qt_core_client.setUsername(ui->UsernameText->text().toStdString());
     try {
         shift::FIXInitiator::getInstance().connectBrokerageCenter("./config/initiator.cfg"
                                                                   , &Global::qt_core_client
