@@ -553,9 +553,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                  << serverTime->getString() << endl;
         };
 
-        if (pStatus->getValue() != FIX::ExecType_REPLACED // == '5', means this is a trade update from TRTH -> no need to store it
-            && (pStatus->getValue() == FIX::OrdStatus_FILLED || pStatus->getValue() == FIX::OrdStatus_CANCELED)) {
-            TradingRecord trade{
+        if (pStatus->getValue() != FIX::OrdStatus_REPLACED) { // == '5', means this is a trade update from TRTH -> no need to store it
+            TradingRecord record{
                 pServerTime->getValue(),
                 pExecTime->getValue(),
                 pSymbol->getValue(),
@@ -573,7 +572,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pUTCTime2->getValue()
             };
 
-            DBConnector::getInstance()->insertTradingRecord(trade);
+            DBConnector::getInstance()->insertTradingRecord(record);
         }
 
         switch (pStatus->getValue()) {

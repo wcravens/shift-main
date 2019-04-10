@@ -532,9 +532,6 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
 {
     FIX::Username username;
     message.get(username);
-    // not used:
-    FIX::UserRequestID userReqID;
-    message.get(userReqID);
 
     const auto idCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + username.getValue() + "';"));
     if (idCol.empty()) {
