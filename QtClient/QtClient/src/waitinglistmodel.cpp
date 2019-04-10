@@ -7,12 +7,12 @@ WaitingListModel::WaitingListModel()
 {
 }
 
-int WaitingListModel::rowCount(const QModelIndex& parent) const
+int WaitingListModel::rowCount(const QModelIndex&) const
 {
     return m_waiting_list_item.size();
 }
 
-int WaitingListModel::columnCount(const QModelIndex& parent) const
+int WaitingListModel::columnCount(const QModelIndex&) const
 {
     return 5;
 }
@@ -27,19 +27,14 @@ QVariant WaitingListModel::data(const QModelIndex& index, int role) const
         switch (index.column()) {
         case 0:
             return m_waiting_list_item[index.row()].m_symbol;
-            break;
         case 1:
             return m_waiting_list_item[index.row()].m_price;
-            break;
         case 2:
             return m_waiting_list_item[index.row()].m_size;
-            break;
         case 3:
             return m_waiting_list_item[index.row()].m_type == '1' ? "Limit Buy" : "Limit Sell";
-            break;
         case 4:
             return m_waiting_list_item[index.row()].m_id;
-            break;
         default:
             break;
         }
@@ -63,19 +58,14 @@ QVariant WaitingListModel::headerData(int section, Qt::Orientation orientation, 
             switch (section) {
             case 0:
                 return QString("Symbol");
-                break;
             case 1:
                 return QString("Price");
-                break;
             case 2:
                 return QString("Size");
-                break;
             case 3:
                 return QString("Type");
-                break;
             case 4:
                 return QString("Order ID");
-                break;
             default:
                 break;
             }

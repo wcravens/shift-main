@@ -46,7 +46,7 @@ class CandlePlot : public QwtPlot {
     Q_OBJECT
 
 public:
-    CandlePlot(QWidget* = 0);
+    CandlePlot(QWidget* = nullptr);
     ~CandlePlot();
     void setInterval(long long interval);
     void clearData(QString symbol);

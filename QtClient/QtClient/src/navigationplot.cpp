@@ -33,13 +33,13 @@ NavigationPlot::NavigationPlot(QWidget* parent)
     setMaximumHeight(200);
     setAxisMaxMajor(QwtPlot::yLeft, 1);
 
-    m_dateScaleDraw = new NavDateScaleDraw(Qt::UTC);
+    m_dateScaleDraw = new NavDateScaleDraw(Qt::LocalTime);
 
     QDateTime curTime = QDateTime::currentDateTime().toUTC();
     QDateTime dt(curTime.date(), curTime.time(), Qt::LocalTime);
     m_dateScaleDraw->setUtcOffset(dt.secsTo(curTime));
 
-    m_dateScaleEngine = new QwtDateScaleEngine(Qt::UTC);
+    m_dateScaleEngine = new QwtDateScaleEngine(Qt::LocalTime);
 
     // set up x axis: time axis
     setAxisScaleDraw(QwtPlot::xBottom, m_dateScaleDraw);
