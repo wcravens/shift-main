@@ -105,7 +105,7 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     FIX::SessionSettings settings(cfgFile);
     const FIX::Dictionary& commonDict = settings.get();
     FIX::SessionID sessionID(commonDict.getString("BeginString"),
-        FIX::SenderCompID(senderCompID),
+        senderCompID,
         commonDict.getString("TargetCompID"));
 
     FIX::Dictionary dict;
@@ -126,12 +126,16 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     m_pSocketInitiator.reset(new FIX::SocketInitiator(shift::FIXInitiator::getInstance(), *m_pMessageStoreFactory, settings, *m_pLogFactory));
     m_pSocketInitiator->start();
 
-    auto t1 = std::chrono::steady_clock::now();
-    std::unique_lock<std::mutex> lsUniqueLock(m_mtxLogon);
-    // Gets notify from fromAdmin() or onLogon()
-    m_cvLogon.wait_for(lsUniqueLock, timeout * 1ms);
-    auto t2 = std::chrono::steady_clock::now();
-    timeout -= std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    bool wasNotified = false;
+    {
+        std::unique_lock<std::mutex> lsUniqueLock(m_mtxLogon);
+        auto t1 = std::chrono::steady_clock::now();
+        // Gets notify from fromAdmin() or onLogon(), or timeout if backend cannot resolve(e.g. no such user in DB)
+        m_cvLogon.wait_for(lsUniqueLock, timeout * 1ms);
+        auto t2 = std::chrono::steady_clock::now();
+
+        wasNotified = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < timeout;
+    }
 
     if (m_logonSuccess) {
         std::unique_lock<std::mutex> slUniqueLock(m_mtxStockList);
@@ -145,10 +149,10 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     } else {
         disconnectBrokerageCenter();
 
-        if (timeout <= 0) {
-            throw shift::ConnectionTimeout();
-        } else {
+        if (wasNotified) {
             throw shift::IncorrectPassword();
+        } else {
+            throw shift::ConnectionTimeout();
         }
     }
 }
