@@ -27,11 +27,10 @@ BOOST_AUTO_TEST_CASE(MARKETBUYTEST)
     // test multiple clients works in muntiple threads
     std::vector<CoreClient*> clients;
     for (int i = 0; i < 9; ++i) {
-
         std::string clientUsername = "test01" + std::to_string(i + 1);
         CoreClient* pc = new CoreClient(clientUsername); // pointer client
-        FIXInitiator::getInstance().attach(pc);
-
+        if (!FIXInitiator::getInstance().attachToClient(pc))
+            continue;
         pc->subOrderBook(stockName);
         clients.push_back(pc);
     }

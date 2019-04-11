@@ -76,7 +76,7 @@ public:
     void disconnectBrokerageCenter();
 
     // Call this function to attach both ways
-    R_REMOVE void attach(shift::CoreClient* client, const std::string& password = "NA", int timeout = 0);
+    R_REMOVE bool attachToClient(shift::CoreClient* client);
 
     // call this function to send webClient username to and register at BC, with a userID as response, if any, for LC internal use. Returns true if user is resolved in BC.
     bool registerUserInBCWaitResponse(shift::CoreClient* client);

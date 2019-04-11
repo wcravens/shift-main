@@ -144,7 +144,10 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
         // Gets notify when security list is ready
         m_cvStockList.wait_for(slUniqueLock, timeout * 1ms);
 
-        attach(client);
+        if (!attachToClient(client)) {
+            m_connected = false;
+            return;
+        }
 
         m_superUserID = client->getUserID();
         m_connected = m_logonSuccess.load();
@@ -217,19 +220,22 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
  * @section WARNING
  * Don't call this function directly
  */
-void shift::FIXInitiator::attach(shift::CoreClient* client, const std::string& password, int timeout)
+bool shift::FIXInitiator::attachToClient(shift::CoreClient* client)
 {
     // TODO: add auth in BC and add lock after successful logon; use password to auth
 
-    if (!registerUserInBCWaitResponse(client))
-        std::terminate();
+    if (!client || !registerUserInBCWaitResponse(client)) {
+        cout << COLOR_ERROR << "Attach to FIXInitiator failed for client [" << client->getUsername() << "]." NO_COLOR << endl;
+        return false;
+    }
 
     {
         std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
         m_clientByUserID[client->getUserID()] = client;
     }
 
-    client->attach(*this);
+    client->attachToInitiator(*this);
+    return true;
 }
 
 bool shift::FIXInitiator::registerUserInBCWaitResponse(shift::CoreClient* client)
@@ -511,7 +517,7 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
         // Reregister connected web client users in BrokerageCenter
         for (const auto& client : getAttachedClients()) {
             if (!registerUserInBCWaitResponse(client))
-                std::terminate();
+                std::terminate(); // precondition broken: attached clients(by attachToClient()) shall not fail when reregistering
         }
 
         // Resubscribe to all previously subscribed order book data
@@ -1077,7 +1083,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, const FIX::SessionID&) // override
 {
     while (!m_connected)
-        ;
+        std::this_thread::sleep_for(10ms);
 
     FIX::SecurityType type;
     message.get(type);
@@ -1271,7 +1277,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
 void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID&) // override
 {
     while (!m_connected)
-        ;
+        std::this_thread::sleep_for(10ms);
 
     static FIX::Account userID;
     static FIX::NoQuoteSets n;

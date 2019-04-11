@@ -105,7 +105,7 @@ protected:
     void debugDump(const std::string& message);
 
     // FIXInitiator interface
-    bool attach(FIXInitiator& initiator);
+    bool attachToInitiator(FIXInitiator& initiator);
     void storeExecution(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus);
     void storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
     void storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);

@@ -60,9 +60,9 @@ void shift::CoreClient::setUserID(const std::string& id)
 /*!
  * \brief shift::CoreClient::setUsername This function is not effective if connection to BC is already established.
  */
-void shift::CoreClient::setUsername(const std::string &name)
+void shift::CoreClient::setUsername(const std::string& name)
 {
-    if(!isConnected())
+    if (!isConnected())
         m_username = name;
 }
 
@@ -607,11 +607,11 @@ inline void shift::CoreClient::debugDump(const std::string& message)
     }
 }
 
-bool shift::CoreClient::attach(FIXInitiator& initiator)
+bool shift::CoreClient::attachToInitiator(FIXInitiator& initiator)
 {
     // will attach one way
     m_fixInitiator = &initiator;
-    return true;
+    return m_fixInitiator;
 }
 
 void shift::CoreClient::storeExecution(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus)
