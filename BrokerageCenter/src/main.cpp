@@ -112,7 +112,7 @@ int main(int ac, char* av[])
         (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
-        (CSTR_RESET ",r", "reset clients' portfolio databases and trading records") //
+        (CSTR_RESET ",r", "reset client portfolios and trading records") //
         (CSTR_USERNAME ",u", po::value<std::string>(), "name of the new user") //
         (CSTR_PASSWORD ",p", po::value<std::string>(), "password of the new user") //
         (CSTR_INFO ",i", po::value<std::vector<std::string>>()->multitoken(), "<first name>  <last name>  <email>") //
