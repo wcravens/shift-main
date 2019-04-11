@@ -62,7 +62,7 @@ bool DBConnector::connectDB()
         return false;
     }
 
-    return shift::database::checkCreateTable<shift::database::BCTradingRecords>(m_pConn)
+    return shift::database::checkCreateTable<shift::database::TradingRecords>(m_pConn)
         && shift::database::checkCreateTable<shift::database::PortfolioSummary>(m_pConn)
         && shift::database::checkCreateTable<shift::database::PortfolioItem>(m_pConn);
 }
@@ -103,25 +103,30 @@ static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
 
 bool DBConnector::insertTradingRecord(const TradingRecord& trade)
 {
-    std::ostringstream temp;
-    temp << "INSERT INTO " << shift::database::PSQLTable<shift::database::BCTradingRecords>::name << " VALUES ('"
-         //  << s_sessionID << "','"
-         << s_utcToString(trade.realTime, true) << "','"
-         << s_utcToString(trade.execTime, true) << "','"
-         << trade.symbol << "','"
-         << trade.price << "','"
-         << trade.size << "','"
-         << trade.traderID1 << "','"
-         << trade.traderID2 << "','"
-         << trade.orderID1 << "','"
-         << trade.orderID2 << "','"
-         << trade.orderType1 << "','"
-         << trade.orderType2 << "','"
-         << s_utcToString(trade.time1, true) << "','"
-         << s_utcToString(trade.time2, true) << "','"
-         << trade.decision << "','"
-         << trade.destination << "');";
+    std::ostringstream queryStrm;
+    queryStrm << "INSERT INTO " << shift::database::PSQLTable<shift::database::TradingRecords>::name << " VALUES ('"
+              << s_sessionID << "','"
+              << s_utcToString(trade.realTime, true) << "','"
+              << s_utcToString(trade.execTime, true) << "','"
+              << trade.symbol << "','"
+              << trade.price << "','"
+              << trade.size << "','"
+              << trade.traderID1 << "','"
+              << trade.traderID2 << "','"
+              << trade.orderID1 << "','"
+              << trade.orderID2 << "','"
+              << trade.orderType1 << "','"
+              << trade.orderType2 << "','"
+              << s_utcToString(trade.time1, true) << "','"
+              << s_utcToString(trade.time2, true) << "','"
+              << trade.decision << "','"
+              << trade.destination << "');";
 
     auto lock{ lockPSQL() };
-    return doQuery(temp.str(), COLOR_WARNING "Insert into [ " + std::string(shift::database::PSQLTable<shift::database::BCTradingRecords>::name) + " ] failed.\n" NO_COLOR);
+    if (!doQuery(queryStrm.str(), COLOR_ERROR "ERROR: Insert into [" + std::string(shift::database::PSQLTable<shift::database::TradingRecords>::name) + "] failed with query:\n" NO_COLOR)) {
+        cout << COLOR_WARNING << queryStrm.str() << NO_COLOR << '\n'
+             << endl;
+        return false;
+    }
+    return true;
 }

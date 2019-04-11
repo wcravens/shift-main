@@ -9,12 +9,9 @@ namespace database {
     /*static*/ constexpr char PSQLTable<NamesOfTradeAndQuoteTables>::sc_colsDefinition[];
     /*static*/ const char* PSQLTable<NamesOfTradeAndQuoteTables>::name = "list_of_taq_tables";
 
-    /*static*/ constexpr char PSQLTable<DETradingRecords>::sc_colsDefinition[];
-    /*static*/ const char* PSQLTable<DETradingRecords>::name = "trading_records";
-
-    /*static*/ constexpr char PSQLTable<BCTradingRecords>::sc_colsDefinition[];
-    /*static*/ constexpr char PSQLTable<BCTradingRecords>::sc_recordFormat[];
-    /*static*/ const char* PSQLTable<BCTradingRecords>::name = "trading_records";
+    /*static*/ constexpr char PSQLTable<TradingRecords>::sc_colsDefinition[];
+    /*static*/ constexpr char PSQLTable<TradingRecords>::sc_recordFormat[];
+    /*static*/ const char* PSQLTable<TradingRecords>::name = "trading_records";
 
     /*static*/ constexpr char PSQLTable<PortfolioSummary>::sc_colsDefinition[];
     /*static*/ constexpr char PSQLTable<PortfolioSummary>::sc_recordFormat[];

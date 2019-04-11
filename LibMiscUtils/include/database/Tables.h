@@ -5,12 +5,13 @@ namespace database {
 
     /*@brief Tag of table for storing Trade and Quote records */
     struct TradeAndQuoteRecords;
+
     /*@brief Tag of table for memorizing (by names) downloaded Trade and Quote tables */
     struct NamesOfTradeAndQuoteTables;
-    /*@brief Tag of table for storing Trading records */
-    struct DETradingRecords;
 
-    struct BCTradingRecords;
+    /*@brief Tag of table for storing Trading records */
+    struct TradingRecords;
+
     struct PortfolioSummary;
     struct PortfolioItem;
 
@@ -102,33 +103,9 @@ namespace database {
     //----------------------------------------------------------------------------------------------------------
 
     template <>
-    struct PSQLTable<DETradingRecords> {
-        static constexpr char sc_colsDefinition[] = " (session_id VARCHAR(50)"
+    struct PSQLTable<TradingRecords> {
+        static constexpr char sc_colsDefinition[] = "( session_id VARCHAR(50)"
                                                     ", real_time TIMESTAMP"
-                                                    ", execution_time TIMESTAMP"
-                                                    ", symbol VARCHAR(15)"
-                                                    ", price REAL"
-                                                    ", size INTEGER"
-                                                    ", trader_id_1 VARCHAR(40)"
-                                                    ", trader_id_2 VARCHAR(40)"
-                                                    ", order_id_1 VARCHAR(40)"
-                                                    ", order_id_2 VARCHAR(40)"
-                                                    ", order_type_1 VARCHAR(2)"
-                                                    ", order_type_2 VARCHAR(2)"
-                                                    ", time_1 TIMESTAMP"
-                                                    ", time_2 TIMESTAMP"
-                                                    ", decision CHAR"
-                                                    ", destination VARCHAR(10)"
-                                                    ")";
-
-        static const char* name;
-    };
-
-    //----------------------------------------------------------------------------------------------------------
-
-    template <>
-    struct PSQLTable<BCTradingRecords> {
-        static constexpr char sc_colsDefinition[] = "( real_time TIMESTAMP"
                                                     ", execute_time TIMESTAMP"
                                                     ", symbol VARCHAR(15)"
                                                     ", price REAL"
@@ -145,8 +122,7 @@ namespace database {
                                                     ", time2 TIMESTAMP"
                                                     ", decision CHAR"
                                                     ", destination VARCHAR(10)"
-
-                                                    ",  CONSTRAINT trading_records_pkey PRIMARY KEY (order_id_1, order_id_2))";
+                                                    ")";
 
         static constexpr char sc_recordFormat[] = "( real_time, execute_time, symbol, price, size"
                                                   ", trader_id_1, trader_id_2, order_id_1, order_id_2, order_type_1"

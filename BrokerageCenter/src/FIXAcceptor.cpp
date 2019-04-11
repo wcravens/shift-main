@@ -743,7 +743,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         + "\nUsername: " + (usernames.size() ? usernames[0] : std::string("[???]")) + " (" + pUserID->getValue() + ')'
         + "\n\tType: " + Order::s_typeToString(static_cast<Order::Type>(pOrderType->getValue()))
         + "\n\tSymbol: " + pSymbol->getValue()
-        + "\n\tSize: " + std::to_string(pSize->getValue())
+        + "\n\tSize: " + std::to_string(static_cast<int>(pSize->getValue()))
         + "\n\tPrice: " + std::to_string(pPrice->getValue()) + '\n');
 
     // Order validation
