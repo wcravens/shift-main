@@ -41,10 +41,10 @@ public:
     bool isVerbose();
     bool isConnected();
 
-    void setUserID(const std::string& id);
-    void setUsername(const std::string& name);
-    std::string getUserID() const;
     std::string getUsername() const;
+    void setUsername(const std::string& username);
+    std::string getUserID() const;
+    void setUserID(const std::string& userID);
     std::vector<CoreClient*> getAttachedClients();
 
     void submitOrder(const shift::Order& order);
@@ -105,7 +105,7 @@ protected:
     void debugDump(const std::string& message);
 
     // FIXInitiator interface
-    bool attachToInitiator(FIXInitiator& initiator);
+    bool attachInitiator(FIXInitiator& initiator);
     void storeExecution(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus);
     void storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
     void storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);

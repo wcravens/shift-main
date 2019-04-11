@@ -39,7 +39,7 @@ void SHIFTServiceHandler::webUserLogin(const std::string& username)
         shift::FIXInitiator::getInstance().getClient(username);
     } catch (...) {
         shift::CoreClient* ccptr = new UserClient(username);
-        shift::FIXInitiator::getInstance().attachToClient(ccptr);
+        shift::FIXInitiator::getInstance().attachClient(ccptr);
     }
 }
 

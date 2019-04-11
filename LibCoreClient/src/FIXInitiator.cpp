@@ -144,7 +144,7 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
         // Gets notify when security list is ready
         m_cvStockList.wait_for(slUniqueLock, timeout * 1ms);
 
-        if (!attachToClient(client)) {
+        if (!attachClient(client)) {
             m_connected = false;
             return;
         }
@@ -220,9 +220,9 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
  * @section WARNING
  * Don't call this function directly
  */
-bool shift::FIXInitiator::attachToClient(shift::CoreClient* client)
+bool shift::FIXInitiator::attachClient(shift::CoreClient* client, const std::string& password)
 {
-    // TODO: add auth in BC and add lock after successful logon; use password to auth
+    // TODO: add auth in BC; use password to auth
 
     if (!client || !registerUserInBCWaitResponse(client)) {
         cout << COLOR_ERROR << "Attach to FIXInitiator failed for client [" << client->getUsername() << "]." NO_COLOR << endl;
@@ -234,8 +234,7 @@ bool shift::FIXInitiator::attachToClient(shift::CoreClient* client)
         m_clientByUserID[client->getUserID()] = client;
     }
 
-    client->attachToInitiator(*this);
-    return true;
+    return client->attachInitiator(*this);
 }
 
 bool shift::FIXInitiator::registerUserInBCWaitResponse(shift::CoreClient* client)
@@ -460,6 +459,7 @@ void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool 
 void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::string& userID /*= ""*/)
 {
     FIX::Message message;
+
     FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
@@ -517,7 +517,7 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
         // Reregister connected web client users in BrokerageCenter
         for (const auto& client : getAttachedClients()) {
             if (!registerUserInBCWaitResponse(client))
-                std::terminate(); // precondition broken: attached clients(by attachToClient()) shall not fail when reregistering
+                std::terminate(); // precondition broken: attached clients(by attachClient()) shall not fail when reregistering
         }
 
         // Resubscribe to all previously subscribed order book data
@@ -560,7 +560,6 @@ void shift::FIXInitiator::toAdmin(FIX::Message& message, const FIX::SessionID&) 
  * @brief Method for passing message to core client
  */
 void shift::FIXInitiator::fromAdmin(const FIX::Message& message, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override
-// void shift::FIXInitiator::fromAdmin(const FIX::Message& message)
 {
     try {
         if (FIX::MsgType_Logout == message.getHeader().getField(FIX::FIELD::MsgType)) {
@@ -582,26 +581,8 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
     crack(message, sessionID);
 }
 
-void shift::FIXInitiator::onMessage(const FIX50SP2::UserResponse& message, const FIX::SessionID&) // override
-{
-    // FIX::UserRequestID reqID;
-    // message.getField(reqID);
-    FIX::Username username;
-    message.getField(username);
-    FIX::UserStatus userStat;
-    message.getField(userStat);
-    FIX::UserStatusText userID;
-    message.getField(userID);
-
-    {
-        std::lock_guard<std::mutex> guard(m_mtxUserIDByUsername);
-        m_userIDByUsername[username.getValue()] = (1 == userStat) ? userID.getValue() : std::string(CSTR_BAD_USERID);
-    }
-    m_cvUserIDByUsername.notify_all();
-}
-
 /**
- * @brief Receive the security list of all stock from BrokerageCenter.
+ * @brief Receive the security list from BrokerageCenter.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
 {
@@ -631,6 +612,27 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
 
         m_cvStockList.notify_one();
     }
+}
+
+/**
+ * @brief Receive user ID from BrokerageCenter.
+ */
+void shift::FIXInitiator::onMessage(const FIX50SP2::UserResponse& message, const FIX::SessionID&) // override
+{
+    FIX::Username username;
+    FIX::UserStatus userStatus;
+    FIX::UserStatusText userID;
+
+    message.getField(username);
+    message.getField(userStatus);
+    message.getField(userID);
+
+    {
+        std::lock_guard<std::mutex> guard(m_mtxUserIDByUsername);
+        m_userIDByUsername[username.getValue()] = (1 == userStatus) ? userID.getValue() : std::string(CSTR_BAD_USERID);
+    }
+
+    m_cvUserIDByUsername.notify_all();
 }
 
 /**

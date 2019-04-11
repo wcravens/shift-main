@@ -141,8 +141,8 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
 void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
 {
     FIX::Message message;
-    FIX::Header& header = message.getHeader();
 
+    FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
@@ -188,8 +188,8 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
 void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update)
 {
     FIX::Message message;
-    FIX::Header& header = message.getHeader();
 
+    FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
@@ -436,21 +436,20 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID, const std::unord
 
 void FIXAcceptor::sendUserIDResponse(const std::string& targetID, const std::string& userReqID, const std::string& username, const std::string& userID)
 {
-    FIX::Message msgResp;
+    FIX::Message message;
 
-    FIX::Header& header = msgResp.getHeader();
+    FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_UserResponse));
 
-    // https://www.onixs.biz/fix-dictionary/5.0.SP2/msgType_BF_6670.html
-    msgResp.setField(FIX::UserRequestID(userReqID));
-    msgResp.setField(FIX::Username(username));
-    msgResp.setField(FIX::UserStatus(userID.empty() ? 2 : 1)); // Not Logged In : Logged In
-    msgResp.setField(FIX::UserStatusText(userID));
+    message.setField(FIX::UserRequestID(userReqID));
+    message.setField(FIX::Username(username));
+    message.setField(FIX::UserStatus(userID.empty() ? 2 : 1)); // Not Logged In : Logged In
+    message.setField(FIX::UserStatusText(userID));
 
-    FIX::Session::sendToTarget(msgResp);
+    FIX::Session::sendToTarget(message);
 }
 
 /**
@@ -471,9 +470,6 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     const auto& targetID = sessionID.getTargetCompID().getValue();
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 
-    // The following is not necessary as long as the super user also sends a onMessage(UserRequest):
-    // BCDocuments::getInstance()->registerUserInDoc(targetID, ::toLower(targetID));
-    // BCDocuments::getInstance()->sendHistoryToUser(::toLower(targetID));
     sendSecurityList(targetID, BCDocuments::getInstance()->getSymbols());
 }
 

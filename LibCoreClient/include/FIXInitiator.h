@@ -76,7 +76,7 @@ public:
     void disconnectBrokerageCenter();
 
     // Call this function to attach both ways
-    R_REMOVE bool attachToClient(shift::CoreClient* client);
+    R_REMOVE bool attachClient(shift::CoreClient* client, const std::string& password = "NA");
 
     // call this function to send webClient username to and register at BC, with a userID as response, if any, for LC internal use. Returns true if user is resolved in BC.
     bool registerUserInBCWaitResponse(shift::CoreClient* client);
@@ -109,6 +109,7 @@ protected:
     R_FIXINIT void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override;
     R_FIXINIT void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     R_FIXINIT void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
+    R_FIXINIT void onMessage(const FIX50SP2::UserResponse&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::Advertisement&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::MarketDataIncrementalRefresh&, const FIX::SessionID&) override;
@@ -116,7 +117,6 @@ protected:
     R_FIXINIT void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::PositionReport&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::MassQuoteAcknowledgement&, const FIX::SessionID&) override;
-    R_FIXINIT void onMessage(const FIX50SP2::UserResponse& message, const FIX::SessionID&) override;
 
     // Price methods
     R_FIXSUB double getOpenPrice(const std::string& symbol);

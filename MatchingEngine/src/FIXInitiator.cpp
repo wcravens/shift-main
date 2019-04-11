@@ -148,8 +148,8 @@ void FIXInitiator::sendMarketDataRequest()
 void FIXInitiator::storeOrder(const Order& order)
 {
     FIX::Message message;
-    FIX::Header& header = message.getHeader();
 
+    FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(s_targetID));

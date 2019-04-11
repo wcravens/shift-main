@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(MARKETBUYTEST)
     for (int i = 0; i < 9; ++i) {
         std::string clientUsername = "test01" + std::to_string(i + 1);
         CoreClient* pc = new CoreClient(clientUsername); // pointer client
-        if (!FIXInitiator::getInstance().attachToClient(pc))
+        if (!FIXInitiator::getInstance().attachClient(pc))
             continue;
         pc->subOrderBook(stockName);
         clients.push_back(pc);

@@ -99,8 +99,8 @@ void FIXAcceptor::disconnectBrokerageCenter()
 void FIXAcceptor::sendOrderBookUpdate2All(const OrderBookEntry& update)
 {
     FIX::Message message;
-    FIX::Header& header = message.getHeader();
 
+    FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
@@ -115,7 +115,6 @@ void FIXAcceptor::sendOrderBookUpdate2All(const OrderBookEntry& update)
     entryGroup.setField(FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())));
     entryGroup.setField(FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)));
     entryGroup.setField(FIX::MDMkt(update.getDestination()));
-
     message.addGroup(entryGroup);
 
     std::lock_guard<std::mutex> lock(m_mtxTargetList);

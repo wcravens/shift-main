@@ -131,8 +131,8 @@ void FIXAcceptor::disconnectMatchingEngine()
 /* static */ void FIXAcceptor::sendRawData(const std::string& targetID, const RawData& rawData)
 {
     FIX::Message message;
-    FIX::Header& header = message.getHeader();
 
+    FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(FIXAcceptor::s_senderID));
     header.setField(FIX::TargetCompID(targetID));

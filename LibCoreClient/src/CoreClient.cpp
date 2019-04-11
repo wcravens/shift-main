@@ -51,19 +51,14 @@ bool shift::CoreClient::isConnected()
     return (m_fixInitiator && m_fixInitiator->isConnected());
 }
 
-void shift::CoreClient::setUserID(const std::string& id)
+std::string shift::CoreClient::getUsername() const
 {
-    m_userID = id;
-    // cout << "username == " << m_username << ", userID == " << id << endl;
+    return m_username;
 }
 
-/*!
- * \brief shift::CoreClient::setUsername This function is not effective if connection to BC is already established.
- */
-void shift::CoreClient::setUsername(const std::string& name)
+void shift::CoreClient::setUsername(const std::string& username)
 {
-    if (!isConnected())
-        m_username = name;
+    m_username = username;
 }
 
 std::string shift::CoreClient::getUserID() const
@@ -71,9 +66,9 @@ std::string shift::CoreClient::getUserID() const
     return m_userID;
 }
 
-std::string shift::CoreClient::getUsername() const
+void shift::CoreClient::setUserID(const std::string& userID)
 {
-    return m_username;
+    m_userID = userID;
 }
 
 std::vector<shift::CoreClient*> shift::CoreClient::getAttachedClients()
@@ -607,7 +602,7 @@ inline void shift::CoreClient::debugDump(const std::string& message)
     }
 }
 
-bool shift::CoreClient::attachToInitiator(FIXInitiator& initiator)
+bool shift::CoreClient::attachInitiator(FIXInitiator& initiator)
 {
     // will attach one way
     m_fixInitiator = &initiator;
