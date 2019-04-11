@@ -13,19 +13,19 @@ struct RawData {
     std::string symbol; // or RIC
     std::string reutersDate;
     std::string reutersTime;
-    std::string toq; // Trades-Or-Quotes
-    std::string exchangeID; // or QuoteID
+    std::string toq; // Trade or Quote
+    std::string exchangeID;
     double price;
     int volume;
-    std::string buyerID; // or QuoteID
+    std::string buyerID;
     double bidPrice;
     int bidSize;
-    std::string sellerID; // or QuoteReqID
+    std::string sellerID;
     double askPrice;
     int askSize;
     std::string exchangeTime;
     std::string quoteTime;
     std::string recordID;
-    int secs; // second of date since 1970.01.01
-    double microsecs; // millicsecond of one day
+    int secs; // seconds since 1970/01/01
+    double microsecs; // microseconds of the day
 };

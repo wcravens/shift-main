@@ -1,10 +1,10 @@
 #pragma once
 
 #include "CandlestickData.h"
+#include "ExecutionReport.h"
 #include "Order.h"
 #include "OrderBook.h"
 #include "OrderBookEntry.h"
-#include "Report.h"
 #include "RiskManagement.h"
 #include "Transaction.h"
 
@@ -55,7 +55,7 @@ public:
     void onNewOBEntryForOrderBook(const std::string& symbol, OrderBookEntry&& entry);
     void onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac);
     void onNewOrderForUserRiskManagement(const std::string& userID, Order&& order);
-    void onNewReportForUserRiskManagement(const std::string& userID, Report&& report);
+    void onNewExecutionReportForUserRiskManagement(const std::string& userID, ExecutionReport&& report);
 
     void broadcastOrderBooks() const;
 

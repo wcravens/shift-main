@@ -60,7 +60,7 @@ void FIXAcceptor::connectClients(const std::string& configFile, bool verbose)
     for (const auto& tarID : targetIDs) {
         FIX::SessionID sid(commonDict.getString("BeginString"), commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER
             ,
-            ::toUpper(tarID) // TODO: e.g. WEBCLIENT
+            ::toUpper(tarID) // e.g. WEBCLIENT
         );
         FIX::Dictionary dict;
 
@@ -239,7 +239,7 @@ void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& targetList
  * because report.status usual set to 1,
  * Then the client will notify it is a confirmation
  */
-void FIXAcceptor::sendConfirmationReport(const Report& report)
+void FIXAcceptor::sendConfirmationReport(const ExecutionReport& report)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserID(report.userID);
     if (::STDSTR_NULL == targetID) {

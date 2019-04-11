@@ -13,6 +13,9 @@ struct Order {
         MARKET_SELL = '4',
         CANCEL_BID = '5',
         CANCEL_ASK = '6',
+        TRTH_TRADE = '7',
+        TRTH_BID = '8',
+        TRTH_ASK = '9',
     };
 
     enum Status : char { // See FIX::OrdStatus

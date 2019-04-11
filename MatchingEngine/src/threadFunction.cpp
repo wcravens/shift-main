@@ -200,7 +200,6 @@ void createStockMarket(std::string symbol)
             }
 
             for (const auto& report : stock->second.executionReports) {
-                // Send execution report to BrokerageCenter
                 FIXAcceptor::getInstance()->sendExecutionReport2All(report);
             }
             stock->second.executionReports.clear();

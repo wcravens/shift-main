@@ -233,7 +233,7 @@ void BCDocuments::onNewOrderForUserRiskManagement(const std::string& userID, Ord
     m_riskManagementByUserID[userID]->enqueueOrder(std::move(order));
 }
 
-void BCDocuments::onNewReportForUserRiskManagement(const std::string& userID, Report&& report)
+void BCDocuments::onNewExecutionReportForUserRiskManagement(const std::string& userID, ExecutionReport&& report)
 {
     if ("TR" == userID)
         return;

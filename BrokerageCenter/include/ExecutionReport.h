@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Order.h"
+
 #include <quickfix/FieldTypes.h>
 
 #include <string>
 
-struct Report {
+struct ExecutionReport {
     std::string userID;
     std::string orderID;
     Order::Type orderType;
@@ -17,7 +19,7 @@ struct Report {
     FIX::UtcTimeStamp execTime;
     FIX::UtcTimeStamp serverTime;
 
-    Report(const std::string& userID,
+    ExecutionReport(const std::string& userID,
         const std::string& orderID,
         Order::Type orderType,
         const std::string& orderSymbol,
@@ -42,7 +44,7 @@ struct Report {
     {
     }
 
-    Report(const std::string& userID,
+    ExecutionReport(const std::string& userID,
         const std::string& orderID,
         Order::Type orderType,
         const std::string& orderSymbol,

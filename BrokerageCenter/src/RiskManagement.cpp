@@ -89,7 +89,7 @@ void RiskManagement::sendPortfolioHistory()
         s_sendPortfolioItemToUser(m_userID, i.second);
 }
 
-void RiskManagement::updateWaitingList(const Report& report)
+void RiskManagement::updateWaitingList(const ExecutionReport& report)
 {
     std::lock_guard<std::mutex> guard(m_mtxWaitingList);
 
@@ -162,7 +162,7 @@ void RiskManagement::processOrder()
     }
 }
 
-void RiskManagement::enqueueExecRpt(Report&& report)
+void RiskManagement::enqueueExecRpt(ExecutionReport&& report)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxExecRpt);
@@ -497,7 +497,7 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
     if (success) {
         s_sendOrderToME(order);
     } else {
-        Report report{
+        ExecutionReport report{
             m_userID,
             order.getID(),
             order.getType(),

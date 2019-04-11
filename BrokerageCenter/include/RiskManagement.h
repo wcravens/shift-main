@@ -1,9 +1,9 @@
 #pragma once
 
+#include "ExecutionReport.h"
 #include "Order.h"
 #include "PortfolioItem.h"
 #include "PortfolioSummary.h"
-#include "Report.h"
 
 #include <condition_variable>
 #include <future>
@@ -33,12 +33,12 @@ public:
 
     void insertPortfolioItem(const std::string& symbol, const PortfolioItem& portfolioItem);
     void sendPortfolioHistory();
-    void updateWaitingList(const Report& report);
+    void updateWaitingList(const ExecutionReport& report);
     void sendWaitingList() const;
 
     void enqueueOrder(Order&& order);
     void processOrder();
-    void enqueueExecRpt(Report&& report);
+    void enqueueExecRpt(ExecutionReport&& report);
     void processExecRpt();
 
     bool verifyAndSendOrder(const Order& order);
@@ -56,7 +56,7 @@ private:
     std::promise<void> m_quitFlagExec;
 
     std::queue<Order> m_orderBuffer;
-    std::queue<Report> m_execRptBuffer;
+    std::queue<ExecutionReport> m_execRptBuffer;
 
     mutable std::mutex m_mtxPortfolioSummary;
     mutable std::mutex m_mtxPortfolioItems;

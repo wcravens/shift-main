@@ -6,11 +6,11 @@
 #pragma once
 
 #include "CandlestickDataPoint.h"
+#include "ExecutionReport.h"
 #include "Order.h"
 #include "OrderBookEntry.h"
 #include "PortfolioItem.h"
 #include "PortfolioSummary.h"
-#include "Report.h"
 #include "Transaction.h"
 
 #include <map>
@@ -61,7 +61,7 @@ public:
     void sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update);
     void sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
 
-    void sendConfirmationReport(const Report& report);
+    void sendConfirmationReport(const ExecutionReport& report);
     void sendPortfolioSummary(const std::string& userID, const PortfolioSummary& summary);
     void sendPortfolioItem(const std::string& userID, const PortfolioItem& item);
     void sendWaitingList(const std::string& userID, const std::unordered_map<std::string, Order>& orders);

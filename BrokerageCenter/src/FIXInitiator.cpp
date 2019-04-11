@@ -389,7 +389,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << pConfirmTime->getString() << "\t"
              << pServerTime->getString() << endl;
 
-        Report report{
+        ExecutionReport report{
             pUserID->getValue(),
             pOrderID->getValue(),
             static_cast<Order::Type>(pOrderType->getValue()),
@@ -403,7 +403,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pServerTime->getValue()
         };
 
-        BCDocuments::getInstance()->onNewReportForUserRiskManagement(pUserID->getValue(), std::move(report));
+        BCDocuments::getInstance()->onNewExecutionReportForUserRiskManagement(pUserID->getValue(), std::move(report));
 
         if (prevCnt) { // > 1 threads
             delete pOrderID;
@@ -564,8 +564,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pUserID2->getValue(),
                 pOrderID1->getValue(),
                 pOrderID2->getValue(),
-                pOrderType1->getValue(),
-                pOrderType2->getValue(),
+                static_cast<Order::Type>(pOrderType1->getValue()),
+                static_cast<Order::Type>(pOrderType2->getValue()),
                 pStatus->getValue(), // decision
                 pDestination->getValue(),
                 pUTCTime1->getValue(),
@@ -592,7 +592,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
                 printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 
-                Report report1{
+                ExecutionReport report1{
                     pUserID1->getValue(),
                     pOrderID1->getValue(),
                     static_cast<Order::Type>(pOrderType1->getValue()),
@@ -606,7 +606,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     pServerTime->getValue()
                 };
 
-                Report report2{
+                ExecutionReport report2{
                     pUserID2->getValue(),
                     pOrderID2->getValue(),
                     static_cast<Order::Type>(pOrderType2->getValue()),
@@ -622,8 +622,8 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
                 auto* docs = BCDocuments::getInstance();
                 docs->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
-                docs->onNewReportForUserRiskManagement(pUserID1->getValue(), std::move(report1));
-                docs->onNewReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
+                docs->onNewExecutionReportForUserRiskManagement(pUserID1->getValue(), std::move(report1));
+                docs->onNewExecutionReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
             } else { // FIX::OrdStatus_REPLACED: TRTH TRADE
                 BCDocuments::getInstance()->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
             }
@@ -632,7 +632,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
             printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 
-            Report report2{
+            ExecutionReport report2{
                 pUserID2->getValue(),
                 pOrderID2->getValue(),
                 static_cast<Order::Type>(pOrderType2->getValue()),
@@ -646,7 +646,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pServerTime->getValue()
             };
 
-            BCDocuments::getInstance()->onNewReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
+            BCDocuments::getInstance()->onNewExecutionReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
         } break;
         } // switch
 

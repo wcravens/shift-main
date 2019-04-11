@@ -32,6 +32,12 @@ Order::Type Order::getType() const
         return "CANCEL_BID";
     case Type::CANCEL_ASK:
         return "CANCEL_ASK";
+    case Type::TRTH_TRADE:
+        return "TRTH_TRADE";
+    case Type::TRTH_BID:
+        return "TRTH_BID";
+    case Type::TRTH_ASK:
+        return "TRTH_ASK";
     default:;
     }
     return "UNKNOWN";

@@ -29,39 +29,39 @@ set(CONFIGDEFAULT
 
 set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/BCDocuments.h
+    ${PROJECT_SOURCE_DIR}/include/CandlestickData.h
+    ${PROJECT_SOURCE_DIR}/include/CandlestickDataPoint.h
     ${PROJECT_SOURCE_DIR}/include/DBConnector.h
+    ${PROJECT_SOURCE_DIR}/include/ExecutionReport.h
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
     ${PROJECT_SOURCE_DIR}/include/FIXInitiator.h
+    ${PROJECT_SOURCE_DIR}/include/Interfaces.h
+    ${PROJECT_SOURCE_DIR}/include/Order.h
+    ${PROJECT_SOURCE_DIR}/include/OrderBook.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookEntry.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioItem.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioSummary.h
-    ${PROJECT_SOURCE_DIR}/include/Order.h
-    ${PROJECT_SOURCE_DIR}/include/Report.h
     ${PROJECT_SOURCE_DIR}/include/RiskManagement.h
-    ${PROJECT_SOURCE_DIR}/include/OrderBook.h
-    ${PROJECT_SOURCE_DIR}/include/CandlestickData.h
-    ${PROJECT_SOURCE_DIR}/include/CandlestickDataPoint.h
     ${PROJECT_SOURCE_DIR}/include/TokenPool.h
-    ${PROJECT_SOURCE_DIR}/include/Transaction.h
-    ${PROJECT_SOURCE_DIR}/include/Interfaces.h
     ${PROJECT_SOURCE_DIR}/include/TradingRecord.h
+    ${PROJECT_SOURCE_DIR}/include/Transaction.h
     )
 
 set(SRC
     ${PROJECT_SOURCE_DIR}/src/BCDocuments.cpp
+    ${PROJECT_SOURCE_DIR}/src/CandlestickData.cpp
+    ${PROJECT_SOURCE_DIR}/src/CandlestickDataPoint.cpp
     ${PROJECT_SOURCE_DIR}/src/DBConnector.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXAcceptor.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp
+    ${PROJECT_SOURCE_DIR}/src/Interfaces.cpp
     ${PROJECT_SOURCE_DIR}/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/Order.cpp
+    ${PROJECT_SOURCE_DIR}/src/OrderBook.cpp
     ${PROJECT_SOURCE_DIR}/src/OrderBookEntry.cpp
     ${PROJECT_SOURCE_DIR}/src/PortfolioItem.cpp
     ${PROJECT_SOURCE_DIR}/src/PortfolioSummary.cpp
-    ${PROJECT_SOURCE_DIR}/src/Order.cpp
     ${PROJECT_SOURCE_DIR}/src/RiskManagement.cpp
-    ${PROJECT_SOURCE_DIR}/src/OrderBook.cpp
-    ${PROJECT_SOURCE_DIR}/src/CandlestickData.cpp
-    ${PROJECT_SOURCE_DIR}/src/CandlestickDataPoint.cpp
-    ${PROJECT_SOURCE_DIR}/src/Interfaces.cpp
 )
 
 set(OTHER
