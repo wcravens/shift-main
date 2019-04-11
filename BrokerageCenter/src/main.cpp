@@ -112,7 +112,7 @@ int main(int ac, char* av[])
         (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
-        (CSTR_RESET ",r", "reset clients' portfolio databases") //
+        (CSTR_RESET ",r", "reset clients' portfolio databases and trading records") //
         (CSTR_USERNAME ",u", po::value<std::string>(), "name of the new user") //
         (CSTR_PASSWORD ",p", po::value<std::string>(), "password of the new user") //
         (CSTR_INFO ",i", po::value<std::vector<std::string>>()->multitoken(), "<first name>  <last name>  <email>") //
@@ -245,6 +245,7 @@ int main(int ac, char* av[])
                 vm.erase(CSTR_RESET);
 
                 cout << COLOR_WARNING "Resetting the databases..." NO_COLOR << endl;
+                DBConnector::getInstance()->doQuery("DROP TABLE trading_records CASCADE", COLOR_ERROR "ERROR: Failed to drop [ trading_records ]." NO_COLOR);
                 DBConnector::getInstance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_summary ]." NO_COLOR);
                 DBConnector::getInstance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
                 continue;
