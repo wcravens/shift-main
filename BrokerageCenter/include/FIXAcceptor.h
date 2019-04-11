@@ -70,7 +70,7 @@ private:
     FIXAcceptor() = default;
 
     void sendSecurityList(const std::string& targetID, const std::unordered_set<std::string>& symbols);
-    void sendUserIDResponse(const std::string& targetID, const std::string& username, const std::string& userID);
+    void sendUserIDResponse(const std::string& targetID, const std::string& userReqID, const std::string& username, const std::string& userID);
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

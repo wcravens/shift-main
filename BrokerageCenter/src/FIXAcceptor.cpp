@@ -434,20 +434,23 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID, const std::unord
     FIX::Session::sendToTarget(message);
 }
 
-void FIXAcceptor::sendUserIDResponse(const std::string& targetID, const std::string& username, const std::string& userID)
+void FIXAcceptor::sendUserIDResponse(const std::string& targetID, const std::string& userReqID, const std::string& username, const std::string& userID)
 {
-    FIX::Message msgRes;
+    FIX::Message msgResp;
 
-    FIX::Header& header = msgRes.getHeader();
+    FIX::Header& header = msgResp.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_UserResponse));
 
-    msgRes.setField(FIX::Username(username));
-    msgRes.setField(FIX::UserRequestID(userID));
+    // https://www.onixs.biz/fix-dictionary/5.0.SP2/msgType_BF_6670.html
+    msgResp.setField(FIX::UserRequestID(userReqID));
+    msgResp.setField(FIX::Username(username));
+    msgResp.setField(FIX::UserStatus(userID.empty() ? 2 : 1)); // Not Logged In : Logged In
+    msgResp.setField(FIX::UserStatusText(userID));
 
-    FIX::Session::sendToTarget(msgRes);
+    FIX::Session::sendToTarget(msgResp);
 }
 
 /**
@@ -532,15 +535,19 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
 {
     FIX::Username username;
     message.get(username);
+    FIX::UserRequestID reqID;
+    message.get(reqID);
 
-    const auto idCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + username.getValue() + "';"));
+    auto idCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + username.getValue() + "';"));
     if (idCol.empty()) {
+        idCol.emplace_back(); // junk userID
         cout << COLOR_ERROR "ERROR: Cannot retrieve id for user [" << username.getValue() << "]. Please check this user that is already added into 'traders'." NO_COLOR << endl;
-        return;
     }
     const auto& userID = idCol[0];
 
-    sendUserIDResponse(sessionID.getTargetCompID().getValue(), username, userID);
+    sendUserIDResponse(sessionID.getTargetCompID().getValue(), reqID, username, userID);
+    if (userID.empty())
+        return;
 
     BCDocuments::getInstance()->registerUserInDoc(sessionID.getTargetCompID().getValue(), userID);
     BCDocuments::getInstance()->sendHistoryToUser(userID);

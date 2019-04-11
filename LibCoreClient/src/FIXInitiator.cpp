@@ -24,6 +24,8 @@
 #include <shift/miscutils/terminal/Common.h>
 #endif
 
+#define CSTR_BAD_USERID "BAD_USERID"
+
 using namespace std::chrono_literals;
 
 /* static */ std::string shift::FIXInitiator::s_senderID;
@@ -218,7 +220,9 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
 void shift::FIXInitiator::attach(shift::CoreClient* client, const std::string& password, int timeout)
 {
     // TODO: add auth in BC and add lock after successful logon; use password to auth
-    registerUserInBCWaitResponse(client);
+
+    if (!registerUserInBCWaitResponse(client))
+        std::terminate();
 
     {
         std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
@@ -228,7 +232,7 @@ void shift::FIXInitiator::attach(shift::CoreClient* client, const std::string& p
     client->attach(*this);
 }
 
-void shift::FIXInitiator::registerUserInBCWaitResponse(shift::CoreClient* client)
+bool shift::FIXInitiator::registerUserInBCWaitResponse(shift::CoreClient* client)
 {
     FIX::Message message;
 
@@ -247,7 +251,14 @@ void shift::FIXInitiator::registerUserInBCWaitResponse(shift::CoreClient* client
     std::unique_lock<std::mutex> lock(m_mtxUserIDByUsername);
     m_cvUserIDByUsername.wait(lock, [this, client] { return m_userIDByUsername[client->getUsername()].length(); }); // wait for userID update event
 
-    client->setUserID(m_userIDByUsername[client->getUsername()]);
+    const auto& userID = m_userIDByUsername[client->getUsername()];
+    if (userID == CSTR_BAD_USERID) {
+        cout << COLOR_ERROR "ERROR: Register user [" << client->getUsername() << "] in BC cannot resolve User ID. Registration is rejected." NO_COLOR << endl;
+        return false;
+    }
+
+    client->setUserID(userID);
+    return true;
 }
 
 std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
@@ -499,7 +510,8 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
     {
         // Reregister connected web client users in BrokerageCenter
         for (const auto& client : getAttachedClients()) {
-            registerUserInBCWaitResponse(client);
+            if (!registerUserInBCWaitResponse(client))
+                std::terminate();
         }
 
         // Resubscribe to all previously subscribed order book data
@@ -566,16 +578,20 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
 
 void shift::FIXInitiator::onMessage(const FIX50SP2::UserResponse& message, const FIX::SessionID&) // override
 {
+    // FIX::UserRequestID reqID;
+    // message.getField(reqID);
     FIX::Username username;
-    message.get(username);
-    FIX::UserRequestID userID;
-    message.get(userID);
+    message.getField(username);
+    FIX::UserStatus userStat;
+    message.getField(userStat);
+    FIX::UserStatusText userID;
+    message.getField(userID);
 
     {
         std::lock_guard<std::mutex> guard(m_mtxUserIDByUsername);
-        m_userIDByUsername[username.getValue()] = userID.getValue();
+        m_userIDByUsername[username.getValue()] = (1 == userStat) ? userID.getValue() : std::string(CSTR_BAD_USERID);
     }
-    m_cvUserIDByUsername.notify_one();
+    m_cvUserIDByUsername.notify_all();
 }
 
 /**
@@ -1689,3 +1705,5 @@ std::vector<std::string> shift::FIXInitiator::getSubscribedCandlestickList()
 
     return subscriptionList;
 }
+
+#undef CSTR_BAD_USERID
