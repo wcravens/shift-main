@@ -90,9 +90,7 @@ void Stock::executeGlobalOrder(int size, Order& newOrder, char decision, const s
         newOrder.setSize(-size);
     }
 
-    auto now = globalTimeSetting.simulationTimestamp();
-    ExecutionReport report{
-        newOrder.getSymbol(),
+    executionReports.push_back({ newOrder.getSymbol(),
         m_thisGlobalOrder->getPrice(),
         executeSize,
         m_thisGlobalOrder->getTraderID(),
@@ -103,12 +101,8 @@ void Stock::executeGlobalOrder(int size, Order& newOrder, char decision, const s
         newOrder.getOrderID(),
         decision,
         destination,
-        now,
         m_thisGlobalOrder->getTime(),
-        newOrder.getTime()
-    };
-
-    executionReports.push_back(report);
+        newOrder.getTime() });
 }
 
 // decision '2' means this is a trade record, '4' means cancel record; record trade or cancel with object actions
@@ -126,9 +120,7 @@ void Stock::executeLocalOrder(int size, Order& newOrder, char decision, const st
         newOrder.setSize(-size);
     }
 
-    auto now = globalTimeSetting.simulationTimestamp();
-    ExecutionReport report{
-        newOrder.getSymbol(),
+    executionReports.push_back({ newOrder.getSymbol(),
         m_thisLocalOrder->getPrice(),
         executeSize,
         m_thisLocalOrder->getTraderID(),
@@ -139,12 +131,8 @@ void Stock::executeLocalOrder(int size, Order& newOrder, char decision, const st
         newOrder.getOrderID(),
         decision,
         destination,
-        now,
         m_thisLocalOrder->getTime(),
-        newOrder.getTime()
-    };
-
-    executionReports.push_back(report);
+        newOrder.getTime() });
 }
 
 void Stock::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)

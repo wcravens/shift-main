@@ -147,10 +147,8 @@ void createStockMarket(std::string symbol)
                 stock->second.doLimitBuy(newOrder, "SHIFT");
                 stock->second.doLimitSell(newOrder, "SHIFT");
                 if (newOrder.getSize() != 0) {
-                    // Decision '5' means this is a trade update from TRTH
                     auto now = globalTimeSetting.simulationTimestamp();
-                    ExecutionReport report{
-                        newOrder.getSymbol(),
+                    stock->second.executionReports.push_back({ newOrder.getSymbol(),
                         newOrder.getPrice(),
                         newOrder.getSize(),
                         "T1",
@@ -159,13 +157,10 @@ void createStockMarket(std::string symbol)
                         Order::Type::LIMIT_SELL,
                         "o1",
                         "o2",
-                        '5',
+                        '5', // Decision '5' means this is a trade update from TRTH
                         "TRTH",
-                        newOrder.getTime(),
                         now,
-                        now
-                    };
-                    stock->second.executionReports.push_back(report);
+                        now });
                 }
                 break;
             }

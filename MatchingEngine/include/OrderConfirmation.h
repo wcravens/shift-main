@@ -11,22 +11,19 @@ struct OrderConfirmation {
     double price;
     int size;
     char orderType;
-    FIX::UtcTimeStamp time;
 
     OrderConfirmation(const std::string& symbol,
         const std::string& traderID,
         const std::string& orderID,
         double price,
         int size,
-        char orderType,
-        const FIX::UtcTimeStamp& time)
+        char orderType)
         : symbol(symbol)
         , traderID(traderID)
         , orderID(orderID)
         , price(price)
         , size(size)
         , orderType(orderType)
-        , time(time)
     {
     }
 };
