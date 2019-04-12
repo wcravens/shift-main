@@ -41,7 +41,7 @@ function usage
     echo "  -h [ --help ]                      Display available options"
     echo "  -m [ --modules ] DE|ME|BC|WC|PS    List of modules to start up or terminate"
     echo "  -d [ --date ]                      Simulation date (format: YYYY-MM-DD)"
-    echo "  -r [ --reset ]                     Reset stored portfolio information"
+    echo "  -r [ --reset ]                     Reset stored portfolio and trading records information"
     echo "  -e [ --readonlyportfolio ]         Read-only portfolio information"
     echo "  -t [ --timeout ]                   Time-out duration counted in minutes"
     echo "                                     (default: 400)"
