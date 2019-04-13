@@ -209,14 +209,14 @@ int main(int ac, char* av[])
     // Initiate connection with BC
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
-    // Request new market data every 15 minutes
-    ptimeStart += boost::posix_time::minutes(15);
+    // Request new market data every 5 minutes
+    ptimeStart += boost::posix_time::minutes(5);
     while (ptimeStart < ptimeEnd) {
         FIXInitiator::getInstance()->sendMarketDataRequest();
-        ptimeStart += boost::posix_time::minutes(15);
-        std::this_thread::sleep_for(15min / experimentSpeed);
+        ptimeStart += boost::posix_time::minutes(5);
+        std::this_thread::sleep_for(5min / experimentSpeed);
     }
-    std::this_thread::sleep_for(15min / experimentSpeed);
+    std::this_thread::sleep_for(5min / experimentSpeed);
 
     std::this_thread::sleep_for(1min);
     timeout = true;
