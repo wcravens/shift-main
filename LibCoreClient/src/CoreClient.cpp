@@ -628,7 +628,14 @@ void shift::CoreClient::storeExecution(const std::string& orderID, int executedS
 
     order.setExecutedSize(newExecutedSize);
     order.setExecutedPrice(newExecutedPrice);
-    order.setStatus(newStatus);
+
+    // This is required in case cancellation orders are sent
+    // before FILLED status is received, possibly originating:
+    // - PENDING_CANCEL status from the Matching Engine
+    // - REJECTED status from the Brokerage Center
+    if (order.getStatus() != shift::Order::Status::FILLED) {
+        order.setStatus(newStatus);
+    }
 
     if ((newStatus == shift::Order::Status::CANCELED) && (order.getSize() > newExecutedSize)) {
         order.setStatus(shift::Order::Status::PARTIALLY_FILLED);

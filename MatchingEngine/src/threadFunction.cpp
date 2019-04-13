@@ -155,8 +155,8 @@ void createStockMarket(std::string symbol)
                         "T2",
                         Order::Type::LIMIT_BUY,
                         Order::Type::LIMIT_SELL,
-                        "o1",
-                        "o2",
+                        "O1",
+                        "O2",
                         '5', // Decision '5' means this is a trade update from TRTH
                         "TRTH",
                         now,

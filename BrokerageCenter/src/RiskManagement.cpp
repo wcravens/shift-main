@@ -479,16 +479,18 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
     case Order::Type::CANCEL_BID: {
         std::lock_guard<std::mutex> guard(m_mtxWaitingList);
         auto it = m_waitingList.find(order.getID());
-        if ((m_waitingList.end() != it))
-            if ((it->second.getType() == Order::Type::LIMIT_BUY) && (it->second.getPrice() == order.getPrice()))
-                success = true;
+        if (m_waitingList.end() != it) // found order id
+            if ((it->second.getType() == Order::Type::LIMIT_BUY) || (it->second.getType() == Order::Type::MARKET_BUY))
+                if (it->second.getPrice() == order.getPrice())
+                    success = true;
     } break;
     case Order::Type::CANCEL_ASK: {
         std::lock_guard<std::mutex> guard(m_mtxWaitingList);
         auto it = m_waitingList.find(order.getID());
-        if ((m_waitingList.end() != it))
-            if ((it->second.getType() == Order::Type::LIMIT_SELL) && (it->second.getPrice() == order.getPrice()))
-                success = true;
+        if (m_waitingList.end() != it) // found order id
+            if ((it->second.getType() == Order::Type::LIMIT_SELL) || (it->second.getType() == Order::Type::MARKET_SELL))
+                if (it->second.getPrice() == order.getPrice())
+                    success = true;
     } break;
     default: {
     } break;

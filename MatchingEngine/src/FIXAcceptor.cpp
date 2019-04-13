@@ -1,5 +1,6 @@
 #include "FIXAcceptor.h"
 
+#include "Order.h"
 #include "Stock.h"
 #include "TimeSetting.h"
 
@@ -218,7 +219,7 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Order
     message.setField(FIX::OrderID(confirmation.orderID));
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
     message.setField(::FIXFIELD_EXECTYPE_ORDER_STATUS); // Required by FIX
-    if (confirmation.orderType != '5' && confirmation.orderType != '6') { // Not a cancellation
+    if (confirmation.orderType != Order::Type::CANCEL_BID && confirmation.orderType != Order::Type::CANCEL_ASK) { // Not a cancellation
         message.setField(::FIXFIELD_ORDSTATUS_NEW);
     } else {
         message.setField(::FIXFIELD_ORDSTATUS_PENDING_CANCEL);

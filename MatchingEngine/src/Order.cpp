@@ -2,8 +2,8 @@
 
 Order::Order(const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
     : m_symbol(symbol)
-    , m_traderID("TR")
-    , m_orderID("Thomson")
+    , m_traderID("TRTH")
+    , m_orderID("TRTH")
     , m_price(price)
     , m_size(size)
     , m_type(Order::Type::LIMIT_BUY)
