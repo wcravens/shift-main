@@ -486,7 +486,7 @@ void Stock::updateGlobalAsks(const Order& order)
 void Stock::doLocalLimitBuy(Order& newOrder, const std::string& destination)
 {
     double localBestAsk, globalBestAsk;
-    double maxAskPrice = 10000.0;
+    double maxAskPrice = std::numeric_limits<double>::max();
 
     // init
     m_thisPriceLevel = m_localAsks.begin();
@@ -579,7 +579,7 @@ void Stock::doLocalLimitBuy(Order& newOrder, const std::string& destination)
 void Stock::doLocalLimitSell(Order& newOrder, const std::string& destination)
 {
     double localBestBid, globalBestBid;
-    double minBidPrice = 0.0;
+    double minBidPrice = std::numeric_limits<double>::min();
 
     // init
     m_thisPriceLevel = m_localBids.begin();
@@ -672,7 +672,7 @@ void Stock::doLocalLimitSell(Order& newOrder, const std::string& destination)
 void Stock::doLocalMarketBuy(Order& newOrder, const std::string& destination)
 {
     double localBestAsk, globalBestAsk;
-    double maxAskPrice = 10000.0;
+    double maxAskPrice = std::numeric_limits<double>::max();
 
     // init
     m_thisPriceLevel = m_localAsks.begin();
@@ -752,7 +752,7 @@ void Stock::doLocalMarketBuy(Order& newOrder, const std::string& destination)
 void Stock::doLocalMarketSell(Order& newOrder, const std::string& destination)
 {
     double localBestBid, globalBestBid;
-    double minBidPrice = 0.0;
+    double minBidPrice = std::numeric_limits<double>::min();
 
     // init
     m_thisPriceLevel = m_localBids.begin();
