@@ -51,7 +51,7 @@ int main(int ac, char* av[])
     } params = {
         "/usr/local/share/shift/MatchingEngine/", // default installation folder for configuration
         true,
-        "2018-12-17",
+        "",
         false,
     };
 
@@ -107,7 +107,7 @@ int main(int ac, char* av[])
     }
 
     std::string configFile = params.configDir + "config.txt";
-    std::string date = params.simulationDate;
+    std::string date = "2018-12-17";
     std::string stime = "09:30:00";
     std::string etime = "16:00:00";
     int experimentSpeed = 1;
