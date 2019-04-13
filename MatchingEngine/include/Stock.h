@@ -28,8 +28,8 @@ public:
     void bufNewLocalOrder(const Order& order);
     bool getNextOrder(Order& nextOrder);
 
-    void executeGlobalOrder(int size, Order& newOrder, char decision, const std::string& destination);
-    void executeLocalOrder(int size, Order& newOrder, char decision, const std::string& destination);
+    void executeGlobalOrder(int size, Order& orderRef, char decision);
+    void executeLocalOrder(int size, Order& orderRef, char decision);
 
     void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
     void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
@@ -37,20 +37,20 @@ public:
     void showGlobalOrderBooks();
     void showLocalOrderBooks();
 
-    void doLimitBuy(Order& newOrder, const std::string& destination);
-    void doLimitSell(Order& newOrder, const std::string& destination);
-    void doMarketBuy(Order& newOrder, const std::string& destination);
-    void doMarketSell(Order& newOrder, const std::string& destination);
-    void doLocalCancelBid(Order& newOrder, const std::string& destination);
-    void doLocalCancelAsk(Order& newOrder, const std::string& destination);
+    void doLimitBuy(Order& orderRef);
+    void doLimitSell(Order& orderRef);
+    void doMarketBuy(Order& orderRef);
+    void doMarketSell(Order& orderRef);
 
     void updateGlobalBids(const Order& order);
     void updateGlobalAsks(const Order& order);
 
-    void doLocalLimitBuy(Order& newOrder, const std::string& destination);
-    void doLocalLimitSell(Order& newOrder, const std::string& destination);
-    void doLocalMarketBuy(Order& newOrder, const std::string& destination);
-    void doLocalMarketSell(Order& newOrder, const std::string& destination);
+    void doLocalLimitBuy(Order& orderRef);
+    void doLocalLimitSell(Order& orderRef);
+    void doLocalMarketBuy(Order& orderRef);
+    void doLocalMarketSell(Order& orderRef);
+    void doLocalCancelBid(Order& orderRef);
+    void doLocalCancelAsk(Order& orderRef);
 
     void insertLocalBid(const Order& order);
     void insertLocalAsk(const Order& order);
