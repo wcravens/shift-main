@@ -177,7 +177,7 @@ function installLibrary
     fi
 
     # build & install debug version of the library
-    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX}
+    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX} ${2}
     if ( ! cmake --build ${1}/build --target install -- -j${CORE_NUM} )
     then
         echo
@@ -187,7 +187,7 @@ function installLibrary
     fi
 
     # build & install release version of the library
-    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX}
+    cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX} ${2}
     if ( ! cmake --build ${1}/build --target install -- -j${CORE_NUM} )
     then
         echo
@@ -386,7 +386,7 @@ then
     do
         case ${i} in
             0_LM )
-                installLibrary "LibMiscUtils"
+                installLibrary "LibMiscUtils" "-DDB=True"
                 ;;
             1_DE )
                 installServer "DatafeedEngine"

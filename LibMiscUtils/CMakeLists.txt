@@ -26,14 +26,20 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/crossguid/Guid.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Decryptor.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Encryptor.h
-    ${PROJECT_SOURCE_DIR}/include/database/Tables.h
-    ${PROJECT_SOURCE_DIR}/include/database/Common.h
     ${PROJECT_SOURCE_DIR}/include/statistics/BasicStatistics.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Common.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Functions.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Options.h
     ${PROJECT_SOURCE_DIR}/include/MiscUtils_EXPORTS.h
 )
+
+if(DB)
+    set(INCLUDE
+        ${INCLUDE}
+        ${PROJECT_SOURCE_DIR}/include/database/Common.h
+        ${PROJECT_SOURCE_DIR}/include/database/Tables.h
+    )
+endif(DB)
 
 set(PKGCONFIG
     ${PROJECT_SOURCE_DIR}/pkg-config/libshift_miscutils-d.pc
@@ -49,11 +55,17 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/crypto/Encryptor.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/SHA1.h
     ${PROJECT_SOURCE_DIR}/src/crypto/SHA1.cpp
-    ${PROJECT_SOURCE_DIR}/src/database/Tables.cpp
-    ${PROJECT_SOURCE_DIR}/src/database/Common.cpp
     ${PROJECT_SOURCE_DIR}/src/terminal/Common.cpp
     ${PROJECT_SOURCE_DIR}/src/terminal/Options.cpp
 )
+
+if(DB)
+    set(SRC
+        ${SRC}
+        ${PROJECT_SOURCE_DIR}/src/database/Common.cpp
+        ${PROJECT_SOURCE_DIR}/src/database/Tables.cpp
+    )
+endif(DB)
 
 set(OTHER
     ${PROJECT_SOURCE_DIR}/win-build.sh
@@ -141,10 +153,11 @@ else()
     target_compile_definitions(shift_${LIB_NAME} PRIVATE __linux__)
 endif()
 
-find_package(PostgreSQL REQUIRED)
-target_link_libraries(shift_${LIB_NAME}
-                      ${PostgreSQL_LIBRARIES}
-                      )
+if(DB)
+    find_package(PostgreSQL REQUIRED)
+    target_link_libraries(shift_${LIB_NAME}
+                          ${PostgreSQL_LIBRARIES})
+endif(DB)
 
 if(ADDONS)
     add_subdirectory(${PROJECT_SOURCE_DIR}/filecryptor)
