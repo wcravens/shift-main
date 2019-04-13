@@ -17,12 +17,12 @@ string(TOLOWER ${LIB_NAME} LIB_NAME)
 ### List of Files #############################################################
 
 set(INCLUDE
-    ${PROJECT_SOURCE_DIR}/include/strategies/IStrategy.h
-    ${PROJECT_SOURCE_DIR}/include/strategies/IStrategyMaker.h
-    ${PROJECT_SOURCE_DIR}/include/strategies/StrategyFactory.h
-    ${PROJECT_SOURCE_DIR}/include/strategies/StrategyMaker.h
-    ${PROJECT_SOURCE_DIR}/include/strategies/StrategyParameter.h
-    ${PROJECT_SOURCE_DIR}/include/strategies/ZeroIntelligence.h
+    # ${PROJECT_SOURCE_DIR}/include/strategies/IStrategy.h
+    # ${PROJECT_SOURCE_DIR}/include/strategies/IStrategyMaker.h
+    # ${PROJECT_SOURCE_DIR}/include/strategies/StrategyFactory.h
+    # ${PROJECT_SOURCE_DIR}/include/strategies/StrategyMaker.h
+    # ${PROJECT_SOURCE_DIR}/include/strategies/StrategyParameter.h
+    # ${PROJECT_SOURCE_DIR}/include/strategies/ZeroIntelligence.h
     ${PROJECT_SOURCE_DIR}/include/BestPrice.h
     ${PROJECT_SOURCE_DIR}/include/CoreClient_EXPORTS.h
     ${PROJECT_SOURCE_DIR}/include/CoreClient.h
@@ -45,9 +45,9 @@ set(PKGCONFIG
 )
 
 set(SRC
-    ${PROJECT_SOURCE_DIR}/src/strategies/StrategyFactory.cpp
-    ${PROJECT_SOURCE_DIR}/src/strategies/StrategyParameter.cpp
-    ${PROJECT_SOURCE_DIR}/src/strategies/ZeroIntelligence.cpp
+    # ${PROJECT_SOURCE_DIR}/src/strategies/StrategyFactory.cpp
+    # ${PROJECT_SOURCE_DIR}/src/strategies/StrategyParameter.cpp
+    # ${PROJECT_SOURCE_DIR}/src/strategies/ZeroIntelligence.cpp
     ${PROJECT_SOURCE_DIR}/src/BestPrice.cpp
     ${PROJECT_SOURCE_DIR}/src/CoreClient.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp
