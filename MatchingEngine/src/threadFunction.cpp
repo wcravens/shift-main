@@ -123,23 +123,27 @@ void createStockMarket(std::string symbol)
             }
             case Order::Type::MARKET_BUY: {
                 stock->second.doLocalMarketBuy(newOrder, "SHIFT");
-                if (newOrder.getSize() != 0)
+                if (newOrder.getSize() != 0) {
                     stock->second.insertLocalBid(newOrder);
+                    cout << "Insert Bid" << endl;
+                }
                 break;
             }
             case Order::Type::MARKET_SELL: {
                 stock->second.doLocalMarketSell(newOrder, "SHIFT");
-                if (newOrder.getSize() != 0)
+                if (newOrder.getSize() != 0) {
                     stock->second.insertLocalAsk(newOrder);
+                    cout << "Insert Ask" << endl;
+                }
                 break;
             }
             case Order::Type::CANCEL_BID: {
-                stock->second.doCancelBid(newOrder, "SHIFT");
+                stock->second.doLocalCancelBid(newOrder, "SHIFT");
                 std::cout << "Cancel Bid Done" << endl;
                 break;
             }
             case Order::Type::CANCEL_ASK: {
-                stock->second.doCancelAsk(newOrder, "SHIFT");
+                stock->second.doLocalCancelAsk(newOrder, "SHIFT");
                 std::cout << "Cancel Ask Done" << endl;
                 break;
             }

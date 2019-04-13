@@ -41,8 +41,8 @@ public:
     void doLimitSell(Order& newOrder, const std::string& destination);
     void doMarketBuy(Order& newOrder, const std::string& destination);
     void doMarketSell(Order& newOrder, const std::string& destination);
-    void doCancelBid(Order& newOrder, const std::string& destination);
-    void doCancelAsk(Order& newOrder, const std::string& destination);
+    void doLocalCancelBid(Order& newOrder, const std::string& destination);
+    void doLocalCancelAsk(Order& newOrder, const std::string& destination);
 
     void updateGlobalBids(const Order& order);
     void updateGlobalAsks(const Order& order);
