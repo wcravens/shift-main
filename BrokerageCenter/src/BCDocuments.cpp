@@ -235,7 +235,7 @@ void BCDocuments::onNewOrderForUserRiskManagement(const std::string& userID, Ord
 
 void BCDocuments::onNewExecutionReportForUserRiskManagement(const std::string& userID, ExecutionReport&& report)
 {
-    if ("TR" == userID)
+    if ("TRTH" == userID)
         return;
 
     std::lock_guard<std::mutex> guard(m_mtxRiskManagementByUserID);
