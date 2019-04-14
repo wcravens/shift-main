@@ -342,7 +342,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     // Add new quote to buffer
     auto stockIt = stockList.find(pSymbol->getValue());
     if (stockIt != stockList.end()) {
-        stockIt->second.bufNewLocalOrder(order);
+        stockIt->second.bufNewLocalOrder(std::move(order));
     } else {
         return;
     }

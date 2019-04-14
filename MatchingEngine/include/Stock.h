@@ -24,12 +24,12 @@ public:
     const std::string& getSymbol() const;
     void setSymbol(const std::string& symbol);
 
-    void bufNewGlobalOrder(const Order& order);
-    void bufNewLocalOrder(const Order& order);
-    bool getNextOrder(Order& nextOrder);
+    void bufNewGlobalOrder(Order&& newOrder);
+    void bufNewLocalOrder(Order&& newOrder);
+    bool getNextOrder(Order& orderRef);
 
-    void executeGlobalOrder(int size, Order& orderRef, char decision);
-    void executeLocalOrder(int size, Order& orderRef, char decision);
+    void executeGlobalOrder(Order& orderRef, int size, double price, char decision);
+    void executeLocalOrder(Order& orderRef, int size, double price, char decision);
 
     void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
     void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
@@ -40,8 +40,8 @@ public:
     void doGlobalLimitBuy(Order& orderRef);
     void doGlobalLimitSell(Order& orderRef);
 
-    void updateGlobalBids(const Order& newBestBid);
-    void updateGlobalAsks(const Order& newBestAsk);
+    void updateGlobalBids(Order newBestBid);
+    void updateGlobalAsks(Order newBestAsk);
 
     void doLocalLimitBuy(Order& orderRef);
     void doLocalLimitSell(Order& orderRef);
@@ -50,8 +50,8 @@ public:
     void doLocalCancelBid(Order& orderRef);
     void doLocalCancelAsk(Order& orderRef);
 
-    void insertLocalBid(const Order& order);
-    void insertLocalAsk(const Order& order);
+    void insertLocalBid(Order newBid);
+    void insertLocalAsk(Order newAsk);
 
 private:
     std::string m_symbol;

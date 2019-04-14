@@ -356,9 +356,9 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         order.setSize(static_cast<int>(pBidSize->getValue()));
         order.setType(Order::Type::TRTH_BID); // Update as "bid" from Global
 
-        stockIt->second.bufNewGlobalOrder(order2);
+        stockIt->second.bufNewGlobalOrder(std::move(order2));
     }
-    stockIt->second.bufNewGlobalOrder(order);
+    stockIt->second.bufNewGlobalOrder(std::move(order));
 
     if (prevCnt) { // > 1 threads
         delete pSymbol;
