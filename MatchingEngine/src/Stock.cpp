@@ -802,10 +802,6 @@ void Stock::doLocalCancelAsk(Order& orderRef)
 
 void Stock::insertLocalBid(const Order& order)
 {
-    // broadcast local order book update
-    orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, order.getPrice(), order.getSize(),
-        globalTimeSetting.simulationTimestamp());
-
     if (!m_localBids.empty()) {
         m_thisPriceLevel = m_localBids.begin();
 
@@ -824,33 +820,36 @@ void Stock::insertLocalBid(const Order& order)
             newPriceLevel.setSize(order.getSize());
             newPriceLevel.push_back(order);
 
-            m_localBids.insert(m_thisPriceLevel, newPriceLevel);
+            m_thisPriceLevel = m_localBids.insert(m_thisPriceLevel, newPriceLevel);
 
-        } else { // (m_thisPriceLevel == m_localBids.end())
+        } else { // m_thisPriceLevel == m_localBids.end()
             PriceLevel newPriceLevel;
             newPriceLevel.setPrice(order.getPrice());
             newPriceLevel.setSize(order.getSize());
             newPriceLevel.push_back(order);
 
             m_localBids.push_back(newPriceLevel);
+            m_thisPriceLevel = m_localBids.end();
+            --m_thisPriceLevel;
         }
 
-    } else {
+    } else { // m_localBids.empty()
         PriceLevel newPriceLevel;
         newPriceLevel.setPrice(order.getPrice());
         newPriceLevel.setSize(order.getSize());
         newPriceLevel.push_back(order);
 
         m_localBids.push_back(newPriceLevel);
+        m_thisPriceLevel = m_localBids.begin();
     }
+
+    // broadcast local order book update
+    orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
+        globalTimeSetting.simulationTimestamp());
 }
 
 void Stock::insertLocalAsk(const Order& order)
 {
-    // broadcast local order book update
-    orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, order.getPrice(), order.getSize(),
-        globalTimeSetting.simulationTimestamp());
-
     if (!m_localAsks.empty()) {
         m_thisPriceLevel = m_localAsks.begin();
 
@@ -869,23 +868,30 @@ void Stock::insertLocalAsk(const Order& order)
             newPriceLevel.setSize(order.getSize());
             newPriceLevel.push_back(order);
 
-            m_localAsks.insert(m_thisPriceLevel, newPriceLevel);
+            m_thisPriceLevel = m_localAsks.insert(m_thisPriceLevel, newPriceLevel);
 
-        } else { // (m_thisPriceLevel == m_localAsks.end())
+        } else { // m_thisPriceLevel == m_localAsks.end()
             PriceLevel newPriceLevel;
             newPriceLevel.setPrice(order.getPrice());
             newPriceLevel.setSize(order.getSize());
             newPriceLevel.push_back(order);
 
             m_localAsks.push_back(newPriceLevel);
+            m_thisPriceLevel = m_localAsks.end();
+            --m_thisPriceLevel;
         }
 
-    } else {
+    } else { // m_localAsks.empty()
         PriceLevel newPriceLevel;
         newPriceLevel.setPrice(order.getPrice());
         newPriceLevel.setSize(order.getSize());
         newPriceLevel.push_back(order);
 
         m_localAsks.push_back(newPriceLevel);
+        m_thisPriceLevel = m_localAsks.begin();
     }
+
+    // broadcast local order book update
+    orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
+        globalTimeSetting.simulationTimestamp());
 }
