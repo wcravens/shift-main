@@ -88,71 +88,74 @@ void inputConfigMode(std::string& date, std::string& stime, std::string& etime, 
 // Function to start one stock matching engine, for exchange thread
 void createStockMarket(std::string symbol)
 {
-    std::map<std::string, Stock>::iterator stock;
-    stock = stockList.find(symbol);
-    std::string askExchange = ""; // for modify global book update
-    std::string bidExchange = ""; // for modify global book update
-    double askPrice = 0; // for modify global book update
-    double bidPrice = 0; // for modify global book update
-    int askSize = 0; // for modify global book update
-    int bidSize = 0; // for modify global book update
+    auto stockIt = stockList.find(symbol);
+
+    Order nextOrder;
+    Order prevGlobalOrder;
 
     while (!timeout) { // process orders
-        Order nextOrder;
 
-        if (!stock->second.getNextOrder(nextOrder)) {
-            std::this_thread::sleep_for(50ms);
+        if (!stockIt->second.getNextOrder(nextOrder)) {
+            std::this_thread::sleep_for(10ms);
             continue;
+
         } else {
             switch (nextOrder.getType()) {
+
             case Order::Type::LIMIT_BUY: {
-                stock->second.doLocalLimitBuy(nextOrder);
+                stockIt->second.doLocalLimitBuy(nextOrder);
                 if (nextOrder.getSize() != 0) {
-                    stock->second.insertLocalBid(nextOrder);
+                    stockIt->second.insertLocalBid(nextOrder);
                     cout << "Insert Bid" << endl;
                 }
                 break;
             }
+
             case Order::Type::LIMIT_SELL: {
-                stock->second.doLocalLimitSell(nextOrder);
+                stockIt->second.doLocalLimitSell(nextOrder);
                 if (nextOrder.getSize() != 0) {
-                    stock->second.insertLocalAsk(nextOrder);
+                    stockIt->second.insertLocalAsk(nextOrder);
                     cout << "Insert Ask" << endl;
                 }
                 break;
             }
+
             case Order::Type::MARKET_BUY: {
-                stock->second.doLocalMarketBuy(nextOrder);
+                stockIt->second.doLocalMarketBuy(nextOrder);
                 if (nextOrder.getSize() != 0) {
-                    stock->second.insertLocalBid(nextOrder);
+                    stockIt->second.insertLocalBid(nextOrder);
                     cout << "Insert Bid" << endl;
                 }
                 break;
             }
+
             case Order::Type::MARKET_SELL: {
-                stock->second.doLocalMarketSell(nextOrder);
+                stockIt->second.doLocalMarketSell(nextOrder);
                 if (nextOrder.getSize() != 0) {
-                    stock->second.insertLocalAsk(nextOrder);
+                    stockIt->second.insertLocalAsk(nextOrder);
                     cout << "Insert Ask" << endl;
                 }
                 break;
             }
+
             case Order::Type::CANCEL_BID: {
-                stock->second.doLocalCancelBid(nextOrder);
+                stockIt->second.doLocalCancelBid(nextOrder);
                 std::cout << "Cancel Bid Done" << endl;
                 break;
             }
+
             case Order::Type::CANCEL_ASK: {
-                stock->second.doLocalCancelAsk(nextOrder);
+                stockIt->second.doLocalCancelAsk(nextOrder);
                 std::cout << "Cancel Ask Done" << endl;
                 break;
             }
+
             case Order::Type::TRTH_TRADE: {
-                stock->second.doLimitBuy(nextOrder);
-                stock->second.doLimitSell(nextOrder);
+                stockIt->second.doGlobalLimitBuy(nextOrder);
+                stockIt->second.doGlobalLimitSell(nextOrder);
                 if (nextOrder.getSize() != 0) {
                     auto now = globalTimeSetting.simulationTimestamp();
-                    stock->second.executionReports.push_back({ nextOrder.getSymbol(),
+                    stockIt->second.executionReports.push_back({ nextOrder.getSymbol(),
                         nextOrder.getPrice(),
                         nextOrder.getSize(),
                         "T1",
@@ -161,52 +164,48 @@ void createStockMarket(std::string symbol)
                         Order::Type::LIMIT_SELL,
                         "O1",
                         "O2",
-                        '5', // Decision '5' means this is a trade update from TRTH
+                        '5', // decision '5' means this is a trade update from TRTH
                         "TRTH",
                         now,
                         now });
                 }
                 break;
             }
+
             case Order::Type::TRTH_BID: {
-                if (nextOrder.getDestination() == bidExchange) {
-                    if (nextOrder.getPrice() == bidPrice && nextOrder.getSize() == bidSize) {
-                        break;
-                    }
+                // If same price, size, and destination, skip
+                if (nextOrder == prevGlobalOrder) {
+                    break;
                 }
-                bidExchange = nextOrder.getDestination();
-                bidPrice = nextOrder.getPrice();
-                bidSize = nextOrder.getSize();
-                stock->second.doLimitBuy(nextOrder);
+                prevGlobalOrder = nextOrder;
+                stockIt->second.doGlobalLimitBuy(nextOrder);
                 if (nextOrder.getSize() != 0)
-                    stock->second.updateGlobalBids(nextOrder);
+                    stockIt->second.updateGlobalBids(nextOrder);
                 break;
             }
+
             case Order::Type::TRTH_ASK: {
-                if (nextOrder.getDestination() == askExchange) {
-                    if (nextOrder.getPrice() == askPrice && nextOrder.getSize() == askSize) {
-                        break;
-                    }
+                // If same price, size, and destination, skip
+                if (nextOrder == prevGlobalOrder) {
+                    break;
                 }
-                askExchange = nextOrder.getDestination();
-                askPrice = nextOrder.getPrice();
-                askSize = nextOrder.getSize();
-                stock->second.doLimitSell(nextOrder);
+                prevGlobalOrder = nextOrder;
+                stockIt->second.doGlobalLimitSell(nextOrder);
                 if (nextOrder.getSize() != 0)
-                    stock->second.updateGlobalAsks(nextOrder);
+                    stockIt->second.updateGlobalAsks(nextOrder);
                 break;
             }
             }
 
-            for (const auto& report : stock->second.executionReports) {
+            for (const auto& report : stockIt->second.executionReports) {
                 FIXAcceptor::getInstance()->sendExecutionReport2All(report);
             }
-            stock->second.executionReports.clear();
+            stockIt->second.executionReports.clear();
 
-            for (const auto& entry : stock->second.orderBookUpdates) {
+            for (const auto& entry : stockIt->second.orderBookUpdates) {
                 FIXAcceptor::getInstance()->sendOrderBookUpdate2All(entry);
             }
-            stock->second.orderBookUpdates.clear();
+            stockIt->second.orderBookUpdates.clear();
         }
     }
 }

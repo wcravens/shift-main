@@ -19,8 +19,10 @@ public:
     };
 
     Order() = default;
-    Order(const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
+    Order(const std::string& symbol, double price, int size, Type type, const std::string& destination, const FIX::UtcTimeStamp& time);
     Order(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, Type type, const FIX::UtcTimeStamp& time);
+
+    bool operator==(const Order& other);
 
     // Getters
     const std::string& getSymbol() const;

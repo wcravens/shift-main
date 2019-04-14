@@ -337,8 +337,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         return;
     }
 
-    Order order{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()) / 100, pBuyerID->getValue(), pTransactTime->getValue() };
-    order.setType(Order::Type::TRTH_TRADE); // Update as "trade" from Global
+    Order order{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()) / 100, Order::Type::TRTH_TRADE, pBuyerID->getValue(), pTransactTime->getValue() };
 
     long mili = globalTimeSetting.pastMilli(pTransactTime->getValue());
     order.setMilli(mili);
@@ -351,8 +350,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         message.getGroup(2, *pIDGroup);
         pIDGroup->getField(*pSellerID);
 
-        Order order2{ pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), pSellerID->getValue(), pTransactTime->getValue() };
-        order2.setType(Order::Type::TRTH_ASK); // Update as "ask" from Global
+        Order order2{ pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), Order::Type::TRTH_ASK, pSellerID->getValue(), pTransactTime->getValue() };
         order2.setMilli(mili);
 
         order.setSize(static_cast<int>(pBidSize->getValue()));

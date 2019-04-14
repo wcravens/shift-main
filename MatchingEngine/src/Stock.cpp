@@ -212,190 +212,134 @@ void Stock::showLocalOrderBooks()
     output = ss.str();
 }
 
-void Stock::doLimitBuy(Order& orderRef)
+void Stock::doGlobalLimitBuy(Order& orderRef)
 {
     m_thisPriceLevel = m_localAsks.begin();
-    while (orderRef.getSize() != 0) {
-        if (m_thisPriceLevel == m_localAsks.end())
-            break;
-        if (m_thisPriceLevel->getPrice() <= orderRef.getPrice()) {
+
+    while ((m_thisPriceLevel != m_localAsks.end()) && (orderRef.getSize() != 0)) {
+
+        if (orderRef.getPrice() >= m_thisPriceLevel->getPrice()) {
             m_thisLocalOrder = m_thisPriceLevel->begin();
-            while (orderRef.getSize() != 0) {
-                if (m_thisLocalOrder == m_thisPriceLevel->end())
-                    break;
-                if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
-                    ++m_thisLocalOrder;
-                    continue;
-                }
-                int size = m_thisLocalOrder->getSize() - orderRef.getSize(); // compare the two sizes
+
+            while ((m_thisLocalOrder != m_thisPriceLevel->end()) && (orderRef.getSize() != 0)) {
+
+                // execute in local order book
+                int size = m_thisLocalOrder->getSize() - orderRef.getSize();
                 executeLocalOrder(size, orderRef, '2');
+
+                // remove executed order from local order book
                 if (size <= 0) {
                     m_thisLocalOrder = m_thisPriceLevel->erase(m_thisLocalOrder);
                 }
             }
+
+        } else {
+            break;
         }
 
+        // broadcast local order book update
         orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-            globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
+            globalTimeSetting.simulationTimestamp());
 
+        // remove empty price level from local order book
         if (m_thisPriceLevel->empty()) {
             m_thisPriceLevel = m_localAsks.erase(m_thisPriceLevel);
-        } else
-            ++m_thisPriceLevel;
+        }
     }
 }
 
-void Stock::doLimitSell(Order& orderRef)
+void Stock::doGlobalLimitSell(Order& orderRef)
 {
     m_thisPriceLevel = m_localBids.begin();
-    while (orderRef.getSize() != 0) {
-        if (m_thisPriceLevel == m_localBids.end())
-            break;
-        if (m_thisPriceLevel->getPrice() >= orderRef.getPrice()) {
+
+    while ((m_thisPriceLevel != m_localBids.end()) && (orderRef.getSize() != 0)) {
+
+        if (orderRef.getPrice() <= m_thisPriceLevel->getPrice()) {
             m_thisLocalOrder = m_thisPriceLevel->begin();
-            while (orderRef.getSize() != 0) {
-                if (m_thisLocalOrder == m_thisPriceLevel->end())
-                    break;
-                if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
-                    ++m_thisLocalOrder;
-                    continue;
-                }
-                int size = m_thisLocalOrder->getSize() - orderRef.getSize(); // compare the two sizes
+
+            while ((m_thisLocalOrder != m_thisPriceLevel->end()) && (orderRef.getSize() != 0)) {
+
+                // execute in local order book
+                int size = m_thisLocalOrder->getSize() - orderRef.getSize();
                 executeLocalOrder(size, orderRef, '2');
+
+                // remove executed order from local order book
                 if (size <= 0) {
                     m_thisLocalOrder = m_thisPriceLevel->erase(m_thisLocalOrder);
                 }
             }
+        } else {
+            break;
         }
 
+        // broadcast local order book update
         orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-            globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
+            globalTimeSetting.simulationTimestamp());
 
+        // remove empty price level from local order book
         if (m_thisPriceLevel->empty()) {
             m_thisPriceLevel = m_localBids.erase(m_thisPriceLevel);
-        } else
-            ++m_thisPriceLevel;
-    }
-}
-
-void Stock::doMarketBuy(Order& orderRef)
-{
-    m_thisPriceLevel = m_localAsks.begin();
-    while (orderRef.getSize() != 0) {
-        if (m_thisPriceLevel == m_localAsks.end())
-            break;
-        m_thisLocalOrder = m_thisPriceLevel->begin();
-        while (orderRef.getSize() != 0) {
-            if (m_thisLocalOrder == m_thisPriceLevel->end())
-                break;
-            if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
-                ++m_thisLocalOrder;
-                continue;
-            }
-            int size = m_thisLocalOrder->getSize() - orderRef.getSize(); // compare the two sizes
-            executeLocalOrder(size, orderRef, '2');
-            if (size <= 0) {
-                m_thisLocalOrder = m_thisPriceLevel->erase(m_thisLocalOrder);
-            }
         }
-
-        orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-            globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
-
-        if (m_thisPriceLevel->empty()) {
-            m_thisPriceLevel = m_localAsks.erase(m_thisPriceLevel);
-        } else
-            ++m_thisPriceLevel;
     }
 }
 
-void Stock::doMarketSell(Order& orderRef)
+void Stock::updateGlobalBids(const Order& newBestBid)
 {
-    m_thisPriceLevel = m_localBids.begin();
-    while (orderRef.getSize() != 0) {
-        if (m_thisPriceLevel == m_localBids.end())
-            break;
-        m_thisLocalOrder = m_thisPriceLevel->begin();
-        while (orderRef.getSize() != 0) {
-            if (m_thisLocalOrder == m_thisPriceLevel->end())
-                break;
-            if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
-                ++m_thisLocalOrder;
-                continue;
-            }
-            int size = m_thisLocalOrder->getSize() - orderRef.getSize(); // compare the two sizes
-            executeLocalOrder(size, orderRef, '2');
-            if (size <= 0) {
-                m_thisLocalOrder = m_thisPriceLevel->erase(m_thisLocalOrder);
-            }
-        }
+    // broadcast global order book update
+    orderBookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, newBestBid.getPrice(), newBestBid.getSize(),
+        newBestBid.getDestination(), globalTimeSetting.simulationTimestamp());
 
-        orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-            globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
-
-        if (m_thisPriceLevel->empty()) {
-            m_thisPriceLevel = m_localBids.erase(m_thisPriceLevel);
-        } else
-            ++m_thisPriceLevel;
-    }
-}
-
-void Stock::updateGlobalBids(const Order& order)
-{
-    orderBookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, order.getPrice(), order.getSize(),
-        order.getDestination(), globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
     m_thisGlobalOrder = m_globalBids.begin();
-    while (!m_globalBids.empty()) {
-        if (m_thisGlobalOrder == m_globalBids.end()) {
-            m_globalBids.push_back(order);
-            break;
-        } else if (m_thisGlobalOrder->getPrice() > order.getPrice()) {
-            std::list<Order>::iterator it;
-            it = m_thisGlobalOrder;
-            ++m_thisGlobalOrder;
-            m_globalBids.erase(it);
-        } else if (m_thisGlobalOrder->getPrice() == order.getPrice()) {
-            if (m_thisGlobalOrder->getDestination() == order.getDestination()) {
-                m_thisGlobalOrder->setSize(order.getSize());
-                break;
-            } else
-                m_thisGlobalOrder++;
-        } else if (m_thisGlobalOrder->getPrice() < order.getPrice()) {
-            m_globalBids.insert(m_thisGlobalOrder, order);
-            break;
+
+    while (m_thisGlobalOrder != m_globalBids.end()) {
+
+        if (newBestBid.getPrice() < m_thisGlobalOrder->getPrice()) {
+            m_thisGlobalOrder = m_globalBids.erase(m_thisGlobalOrder);
+
+        } else if (newBestBid.getPrice() == m_thisGlobalOrder->getPrice()) {
+            if (newBestBid.getDestination() == m_thisGlobalOrder->getDestination()) {
+                m_thisGlobalOrder->setSize(newBestBid.getSize());
+                return;
+            } else {
+                ++m_thisGlobalOrder;
+            }
+
+        } else if (newBestBid.getPrice() > m_thisGlobalOrder->getPrice()) {
+            m_globalBids.insert(m_thisGlobalOrder, newBestBid);
+            return;
         }
     }
-    if (m_globalBids.empty())
-        m_globalBids.push_back(order);
+
+    m_globalBids.push_back(newBestBid);
 }
 
-void Stock::updateGlobalAsks(const Order& order)
+void Stock::updateGlobalAsks(const Order& newBestAsk)
 {
-    orderBookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, order.getPrice(), order.getSize(),
-        order.getDestination(), globalTimeSetting.simulationTimestamp()); // update the new price for broadcasting
+    // broadcast global order book update
+    orderBookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, newBestAsk.getPrice(), newBestAsk.getSize(),
+        newBestAsk.getDestination(), globalTimeSetting.simulationTimestamp());
+
     m_thisGlobalOrder = m_globalAsks.begin();
-    while (!m_globalAsks.empty()) {
-        if (m_thisGlobalOrder == m_globalAsks.end()) {
-            m_globalAsks.push_back(order);
-            break;
-        } else if (m_thisGlobalOrder->getPrice() < order.getPrice()) {
-            std::list<Order>::iterator it;
-            it = m_thisGlobalOrder;
-            ++m_thisGlobalOrder;
-            m_globalAsks.erase(it);
-        } else if (m_thisGlobalOrder->getPrice() == order.getPrice()) {
-            if (m_thisGlobalOrder->getDestination() == order.getDestination()) {
-                m_thisGlobalOrder->setSize(order.getSize());
-                break;
-            } else
-                m_thisGlobalOrder++;
-        } else if (m_thisGlobalOrder->getPrice() > order.getPrice()) {
-            m_globalAsks.insert(m_thisGlobalOrder, order);
-            break;
+
+    while (m_thisGlobalOrder != m_globalAsks.end()) {
+        if (newBestAsk.getPrice() > m_thisGlobalOrder->getPrice()) {
+            m_thisGlobalOrder = m_globalAsks.erase(m_thisGlobalOrder);
+
+        } else if (newBestAsk.getPrice() == m_thisGlobalOrder->getPrice()) {
+            if (newBestAsk.getDestination() == m_thisGlobalOrder->getDestination()) {
+                m_thisGlobalOrder->setSize(newBestAsk.getSize());
+                return;
+            } else {
+                ++m_thisGlobalOrder;
+            }
+
+        } else if (newBestAsk.getPrice() < m_thisGlobalOrder->getPrice()) {
+            m_globalAsks.insert(m_thisGlobalOrder, newBestAsk);
+            return;
         }
     }
-    if (m_globalAsks.empty())
-        m_globalAsks.push_back(order);
+
+    m_globalAsks.push_back(newBestAsk);
 }
 
 void Stock::doLocalLimitBuy(Order& orderRef)

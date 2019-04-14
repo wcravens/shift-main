@@ -1,12 +1,12 @@
 #include "Order.h"
 
-Order::Order(const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
+Order::Order(const std::string& symbol, double price, int size, Order::Type type, const std::string& destination, const FIX::UtcTimeStamp& time)
     : m_symbol(symbol)
     , m_traderID("TRTH")
     , m_orderID("TRTH")
     , m_price(price)
     , m_size(size)
-    , m_type(Order::Type::LIMIT_BUY)
+    , m_type(type)
     , m_destination(destination)
     , m_time(time)
 {
@@ -22,6 +22,17 @@ Order::Order(const std::string& symbol, const std::string& traderID, const std::
     , m_destination("SHIFT")
     , m_time(time)
 {
+}
+
+bool Order::operator==(const Order& other)
+{
+    return m_symbol == other.m_symbol
+        && m_traderID == other.m_traderID
+        && m_orderID == other.m_orderID
+        && m_price == other.m_price
+        && m_size == other.m_size
+        && m_type == other.m_type
+        && m_destination == other.m_destination;
 }
 
 const std::string& Order::getSymbol() const

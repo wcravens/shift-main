@@ -37,13 +37,11 @@ public:
     void showGlobalOrderBooks();
     void showLocalOrderBooks();
 
-    void doLimitBuy(Order& orderRef);
-    void doLimitSell(Order& orderRef);
-    void doMarketBuy(Order& orderRef);
-    void doMarketSell(Order& orderRef);
+    void doGlobalLimitBuy(Order& orderRef);
+    void doGlobalLimitSell(Order& orderRef);
 
-    void updateGlobalBids(const Order& order);
-    void updateGlobalAsks(const Order& order);
+    void updateGlobalBids(const Order& newBestBid);
+    void updateGlobalAsks(const Order& newBestAsk);
 
     void doLocalLimitBuy(Order& orderRef);
     void doLocalLimitSell(Order& orderRef);
