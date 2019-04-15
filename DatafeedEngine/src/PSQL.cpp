@@ -200,7 +200,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
     std::getline(file, line);
 
     while (true) {
-        std::string pqQuery = "INSERT INTO " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_recordFormat;
+        std::string pqQuery = "INSERT INTO " + tableName + " (" + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_recordFormat + ") VALUES ";
         size_t nVals = 0;
 
         while (nVals < 1e4 && std::getline(file, line)) { // reached one-time insertion limit?
@@ -375,9 +375,8 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
     if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return false;
 
-    const std::string csTQRecFmt = shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_recordFormat;
     std::string pqQuery;
-    pqQuery += "DECLARE data CURSOR FOR SELECT " + csTQRecFmt.substr(csTQRecFmt.find('(') + 1, csTQRecFmt.rfind(')') - csTQRecFmt.find('(') - 1) + " FROM ";
+    pqQuery += "DECLARE data CURSOR FOR SELECT " + std::string(shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_recordFormat) + " FROM ";
     pqQuery += table_name;
     pqQuery += " WHERE reuters_time > '";
     pqQuery += stime;
