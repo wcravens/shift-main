@@ -58,6 +58,9 @@ CMakeLists.txt.user*
 *.log
 *.sqlite
 
+# Temporary files
+*loginCredential.php
+
 # OS generated files
 .DS_Store
 .DS_Store?
