@@ -50,6 +50,7 @@ public:
     ~CandlePlot();
     void setInterval(long long interval);
     void clearData(QString symbol);
+    bool isDataReady(const QString &symbol);
     void updateXAxis(long long time);
 
 public slots:
