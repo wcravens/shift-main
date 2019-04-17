@@ -36,7 +36,6 @@ CandlestickData::CandlestickData()
 
 CandlestickData::CandlestickData(const std::string& symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
     : m_symbol(symbol)
-    , m_lastPrice(currPrice)
     , m_lastOpenPrice(currOpenPrice)
     , m_lastClosePrice(currClosePrice)
     , m_lastHighPrice(currHighPrice)
@@ -131,47 +130,50 @@ void CandlestickData::process()
         m_transacBuff.pop();
         lock.unlock(); // now it's safe to access the front element because the list contains at least 2 elements
 
-        const auto lastSimulTime = transac.simulationTime.getTimeT(); // simulTime in nano-seconds => in seconds; == tick history start timepoint + elapsed simulation duration; see MatchingEngine/src/TimeSetting.cpp for the details.
+        const auto currSimulTime = transac.simulationTime.getTimeT(); // simulTime in nano-seconds => in seconds; == tick history start timepoint + elapsed simulation duration; see MatchingEngine/src/TimeSetting.cpp for the details.
 
         if (std::time_t{} == m_lastOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup state ?
             m_symbol = std::move(transac.symbol);
 
-            m_lastPrice
-                = m_lastOpenPrice
+            m_lastOpenPrice
                 = m_lastClosePrice
                 = m_lastHighPrice
                 = m_lastLowPrice
                 = transac.price;
 
-            m_lastOpenTime = lastSimulTime;
+            m_lastOpenTime = currSimulTime;
 
             continue;
         }
 
-        const auto timeGapInSeconds = lastSimulTime - m_lastOpenTime;
+        const auto numGappedSticks = (currSimulTime - m_lastOpenTime) / ::NUM_SECONDS_PER_CANDLESTICK;
 
-        if (timeGapInSeconds >= 1) {
-            // send data of every "stalled" simulation second between [m_lastOpenTime, lastSimulTime - 1)
-            for (int cnt = 0; cnt < timeGapInSeconds - 1; cnt++) {
+        // elapsed at least one candlestick ?:
+        if (numGappedSticks >= 1) {
+            // send data of every "stalled" preceeding candlesticks, except last one:
+            for (int cnt = 0; cnt < numGappedSticks - 1; cnt++) {
                 CandlestickDataPoint cdPoint(m_symbol, m_lastClosePrice, m_lastClosePrice, m_lastClosePrice, m_lastClosePrice, m_lastOpenTime);
 
                 sendPoint(cdPoint);
                 writeCandlestickDataHistory(cdPoint);
 
-                m_lastOpenTime++;
+                m_lastOpenTime += ::NUM_SECONDS_PER_CANDLESTICK;
             }
 
+            // for last one:
             CandlestickDataPoint cdPoint(m_symbol, m_lastOpenPrice, m_lastClosePrice, m_lastHighPrice, m_lastLowPrice, m_lastOpenTime);
             sendPoint(cdPoint);
             writeCandlestickDataHistory(cdPoint);
 
+            // initialize for the upcoming new candlestick
             m_lastOpenPrice = m_lastHighPrice = m_lastLowPrice = m_lastClosePrice;
-            m_lastOpenTime = lastSimulTime;
+            m_lastOpenTime = currSimulTime;
         }
 
-        m_lastClosePrice = m_lastPrice = transac.price;
-        m_lastHighPrice = std::max(m_lastPrice, m_lastHighPrice);
-        m_lastLowPrice = std::min(m_lastPrice, m_lastLowPrice);
+        // within this new candlestick:
+        m_lastClosePrice = transac.price;
+        m_lastHighPrice = std::max(m_lastClosePrice, m_lastHighPrice);
+        m_lastLowPrice = std::min(m_lastClosePrice, m_lastLowPrice);
     }
 }
 

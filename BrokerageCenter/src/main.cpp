@@ -23,8 +23,6 @@
 #include <shift/miscutils/terminal/Common.h>
 #include <shift/miscutils/terminal/Options.h>
 
-using namespace std::chrono_literals;
-
 /* PROGRAM OPTIONS */
 #define CSTR_HELP \
     "help"
@@ -67,7 +65,7 @@ static void s_broadcastOrderBooks()
 {
     while (::s_isBroadcasting) {
         // broadcast the full order book of every stock every 1min (forcing a refresh in the client side)
-        std::this_thread::sleep_for(1min);
+        std::this_thread::sleep_for(::BROADCAST_ORDERBOOK_PERIOD);
         BCDocuments::getInstance()->broadcastOrderBooks();
     }
 }

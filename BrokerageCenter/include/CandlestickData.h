@@ -34,7 +34,6 @@ public:
 
 private:
     std::string m_symbol;
-    double m_lastPrice;
     double m_lastOpenPrice;
     double m_lastClosePrice;
     double m_lastHighPrice;

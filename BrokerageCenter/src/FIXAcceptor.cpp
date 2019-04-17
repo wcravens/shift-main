@@ -734,7 +734,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     pIDGroup->get(*pUserID);
 
     auto usernames = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT username FROM traders WHERE id = '" + pUserID->getValue() + "';"));
-    synchPrint(COLOR_PROMPT "--------------------------------------\n" NO_COLOR "Order ID: "
+    synchPrint(COLOR_PROMPT "--------------------------------------\n\n" NO_COLOR "Order ID: "
         + pOrderID->getValue()
         + "\nUsername: " + (usernames.size() ? usernames[0] : std::string("[???]")) + " (" + pUserID->getValue() + ')'
         + "\n\tType: " + Order::s_typeToString(static_cast<Order::Type>(pOrderType->getValue()))

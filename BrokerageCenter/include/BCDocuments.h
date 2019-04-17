@@ -5,6 +5,7 @@
 #include "Order.h"
 #include "OrderBook.h"
 #include "OrderBookEntry.h"
+#include "Parameters.h"
 #include "RiskManagement.h"
 #include "Transaction.h"
 

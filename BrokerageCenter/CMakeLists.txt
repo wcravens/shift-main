@@ -45,6 +45,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/TokenPool.h
     ${PROJECT_SOURCE_DIR}/include/TradingRecord.h
     ${PROJECT_SOURCE_DIR}/include/Transaction.h
+    ${PROJECT_SOURCE_DIR}/include/Parameters.h
     )
 
 set(SRC

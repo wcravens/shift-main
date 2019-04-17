@@ -268,9 +268,8 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
         5);
 
     if (summary.empty()) { // no expected user's uuid found in the summary table, therefore use a default summary?
-        constexpr auto DEFAULT_BUYING_POWER = 1e6;
         DBConnector::getInstance()->doQuery("INSERT INTO portfolio_summary (id, buying_power) VALUES ('" + userID + "'," + std::to_string(DEFAULT_BUYING_POWER) + ");", "");
-        rmPtr.reset(new RiskManagement(userID, DEFAULT_BUYING_POWER));
+        rmPtr.reset(new RiskManagement(userID, ::DEFAULT_BUYING_POWER));
     } else // explicitly parameterize the summary
         rmPtr.reset(new RiskManagement(userID, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
 
