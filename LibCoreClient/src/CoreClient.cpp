@@ -110,13 +110,9 @@ void shift::CoreClient::submitCancellation(shift::Order order)
         return;
     }
 
-    if (order.getType() == shift::Order::MARKET_BUY || order.getType() == shift::Order::MARKET_SELL) {
-        return;
-    }
-
-    if (order.getType() == shift::Order::LIMIT_BUY) {
+    if ((order.getType() == shift::Order::LIMIT_BUY) || (order.getType() == shift::Order::MARKET_BUY)) {
         order.setType(shift::Order::CANCEL_BID);
-    } else if (order.getType() == shift::Order::LIMIT_SELL) {
+    } else if ((order.getType() == shift::Order::LIMIT_SELL) || (order.getType() == shift::Order::MARKET_SELL)) {
         order.setType(shift::Order::CANCEL_ASK);
     }
 
