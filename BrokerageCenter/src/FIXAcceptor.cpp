@@ -680,24 +680,24 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     }
 
     static FIX::ClOrdID orderID;
-    static FIX::Symbol symbol;
-    static FIX::OrderQty size;
+    static FIX::Symbol orderSymbol;
+    static FIX::OrderQty orderSize;
     static FIX::OrdType orderType;
-    static FIX::Price price;
+    static FIX::Price orderPrice;
 
-    static FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    static FIX::PartyID userID;
+    static FIX50SP2::NewOrderSingle::NoPartyIDs orderIDGroup;
+    static FIX::PartyID orderUserID;
 
     // #pragma GCC diagnostic ignored ....
 
     FIX::ClOrdID* pOrderID;
-    FIX::Symbol* pSymbol;
-    FIX::OrderQty* pSize;
+    FIX::Symbol* pOrderSymbol;
+    FIX::OrderQty* pOrderSize;
     FIX::OrdType* pOrderType;
-    FIX::Price* pPrice;
+    FIX::Price* pOrderPrice;
 
-    FIX50SP2::NewOrderSingle::NoPartyIDs* pIDGroup;
-    FIX::PartyID* pUserID;
+    FIX50SP2::NewOrderSingle::NoPartyIDs* pOrderIDGroup;
+    FIX::PartyID* pOrderUserID;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
@@ -708,103 +708,95 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 
     if (0 == prevCnt) { // sequential case; optimized:
         pOrderID = &orderID;
-        pSymbol = &symbol;
-        pSize = &size;
+        pOrderSymbol = &orderSymbol;
+        pOrderSize = &orderSize;
         pOrderType = &orderType;
-        pPrice = &price;
-        pIDGroup = &idGroup;
-        pUserID = &userID;
+        pOrderPrice = &orderPrice;
+        pOrderIDGroup = &orderIDGroup;
+        pOrderUserID = &orderUserID;
     } else { // > 1 threads; always safe way:
         pOrderID = new decltype(orderID);
-        pSymbol = new decltype(symbol);
-        pSize = new decltype(size);
+        pOrderSymbol = new decltype(orderSymbol);
+        pOrderSize = new decltype(orderSize);
         pOrderType = new decltype(orderType);
-        pPrice = new decltype(price);
-        pIDGroup = new decltype(idGroup);
-        pUserID = new decltype(userID);
+        pOrderPrice = new decltype(orderPrice);
+        pOrderIDGroup = new decltype(orderIDGroup);
+        pOrderUserID = new decltype(orderUserID);
     }
 
     message.get(*pOrderID);
-    message.get(*pSymbol);
-    message.get(*pSize);
+    message.get(*pOrderSymbol);
+    message.get(*pOrderSize);
     message.get(*pOrderType);
-    message.get(*pPrice);
+    message.get(*pOrderPrice);
 
-    message.getGroup(1, *pIDGroup);
-    pIDGroup->get(*pUserID);
+    message.getGroup(1, *pOrderIDGroup);
+    pOrderIDGroup->get(*pOrderUserID);
 
-    auto usernames = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT username FROM traders WHERE id = '" + pUserID->getValue() + "';"));
-    synchPrint(COLOR_PROMPT "--------------------------------------\n\n" NO_COLOR "Order ID: "
-        + pOrderID->getValue()
-        + "\nUsername: " + (usernames.size() ? usernames[0] : std::string("[???]")) + " (" + pUserID->getValue() + ')'
-        + "\n\tType: " + Order::s_typeToString(static_cast<Order::Type>(pOrderType->getValue()))
-        + "\n\tSymbol: " + pSymbol->getValue()
-        + "\n\tSize: " + std::to_string(static_cast<int>(pSize->getValue()))
-        + "\n\tPrice: " + std::to_string(pPrice->getValue()) + '\n');
-
-    // Order validation
-    const auto type = static_cast<Order::Type>(pOrderType->getValue());
-    int sizeInt = static_cast<int>(pSize->getValue());
-
-    if (pOrderID->getLength() == 0) {
-        cout << "orderID is empty" << endl;
-        return;
-    }
-
-    if (pUserID->getLength() == 0) {
-        cout << "userID is empty" << endl;
-        return;
-    } else if (::STDSTR_NULL == BCDocuments::getInstance()->getTargetIDByUserID(pUserID->getValue())) {
-        cout << COLOR_ERROR "This user [" << pUserID->getValue() << "] is not register in the BrokerageCenter" NO_COLOR << endl;
-        return;
-    }
-
-    if (::isblank(static_cast<int>(type))) {
-        cout << "type is empty" << endl;
-        return;
-    }
-
-    if (pSymbol->getLength() == 0) {
-        cout << "symbol is empty" << endl;
-        return;
-    } else if (!BCDocuments::getInstance()->hasSymbol(pSymbol->getValue())) {
-        cout << COLOR_ERROR "This symbol is not register in the Brokerage Center" NO_COLOR << endl;
-        return;
-    }
-
-    if (sizeInt <= 0) {
-        cout << "size is empty" << endl;
-        return;
-    }
-
-    if (pPrice->getValue() < 0.0) {
-        cout << "price is empty" << endl;
-        return;
-    }
-
-    Order order{
-        type,
-        pSymbol->getValue(),
-        sizeInt,
-        pPrice->getValue(),
-        pOrderID->getValue(),
-        pUserID->getValue()
-    };
-
-    BCDocuments::getInstance()->onNewOrderForUserRiskManagement(pUserID->getValue(), std::move(order));
+    std::string id = pOrderID->getValue();
+    std::string symbol = pOrderSymbol->getValue();
+    int size = static_cast<int>(pOrderSize->getValue());
+    auto type = static_cast<Order::Type>(pOrderType->getValue());
+    double price = pOrderPrice->getValue();
+    std::string userID = pOrderUserID->getValue();
 
     if (prevCnt) { // > 1 threads
         delete pOrderID;
-        delete pSymbol;
-        delete pSize;
+        delete pOrderSymbol;
+        delete pOrderSize;
         delete pOrderType;
-        delete pPrice;
-        delete pIDGroup;
-        delete pUserID;
+        delete pOrderPrice;
+        delete pOrderIDGroup;
+        delete pOrderUserID;
     }
 
     s_cntAtom--;
     assert(s_cntAtom >= 0);
+
+    bool success = true;
+
+    if (id.empty()
+        || symbol.empty()
+        || (size <= 0)
+        || (Order::s_typeToString(type) == "UNKNOWN")
+        || (price < 0.0) // market orders have price == 0.0
+        || userID.empty()) {
+        success = false;
+    } else if (!BCDocuments::getInstance()->hasSymbol(symbol)) {
+        cout << COLOR_ERROR "This symbol is not registered in the Brokerage Center" NO_COLOR << endl;
+        success = false;
+    } else if (BCDocuments::getInstance()->getTargetIDByUserID(userID) == ::STDSTR_NULL) {
+        cout << COLOR_ERROR "This user [" << userID << "] is not registered in the BrokerageCenter" NO_COLOR << endl;
+        success = false;
+    }
+
+    auto usernames = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT username FROM traders WHERE id = '" + userID + "';"));
+    synchPrint(COLOR_PROMPT "--------------------------------------\n\n" NO_COLOR "Order ID: "
+        + id
+        + "\nUsername: " + (usernames.size() ? usernames[0] : std::string("[???]")) + " (" + userID + ')'
+        + "\n\tType: " + Order::s_typeToString(type)
+        + "\n\tSymbol: " + symbol
+        + "\n\tSize: " + std::to_string(size)
+        + "\n\tPrice: " + std::to_string(price) + '\n'
+        + "\n\tSuccess: " + (success ? "True" : "False") + '\n');
+
+    if (success) {
+        Order order{ type, symbol, size, price, id, userID };
+        BCDocuments::getInstance()->onNewOrderForUserRiskManagement(userID, std::move(order));
+    } else {
+        ExecutionReport report{
+            userID,
+            id,
+            type,
+            symbol,
+            size,
+            0, // executed size
+            price,
+            Order::Status::REJECTED,
+            "BC" // destination (rejected at the Brokerage Center)
+        };
+        FIXAcceptor::getInstance()->sendConfirmationReport(report);
+    }
 }
 
 #undef SHOW_FROMAPP_MSG

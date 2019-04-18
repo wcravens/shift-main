@@ -17,7 +17,7 @@ Order::Type Order::getType() const
     return m_type;
 }
 
-/*static*/ const char* Order::s_typeToString(Type type)
+/*static*/ const std::string Order::s_typeToString(Type type)
 {
     switch (type) {
     case Type::LIMIT_BUY:

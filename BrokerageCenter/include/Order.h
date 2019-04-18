@@ -32,7 +32,7 @@ struct Order {
     Order(Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& userID);
 
     Type getType() const;
-    static const char* s_typeToString(Type type);
+    static const std::string s_typeToString(Type type);
     const std::string& getSymbol() const;
     int getSize() const;
     int getExecutedSize() const;
