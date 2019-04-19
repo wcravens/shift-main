@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-inline double shift::Order::s_decimalTruncate(double value, int precision)
+/* static */ inline double shift::Order::s_decimalTruncate(double value, int precision)
 {
     return std::trunc(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
 }
