@@ -3,6 +3,7 @@
 #include "FIXAcceptor.h"
 #include "RawData.h"
 
+#include <cmath>
 #include <ctime>
 #include <iomanip>
 
@@ -41,6 +42,11 @@
 /* static */ inline std::string PSQL::s_createTableName(const std::string& symbol, const std::string& yyyymmdd)
 {
     return symbol + '_' + yyyymmdd;
+}
+
+/* static */ inline double PSQL::s_decimalTruncate(double value, int precision)
+{
+    return std::trunc(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -442,6 +448,14 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
         rawData.sellerID = PQgetvalue(pRes, i, VAL_IDX::SELLER_ID);
         rawData.askPrice = std::strtod(PQgetvalue(pRes, i, VAL_IDX::ASK_PRICE), &pCh);
         rawData.askSize = std::atoi(PQgetvalue(pRes, i, VAL_IDX::ASK_SIZE));
+
+        if (rawData.toq.front() == 'T') {
+            if (rawData.volume < 100) {
+                continue;
+            }
+            rawData.price = s_decimalTruncate(rawData.price, 2);
+            rawData.volume /= 100; // this is and *should be* an int division
+        }
 
         FIXAcceptor::sendRawData(targetID, rawData);
     }

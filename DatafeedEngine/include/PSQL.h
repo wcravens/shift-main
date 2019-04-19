@@ -23,8 +23,7 @@ public:
 
     static std::string s_createTableName(const std::string& symbol, const std::string& yyyymmdd);
 
-    /*@brief Convert FIX::UtcTimeStamp to string used for date field in DB*/
-    static std::string s_utcToString(const FIX::UtcTimeStamp& utc, bool localTime = false);
+    static double s_decimalTruncate(double value, int precision);
 
     /*@brief Locker for SQL transactions. It also provides a simpler syntax to lock. */
     std::unique_lock<std::mutex> lockPSQL();
