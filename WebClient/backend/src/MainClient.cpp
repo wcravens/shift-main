@@ -247,7 +247,7 @@ void MainClient::sendDBLoginToFront(const std::string& cryptoKey, const std::str
 {
     auto login = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
     std::ostringstream out;
-    out << "{\"category\": \"loginCredential\", \"data\":"
+    out << "{\"category\": \"loginCredentials\", \"data\":"
         << "{\"data\": "
         << "\" <?php"
         << "    $db_config['dsn'] = '" << login["host"] << ";dbname=" << login["dbname"] << "';"

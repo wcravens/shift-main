@@ -59,7 +59,7 @@ CMakeLists.txt.user*
 *.sqlite
 
 # Temporary files
-*loginCredential.php
+*loginCredentials.php
 
 # OS generated files
 .DS_Store
