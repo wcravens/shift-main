@@ -65,10 +65,6 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/RiskManagement.cpp
 )
 
-set(OTHER
-    ${PROJECT_SOURCE_DIR}/debug.sh
-)
-
 ### Compiler Flags ############################################################
 
 # C++14

@@ -46,10 +46,6 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/PriceLevel.cpp
 )
 
-set(OTHER
-    ${PROJECT_SOURCE_DIR}/debug.sh
-)
-
 ### Compiler Flags ############################################################
 
 # C++14

@@ -52,10 +52,6 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/TimeSetting.cpp
 )
 
-set(OTHER
-    ${PROJECT_SOURCE_DIR}/debug.sh
-)
-
 ### Compiler Flags ############################################################
 
 # C++14
