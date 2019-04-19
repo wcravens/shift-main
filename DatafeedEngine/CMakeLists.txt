@@ -127,7 +127,7 @@ if(NOT LIBMISCUTILS)
 endif(NOT LIBMISCUTILS)
 
 add_executable(${PROJECT_NAME}
-               ${CONFIG} ${CONFIGDEFAULT} ${INCLUDE} ${SRC} ${OTHER})
+               ${CONFIG} ${CONFIGDEFAULT} ${INCLUDE} ${SRC})
 
 target_include_directories(${PROJECT_NAME}
                            PRIVATE ${CMAKE_PREFIX_PATH}/include
