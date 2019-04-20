@@ -35,7 +35,7 @@ double shift::PortfolioItem::getPrice() const
 {
     if (getShares() == 0) {
         return 0.0;
-    } else if (getShares() > 0.0) {
+    } else if (getShares() > 0) {
         return m_longPrice;
     } else {
         return m_shortPrice;

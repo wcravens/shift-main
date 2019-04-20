@@ -1,11 +1,13 @@
 #include "CoreClient.h"
 
+#include "BestPrice.h"
 #include "FIXInitiator.h"
 
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <thread>
+#include <unordered_map>
 
 #ifdef _WIN32
 #include <terminal/Common.h>
@@ -668,25 +670,17 @@ void shift::CoreClient::storeWaitingList(std::vector<shift::Order>&& waitingList
 void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)
 {
     unsigned int ready = 0;
-    double price = 0.0;
-    std::map<std::string, double> lastPrice;
-    std::map<std::string, double> bestBid;
-    std::map<std::string, double> bestAsk;
+    BestPrice bp;
+    std::unordered_map<std::string, double> lastPrice;
+    std::unordered_map<std::string, double> bestBid;
+    std::unordered_map<std::string, double> bestAsk;
 
+    // Wait until first prices are available
     while (ready != symbols.size()) {
         ready = 0;
         for (const std::string& sym : symbols) {
-            // Last price
-            price = getLastPrice(sym);
-            lastPrice[sym] = (price == 0.0) ? lastPrice[sym] : price;
-
-            // Mid price
-            price = getBestPrice(sym).getBidPrice();
-            bestBid[sym] = (price == 0.0) ? bestBid[sym] : price;
-            price = getBestPrice(sym).getAskPrice();
-            bestAsk[sym] = (price == 0.0) ? bestAsk[sym] : price;
-
-            if (lastPrice[sym] != 0.0 && bestBid[sym] != 0.0 && bestAsk[sym] != 0.0) { // Wait until first prices are available
+            lastPrice[sym] = getLastPrice(sym);
+            if (lastPrice[sym] > 0.0) {
                 ready++;
             }
         }
@@ -696,14 +690,12 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
     while (symbols.begin() != symbols.end()) {
         for (const std::string& sym : symbols) {
             // Last price
-            price = getLastPrice(sym);
-            lastPrice[sym] = (price == 0.0) ? lastPrice[sym] : price;
+            lastPrice[sym] = getLastPrice(sym);
 
             // Mid price
-            price = getBestPrice(sym).getBidPrice();
-            bestBid[sym] = (price == 0.0) ? bestBid[sym] : price;
-            price = getBestPrice(sym).getAskPrice();
-            bestAsk[sym] = (price == 0.0) ? bestAsk[sym] : price;
+            bp = getBestPrice(sym);
+            bestBid[sym] = (bp.getBidPrice() > 0.0) ? bp.getBidPrice() : lastPrice[sym];
+            bestAsk[sym] = (bp.getAskPrice() > 0.0) ? bp.getAskPrice() : lastPrice[sym];
 
             {
                 std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
