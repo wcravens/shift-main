@@ -1,13 +1,13 @@
 #include "OrderBookEntry.h"
 
-OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time)
+OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& simulationDate, const FIX::UtcTimeOnly& simulationTime)
     : m_type(type)
     , m_symbol(symbol)
     , m_price(price)
     , m_size(size)
     , m_destination(destination)
-    , m_date(date)
-    , m_time(time)
+    , m_simulationDate(simulationDate)
+    , m_simulationTime(simulationTime)
 {
 }
 
@@ -38,10 +38,10 @@ const std::string& OrderBookEntry::getDestination() const
 
 const FIX::UtcDateOnly& OrderBookEntry::getDate() const
 {
-    return m_date;
+    return m_simulationDate;
 }
 
 const FIX::UtcTimeOnly& OrderBookEntry::getTime() const
 {
-    return m_time;
+    return m_simulationTime;
 }

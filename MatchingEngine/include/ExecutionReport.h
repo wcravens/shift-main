@@ -18,8 +18,8 @@ struct ExecutionReport {
     std::string orderID2;
     char decision; // trade ('2') or cancel ('4')
     std::string destination;
-    FIX::UtcTimeStamp time1;
-    FIX::UtcTimeStamp time2;
+    FIX::UtcTimeStamp simulationTime1;
+    FIX::UtcTimeStamp simulationTime2;
 
     ExecutionReport(const std::string& symbol,
         double price,
@@ -32,8 +32,8 @@ struct ExecutionReport {
         const std::string& orderID2,
         char decision,
         const std::string& destination,
-        const FIX::UtcTimeStamp& time1,
-        const FIX::UtcTimeStamp& time2)
+        const FIX::UtcTimeStamp& simulationTime1,
+        const FIX::UtcTimeStamp& simulationTime2)
         : symbol(symbol)
         , price(price)
         , size(size)
@@ -45,8 +45,8 @@ struct ExecutionReport {
         , orderID2(orderID2)
         , decision(decision)
         , destination(destination)
-        , time1(time1)
-        , time2(time2)
+        , simulationTime1(simulationTime1)
+        , simulationTime2(simulationTime2)
     {
     }
 };

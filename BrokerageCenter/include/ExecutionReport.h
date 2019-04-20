@@ -16,8 +16,8 @@ struct ExecutionReport {
     double orderPrice;
     Order::Status orderStatus;
     std::string destination;
-    FIX::UtcTimeStamp execTime;
-    FIX::UtcTimeStamp serverTime;
+    FIX::UtcTimeStamp simulationTime;
+    FIX::UtcTimeStamp realTime;
 
     ExecutionReport(const std::string& userID,
         const std::string& orderID,
@@ -28,8 +28,8 @@ struct ExecutionReport {
         double orderPrice,
         Order::Status orderStatus,
         const std::string& destination,
-        const FIX::UtcTimeStamp& execTime,
-        const FIX::UtcTimeStamp& serverTime)
+        const FIX::UtcTimeStamp& simulationTime,
+        const FIX::UtcTimeStamp& realTime)
         : userID(userID)
         , orderID(orderID)
         , orderType(orderType)
@@ -39,8 +39,8 @@ struct ExecutionReport {
         , orderPrice(orderPrice)
         , orderStatus(orderStatus)
         , destination(destination)
-        , execTime(execTime)
-        , serverTime(serverTime)
+        , simulationTime(simulationTime)
+        , realTime(realTime)
     {
     }
 
@@ -62,8 +62,8 @@ struct ExecutionReport {
         , orderPrice(orderPrice)
         , orderStatus(orderStatus)
         , destination(destination)
-        , execTime()
-        , serverTime()
+        , simulationTime()
+        , realTime()
     {
     }
 };

@@ -31,8 +31,8 @@ public:
     void executeGlobalOrder(Order& orderRef, int size, double price, char decision);
     void executeLocalOrder(Order& orderRef, int size, double price, char decision);
 
-    void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
-    void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
+    void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& simulationTime);
+    void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& simulationTime);
 
     void showGlobalOrderBooks();
     void showLocalOrderBooks();

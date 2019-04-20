@@ -52,5 +52,5 @@ private:
     int m_size;
     Type m_type;
     std::string m_destination;
-    FIX::UtcTimeStamp m_time;
+    FIX::UtcTimeStamp m_simulationTime;
 };

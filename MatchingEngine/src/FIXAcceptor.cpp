@@ -164,11 +164,11 @@ void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
     message.addGroup(idGroup2);
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
-    timeGroup1.setField(FIX::TrdRegTimestamp(report.time1, 6));
+    timeGroup1.setField(FIX::TrdRegTimestamp(report.simulationTime1, 6));
     message.addGroup(timeGroup1);
 
     FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup2;
-    timeGroup2.setField(FIX::TrdRegTimestamp(report.time2, 6));
+    timeGroup2.setField(FIX::TrdRegTimestamp(report.simulationTime2, 6));
     message.addGroup(timeGroup2);
 
     std::lock_guard<std::mutex> lock(m_mtxTargetList);

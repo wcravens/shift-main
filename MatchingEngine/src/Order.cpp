@@ -1,6 +1,6 @@
 #include "Order.h"
 
-Order::Order(const std::string& symbol, double price, int size, Order::Type type, const std::string& destination, const FIX::UtcTimeStamp& time)
+Order::Order(const std::string& symbol, double price, int size, Order::Type type, const std::string& destination, const FIX::UtcTimeStamp& simulationTime)
     : m_symbol(symbol)
     , m_traderID("TRTH")
     , m_orderID("TRTH")
@@ -8,11 +8,11 @@ Order::Order(const std::string& symbol, double price, int size, Order::Type type
     , m_size(size)
     , m_type(type)
     , m_destination(destination)
-    , m_time(time)
+    , m_simulationTime(simulationTime)
 {
 }
 
-Order::Order(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, Order::Type type, const FIX::UtcTimeStamp& time)
+Order::Order(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, Order::Type type, const FIX::UtcTimeStamp& simulationTime)
     : m_symbol(symbol)
     , m_traderID(traderID)
     , m_orderID(orderID)
@@ -20,7 +20,7 @@ Order::Order(const std::string& symbol, const std::string& traderID, const std::
     , m_size(size)
     , m_type(type)
     , m_destination("SHIFT")
-    , m_time(time)
+    , m_simulationTime(simulationTime)
 {
 }
 
@@ -77,7 +77,7 @@ const std::string& Order::getDestination() const
 
 const FIX::UtcTimeStamp& Order::getTime() const
 {
-    return m_time;
+    return m_simulationTime;
 }
 
 void Order::setSymbol(const std::string& symbol)

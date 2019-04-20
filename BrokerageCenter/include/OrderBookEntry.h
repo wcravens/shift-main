@@ -19,7 +19,7 @@ public:
     };
 
     OrderBookEntry() = default;
-    OrderBookEntry(Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time);
+    OrderBookEntry(Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& simulationDate, const FIX::UtcTimeOnly& simulationTime);
 
     Type getType() const;
     const std::string& getSymbol() const;
@@ -35,6 +35,6 @@ private:
     double m_price;
     int m_size;
     std::string m_destination;
-    FIX::UtcDateOnly m_date;
-    FIX::UtcTimeOnly m_time;
+    FIX::UtcDateOnly m_simulationDate;
+    FIX::UtcTimeOnly m_simulationTime; // m_simulationTime
 };

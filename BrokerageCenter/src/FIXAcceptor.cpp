@@ -268,11 +268,11 @@ void FIXAcceptor::sendConfirmationReport(const ExecutionReport& report)
     message.setField(FIX::Side(report.orderType)); // FIXME: separate Side and OrdType
     message.setField(FIX::OrdType(report.orderType)); // FIXME: separate Side and OrdType
     message.setField(FIX::Price(report.orderPrice));
-    message.setField(FIX::EffectiveTime(report.execTime, 6));
+    message.setField(FIX::EffectiveTime(report.simulationTime, 6));
     message.setField(FIX::LastMkt(report.destination));
     message.setField(FIX::LeavesQty(report.currentSize));
     message.setField(FIX::CumQty(report.executedSize));
-    message.setField(FIX::TransactTime(report.serverTime, 6));
+    message.setField(FIX::TransactTime(report.realTime, 6));
 
     FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
     idGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);

@@ -32,5 +32,5 @@ private:
     double m_price;
     int m_size;
     std::string m_destination;
-    FIX::UtcTimeStamp m_time;
+    FIX::UtcTimeStamp m_realTime;
 };

@@ -13,7 +13,7 @@
  */
 struct TradingRecord {
     FIX::UtcTimeStamp realTime;
-    FIX::UtcTimeStamp execTime;
+    FIX::UtcTimeStamp simulationTime;
     std::string symbol; // or RIC
     double price;
     int size;
@@ -25,11 +25,11 @@ struct TradingRecord {
     Order::Type orderType2;
     char decision;
     std::string destination;
-    FIX::UtcTimeStamp time1;
-    FIX::UtcTimeStamp time2;
+    FIX::UtcTimeStamp simulationTime1;
+    FIX::UtcTimeStamp simulationTime2;
 
     TradingRecord(const FIX::UtcTimeStamp& realTime,
-        const FIX::UtcTimeStamp& execTime,
+        const FIX::UtcTimeStamp& simulationTime,
         const std::string& symbol,
         double price,
         int size,
@@ -41,10 +41,10 @@ struct TradingRecord {
         Order::Type orderType2,
         char decision,
         const std::string& destination,
-        const FIX::UtcTimeStamp& time1,
-        const FIX::UtcTimeStamp& time2)
+        const FIX::UtcTimeStamp& simulationTime1,
+        const FIX::UtcTimeStamp& simulationTime2)
         : realTime(realTime)
-        , execTime(execTime)
+        , simulationTime(simulationTime)
         , symbol(symbol)
         , price(price)
         , size(size)
@@ -56,8 +56,8 @@ struct TradingRecord {
         , orderType2(orderType2)
         , decision(decision)
         , destination(destination)
-        , time1(time1)
-        , time2(time2)
+        , simulationTime1(simulationTime1)
+        , simulationTime2(simulationTime2)
     {
     }
 };

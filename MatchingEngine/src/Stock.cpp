@@ -134,14 +134,14 @@ void Stock::executeLocalOrder(Order& orderRef, int size, double price, char deci
         orderRef.getTime() });
 }
 
-void Stock::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time)
+void Stock::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& simulationTime)
 {
-    orderBookUpdates.push_back({ type, symbol, price, size, destination, time });
+    orderBookUpdates.push_back({ type, symbol, price, size, destination, simulationTime });
 }
 
-void Stock::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time)
+void Stock::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& simulationTime)
 {
-    orderBookUpdates.push_back({ type, symbol, price, size, time });
+    orderBookUpdates.push_back({ type, symbol, price, size, simulationTime });
 }
 
 void Stock::showGlobalOrderBooks()
