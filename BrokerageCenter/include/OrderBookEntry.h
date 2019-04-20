@@ -36,5 +36,5 @@ private:
     int m_size;
     std::string m_destination;
     FIX::UtcDateOnly m_simulationDate;
-    FIX::UtcTimeOnly m_simulationTime; // m_simulationTime
+    FIX::UtcTimeOnly m_simulationTime;
 };

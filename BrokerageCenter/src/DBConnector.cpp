@@ -107,7 +107,7 @@ bool DBConnector::insertTradingRecord(const TradingRecord& trade)
     queryStrm << "INSERT INTO " << shift::database::PSQLTable<shift::database::TradingRecords>::name << " VALUES ('"
               << s_sessionID << "','"
               << s_utcToString(trade.realTime, true) << "','"
-              << s_utcToString(trade.simulationTime, true) << "','"
+              << s_utcToString(trade.executionTime, true) << "','"
               << trade.symbol << "','"
               << trade.price << "','"
               << trade.size << "','"
