@@ -242,51 +242,46 @@ $(document).ready(function () {
                     let row;
                     if (stock_list_table.rows[index]) {
                         row = stock_list_table.rows[index];
-                        row.cells[cNum].innerHTML = data.data[i].symbol;
-                        cNum++; // order type
-                        row.cells[cNum].innerHTML = data.data[i].orderType;
-                        cNum++; // price
-                        row.cells[cNum].innerHTML = numFloat(data.data[i].price);
-                        cNum++; // order size
-                        row.cells[cNum].innerHTML = numInt(data.data[i].size);
-                        cNum++; // empty column
-                        cNum++; // order id
-                        row.cells[cNum].innerHTML = data.data[i].orderId;
-                        row.cells[cNum].className += " notimpcol2";
-                        cNum++; // status
-                        row.cells[cNum].innerHTML = data.data[i].status;
-                        row.cells[cNum].className += " notimpcol2";
-                        cNum++; // cancle order form
-                        row.cells[cNum].removeChild(row.cells[cNum].childNodes[0]);
-                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "Limit Buy" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderId));
+                        row.cells[6].removeChild(row.cells[cNum].childNodes[0]);
                     } else {
                         row = stock_list_table.insertRow(index);
                         for (var j = 0; j < tableCells; j++) {
                             row.insertCell(j);
                         }
-                        row.cells[cNum].innerHTML = data.data[i].symbol;
-                        row.cells[cNum].className = "bold";
-                        cNum++; // order type
-                        row.cells[cNum].innerHTML = data.data[i].orderType;
-                        row.cells[cNum].className = "text-right";
-                        cNum++; // price
-                        row.cells[cNum].className = "text-right";
-                        row.cells[cNum].innerHTML = numFloat(data.data[i].price);
-                        cNum++; // order size
-                        row.cells[cNum].className = "text-right";
-                        row.cells[cNum].innerHTML = numInt(data.data[i].size);
-                        cNum++; // empty column
-                        cNum++; // order id
-                        row.cells[cNum].innerHTML = data.data[i].orderId;
-                        row.cells[cNum].className = " notimpcol2";
-                        cNum++; // status
-                        row.cells[cNum].innerHTML = data.data[i].status;
-                        row.cells[cNum].className += " notimpcol2";
-                        cNum++; // cancle order form
-                        row.cells[cNum].className = " notimpcol";
-                        row.cells[cNum].setAttribute("nowrap", "nowrap");
-                        row.cells[cNum].appendChild(createCancelOrderForm(data.data[i].orderType == "Limit Buy" ? "5" : "6", data.data[i].symbol, data.data[i].size, data.data[i].price, data.data[i].orderId));
+                        row.cells[0].className = "bold"; // symbol
+                        row.cells[1].className = "text-right"; // order type
+                        row.cells[2].className = "text-right"; // price
+                        row.cells[3].className = "text-right"; // order size
+                        row.cells[6].className = " notimpcol "; // cancel order form
+                        row.cells[6].setAttribute("nowrap", "nowrap");
                     }
+                    row.cells[cNum].innerHTML = data.data[i].symbol;
+                    cNum++; // order type
+                    row.cells[cNum].innerHTML = data.data[i].orderType;
+                    cNum++; // price
+                    row.cells[cNum].innerHTML = numFloat(data.data[i].price);
+                    cNum++; // order size
+                    row.cells[cNum].innerHTML = numInt(data.data[i].size);
+                    cNum++; // empty column
+                    cNum++; // order id
+                    row.cells[cNum].innerHTML = data.data[i].orderId;
+                    row.cells[cNum].className = " notimpcol2";
+                    cNum++; // status
+                    row.cells[cNum].innerHTML = data.data[i].status;
+                    row.cells[cNum].className += " notimpcol2";
+                    cNum++; // cancle order form
+                    row.cells[cNum].appendChild(
+                            createCancelOrderForm(
+                                    // If the order was "Limit Buy" or "Market Buy", we create a CALCEL_BID.
+                                    //   Otherwise if it was "Limit Sell" or "Market Sell", we create a CANCEL_ASK.
+                                    //   orderType doesn't have other possible value in this case.
+                                    (data.data[i].orderType == "Limit Buy" || data.data[i].orderType == "Market Buy")
+                                            ? "5"
+                                            : "6",
+                                    data.data[i].symbol,
+                                    data.data[i].size,
+                                    data.data[i].price,
+                                    data.data[i].orderId));
                 }
 
                 var len = stock_list_table.rows.length;
