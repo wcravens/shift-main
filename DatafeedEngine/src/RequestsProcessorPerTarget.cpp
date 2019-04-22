@@ -57,6 +57,8 @@ void RequestsProcessorPerTarget::enqueueNextDataRequest()
 void RequestsProcessorPerTarget::processRequests()
 {
     thread_local auto futQuit = m_procQuitFlag.get_future();
+
+    MarketDataRequest lastProcessedMarketReq; // Memorizes the last processed Market Data request for consecutive Next Data requests use
     std::future<bool> futLastMarketReq; // Updated by MARKET_DATA proc, consumed by subsequent NEXT_DATA proc
 
     while (true) {
@@ -70,12 +72,19 @@ void RequestsProcessorPerTarget::processRequests()
         // dispatches and processes:
         switch (rt) {
         case REQUEST_TYPE::MARKET_DATA: {
-            m_lastProcessedMarketReq = std::move(m_queueMarketReqs.front());
+            if (futLastMarketReq.valid())
+                futLastMarketReq.get();
+
+            lastProcessedMarketReq = std::move(m_queueMarketReqs.front());
             m_queueMarketReqs.pop();
-            futLastMarketReq = s_processRequestMarketData(oneReqLock, m_lastProcessedMarketReq, c_targetID);
+            oneReqLock.unlock();
+
+            futLastMarketReq = s_processRequestMarketData(lastProcessedMarketReq, c_targetID);
         } break;
         case REQUEST_TYPE::NEXT_DATA: {
-            s_processRequestNextData(oneReqLock, &futLastMarketReq, &m_lastProcessedMarketReq, c_targetID); // '&' indicates modification
+            oneReqLock.unlock();
+
+            s_processRequestNextData(&futLastMarketReq, &lastProcessedMarketReq, c_targetID); // '&' indicates modification
         } break;
         } // switch
     } // while
@@ -93,17 +102,12 @@ void RequestsProcessorPerTarget::processRequests()
 }
 
 /**@brief Processor helper for one Market Data request.
- * @param oneReqLock: The caller side lock that must be pre-locked before calling this.
  * @param marketReq: The Market Data request with necessary informations.
  * @param targetID: ID of this target.
  * @return future<bool> for waiting the TRTH downloads finish; bool value indicates whether it was a smooth, successful processing.
  */
-/*static*/ std::future<bool> RequestsProcessorPerTarget::s_processRequestMarketData(const std::unique_lock<decltype(m_mtxRequest)>& oneReqLock, const MarketDataRequest& marketReq, const std::string& targetID)
+/*static*/ std::future<bool> RequestsProcessorPerTarget::s_processRequestMarketData(const MarketDataRequest& marketReq, const std::string& targetID)
 {
-    __PRE_CONDITION__(oneReqLock.owns_lock()); // This helper function is expected to work reliably only under the locked context of processRequests() !
-    if (!oneReqLock.owns_lock())
-        return {};
-
     auto& db = PSQLManager::getInstance();
     if (!db.isConnected()) {
         cerr << "ERROR: s_processRequestMarketData connect to DB failed." << endl;
@@ -195,17 +199,12 @@ void RequestsProcessorPerTarget::processRequests()
 }
 
 /**@brief Processor helper for one Next Data request.
- * @param oneReqLock: The caller side lock that must be pre-locked before calling this.
  * @param lastDownloadFutPtr: The pointer to the future that waiting for the last downloading. The future object will be mutated.
  * @param lastMarketRequestPtr: The pointer to last Market Data request with necessary informations. The request object will be mutated.
  * @param targetID: ID of this target.
 */
-/*static*/ void RequestsProcessorPerTarget::s_processRequestNextData(const std::unique_lock<decltype(m_mtxRequest)>& oneReqLock, std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const lastMarketRequestPtr, const std::string& targetID)
+/*static*/ void RequestsProcessorPerTarget::s_processRequestNextData(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const lastMarketRequestPtr, const std::string& targetID)
 {
-    __PRE_CONDITION__(oneReqLock.owns_lock()); // This helper function is expected to work reliably only under the locked context of processRequests() !
-    if (!oneReqLock.owns_lock())
-        return;
-
     bool warnUnavailSkipped = false;
 
     if (lastDownloadFutPtr->valid()) {

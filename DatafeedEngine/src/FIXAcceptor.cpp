@@ -282,6 +282,20 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(*pEndTimeString);
 
     m_requestsProcessors[targetID]->enqueueMarketDataRequest(*pRequestID, std::move(symbols), std::move(startTime), std::move(endTime));
+    m_requestsProcessors[targetID]->enqueueNextDataRequest();
+
+    std::thread dataStreamSender([procPtr = m_requestsProcessors[targetID].get(), targetID, startTime, endTime]() mutable {
+        using namespace std::chrono_literals;
+        do {
+            cout << "requesting Next data....................." << endl;
+            procPtr->enqueueNextDataRequest();
+            std::this_thread::sleep_for(5min);
+            startTime += boost::posix_time::minutes(5);
+        } while (startTime < endTime);
+        std::this_thread::sleep_for(5min);
+    });
+
+    dataStreamSender.detach();
 
     if (prevCnt) { // > 1 threads
         delete pRequestID;
@@ -300,12 +314,12 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
  */
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
 {
-    const std::string targetID = sessionID.getTargetCompID().getValue();
+    // const std::string targetID = sessionID.getTargetCompID().getValue();
 
-    if (m_requestsProcessors.count(targetID)) {
-        m_requestsProcessors[targetID]->enqueueNextDataRequest();
-    } else {
-        cout << COLOR_ERROR "ERROR: No market data request from " << targetID << NO_COLOR << endl;
-        return;
-    }
+    // if (m_requestsProcessors.count(targetID)) {
+    //     m_requestsProcessors[targetID]->enqueueNextDataRequest();
+    // } else {
+    //     cout << COLOR_ERROR "ERROR: No market data request from " << targetID << NO_COLOR << endl;
+    //     return;
+    // }
 }

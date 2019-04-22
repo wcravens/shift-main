@@ -135,7 +135,7 @@ int main(int ac, char* av[])
     FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
     cout << "Please wait for ready" << endl;
     sleep(3);
-    getchar();
+    // getchar();
 
     // Create stock list and Stock objects
     for (unsigned int i = 0; i < symbols.size(); ++i) {
@@ -159,9 +159,9 @@ int main(int ac, char* av[])
     // Send request to DatafeedEngine for TRTH data
     FIXInitiator::getInstance()->sendSecurityList(requestID, ptimeStart, ptimeEnd, symbols);
     cout << "Please wait for the database signal until TRTH data ready..." << endl;
-    getchar();
-    getchar();
-    FIXInitiator::getInstance()->sendMarketDataRequest();
+    // getchar();
+    // getchar();
+    // FIXInitiator::getInstance()->sendMarketDataRequest();
 
     // Option to start the Exchange
     cout << endl
@@ -212,7 +212,7 @@ int main(int ac, char* av[])
     // Request new market data every 5 minutes
     ptimeStart += boost::posix_time::minutes(5);
     while (ptimeStart < ptimeEnd) {
-        FIXInitiator::getInstance()->sendMarketDataRequest();
+        // FIXInitiator::getInstance()->sendMarketDataRequest();
         ptimeStart += boost::posix_time::minutes(5);
         std::this_thread::sleep_for(5min / experimentSpeed);
     }
