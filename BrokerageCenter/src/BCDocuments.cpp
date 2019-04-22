@@ -262,8 +262,8 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
 
     const auto summary = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
         "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"
-        "FROM traders INNER JOIN portfolio_summary ON traders.id = portfolio_summary.id\n" // summary table MAYBE have got the user's id
-        "WHERE traders.id = '" // here presume we always has got current userID in traders table
+        "FROM portfolio_summary\n" // summary table MAYBE have got the user's id
+        "WHERE id = '" // here presume we always has got current userID in traders table
             + userID + "';",
         5);
 
@@ -277,8 +277,8 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
     for (int row = 0; true; row++) {
         const auto& item = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
             "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
-            "FROM traders INNER JOIN portfolio_items ON traders.id = portfolio_items.id\n"
-            "WHERE traders.id = '"
+            "FROM portfolio_items\n"
+            "WHERE id = '"
                 + userID + "';",
             7,
             row);
