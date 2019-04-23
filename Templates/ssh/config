@@ -20,12 +20,17 @@ Host 121
   User shiftpub
   HostName 155.246.104.121
 
-# 45-DE-ME-BC-WC (Development)
+# 32-DE-ME-BC-WC (Research)
+Host 32
+  User shiftpub
+  HostName 155.246.104.32
+
+# 45-DE-ME-BC-WC (Research)
 Host 45
   User shiftpub
   HostName 155.246.104.45
 
-# 60-DE-ME-BC-WC (Development)
+# 60-DE-ME-BC-WC (Research)
 Host 60
   User shiftpub
   HostName 155.246.104.60
@@ -34,8 +39,3 @@ Host 60
 Host 93
   User shiftpub
   HostName 155.246.104.93
-
-# 32-DE-ME-BC-WC (Research)
-Host 32
-  User shiftpub
-  HostName 155.246.104.32
