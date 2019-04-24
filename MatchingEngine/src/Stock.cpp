@@ -1,4 +1,4 @@
-#include "Stock.h" TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance()
+#include "Stock.h"
 
 #include "TimeSetting.h"
 
