@@ -5,6 +5,7 @@
 #include "FIXAcceptor.h"
 
 #include "PSQL.h"
+#include "Parameters.h"
 #include "RawData.h"
 #include "RequestsProcessorPerTarget.h"
 
@@ -284,7 +285,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     m_requestsProcessors[targetID]->enqueueMarketDataRequest(*pRequestID, std::move(symbols), std::move(startTime), std::move(endTime));
     // to make sure always keep at least 5 mins of data ahead of target computer:
     m_requestsProcessors[targetID]->enqueueNextDataRequest();
-    startTime += boost::posix_time::minutes(5);
+    startTime += boost::posix_time::minutes(DURATION_PER_DATA_CHUNK.count());
 
     // streamed sender for the target:
     std::thread(
@@ -292,9 +293,9 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
             using namespace std::chrono_literals;
             do {
                 procPtr->enqueueNextDataRequest();
-                startTime += boost::posix_time::minutes(5);
+                startTime += boost::posix_time::minutes(DURATION_PER_DATA_CHUNK.count());
 
-                std::this_thread::sleep_for(5min);
+                std::this_thread::sleep_for(DURATION_PER_DATA_CHUNK);
             } while (startTime < endTime);
         })
         .detach(); // run in background

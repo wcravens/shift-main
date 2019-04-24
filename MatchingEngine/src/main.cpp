@@ -5,7 +5,7 @@
 #include "threadFunction.h"
 
 #include <atomic>
-#include <thread>
+#include <future>
 
 #include <boost/program_options.hpp>
 
@@ -49,14 +49,20 @@ int main(int ac, char* av[])
         bool isVerbose;
         std::string simulationDate;
         bool isManualInput;
-        using min_t = std::chrono::minutes::rep;
-        min_t minutes;
+        struct { // timeout settings
+            using min_t = std::chrono::minutes::rep;
+            bool isSet;
+            min_t minutes;
+        } timer;
     } params = {
         "/usr/local/share/shift/MatchingEngine/", // default installation folder for configuration
         false,
         "",
         false,
-        400, // mins
+        {
+            false,
+            400,
+        },
     };
 
     po::options_description desc("\nUSAGE: ./MatchingEngine [options] <args>\n\n\tThis is the MatchingEngine.\n\tThe server connects with DatafeedEngine and BrokerageCenter instances and runs in background.\n\nOPTIONS");
@@ -66,7 +72,7 @@ int main(int ac, char* av[])
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         (CSTR_DATE ",d", po::value<std::string>(), "simulation date") //
         (CSTR_MANUAL ",m", "set manual input of all parameters") //
-        (CSTR_TIMEOUT ",t", po::value<decltype(params)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
+        (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         ; // add_options
 
     po::variables_map vm;
@@ -111,8 +117,15 @@ int main(int ac, char* av[])
         params.isManualInput = true;
     }
 
-    if (vm.count(CSTR_TIMEOUT))
-        params.minutes = vm[CSTR_TIMEOUT].as<decltype(params)::min_t>();
+    if (vm.count(CSTR_TIMEOUT)) {
+        params.timer.minutes = vm[CSTR_TIMEOUT].as<decltype(params.timer)::min_t>();
+        if (params.timer.minutes > 0)
+            params.timer.isSet = true;
+        else {
+            cout << COLOR "Note: The timeout option is ignored because of the given value." NO_COLOR << '\n'
+                 << endl;
+        }
+    }
 
     std::string configFile = params.configDir + "config.txt";
     std::string date = "2018-12-17";
@@ -187,13 +200,34 @@ int main(int ac, char* av[])
     // Initiate connection with BC
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
-    cout.clear();
-    cout << '\n'
-         << COLOR_PROMPT "Timer begins ( " << params.minutes << " minutes )..." NO_COLOR << '\n'
-         << endl;
+    // for running in background
+    if (params.timer.isSet) {
+        cout.clear();
+        cout << '\n'
+             << COLOR_PROMPT "Timer begins ( " << params.timer.minutes << " mins )..." NO_COLOR << '\n'
+             << endl;
 
-    voh_t{ cout, params.isVerbose, true };
-    std::this_thread::sleep_for(params.minutes * 1min);
+        voh_t{ cout, params.isVerbose, true };
+        std::this_thread::sleep_for(params.timer.minutes * 1min);
+    } else {
+        std::async(std::launch::async // no delay
+            ,
+            [&params] {
+                while (true) {
+                    cout.clear();
+                    cout << '\n'
+                         << COLOR_PROMPT "The MatchingEngine is running. (Enter 'T' to stop)" NO_COLOR << '\n'
+                         << endl;
+                    voh_t{ cout, params.isVerbose, true };
+
+                    char cmd = cin.get(); // wait
+                    cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
+                    if ('T' == cmd || 't' == cmd)
+                        return;
+                }
+            })
+            .get(); // this_thread will wait for user terminating acceptor.
+    }
 
     FIXInitiator::getInstance()->disconnectDatafeedEngine();
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();
