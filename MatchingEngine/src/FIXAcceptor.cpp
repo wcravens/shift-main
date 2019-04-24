@@ -11,8 +11,6 @@
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/terminal/Common.h>
 
-extern std::map<std::string, Stock> stockList;
-
 /* static */ std::string FIXAcceptor::s_senderID;
 
 // Predefined constant FIX message fields (to avoid recalculations):
@@ -147,7 +145,7 @@ void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
     message.setField(FIX::Side(report.orderType1));
     message.setField(FIX::OrdType(report.orderType2));
     message.setField(FIX::Price(report.price));
-    message.setField(FIX::EffectiveTime(globalTimeSetting.simulationTimestamp(), 6));
+    message.setField(FIX::EffectiveTime((TimeSetting::getInstance()).simulationTimestamp(), 6));
     message.setField(FIX::LastMkt(report.destination));
     message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
     message.setField(FIX::CumQty(report.size));
@@ -227,7 +225,7 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Order
     message.setField(FIX::Symbol(confirmation.symbol));
     message.setField(FIX::Side(confirmation.orderType));
     message.setField(FIX::Price(confirmation.price));
-    message.setField(FIX::EffectiveTime(globalTimeSetting.simulationTimestamp(), 6));
+    message.setField(FIX::EffectiveTime((TimeSetting::getInstance()).simulationTimestamp(), 6));
     message.setField(FIX::LastMkt("SHIFT"));
     message.setField(FIX::LeavesQty(confirmation.size));
     message.setField(::FIXFIELD_CUMQTY_0); // Required by FIX
@@ -333,15 +331,15 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     message.getGroup(1, *pIDGroup);
     pIDGroup->get(*pTraderID);
 
-    long milli = globalTimeSetting.pastMilli();
-    FIX::UtcTimeStamp now = globalTimeSetting.simulationTimestamp();
+    long milli = (TimeSetting::getInstance()).pastMilli();
+    FIX::UtcTimeStamp now = (TimeSetting::getInstance()).simulationTimestamp();
 
     Order order{ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), static_cast<Order::Type>(pOrderType->getValue()), now };
     order.setMilli(milli);
 
     // Add new quote to buffer
-    auto stockIt = stockList.find(pSymbol->getValue());
-    if (stockIt != stockList.end()) {
+    auto stockIt = (StockList::getInstance()).find(pSymbol->getValue());
+    if (stockIt != (StockList::getInstance()).end()) {
         stockIt->second.bufNewLocalOrder(std::move(order));
     } else {
         return;
