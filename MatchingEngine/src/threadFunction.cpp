@@ -87,7 +87,7 @@ void inputConfigMode(std::string& date, std::string& stime, std::string& etime, 
 // Function to start one stock matching engine, for exchange thread
 void createStockMarket(std::string symbol)
 {
-    auto stockIt = (StockList::getInstance()).find(symbol);
+    auto stockIt = StockList::getInstance().find(symbol);
 
     Order nextOrder;
     Order prevGlobalOrder;
@@ -153,7 +153,7 @@ void createStockMarket(std::string symbol)
                 stockIt->second.doGlobalLimitBuy(nextOrder);
                 stockIt->second.doGlobalLimitSell(nextOrder);
                 if (nextOrder.getSize() != 0) {
-                    auto now = (TimeSetting::getInstance()).simulationTimestamp();
+                    auto now = TimeSetting::getInstance().simulationTimestamp();
                     stockIt->second.executionReports.push_back({ nextOrder.getSymbol(),
                         nextOrder.getPrice(),
                         nextOrder.getSize(),

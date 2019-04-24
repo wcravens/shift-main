@@ -134,7 +134,7 @@ int main(int ac, char* av[])
         date = params.simulationDate;
     }
 
-    (TimeSetting::getInstance()).initiate(date, stime, experimentSpeed);
+    TimeSetting::getInstance().initiate(date, stime, experimentSpeed);
     boost::posix_time::ptime ptimeStart(boost::posix_time::time_from_string(date + " " + stime));
     boost::posix_time::ptime ptimeEnd(boost::posix_time::time_from_string(date + " " + etime));
     std::string requestID = date + " :: " + std::to_string(symbols.size());
@@ -150,7 +150,7 @@ int main(int ac, char* av[])
         FIXAcceptor::getInstance()->addSymbol(symbol);
 
         Stock stock(symbol);
-        (StockList::getInstance()).insert(std::pair<std::string, Stock>(symbol, stock));
+        StockList::getInstance().insert(std::pair<std::string, Stock>(symbol, stock));
 
         // transform symbol's punctuation(if any) before passing to DatafeedEngine
         for (unsigned int j = 0; j < symbol.size(); ++j) {
@@ -158,7 +158,7 @@ int main(int ac, char* av[])
                 symbol[j] = '_';
         }
     }
-    if (symbols.size() != (StockList::getInstance()).size()) {
+    if (symbols.size() != StockList::getInstance().size()) {
         cout << "Error in creating Stock to StockList" << endl;
         return 4;
     }
@@ -166,21 +166,11 @@ int main(int ac, char* av[])
     // Send request to DatafeedEngine for TRTH data and wait until data is ready
     FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, ptimeStart, ptimeEnd, symbols);
 
-    // while (1) {
-    //     // int startExchange = 0;
-    //     cout << "To start exchange, please press '1'" << endl
-    //          << "Please wait for the history data from database server, then type '1', to start this exchange..." << endl;
-
-    //     // if (cin >> startExchange) { if (startExchange == 1) break; }
-    //     // else { cin.clear(); cin.ignore(255,'\n'); }
-    //     break;
-    // }
-
     // Get the time offset in current day
-    (TimeSetting::getInstance()).setStartTime();
+    TimeSetting::getInstance().setStartTime();
 
     // Begin Matching Engine threads
-    int numOfStock = (StockList::getInstance()).size();
+    int numOfStock = StockList::getInstance().size();
     cout << "Total " << numOfStock << " stocks are ready in the Matching Engine"
          << endl
          << "Waiting for quotes..." << endl;

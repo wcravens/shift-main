@@ -120,33 +120,33 @@ void FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
 /**
  * @brief Send market data request to Datafeed Engine
  */
-void FIXInitiator::sendNextDataRequest()
-{
-    // FIX::Message message;
+// void FIXInitiator::sendNextDataRequest()
+// {
+// FIX::Message message;
 
-    // FIX::Header& header = message.getHeader();
-    // header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    // header.setField(FIX::SenderCompID(s_senderID));
-    // header.setField(FIX::TargetCompID(s_targetID));
-    // header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
+// FIX::Header& header = message.getHeader();
+// header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+// header.setField(FIX::SenderCompID(s_senderID));
+// header.setField(FIX::TargetCompID(s_targetID));
+// header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
 
-    // message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
-    // message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
-    // message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
+// message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
+// message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
+// message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
 
-    // FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup1;
-    // FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup2;
-    // FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup; // Empty, not used
-    // typeGroup1.set(::FIXFIELD_MDENTRYTYPE_BID);
-    // typeGroup2.set(::FIXFIELD_MDENTRYTYPE_OFFER);
-    // relatedSymGroup.set(::FIXFIELD_FAKE_SYMBOL);
+// FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup1;
+// FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup2;
+// FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup; // Empty, not used
+// typeGroup1.set(::FIXFIELD_MDENTRYTYPE_BID);
+// typeGroup2.set(::FIXFIELD_MDENTRYTYPE_OFFER);
+// relatedSymGroup.set(::FIXFIELD_FAKE_SYMBOL);
 
-    // message.addGroup(typeGroup1);
-    // message.addGroup(typeGroup2);
-    // message.addGroup(relatedSymGroup);
+// message.addGroup(typeGroup1);
+// message.addGroup(typeGroup2);
+// message.addGroup(relatedSymGroup);
 
-    // FIX::Session::sendToTarget(message);
-}
+// FIX::Session::sendToTarget(message);
+// }
 
 /**
  * @brief Store order in Database Engine after confirmed
@@ -345,13 +345,13 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     message.getGroup(1, *pIDGroup);
     pIDGroup->getField(*pBuyerID);
 
-    auto stockIt = (StockList::getInstance()).find(pSymbol->getValue());
-    if (stockIt == (StockList::getInstance()).end()) {
+    auto stockIt = StockList::getInstance().find(pSymbol->getValue());
+    if (stockIt == StockList::getInstance().end()) {
         cout << "Receive error in Global!" << endl;
         return;
     }
 
-    long mili = (TimeSetting::getInstance()).pastMilli(pTransactTime->getValue());
+    long mili = TimeSetting::getInstance().pastMilli(pTransactTime->getValue());
 
     Order order{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()), Order::Type::TRTH_TRADE, pBuyerID->getValue(), pTransactTime->getValue() };
     order.setMilli(mili);

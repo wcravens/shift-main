@@ -396,8 +396,8 @@ then
                 startService "DatafeedEngine" ${LOADING_TIME[1]} "-t ${TIME_OUT}"
                 ;;
             2_ME )
-                [ ${SIMULATION_DATE} ] || startService "MatchingEngine" ${LOADING_TIME[2]}
-                [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-d ${SIMULATION_DATE}"
+                [ ${SIMULATION_DATE} ] || startService "MatchingEngine" ${LOADING_TIME[2]} "-t ${TIME_OUT}"
+                [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-t ${TIME_OUT} -d ${SIMULATION_DATE}"
                 ;;
             3_BC )
                 if [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]

@@ -1,4 +1,4 @@
-#include "Stock.h"
+#include "Stock.h" TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance() TimeSetting::getInstance()
 
 #include "TimeSetting.h"
 
@@ -47,7 +47,7 @@ void Stock::bufNewLocalOrder(Order&& newOrder)
 bool Stock::getNextOrder(Order& orderRef)
 {
     bool good = false;
-    long now = (TimeSetting::getInstance()).pastMilli(true);
+    long now = TimeSetting::getInstance().pastMilli(true);
 
     std::lock_guard<std::mutex> ngGuard(m_mtxNewGlobalOrders);
     if (!m_newGlobalOrders.empty()) {
@@ -149,7 +149,7 @@ void Stock::showGlobalOrderBooks()
     std::stringstream ss;
     std::string output;
 
-    long simulationMilli = (TimeSetting::getInstance()).pastMilli(true);
+    long simulationMilli = TimeSetting::getInstance().pastMilli(true);
 
     ss << simulationMilli << ';'
        << "Global: "
@@ -183,7 +183,7 @@ void Stock::showLocalOrderBooks()
     std::stringstream ss;
     std::string output;
 
-    long simulationMilli = (TimeSetting::getInstance()).pastMilli(true);
+    long simulationMilli = TimeSetting::getInstance().pastMilli(true);
 
     ss << simulationMilli << ';'
        << "Local: "
@@ -260,7 +260,7 @@ void Stock::doGlobalLimitBuy(Order& orderRef)
         if (update) {
             // broadcast local order book update
             orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-                (TimeSetting::getInstance()).simulationTimestamp());
+                TimeSetting::getInstance().simulationTimestamp());
         }
 
         // remove empty price level from local order book
@@ -318,7 +318,7 @@ void Stock::doGlobalLimitSell(Order& orderRef)
         if (update) {
             // broadcast local order book update
             orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-                (TimeSetting::getInstance()).simulationTimestamp());
+                TimeSetting::getInstance().simulationTimestamp());
         }
 
         // remove empty price level from local order book
@@ -332,7 +332,7 @@ void Stock::updateGlobalBids(Order newBestBid)
 {
     // broadcast global order book update
     orderBookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, newBestBid.getPrice(), newBestBid.getSize(),
-        newBestBid.getDestination(), (TimeSetting::getInstance()).simulationTimestamp());
+        newBestBid.getDestination(), TimeSetting::getInstance().simulationTimestamp());
 
     m_thisGlobalOrder = m_globalBids.begin();
 
@@ -362,7 +362,7 @@ void Stock::updateGlobalAsks(Order newBestAsk)
 {
     // broadcast global order book update
     orderBookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, newBestAsk.getPrice(), newBestAsk.getSize(),
-        newBestAsk.getDestination(), (TimeSetting::getInstance()).simulationTimestamp());
+        newBestAsk.getDestination(), TimeSetting::getInstance().simulationTimestamp());
 
     m_thisGlobalOrder = m_globalAsks.begin();
 
@@ -465,7 +465,7 @@ void Stock::doLocalLimitBuy(Order& orderRef)
             if (update) {
                 // broadcast local order book update
                 orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-                    (TimeSetting::getInstance()).simulationTimestamp());
+                    TimeSetting::getInstance().simulationTimestamp());
             }
 
             // remove executed order from local order book
@@ -487,7 +487,7 @@ void Stock::doLocalLimitBuy(Order& orderRef)
 
             // broadcast global order book update
             orderBookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, m_thisGlobalOrder->getPrice(), m_thisGlobalOrder->getSize(),
-                m_thisGlobalOrder->getDestination(), (TimeSetting::getInstance()).simulationTimestamp());
+                m_thisGlobalOrder->getDestination(), TimeSetting::getInstance().simulationTimestamp());
 
             // remove executed order from global order book
             if (size <= 0) {
@@ -578,7 +578,7 @@ void Stock::doLocalLimitSell(Order& orderRef)
             if (update) {
                 // broadcast local order book update
                 orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-                    (TimeSetting::getInstance()).simulationTimestamp());
+                    TimeSetting::getInstance().simulationTimestamp());
             }
 
             // remove executed order from local order book
@@ -600,7 +600,7 @@ void Stock::doLocalLimitSell(Order& orderRef)
 
             // broadcast global order book update
             orderBookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, m_thisGlobalOrder->getPrice(), m_thisGlobalOrder->getSize(),
-                m_thisGlobalOrder->getDestination(), (TimeSetting::getInstance()).simulationTimestamp());
+                m_thisGlobalOrder->getDestination(), TimeSetting::getInstance().simulationTimestamp());
 
             // remove executed order from global order book
             if (size <= 0) {
@@ -683,7 +683,7 @@ void Stock::doLocalMarketBuy(Order& orderRef)
             if (update) {
                 // broadcast local order book update
                 orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-                    (TimeSetting::getInstance()).simulationTimestamp());
+                    TimeSetting::getInstance().simulationTimestamp());
             }
 
             // remove executed order from local order book
@@ -705,7 +705,7 @@ void Stock::doLocalMarketBuy(Order& orderRef)
 
             // broadcast global order book update
             orderBookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, m_thisGlobalOrder->getPrice(), m_thisGlobalOrder->getSize(),
-                m_thisGlobalOrder->getDestination(), (TimeSetting::getInstance()).simulationTimestamp());
+                m_thisGlobalOrder->getDestination(), TimeSetting::getInstance().simulationTimestamp());
 
             // remove executed order from global order book
             if (size <= 0) {
@@ -785,7 +785,7 @@ void Stock::doLocalMarketSell(Order& orderRef)
             if (update) {
                 // broadcast local order book update
                 orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-                    (TimeSetting::getInstance()).simulationTimestamp());
+                    TimeSetting::getInstance().simulationTimestamp());
             }
 
             // remove executed order from local order book
@@ -807,7 +807,7 @@ void Stock::doLocalMarketSell(Order& orderRef)
 
             // broadcast global order book update
             orderBookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, m_thisGlobalOrder->getPrice(), m_thisGlobalOrder->getSize(),
-                m_thisGlobalOrder->getDestination(), (TimeSetting::getInstance()).simulationTimestamp());
+                m_thisGlobalOrder->getDestination(), TimeSetting::getInstance().simulationTimestamp());
 
             // remove executed order from global order book
             if (size <= 0) {
@@ -849,7 +849,7 @@ void Stock::doLocalCancelBid(Order& orderRef)
             if (m_thisLocalOrder->getType() != Order::Type::MARKET_BUY) { // see Stock::insertLocalBid for more info
                 // broadcast local order book update
                 orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-                    (TimeSetting::getInstance()).simulationTimestamp());
+                    TimeSetting::getInstance().simulationTimestamp());
             }
 
             // remove completely canceled order from local order book
@@ -900,7 +900,7 @@ void Stock::doLocalCancelAsk(Order& orderRef)
             if (m_thisLocalOrder->getType() != Order::Type::MARKET_SELL) { // see Stock::insertLocalAsk for more info
                 // broadcast local order book update
                 orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-                    (TimeSetting::getInstance()).simulationTimestamp());
+                    TimeSetting::getInstance().simulationTimestamp());
             }
 
             // remove completely canceled order from local order book
@@ -975,7 +975,7 @@ void Stock::insertLocalBid(Order newBid)
     if (newBid.getType() != Order::Type::MARKET_BUY) {
         // broadcast local order book update
         orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-            (TimeSetting::getInstance()).simulationTimestamp());
+            TimeSetting::getInstance().simulationTimestamp());
     }
 }
 
@@ -1035,7 +1035,7 @@ void Stock::insertLocalAsk(Order newAsk)
     if (newAsk.getType() != Order::Type::MARKET_SELL) {
         // broadcast local order book update
         orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
-            (TimeSetting::getInstance()).simulationTimestamp());
+            TimeSetting::getInstance().simulationTimestamp());
     }
 }
 

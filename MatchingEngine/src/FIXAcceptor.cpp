@@ -338,8 +338,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     order.setMilli(milli);
 
     // Add new quote to buffer
-    auto stockIt = (StockList::getInstance()).find(pSymbol->getValue());
-    if (stockIt != (StockList::getInstance()).end()) {
+    auto stockIt = StockList::getInstance().find(pSymbol->getValue());
+    if (stockIt != StockList::getInstance().end()) {
         stockIt->second.bufNewLocalOrder(std::move(order));
     } else {
         return;
