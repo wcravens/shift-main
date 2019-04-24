@@ -11,8 +11,6 @@
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/terminal/Common.h>
 
-extern std::map<std::string, Stock> stockList;
-
 /* static */ std::string FIXAcceptor::s_senderID;
 
 // Predefined constant FIX message fields (to avoid recalculations):
@@ -340,8 +338,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     order.setMilli(milli);
 
     // Add new quote to buffer
-    auto stockIt = stockList.find(pSymbol->getValue());
-    if (stockIt != stockList.end()) {
+    auto stockIt = (StockList::getInstance()).find(pSymbol->getValue());
+    if (stockIt != (StockList::getInstance()).end()) {
         stockIt->second.bufNewLocalOrder(std::move(order));
     } else {
         return;

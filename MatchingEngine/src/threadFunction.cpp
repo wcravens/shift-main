@@ -14,7 +14,6 @@
 using namespace std::chrono_literals;
 
 extern std::atomic<bool> timeout;
-extern std::map<std::string, Stock> stockList;
 
 bool fileConfigMode(std::string fileAddr, std::string& date, std::string& stime, std::string& etime, int& experimentSpeed, std::vector<std::string>& symbols)
 {
@@ -88,7 +87,7 @@ void inputConfigMode(std::string& date, std::string& stime, std::string& etime, 
 // Function to start one stock matching engine, for exchange thread
 void createStockMarket(std::string symbol)
 {
-    auto stockIt = stockList.find(symbol);
+    auto stockIt = (StockList::getInstance()).find(symbol);
 
     Order nextOrder;
     Order prevGlobalOrder;

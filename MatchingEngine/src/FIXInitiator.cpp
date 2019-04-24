@@ -10,8 +10,6 @@
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/terminal/Common.h>
 
-extern std::map<std::string, Stock> stockList;
-
 /* static */ std::string FIXInitiator::s_senderID;
 /* static */ std::string FIXInitiator::s_targetID;
 
@@ -331,8 +329,8 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     message.getGroup(1, *pIDGroup);
     pIDGroup->getField(*pBuyerID);
 
-    auto stockIt = stockList.find(pSymbol->getValue());
-    if (stockIt == stockList.end()) {
+    auto stockIt = (StockList::getInstance()).find(pSymbol->getValue());
+    if (stockIt == (StockList::getInstance()).end()) {
         cout << "Receive error in Global!" << endl;
         return;
     }

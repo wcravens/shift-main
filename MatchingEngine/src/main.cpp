@@ -32,7 +32,6 @@ namespace po = boost::program_options;
 using voh_t = shift::terminal::VerboseOptHelper;
 
 std::atomic<bool> timeout(false);
-std::map<std::string, Stock> stockList;
 
 int main(int ac, char* av[])
 {
@@ -144,15 +143,15 @@ int main(int ac, char* av[])
         FIXAcceptor::getInstance()->addSymbol(symbol);
         Stock newStock;
         newStock.setSymbol(symbol);
-        stockList.insert(std::pair<std::string, Stock>(newStock.getSymbol(), newStock));
+        (StockList::getInstance()).insert(std::pair<std::string, Stock>(newStock.getSymbol(), newStock));
 
         for (unsigned int j = 0; j < symbols[i].size(); ++j) {
             if (symbols[i][j] == '.')
                 symbols[i][j] = '_';
         }
     }
-    if (symbols.size() != stockList.size()) {
-        cout << "Error in creating Stock to stockList" << endl;
+    if (symbols.size() != (StockList::getInstance()).size()) {
+        cout << "Error in creating Stock to StockList" << endl;
         return 4;
     }
 
@@ -193,14 +192,15 @@ int main(int ac, char* av[])
     (TimeSetting::getInstance()).setStartTime();
 
     // Begin Matching Engine threads
-    int numOfStock = stockList.size();
+    int numOfStock = (StockList::getInstance()).size();
     cout << "Total " << numOfStock << " stocks are ready in the Matching Engine"
          << endl
          << "Waiting for quotes..." << endl;
     std::vector<std::thread> stockThreadList(numOfStock);
     {
         int i = 0;
-        for (std::map<std::string, Stock>::iterator thisStock = stockList.begin(); thisStock != stockList.end(); thisStock++) {
+        auto& stockList = StockList::getInstance();
+        for (auto thisStock = stockList.begin(); thisStock != stockList.end(); thisStock++) {
             stockThreadList[i] = std::thread(createStockMarket, thisStock->first);
             ++i;
         }

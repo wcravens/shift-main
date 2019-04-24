@@ -1038,3 +1038,10 @@ void Stock::insertLocalAsk(Order newAsk)
             (TimeSetting::getInstance()).simulationTimestamp());
     }
 }
+
+StockList::stock_list_t StockList::data = {};
+
+/* static */ StockList::stock_list_t& StockList::getInstance()
+{
+    return data;
+}

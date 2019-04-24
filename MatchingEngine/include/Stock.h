@@ -6,6 +6,7 @@
 #include "PriceLevel.h"
 
 #include <list>
+#include <map>
 #include <mutex>
 #include <queue>
 #include <string>
@@ -75,4 +76,16 @@ private:
 
     std::list<PriceLevel>::iterator m_thisPriceLevel;
     std::list<Order>::iterator m_thisLocalOrder;
+};
+
+class StockList {
+public:
+    using stock_list_t = std::map<std::string, Stock>;
+
+private:
+    static stock_list_t data;
+
+    StockList() = default;
+public:
+    static stock_list_t& getInstance();
 };
