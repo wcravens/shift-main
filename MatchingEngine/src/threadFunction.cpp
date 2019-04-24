@@ -154,7 +154,7 @@ void createStockMarket(std::string symbol)
                 stockIt->second.doGlobalLimitBuy(nextOrder);
                 stockIt->second.doGlobalLimitSell(nextOrder);
                 if (nextOrder.getSize() != 0) {
-                    auto now = globalTimeSetting.simulationTimestamp();
+                    auto now = (TimeSetting::getGlobalTimeSetting()).simulationTimestamp();
                     stockIt->second.executionReports.push_back({ nextOrder.getSymbol(),
                         nextOrder.getPrice(),
                         nextOrder.getSize(),

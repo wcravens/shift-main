@@ -2,8 +2,6 @@
 
 #include <shift/miscutils/terminal/Common.h>
 
-TimeSetting globalTimeSetting;
-
 /**
  * @brief Convert local ptime to UTC ptime
  */
@@ -22,6 +20,15 @@ TimeSetting globalTimeSetting;
     std::tm* tmUtc = std::gmtime(&ttUtc);
 
     return boost::posix_time::ptime_from_tm(*tmUtc);
+}
+
+/* static */ TimeSetting& TimeSetting::getGlobalTimeSetting() {
+
+    // Static global time setting
+    static TimeSetting timeSetting;
+
+    // Return a reference to a static variable
+    return timeSetting;
 }
 
 /**

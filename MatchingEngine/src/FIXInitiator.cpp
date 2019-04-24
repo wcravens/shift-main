@@ -337,7 +337,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         return;
     }
 
-    long mili = globalTimeSetting.pastMilli(pTransactTime->getValue());
+    long mili = (TimeSetting::getGlobalTimeSetting()).pastMilli(pTransactTime->getValue());
 
     Order order{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()), Order::Type::TRTH_TRADE, pBuyerID->getValue(), pTransactTime->getValue() };
     order.setMilli(mili);

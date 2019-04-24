@@ -12,6 +12,8 @@ class TimeSetting {
 public:
     static boost::posix_time::ptime getUTCPTime(const boost::posix_time::ptime& pt);
 
+    static TimeSetting& getGlobalTimeSetting();
+
     void initiate(std::string date, std::string stime, int speed = false);
     void setStartTime();
     long pastMilli(bool simTime = false);
@@ -24,5 +26,3 @@ private:
     int m_speed;
     std::chrono::high_resolution_clock::time_point m_startTimePoint; // real time (not simulation time)
 };
-
-extern TimeSetting globalTimeSetting;

@@ -126,7 +126,7 @@ int main(int ac, char* av[])
         date = params.simulationDate;
     }
 
-    globalTimeSetting.initiate(date, stime, experimentSpeed);
+    (TimeSetting::getGlobalTimeSetting()).initiate(date, stime, experimentSpeed);
     boost::posix_time::ptime ptimeStart(boost::posix_time::time_from_string(date + " " + stime));
     boost::posix_time::ptime ptimeEnd(boost::posix_time::time_from_string(date + " " + etime));
     std::string requestID = date + " :: " + std::to_string(symbols.size());
@@ -190,7 +190,7 @@ int main(int ac, char* av[])
     // this_thread::sleep_for(120s);
 
     // Get the time offset in current day
-    globalTimeSetting.setStartTime();
+    (TimeSetting::getGlobalTimeSetting()).setStartTime();
 
     // Begin Matching Engine threads
     int numOfStock = stockList.size();
