@@ -42,8 +42,8 @@ private:
     std::mutex m_mtxRequest; ///> One per target; for guarding all queues
     std::condition_variable m_cvQueues; ///> For events of all queues
 
-    static void s_processRequestNextData(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const currMarketRequestPtr, const std::string& targetID);
-    static std::future<bool> s_processRequestMarketData(const MarketDataRequest& marketReq, const std::string& targetID);
+    static void s_processNextDataRequest(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const currMarketRequestPtr, const std::string& targetID);
+    static std::future<bool> s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID);
 
     const std::string c_targetID;
 

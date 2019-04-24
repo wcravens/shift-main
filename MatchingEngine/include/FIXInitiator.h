@@ -7,6 +7,8 @@
 #include "ExecutionReport.h"
 #include "Order.h"
 
+#include <condition_variable>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -44,8 +46,8 @@ public:
     void connectDatafeedEngine(const std::string& configFile);
     void disconnectDatafeedEngine();
 
-    void sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
-    void sendMarketDataRequest();
+    void sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
+    void sendNextDataRequest();
 
     void storeOrder(const Order& order);
 
@@ -67,4 +69,8 @@ private:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
     std::unique_ptr<FIX::Initiator> m_initiatorPtr;
+
+    std::condition_variable m_cvMarketDataReady;
+    mutable std::mutex m_mtxMarketDataReady;
+    std::string m_lastMarketDataRequestID;
 };

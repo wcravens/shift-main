@@ -73,18 +73,18 @@ void RequestsProcessorPerTarget::processRequests()
         switch (rt) {
         case REQUEST_TYPE::MARKET_DATA: {
             if (futLastMarketReq.valid())
-                futLastMarketReq.get();
+                futLastMarketReq.get(); // await last asynchronous downloads finish, if any
 
             lastProcessedMarketReq = std::move(m_queueMarketReqs.front());
             m_queueMarketReqs.pop();
             oneReqLock.unlock();
 
-            futLastMarketReq = s_processRequestMarketData(lastProcessedMarketReq, c_targetID);
+            futLastMarketReq = s_processMarketDataRequestAsynch(lastProcessedMarketReq, c_targetID);
         } break;
         case REQUEST_TYPE::NEXT_DATA: {
             oneReqLock.unlock();
 
-            s_processRequestNextData(&futLastMarketReq, &lastProcessedMarketReq, c_targetID); // '&' indicates modification
+            s_processNextDataRequest(&futLastMarketReq, &lastProcessedMarketReq, c_targetID); // '&' indicates modification
         } break;
         } // switch
     } // while
@@ -106,11 +106,11 @@ void RequestsProcessorPerTarget::processRequests()
  * @param targetID: ID of this target.
  * @return future<bool> for waiting the TRTH downloads finish; bool value indicates whether it was a smooth, successful processing.
  */
-/*static*/ std::future<bool> RequestsProcessorPerTarget::s_processRequestMarketData(const MarketDataRequest& marketReq, const std::string& targetID)
+/*static*/ std::future<bool> RequestsProcessorPerTarget::s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID)
 {
     auto& db = PSQLManager::getInstance();
     if (!db.isConnected()) {
-        cerr << "ERROR: s_processRequestMarketData connect to DB failed." << endl;
+        cerr << "ERROR: s_processMarketDataRequestAsynch connect to DB failed." << endl;
         return {};
     }
 
@@ -203,7 +203,7 @@ void RequestsProcessorPerTarget::processRequests()
  * @param lastMarketRequestPtr: The pointer to last Market Data request with necessary informations. The request object will be mutated.
  * @param targetID: ID of this target.
 */
-/*static*/ void RequestsProcessorPerTarget::s_processRequestNextData(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const lastMarketRequestPtr, const std::string& targetID)
+/*static*/ void RequestsProcessorPerTarget::s_processNextDataRequest(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const lastMarketRequestPtr, const std::string& targetID)
 {
     bool warnUnavailSkipped = false;
 
@@ -232,7 +232,7 @@ void RequestsProcessorPerTarget::processRequests()
 
     auto& db = PSQLManager::getInstance();
     if (!db.isConnected()) {
-        cerr << "ERROR: s_processRequestNextData connect to DB failed." << endl;
+        cerr << "ERROR: s_processNextDataRequest connect to DB failed." << endl;
         return;
     }
 

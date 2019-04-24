@@ -86,7 +86,7 @@ void FIXInitiator::disconnectDatafeedEngine()
 /**
  * @brief Send security list and timestamps to Datafeed Engine
  */
-void FIXInitiator::sendSecurityList(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols)
+void FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols)
 {
     FIX::Message message;
 
@@ -107,37 +107,45 @@ void FIXInitiator::sendSecurityList(const std::string& requestID, const boost::p
     }
 
     FIX::Session::sendToTarget(message);
+
+    cout << "Please wait for the database signal until TRTH data ready..." << endl;
+
+    std::unique_lock<std::mutex> lock(m_mtxMarketDataReady);
+    m_cvMarketDataReady.wait(lock, [this] { return m_lastMarketDataRequestID.length() > 0; });
+
+    cout << "TRTH data is ready for request [" << m_lastMarketDataRequestID << "]!" << endl;
+    m_lastMarketDataRequestID.clear(); // (reset for next use, if necessary, but this might seldomly happen)
 }
 
 /**
  * @brief Send market data request to Datafeed Engine
  */
-void FIXInitiator::sendMarketDataRequest()
+void FIXInitiator::sendNextDataRequest()
 {
-    FIX::Message message;
+    // FIX::Message message;
 
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(s_targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
+    // FIX::Header& header = message.getHeader();
+    // header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+    // header.setField(FIX::SenderCompID(s_senderID));
+    // header.setField(FIX::TargetCompID(s_targetID));
+    // header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
 
-    message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
-    message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
+    // message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
+    // message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
+    // message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
 
-    FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup1;
-    FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup2;
-    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup; // Empty, not used
-    typeGroup1.set(::FIXFIELD_MDENTRYTYPE_BID);
-    typeGroup2.set(::FIXFIELD_MDENTRYTYPE_OFFER);
-    relatedSymGroup.set(::FIXFIELD_FAKE_SYMBOL);
+    // FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup1;
+    // FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup2;
+    // FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup; // Empty, not used
+    // typeGroup1.set(::FIXFIELD_MDENTRYTYPE_BID);
+    // typeGroup2.set(::FIXFIELD_MDENTRYTYPE_OFFER);
+    // relatedSymGroup.set(::FIXFIELD_FAKE_SYMBOL);
 
-    message.addGroup(typeGroup1);
-    message.addGroup(typeGroup2);
-    message.addGroup(relatedSymGroup);
+    // message.addGroup(typeGroup1);
+    // message.addGroup(typeGroup2);
+    // message.addGroup(relatedSymGroup);
 
-    FIX::Session::sendToTarget(message);
+    // FIX::Session::sendToTarget(message);
 }
 
 /**
@@ -241,6 +249,14 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
     cout << "----- Receive NOTICE -----" << endl;
     cout << "request_id: " << pRequestID->getValue() << endl;
     cout << "text: " << pText->getValue() << endl;
+
+    if (pText->getValue() == "READY") {
+        {
+            std::lock_guard<std::mutex> guard(m_mtxMarketDataReady);
+            m_lastMarketDataRequestID = pRequestID->getValue();
+        }
+        m_cvMarketDataReady.notify_all();
+    }
 
     if (prevCnt) { // > 1 threads
         delete pRequestID;

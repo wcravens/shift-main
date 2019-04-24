@@ -25,6 +25,8 @@ using namespace std::chrono_literals;
     "date"
 #define CSTR_MANUAL \
     "manual"
+#define CSTR_TIMEOUT \
+    "timeout"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -47,11 +49,14 @@ int main(int ac, char* av[])
         bool isVerbose;
         std::string simulationDate;
         bool isManualInput;
+        using min_t = std::chrono::minutes::rep;
+        min_t minutes;
     } params = {
         "/usr/local/share/shift/MatchingEngine/", // default installation folder for configuration
-        true,
+        false,
         "",
         false,
+        400, // mins
     };
 
     po::options_description desc("\nUSAGE: ./MatchingEngine [options] <args>\n\n\tThis is the MatchingEngine.\n\tThe server connects with DatafeedEngine and BrokerageCenter instances and runs in background.\n\nOPTIONS");
@@ -61,6 +66,7 @@ int main(int ac, char* av[])
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         (CSTR_DATE ",d", po::value<std::string>(), "simulation date") //
         (CSTR_MANUAL ",m", "set manual input of all parameters") //
+        (CSTR_TIMEOUT ",t", po::value<decltype(params)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         ; // add_options
 
     po::variables_map vm;
@@ -105,6 +111,9 @@ int main(int ac, char* av[])
         params.isManualInput = true;
     }
 
+    if (vm.count(CSTR_TIMEOUT))
+        params.minutes = vm[CSTR_TIMEOUT].as<decltype(params)::min_t>();
+
     std::string configFile = params.configDir + "config.txt";
     std::string date = "2018-12-17";
     std::string stime = "09:30:00";
@@ -132,22 +141,21 @@ int main(int ac, char* av[])
 
     // Initiate connection with DE
     FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
-    cout << "Please wait for ready" << endl;
     sleep(3);
-    // getchar();
 
     // Create stock list and Stock objects
     for (unsigned int i = 0; i < symbols.size(); ++i) {
-        std::string symbol;
-        symbol = symbols[i];
-        FIXAcceptor::getInstance()->addSymbol(symbol);
-        Stock newStock;
-        newStock.setSymbol(symbol);
-        (StockList::getInstance()).insert(std::pair<std::string, Stock>(newStock.getSymbol(), newStock));
+        auto& symbol = symbols[i];
 
-        for (unsigned int j = 0; j < symbols[i].size(); ++j) {
-            if (symbols[i][j] == '.')
-                symbols[i][j] = '_';
+        FIXAcceptor::getInstance()->addSymbol(symbol);
+
+        Stock stock(symbol);
+        (StockList::getInstance()).insert(std::pair<std::string, Stock>(symbol, stock));
+
+        // transform symbol's punctuation(if any) before passing to DatafeedEngine
+        for (unsigned int j = 0; j < symbol.size(); ++j) {
+            if (symbol[j] == '.')
+                symbol[j] = '_';
         }
     }
     if (symbols.size() != (StockList::getInstance()).size()) {
@@ -155,38 +163,18 @@ int main(int ac, char* av[])
         return 4;
     }
 
-    // Send request to DatafeedEngine for TRTH data
-    FIXInitiator::getInstance()->sendSecurityList(requestID, ptimeStart, ptimeEnd, symbols);
-    cout << "Please wait for the database signal until TRTH data ready..." << endl;
-    // getchar();
-    // getchar();
-    // FIXInitiator::getInstance()->sendMarketDataRequest();
+    // Send request to DatafeedEngine for TRTH data and wait until data is ready
+    FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, ptimeStart, ptimeEnd, symbols);
 
-    // Option to start the Exchange
-    cout << endl
-         << endl
-         << endl
-         << "Waiting for database downloading and saving data of all the stocks..." << endl
-         << endl
-         << endl;
+    // while (1) {
+    //     // int startExchange = 0;
+    //     cout << "To start exchange, please press '1'" << endl
+    //          << "Please wait for the history data from database server, then type '1', to start this exchange..." << endl;
 
-    while (1) {
-        // int startExchange = 0;
-        cout << "To start exchange, please press '1'" << endl
-             << "Please wait for the history data from database server, then type '1', to start this exchange..." << endl;
-
-        // if (cin >> startExchange) { if (startExchange == 1) break; }
-        // else { cin.clear(); cin.ignore(255,'\n'); }
-        break;
-    }
-    cout << endl
-         << endl
-         << endl
-         << "Waiting for database sending first chunk of all the stocks..."
-         << endl
-         << endl
-         << endl;
-    // this_thread::sleep_for(120s);
+    //     // if (cin >> startExchange) { if (startExchange == 1) break; }
+    //     // else { cin.clear(); cin.ignore(255,'\n'); }
+    //     break;
+    // }
 
     // Get the time offset in current day
     (TimeSetting::getInstance()).setStartTime();
@@ -209,17 +197,13 @@ int main(int ac, char* av[])
     // Initiate connection with BC
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
-    // Request new market data every 5 minutes
-    ptimeStart += boost::posix_time::minutes(5);
-    while (ptimeStart < ptimeEnd) {
-        // FIXInitiator::getInstance()->sendMarketDataRequest();
-        ptimeStart += boost::posix_time::minutes(5);
-        std::this_thread::sleep_for(5min / experimentSpeed);
-    }
-    std::this_thread::sleep_for(5min / experimentSpeed);
+    cout.clear();
+    cout << '\n'
+         << COLOR_PROMPT "Timer begins ( " << params.minutes << " minutes )..." NO_COLOR << '\n'
+         << endl;
 
-    std::this_thread::sleep_for(1min);
-    timeout = true;
+    voh_t{ cout, params.isVerbose, true };
+    std::this_thread::sleep_for(params.minutes * 1min);
 
     FIXInitiator::getInstance()->disconnectDatafeedEngine();
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();
