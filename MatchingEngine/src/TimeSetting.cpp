@@ -22,7 +22,7 @@
     return boost::posix_time::ptime_from_tm(*tmUtc);
 }
 
-/* static */ TimeSetting& TimeSetting::getGlobalTimeSetting() {
+/* static */ TimeSetting& TimeSetting::getInstance() {
 
     // Static global time setting
     static TimeSetting timeSetting;

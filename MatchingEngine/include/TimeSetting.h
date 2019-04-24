@@ -12,7 +12,7 @@ class TimeSetting {
 public:
     static boost::posix_time::ptime getUTCPTime(const boost::posix_time::ptime& pt);
 
-    static TimeSetting& getGlobalTimeSetting();
+    static TimeSetting& getInstance();
 
     void initiate(std::string date, std::string stime, int speed = false);
     void setStartTime();
