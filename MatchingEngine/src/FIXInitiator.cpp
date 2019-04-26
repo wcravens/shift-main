@@ -151,7 +151,7 @@ void FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
 /**
  * @brief Store order in Database Engine after confirmed
  */
-void FIXInitiator::storeOrder(const Order& order)
+void FIXInitiator::storeOrder(const Order& order) // FIXME: not be used
 {
     FIX::Message message;
 

@@ -222,8 +222,8 @@ void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& targetList
     header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
 
     message.setField(FIX::Symbol(cdPoint.getSymbol()));
-    message.setField(FIX::Text(std::to_string(cdPoint.getTimeFrom()))); // no need for timestamp
-    message.setField(FIX::StrikePrice(cdPoint.getOpenPrice())); // Open price
+    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(cdPoint.getTimeFrom()), 6)); // no need for timestamp
+    message.setField(FIX::FirstPx(cdPoint.getOpenPrice())); // Open price
     message.setField(FIX::HighPx(cdPoint.getHighPrice())); // High price
     message.setField(FIX::LowPx(cdPoint.getLowPrice())); // Low price
     message.setField(FIX::LastPx(cdPoint.getClosePrice())); // Close price
@@ -369,6 +369,7 @@ void FIXAcceptor::sendPortfolioItem(const std::string& userID, const PortfolioIt
     FIX::Session::sendToTarget(message);
 }
 
+// SecurityStatus
 void FIXAcceptor::sendWaitingList(const std::string& userID, const std::unordered_map<std::string, Order>& orders)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserID(userID);
