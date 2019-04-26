@@ -214,15 +214,15 @@ double BCDocuments::getOrderBookMarketFirstPrice(bool isBuy, const std::string& 
 
 void BCDocuments::onNewOBEntryForOrderBook(const std::string& symbol, OrderBookEntry&& entry)
 {
-    while (!s_isSecurityListReady)
-        std::this_thread::sleep_for(500ms);
+    if (!s_isSecurityListReady)
+        return;
     m_orderBookBySymbol[symbol]->enqueueOrderBook(std::move(entry));
 }
 
 void BCDocuments::onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac)
 {
-    while (!s_isSecurityListReady)
-        std::this_thread::sleep_for(500ms);
+    if (!s_isSecurityListReady)
+        return;
     m_candleBySymbol[symbol]->enqueueTransaction(transac);
 }
 
