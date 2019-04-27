@@ -1,9 +1,9 @@
                 IP                  Cores / RAM     HDD         OS              Configured?     Hostname            Host Group
 Web Demo        155.246.104.55      16 / 16         100GB       Ubuntu 18.04    OK              FSCSHIFT05          1
 Qt Demo         155.246.104.31      16 / 16         100GB       Ubuntu 18.04    OK              FSCSHIFT03          1
+Testing         155.246.104.93      16 / 16         100GB       Ubuntu 18.04    OK              FSCSHIFT02          1
 Release         155.246.104.29      16 / 16         100GB       Ubuntu 18.04    OK              FSCSHIFT06          1
                 155.246.104.121     16 / 16         200GB       Ubuntu 18.04    OK              FSCRESEARCHVM29     1
 Research        155.246.104.32      16 / 32         100GB       Ubuntu 18.04    OK              FSCSHIFT04          1
                 155.246.104.45      16 / 32         100GB       Ubuntu 18.04                    FSCSHIFT01          1
                 155.246.104.60      16 / 32         100GB       Ubuntu 18.04                    FSCSHIFT07          1
-                155.246.104.93      16 / 16         100GB       Ubuntu 18.04    OK              FSCSHIFT02          1
