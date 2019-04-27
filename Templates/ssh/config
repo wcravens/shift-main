@@ -10,6 +10,11 @@ Host 31
   User shiftpub
   HostName 155.246.104.31
 
+# 93-DE-ME-BC-WC (Testing)
+Host 93
+  User shiftpub
+  HostName 155.246.104.93
+
 # 29-DE-ME-BC-WC (Release)
 Host 29
   User shiftpub
@@ -34,8 +39,3 @@ Host 45
 Host 60
   User shiftpub
   HostName 155.246.104.60
-
-# 93-DE-ME-BC-WC (Research)
-Host 93
-  User shiftpub
-  HostName 155.246.104.93
