@@ -120,9 +120,7 @@ int main(int ac, char* av[])
 
     voh_t voh(cout, params.isVerbose);
 
-    /*
-     * @brief   Database init
-     */
+    // Database init
     auto loginPSQL = shift::crypto::readEncryptedConfigFile(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
     PSQLManager::createInstance(std::move(loginPSQL)); // already moved-in, don't use loginPSQL thereafter!
     PSQLManager::getInstance().init();
@@ -134,9 +132,7 @@ int main(int ac, char* av[])
 
     FIXAcceptor::getInstance()->connectMatchingEngine(params.configDir + "acceptor.cfg", params.isVerbose);
 
-    /*
-     * @brief   Running in background
-     */
+    // Running in background
     if (params.timer.isSet) {
         cout.clear();
         cout << '\n'
@@ -165,9 +161,7 @@ int main(int ac, char* av[])
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
-    /*
-     * @brief   Close program
-     */
+    // Close program
     FIXAcceptor::getInstance()->disconnectMatchingEngine();
     TRTHAPI::getInstance()->stop();
 

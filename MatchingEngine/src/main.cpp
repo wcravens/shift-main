@@ -186,27 +186,19 @@ int main(int ac, char* av[])
          << "Waiting for quotes..." << endl
          << endl;
 
-    /*
-     * @brief  Initiate FIX connections
-     */
+    // Initiate FIX connections
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
     FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
 
-    /*
-     * @brief  Send request to Datafeed Engine for TRTH data and wait until data is ready
-     */
+    // Send request to Datafeed Engine for TRTH data and wait until data is ready
     // TODO: We should also send DURATION_PER_DATA_CHUNK to DE
     FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, startTime, endTime, symbols);
 
-    /*
-     * @brief  Configure and start global clock
-     */
+    // Configure and start global clock
     TimeSetting::getInstance().initiate(startTime, experimentSpeed);
     TimeSetting::getInstance().setStartTime();
 
-    /*
-     * @brief  Request data chunks in the background
-     */
+    // Request data chunks in the background
     std::thread(
         [startTime, endTime, experimentSpeed]() mutable {
             // Make sure to always keep at least DURATION_PER_DATA_CHUNK of data ahead in buffer
@@ -224,9 +216,7 @@ int main(int ac, char* av[])
         })
         .detach(); // run in background
 
-    /*
-     * @brief   Running in background
-     */
+    // Running in background
     if (params.timer.isSet) {
         cout.clear();
         cout << '\n'
@@ -255,9 +245,7 @@ int main(int ac, char* av[])
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
-    /*
-     * @brief   Close program
-     */
+    // Close program
     FIXInitiator::getInstance()->disconnectDatafeedEngine();
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();
     timeout = true;
