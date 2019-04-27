@@ -35,16 +35,6 @@ FIXAcceptor::~FIXAcceptor() // override
     return &s_FIXAccInst;
 }
 
-void FIXAcceptor::addSymbol(const std::string& symbol)
-{ // Here no locking is needed only when satisfies precondition: addSymbol was run before others
-    m_symbols.insert(symbol);
-}
-
-const std::set<std::string>& FIXAcceptor::getSymbols() const
-{
-    return m_symbols;
-}
-
 void FIXAcceptor::connectBrokerageCenter(const std::string& configFile)
 {
     disconnectBrokerageCenter();
@@ -116,9 +106,9 @@ void FIXAcceptor::sendOrderBookUpdate2All(const OrderBookEntry& update)
     entryGroup.setField(FIX::MDMkt(update.getDestination()));
     message.addGroup(entryGroup);
 
-    std::lock_guard<std::mutex> lock(m_mtxTargetList);
+    std::lock_guard<std::mutex> lock(m_mtxTargetSet);
 
-    for (const auto& targetID : m_targetList) {
+    for (const auto& targetID : m_targetSet) {
         header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
@@ -145,7 +135,7 @@ void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
     message.setField(FIX::Side(report.orderType1));
     message.setField(FIX::OrdType(report.orderType2));
     message.setField(FIX::Price(report.price));
-    message.setField(FIX::EffectiveTime((TimeSetting::getInstance()).simulationTimestamp(), 6));
+    message.setField(FIX::EffectiveTime(TimeSetting::getInstance().simulationTimestamp(), 6));
     message.setField(FIX::LastMkt(report.destination));
     message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
     message.setField(FIX::CumQty(report.size));
@@ -169,9 +159,9 @@ void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
     timeGroup2.setField(FIX::TrdRegTimestamp(report.simulationTime2, 6));
     message.addGroup(timeGroup2);
 
-    std::lock_guard<std::mutex> lock(m_mtxTargetList);
+    std::lock_guard<std::mutex> lock(m_mtxTargetSet);
 
-    for (const auto& targetID : m_targetList) {
+    for (const auto& targetID : m_targetSet) {
         header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
@@ -193,8 +183,8 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID)
 
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
 
-    for (const std::string& symbol : m_symbols) {
-        relatedSymGroup.set(FIX::Symbol(symbol));
+    for (const auto& kv : StockList::getInstance()) {
+        relatedSymGroup.set(FIX::Symbol(kv.first));
         message.addGroup(relatedSymGroup);
     }
 
@@ -225,7 +215,7 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Order
     message.setField(FIX::Symbol(confirmation.symbol));
     message.setField(FIX::Side(confirmation.orderType));
     message.setField(FIX::Price(confirmation.price));
-    message.setField(FIX::EffectiveTime((TimeSetting::getInstance()).simulationTimestamp(), 6));
+    message.setField(FIX::EffectiveTime(TimeSetting::getInstance().simulationTimestamp(), 6));
     message.setField(FIX::LastMkt("SHIFT"));
     message.setField(FIX::LeavesQty(confirmation.size));
     message.setField(::FIXFIELD_CUMQTY_0); // Required by FIX
@@ -246,18 +236,29 @@ void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override
 
 void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 {
-    std::string targetID = sessionID.getTargetCompID().getValue();
-    cout << "Target ID: " << targetID << " logon" << endl;
+    const auto& targetID = sessionID.getTargetCompID().getValue();
+    cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 
-    // Check whether targetID already exists in target list
-    auto pos = m_targetList.find(targetID);
-    if (pos == m_targetList.end()) {
-        std::lock_guard<std::mutex> lock(m_mtxTargetList);
-        m_targetList.insert(targetID);
-        cout << "Add new Target ID: " << targetID << endl;
+    {
+        std::lock_guard<std::mutex> lock(m_mtxTargetSet);
+        m_targetSet.insert(targetID);
     }
 
     sendSecurityList(targetID);
+}
+
+void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
+{
+    const auto& targetID = sessionID.getTargetCompID().getValue();
+    cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
+
+    // If we do not remove this targetID from the target set,
+    // messages sent during a disconnection will be resent upon reconnection
+
+    // {
+    //     std::lock_guard<std::mutex> lock(m_mtxTargetSet);
+    //     m_targetList.erase(m_targetSet);
+    // }
 }
 
 void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
@@ -331,8 +332,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     message.getGroup(1, *pIDGroup);
     pIDGroup->get(*pTraderID);
 
-    long milli = (TimeSetting::getInstance()).pastMilli();
-    FIX::UtcTimeStamp now = (TimeSetting::getInstance()).simulationTimestamp();
+    long milli = TimeSetting::getInstance().pastMilli();
+    FIX::UtcTimeStamp now = TimeSetting::getInstance().simulationTimestamp();
 
     Order order{ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), static_cast<Order::Type>(pOrderType->getValue()), now };
     order.setMilli(milli);

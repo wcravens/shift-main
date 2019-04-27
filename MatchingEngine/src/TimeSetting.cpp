@@ -2,6 +2,12 @@
 
 #include <shift/miscutils/terminal/Common.h>
 
+/* static */ TimeSetting& TimeSetting::getInstance()
+{
+    static TimeSetting s_timeSettingInst;
+    return s_timeSettingInst;
+}
+
 /**
  * @brief Convert local ptime to UTC ptime
  */
@@ -22,29 +28,18 @@
     return boost::posix_time::ptime_from_tm(*tmUtc);
 }
 
-/* static */ TimeSetting& TimeSetting::getInstance() {
-
-    // Static global time setting
-    static TimeSetting timeSetting;
-
-    // Return a reference to a static variable
-    return timeSetting;
-}
-
 /**
  * @brief Initiate member variables
  */
-void TimeSetting::initiate(std::string date, std::string stime, int speed)
+void TimeSetting::initiate(const boost::posix_time::ptime& localPtime, int speed)
 {
-    cout << endl;
-
-    auto ptimeLocal = boost::posix_time::ptime(boost::posix_time::time_from_string(date + " " + stime));
-    m_utcDateTime = getUTCPTime(ptimeLocal);
-    cout << "UTC date time: " << boost::posix_time::to_iso_extended_string(m_utcDateTime) << endl;
-
+    m_utcDateTime = getUTCPTime(localPtime);
     m_hhmmss = m_utcDateTime.time_of_day().total_seconds();
-    cout << "HHMMSS: " << m_hhmmss << endl;
     m_speed = speed;
+
+    cout << endl;
+    cout << "UTC date time: " << boost::posix_time::to_iso_extended_string(m_utcDateTime) << endl;
+    cout << "HHMMSS: " << m_hhmmss << endl;
     cout << "Speed: " << m_speed << endl;
 }
 

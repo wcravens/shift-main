@@ -39,9 +39,6 @@ public:
 
     static FIXAcceptor* getInstance();
 
-    void addSymbol(const std::string& symbol);
-    const std::set<std::string>& getSymbols() const;
-
     void connectBrokerageCenter(const std::string& configFile);
     void disconnectBrokerageCenter();
 
@@ -57,17 +54,15 @@ private:
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;
     void onLogon(const FIX::SessionID&) override;
-    void onLogout(const FIX::SessionID&) override {}
+    void onLogout(const FIX::SessionID&) override;
     void toAdmin(FIX::Message&, const FIX::SessionID&) override {}
     void toApp(FIX::Message&, const FIX::SessionID&) throw(FIX::DoNotSend) override {}
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
 
-    std::set<std::string> m_symbols;
-
-    mutable std::mutex m_mtxTargetList;
-    std::unordered_set<std::string> m_targetList;
+    mutable std::mutex m_mtxTargetSet;
+    std::unordered_set<std::string> m_targetSet;
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;

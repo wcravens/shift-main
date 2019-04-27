@@ -108,50 +108,53 @@ void FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
 
     FIX::Session::sendToTarget(message);
 
-    cout << "Please wait for the database signal until TRTH data ready..." << endl;
+    cout << endl
+         << "Please wait for the database signal until TRTH data ready..." << endl;
 
     std::unique_lock<std::mutex> lock(m_mtxMarketDataReady);
     m_cvMarketDataReady.wait(lock, [this] { return m_lastMarketDataRequestID.length() > 0; });
 
-    cout << "TRTH data is ready for request [" << m_lastMarketDataRequestID << "]!" << endl;
+    cout << endl
+         << "TRTH data is ready for request [" << m_lastMarketDataRequestID << "]!" << endl;
+
     m_lastMarketDataRequestID.clear(); // (reset for next use, if necessary, but this might seldomly happen)
 }
 
 /**
  * @brief Send market data request to Datafeed Engine
  */
-// void FIXInitiator::sendNextDataRequest()
-// {
-// FIX::Message message;
+void FIXInitiator::sendNextDataRequest()
+{
+    FIX::Message message;
 
-// FIX::Header& header = message.getHeader();
-// header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-// header.setField(FIX::SenderCompID(s_senderID));
-// header.setField(FIX::TargetCompID(s_targetID));
-// header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::TargetCompID(s_targetID));
+    header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
 
-// message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
-// message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
-// message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
+    message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
+    message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
+    message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
 
-// FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup1;
-// FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup2;
-// FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup; // Empty, not used
-// typeGroup1.set(::FIXFIELD_MDENTRYTYPE_BID);
-// typeGroup2.set(::FIXFIELD_MDENTRYTYPE_OFFER);
-// relatedSymGroup.set(::FIXFIELD_FAKE_SYMBOL);
+    FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup1;
+    FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup2;
+    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup; // Empty, not used
+    typeGroup1.set(::FIXFIELD_MDENTRYTYPE_BID);
+    typeGroup2.set(::FIXFIELD_MDENTRYTYPE_OFFER);
+    relatedSymGroup.set(::FIXFIELD_FAKE_SYMBOL);
 
-// message.addGroup(typeGroup1);
-// message.addGroup(typeGroup2);
-// message.addGroup(relatedSymGroup);
+    message.addGroup(typeGroup1);
+    message.addGroup(typeGroup2);
+    message.addGroup(relatedSymGroup);
 
-// FIX::Session::sendToTarget(message);
-// }
+    FIX::Session::sendToTarget(message);
+}
 
 /**
  * @brief Store order in Database Engine after confirmed
  */
-void FIXInitiator::storeOrder(const Order& order) // FIXME: not be used
+void FIXInitiator::storeOrder(const Order& order) // FIXME: not used
 {
     FIX::Message message;
 
@@ -185,14 +188,14 @@ void FIXInitiator::onCreate(const FIX::SessionID& sessionID) // override
 
 void FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
 {
-    cout << endl
-         << "Logon - " << sessionID.toString() << endl;
+    const auto& targetID = sessionID.getTargetCompID().getValue();
+    cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 }
 
 void FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
 {
-    cout << endl
-         << "Logout - " << sessionID.toString() << endl;
+    const auto& targetID = sessionID.getTargetCompID().getValue();
+    cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
 }
 
 void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
@@ -246,6 +249,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
     message.getGroup(1, *pTextGroup);
     pTextGroup->get(*pText);
 
+    cout << endl;
     cout << "----- Receive NOTICE -----" << endl;
     cout << "request_id: " << pRequestID->getValue() << endl;
     cout << "text: " << pText->getValue() << endl;

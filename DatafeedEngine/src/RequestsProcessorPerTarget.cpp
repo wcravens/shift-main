@@ -221,7 +221,7 @@ void RequestsProcessorPerTarget::processRequests()
 
     // get start time and end time
     const boost::posix_time::ptime& sendFrom = lastMarketRequestPtr->getStartTime();
-    boost::posix_time::ptime sendTo = sendFrom + boost::posix_time::minutes(5);
+    boost::posix_time::ptime sendTo = sendFrom + boost::posix_time::seconds(300);
     if (sendTo >= lastMarketRequestPtr->getEndTime()) {
         sendTo = lastMarketRequestPtr->getEndTime();
     }
