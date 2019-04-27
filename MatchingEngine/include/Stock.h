@@ -82,10 +82,10 @@ class StockList {
 public:
     using stock_list_t = std::map<std::string, Stock>;
 
-private:
-    static stock_list_t data;
+    static std::atomic<bool> s_isTimeout;
 
-    StockList() = default;
-public:
     static stock_list_t& getInstance();
+
+private:
+    StockList() = default;
 };

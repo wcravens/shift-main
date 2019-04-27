@@ -1039,9 +1039,10 @@ void Stock::insertLocalAsk(Order newAsk)
     }
 }
 
-StockList::stock_list_t StockList::data = {};
+/* static */ std::atomic<bool> StockList::s_isTimeout{ false };
 
 /* static */ StockList::stock_list_t& StockList::getInstance()
 {
+    static stock_list_t data;
     return data;
 }

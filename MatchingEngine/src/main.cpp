@@ -34,8 +34,6 @@ namespace po = boost::program_options;
 /* 'using' is the same as 'typedef' */
 using voh_t = shift::terminal::VerboseOptHelper;
 
-std::atomic<bool> timeout{ false };
-
 int main(int ac, char* av[])
 {
     char tz[] = "TZ=America/New_York"; // Set time zone to New York
@@ -248,7 +246,7 @@ int main(int ac, char* av[])
     // Close program
     FIXInitiator::getInstance()->disconnectDatafeedEngine();
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();
-    timeout = true;
+    StockList::s_isTimeout = true;
     for (int i = 0; i < numOfStocks; i++) {
         stockMarketThreadList[i].join();
     }

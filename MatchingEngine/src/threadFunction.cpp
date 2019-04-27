@@ -13,8 +13,6 @@
 
 using namespace std::chrono_literals;
 
-extern std::atomic<bool> timeout;
-
 bool fileConfigMode(std::string fileAddr, std::string& date, std::string& stime, std::string& etime, int& experimentSpeed, std::vector<std::string>& symbols)
 {
     std::ifstream fin(fileAddr, std::ios_base::in);
@@ -92,7 +90,7 @@ void createStockMarket(std::string symbol)
     Order nextOrder;
     Order prevGlobalOrder;
 
-    while (!timeout) { // process orders
+    while (!StockList::s_isTimeout) { // process orders
 
         if (!stockIt->second.getNextOrder(nextOrder)) {
             std::this_thread::sleep_for(10ms);
