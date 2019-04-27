@@ -208,7 +208,7 @@ int main(int ac, char* av[])
      * @brief  Request data chunks in the background
      */
     std::thread(
-        [startTime, endTime]() mutable {
+        [startTime, endTime, experimentSpeed]() mutable {
             // Make sure to always keep at least DURATION_PER_DATA_CHUNK of data ahead in buffer
             FIXInitiator::getInstance()->sendNextDataRequest();
             startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
@@ -217,8 +217,10 @@ int main(int ac, char* av[])
                 FIXInitiator::getInstance()->sendNextDataRequest();
                 startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
 
-                std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK);
+                std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK / experimentSpeed);
             } while (startTime < endTime);
+
+            std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK / experimentSpeed);
         })
         .detach(); // run in background
 
