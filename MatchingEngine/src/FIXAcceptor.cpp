@@ -239,12 +239,15 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     const auto& targetID = sessionID.getTargetCompID().getValue();
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 
+    sendSecurityList(targetID);
+    // TODO: We should also send the current order books
+    // of all stocks for all new connecting targets
+    // (Implementing this without adding new locks will be tricky)
+
     {
         std::lock_guard<std::mutex> lock(m_mtxTargetSet);
         m_targetSet.insert(targetID);
     }
-
-    sendSecurityList(targetID);
 }
 
 void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
