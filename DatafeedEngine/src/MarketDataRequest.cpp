@@ -6,11 +6,12 @@
  * @brief Constructor for a new MarketDataRequest.
  * @param requestID, vector of ticker symbols, start time, and end time.
  */
-MarketDataRequest::MarketDataRequest(std::string&& requestID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime)
+MarketDataRequest::MarketDataRequest(std::string&& requestID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime, int numSecondsPerDataChunk)
     : m_requestID(std::move(requestID))
     , m_symbols(std::move(symbols))
     , m_startTime(std::move(startTime))
     , m_endTime(std::move(endTime))
+    , m_numSecondsPerDataChunk(numSecondsPerDataChunk)
 {
 }
 
@@ -52,6 +53,11 @@ const boost::posix_time::ptime& MarketDataRequest::getStartTime() const
 const boost::posix_time::ptime& MarketDataRequest::getEndTime() const
 {
     return m_endTime;
+}
+
+int MarketDataRequest::getNumSecondsPerDataChunk() const
+{
+    return m_numSecondsPerDataChunk;
 }
 
 /**

@@ -33,11 +33,11 @@ RequestsProcessorPerTarget::~RequestsProcessorPerTarget()
 /**
  * @brief Enqueue one Market Data request to process
  */
-void RequestsProcessorPerTarget::enqueueMarketDataRequest(std::string reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime)
+void RequestsProcessorPerTarget::enqueueMarketDataRequest(std::string reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime, int numSecondsPerDataChunk)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxRequest);
-        m_queueMarketReqs.emplace(std::move(reqID), std::move(symbols), std::move(startTime), std::move(endTime));
+        m_queueMarketReqs.emplace(std::move(reqID), std::move(symbols), std::move(startTime), std::move(endTime), numSecondsPerDataChunk);
         m_queueReqTypes.push(REQUEST_TYPE::MARKET_DATA);
     }
     m_cvQueues.notify_one();
@@ -91,14 +91,15 @@ void RequestsProcessorPerTarget::processRequests()
 }
 
 /**@brief Announces requested data is ready to send. */
-/*static*/ void RequestsProcessorPerTarget::s_announceDataReady(const std::string& targetID, const std::string& requestID)
+/*static*/ void RequestsProcessorPerTarget::s_announceDataReady(const std::string& targetID, const std::string& requestID, int size)
 {
     static std::mutex mtxReadyMsg; // Its only purpose is to ensure atomically print message and send signal at the same time. Its lifetime will last from first time the program encountered it, to when the entire DE program terminates.
     std::lock_guard<std::mutex> guard(mtxReadyMsg);
     cout << '\n'
          << COLOR_PROMPT "Ready to send chunk to " << targetID << NO_COLOR << '\n'
          << endl;
-    FIXAcceptor::sendNotice(targetID, requestID, "READY");
+
+    FIXAcceptor::sendNotice(targetID, requestID, size > 0 ? "READY" : "EMPTY");
 }
 
 /**@brief Processor helper for one Market Data request.
@@ -175,19 +176,20 @@ void RequestsProcessorPerTarget::processRequests()
         ,
         [](std::vector<std::promise<bool>> proms /* owns promises by transfering/moving */
             ,
-            std::string targetID, std::string requestID) {
+            const std::string targetID, const std::string requestID, std::vector<std::string> symbols) {
             bool isPerfect = true;
 
             for (auto& prom : proms)
                 isPerfect &= prom.get_future().get();
 
-            s_announceDataReady(targetID, requestID);
+            TRTHAPI::getInstance()->removeUnavailableRICs(symbols);
+            s_announceDataReady(targetID, requestID, symbols.size());
 
             return isPerfect;
         } // []{}
 
         ,
-        std::move(proms), targetID, marketReq.getRequestID()
+        std::move(proms), targetID, marketReq.getRequestID(), marketReq.getSymbols()
         /* All these arguments will be used to create corresponding value(non-reference) objects for std::async's internal use.
                     If the argument is std::move-ed, then such object is move-constructed, otherwise copy-constructed.
                     After these, those objects will again move-constructs the lambda's parameters.
@@ -221,7 +223,7 @@ void RequestsProcessorPerTarget::processRequests()
 
     // get start time and end time
     const boost::posix_time::ptime& sendFrom = lastMarketRequestPtr->getStartTime();
-    boost::posix_time::ptime sendTo = sendFrom + boost::posix_time::seconds(300);
+    boost::posix_time::ptime sendTo = sendFrom + boost::posix_time::seconds(lastMarketRequestPtr->getNumSecondsPerDataChunk());
     if (sendTo >= lastMarketRequestPtr->getEndTime()) {
         sendTo = lastMarketRequestPtr->getEndTime();
     }

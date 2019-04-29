@@ -225,6 +225,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     static FIX::SecurityResponseID requestID;
     static FIX::SecurityListID startTimeString;
     static FIX::SecurityListRefID endTimeString;
+    static FIX::SecurityListDesc slDesc;
 
     static FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
     static FIX::Symbol symbol;
@@ -234,6 +235,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     FIX::SecurityResponseID* pRequestID;
     FIX::SecurityListID* pStartTimeString;
     FIX::SecurityListRefID* pEndTimeString;
+    FIX::SecurityListDesc* pSLDesc;
 
     FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup;
     FIX::Symbol* pSymbol;
@@ -249,12 +251,14 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
         pRequestID = &requestID;
         pStartTimeString = &startTimeString;
         pEndTimeString = &endTimeString;
+        pSLDesc = &slDesc;
         pRelatedSymGroup = &relatedSymGroup;
         pSymbol = &symbol;
     } else { // > 1 threads; always safe way:
         pRequestID = new decltype(requestID);
         pStartTimeString = new decltype(startTimeString);
         pEndTimeString = new decltype(endTimeString);
+        pSLDesc = new decltype(slDesc);
         pRelatedSymGroup = new decltype(relatedSymGroup);
         pSymbol = new decltype(symbol);
     }
@@ -262,6 +266,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     message.get(*pRequestID);
     message.get(*pStartTimeString);
     message.get(*pEndTimeString);
+    message.get(*pSLDesc);
 
     cout << "Request info:" << '\n'
          << pRequestID->getValue() << '\n'
@@ -281,12 +286,15 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     boost::posix_time::ptime startTime = boost::posix_time::from_iso_string(*pStartTimeString);
     boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(*pEndTimeString);
 
-    m_requestsProcessors[targetID]->enqueueMarketDataRequest(*pRequestID, std::move(symbols), std::move(startTime), std::move(endTime));
+    const int numSecondsPerDataChunk = std::stoi(pSLDesc->getValue());
+
+    m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(*pRequestID), std::move(symbols), std::move(startTime), std::move(endTime), numSecondsPerDataChunk);
 
     if (prevCnt) { // > 1 threads
         delete pRequestID;
         delete pStartTimeString;
         delete pEndTimeString;
+        delete pSLDesc;
         delete pRelatedSymGroup;
         delete pSymbol;
     }

@@ -43,10 +43,10 @@ public:
 
     static FIXInitiator* getInstance();
 
-    void connectDatafeedEngine(const std::string& configFile);
+    bool connectDatafeedEngine(const std::string& configFile);
     void disconnectDatafeedEngine();
 
-    void sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
+    bool sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols, int numSecondsPerDataChunk);
     void sendNextDataRequest();
 
     void storeOrder(const Order& order);

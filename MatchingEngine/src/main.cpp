@@ -34,6 +34,35 @@ namespace po = boost::program_options;
 /* 'using' is the same as 'typedef' */
 using voh_t = shift::terminal::VerboseOptHelper;
 
+static std::atomic<bool> s_isRequestingData{ true };
+
+/*
+ * @brief   Function to request data chunks in the background
+ */
+static void s_requestDatafeedEngineData(const std::string configFullPath, const std::string requestID, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, const std::vector<std::string> symbols, int numSecondsPerDataChunk, int experimentSpeed)
+{
+    if (!FIXInitiator::getInstance()->connectDatafeedEngine(configFullPath)) {
+        // cout << "DEBUG: s_requestDatafeedEngineData cannot connect DE!" << endl;
+        return;
+    }
+
+    // Send request to Datafeed Engine for TRTH data and *wait* until data is ready
+    if (FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, startTime, endTime, symbols, numSecondsPerDataChunk)) {
+        // Make sure to always keep at least DURATION_PER_DATA_CHUNK of data ahead in buffer
+        FIXInitiator::getInstance()->sendNextDataRequest();
+        startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
+
+        do {
+            FIXInitiator::getInstance()->sendNextDataRequest();
+            startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
+
+            std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK / experimentSpeed);
+        } while (s_isRequestingData && startTime < endTime);
+    }
+
+    FIXInitiator::getInstance()->disconnectDatafeedEngine();
+}
+
 int main(int ac, char* av[])
 {
     char tz[] = "TZ=America/New_York"; // Set time zone to New York
@@ -188,31 +217,11 @@ int main(int ac, char* av[])
     TimeSetting::getInstance().initiate(startTime, experimentSpeed);
     TimeSetting::getInstance().setStartTime();
 
-    // Initiate FIX connections
-    FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
-    FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
-
-    // Send request to Datafeed Engine for TRTH data and wait until data is ready
-    // TODO: We should also send DURATION_PER_DATA_CHUNK to DE
-    FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, startTime, endTime, symbols);
-
     // Request data chunks in the background
-    std::thread(
-        [startTime, endTime, experimentSpeed]() mutable {
-            // Make sure to always keep at least DURATION_PER_DATA_CHUNK of data ahead in buffer
-            FIXInitiator::getInstance()->sendNextDataRequest();
-            startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
+    std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
 
-            do {
-                FIXInitiator::getInstance()->sendNextDataRequest();
-                startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
-
-                std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK / experimentSpeed);
-            } while (startTime < endTime);
-
-            std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK / experimentSpeed);
-        })
-        .detach(); // run in background
+    // Initiate Brokerage Center connection
+    FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
     // Running in background
     if (params.timer.isSet) {
@@ -244,8 +253,12 @@ int main(int ac, char* av[])
     }
 
     // Close program
-    FIXInitiator::getInstance()->disconnectDatafeedEngine();
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();
+
+    ::s_isRequestingData = false; // to terminate data requester
+    if (dataRequester.joinable())
+        dataRequester.join(); // wait for termination
+
     StockList::s_isTimeout = true;
     for (int i = 0; i < numOfStocks; i++) {
         stockMarketThreadList[i].join();

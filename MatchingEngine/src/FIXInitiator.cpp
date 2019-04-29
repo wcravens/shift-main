@@ -36,7 +36,7 @@ FIXInitiator::~FIXInitiator() // override
     return &s_FIXInitInst;
 }
 
-void FIXInitiator::connectDatafeedEngine(const std::string& configFile)
+bool FIXInitiator::connectDatafeedEngine(const std::string& configFile)
 {
     disconnectDatafeedEngine();
 
@@ -65,7 +65,13 @@ void FIXInitiator::connectDatafeedEngine(const std::string& configFile)
         m_initiatorPtr->start();
     } catch (const FIX::RuntimeError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
+        return false;
+    } catch (const FIX::ConfigError& e) {
+        cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
+        return false;
     }
+
+    return true;
 }
 
 void FIXInitiator::disconnectDatafeedEngine()
@@ -86,7 +92,7 @@ void FIXInitiator::disconnectDatafeedEngine()
 /**
  * @brief Send security list and timestamps to Datafeed Engine
  */
-void FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols)
+bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols, int numSecondsPerDataChunk)
 {
     FIX::Message message;
 
@@ -97,8 +103,9 @@ void FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
     header.setField(FIX::MsgType(FIX::MsgType_SecurityList));
 
     message.setField(FIX::SecurityResponseID(requestID));
-    message.setField(FIX::SecurityListID(to_iso_string(startTime)));
-    message.setField(FIX::SecurityListRefID(to_iso_string(endTime)));
+    message.setField(FIX::SecurityListID(boost::posix_time::to_iso_string(startTime)));
+    message.setField(FIX::SecurityListRefID(boost::posix_time::to_iso_string(endTime)));
+    message.setField(FIX::SecurityListDesc(std::to_string(numSecondsPerDataChunk)));
 
     for (size_t i = 0; i < symbols.size(); i++) {
         FIX50SP2::SecurityList::NoRelatedSym group;
@@ -114,10 +121,19 @@ void FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
     std::unique_lock<std::mutex> lock(m_mtxMarketDataReady);
     m_cvMarketDataReady.wait(lock, [this] { return m_lastMarketDataRequestID.length() > 0; });
 
-    cout << endl
-         << "TRTH data is ready for request [" << m_lastMarketDataRequestID << "]!" << endl;
+    const auto pos = m_lastMarketDataRequestID.rfind("[EMPTY]");
+    if (pos != std::string::npos) {
+        cout << endl
+             << COLOR_WARNING "TRTH has no data for request [" << m_lastMarketDataRequestID.substr(0, pos) << "]! Nothing to be sent." NO_COLOR << endl;
 
-    m_lastMarketDataRequestID.clear(); // (reset for next use, if necessary, but this might seldomly happen)
+        m_lastMarketDataRequestID.clear(); // (reset for next use, if necessary, but this might seldomly happen)
+        return false;
+    }
+    cout << endl
+         << COLOR_PROMPT "TRTH data is ready for request [" << m_lastMarketDataRequestID << "]." NO_COLOR << endl;
+
+    m_lastMarketDataRequestID.clear();
+    return true;
 }
 
 /**
@@ -254,10 +270,12 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
     cout << "request_id: " << pRequestID->getValue() << endl;
     cout << "text: " << pText->getValue() << endl;
 
-    if (pText->getValue() == "READY") {
+    bool isReadyNews = pText->getValue() == "READY";
+    bool isEmptyNews = !isReadyNews && (pText->getValue() == "EMPTY");
+    if (isReadyNews || isEmptyNews) {
         {
             std::lock_guard<std::mutex> guard(m_mtxMarketDataReady);
-            m_lastMarketDataRequestID = pRequestID->getValue();
+            m_lastMarketDataRequestID = pRequestID->getValue() + (isEmptyNews ? "[EMPTY]" : "");
         }
         m_cvMarketDataReady.notify_all();
     }

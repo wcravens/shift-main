@@ -31,13 +31,13 @@ public:
     RequestsProcessorPerTarget(const RequestsProcessorPerTarget&) = delete;
     RequestsProcessorPerTarget(RequestsProcessorPerTarget&&) = delete;
 
-    void enqueueMarketDataRequest(std::string reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime);
+    void enqueueMarketDataRequest(std::string reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime, int numSecondsPerDataChunk);
     void enqueueNextDataRequest();
 
 private:
     void processRequests();
 
-    static void s_announceDataReady(const std::string& targetID, const std::string& requestID);
+    static void s_announceDataReady(const std::string& targetID, const std::string& requestID, int size);
 
     std::mutex m_mtxRequest; ///> One per target; for guarding all queues
     std::condition_variable m_cvQueues; ///> For events of all queues
