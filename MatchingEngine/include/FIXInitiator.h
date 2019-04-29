@@ -47,7 +47,7 @@ public:
     void disconnectDatafeedEngine();
 
     void sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols);
-    // void sendNextDataRequest();
+    void sendNextDataRequest();
 
     void storeOrder(const Order& order);
 

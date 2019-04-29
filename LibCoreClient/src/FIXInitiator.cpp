@@ -919,20 +919,20 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID&) // override
 {
     static FIX::Symbol originalName;
-    static FIX::StrikePrice openPrice;
+    static FIX::FirstPx openPrice;
     static FIX::HighPx highPrice;
     static FIX::LowPx lowPrice;
     static FIX::LastPx closePrice;
-    static FIX::Text timestamp;
+    static FIX::TransactTime timestamp;
 
     // #pragma GCC diagnostic ignored ....
 
     FIX::Symbol* pOriginalName;
-    FIX::StrikePrice* pOpenPrice;
+    FIX::FirstPx* pOpenPrice;
     FIX::HighPx* pHighPrice;
     FIX::LowPx* pLowPrice;
     FIX::LastPx* pClosePrice;
-    FIX::Text* pTimestamp;
+    FIX::TransactTime* pTimestamp;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
@@ -980,7 +980,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     }
 
     try {
-        getSuperUser()->receiveCandlestickData(symbol, pOpenPrice->getValue(), pHighPrice->getValue(), pLowPrice->getValue(), pClosePrice->getValue(), pTimestamp->getValue());
+        getSuperUser()->receiveCandlestickData(symbol, pOpenPrice->getValue(), pHighPrice->getValue(), pLowPrice->getValue(), pClosePrice->getValue(), std::to_string(pTimestamp->getValue().getTimeT()));
     } catch (...) {
     }
 

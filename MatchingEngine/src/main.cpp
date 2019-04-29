@@ -1,5 +1,6 @@
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
+#include "Parameters.h"
 #include "Stock.h"
 #include "TimeSetting.h"
 #include "threadFunction.h"
@@ -32,8 +33,6 @@ using namespace std::chrono_literals;
 namespace po = boost::program_options;
 /* 'using' is the same as 'typedef' */
 using voh_t = shift::terminal::VerboseOptHelper;
-
-std::atomic<bool> timeout(false);
 
 int main(int ac, char* av[])
 {
@@ -128,79 +127,94 @@ int main(int ac, char* av[])
     }
 
     std::string configFile = params.configDir + "config.txt";
-    std::string date = "2018-12-17";
-    std::string stime = "09:30:00";
-    std::string etime = "16:00:00";
+    std::string dateString = "2018-12-17";
+    std::string startTimeString = "09:30:00";
+    std::string endTimeString = "16:00:00";
     int experimentSpeed = 1;
-
     std::vector<std::string> symbols;
 
     if (!params.isManualInput) {
-        if (!fileConfigMode(configFile, date, stime, etime, experimentSpeed, symbols))
+        if (!fileConfigMode(configFile, dateString, startTimeString, endTimeString, experimentSpeed, symbols)) {
             return 3;
-
+        }
     } else {
-        inputConfigMode(date, stime, etime, experimentSpeed, symbols);
+        inputConfigMode(dateString, startTimeString, endTimeString, experimentSpeed, symbols);
     }
 
     if (!params.simulationDate.empty()) {
-        date = params.simulationDate;
+        dateString = params.simulationDate;
     }
 
-    TimeSetting::getInstance().initiate(date, stime, experimentSpeed);
-    boost::posix_time::ptime ptimeStart(boost::posix_time::time_from_string(date + " " + stime));
-    boost::posix_time::ptime ptimeEnd(boost::posix_time::time_from_string(date + " " + etime));
-    std::string requestID = date + " :: " + std::to_string(symbols.size());
+    std::string requestID = dateString + " :: " + std::to_string(symbols.size());
+    boost::posix_time::ptime startTime(boost::posix_time::time_from_string(dateString + " " + startTimeString));
+    boost::posix_time::ptime endTime(boost::posix_time::time_from_string(dateString + " " + endTimeString));
 
-    // Initiate connection with DE
-    FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
-    sleep(3);
+    /*
+     * @brief  Create Stock List and Stock Market objects
+     */
+    for (auto& symbol : symbols) {
+        StockList::getInstance().insert(std::pair<std::string, Stock>(symbol, { symbol }));
 
-    // Create stock list and Stock objects
-    for (unsigned int i = 0; i < symbols.size(); ++i) {
-        auto& symbol = symbols[i];
-
-        FIXAcceptor::getInstance()->addSymbol(symbol);
-
-        Stock stock(symbol);
-        StockList::getInstance().insert(std::pair<std::string, Stock>(symbol, stock));
-
-        // transform symbol's punctuation(if any) before passing to DatafeedEngine
+        // TODO: This should be done in the DE
+        // Transform symbol's punctuation (if any) before passing to Datafeed Engine
         for (unsigned int j = 0; j < symbol.size(); ++j) {
             if (symbol[j] == '.')
                 symbol[j] = '_';
         }
     }
-    if (symbols.size() != StockList::getInstance().size()) {
-        cout << "Error in creating Stock to StockList" << endl;
+    if (StockList::getInstance().size() != symbols.size()) {
+        cout << "Error during stock list creation!" << endl;
         return 4;
     }
 
-    // Send request to DatafeedEngine for TRTH data and wait until data is ready
-    FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, ptimeStart, ptimeEnd, symbols);
-
-    // Get the time offset in current day
-    TimeSetting::getInstance().setStartTime();
-
-    // Begin Matching Engine threads
-    int numOfStock = StockList::getInstance().size();
-    cout << "Total " << numOfStock << " stocks are ready in the Matching Engine"
-         << endl
-         << "Waiting for quotes..." << endl;
-    std::vector<std::thread> stockThreadList(numOfStock);
+    /*
+     * @brief  Begin Stock Market threads
+     */
+    int numOfStocks = StockList::getInstance().size();
+    std::vector<std::thread> stockMarketThreadList(numOfStocks);
     {
         int i = 0;
         auto& stockList = StockList::getInstance();
-        for (auto thisStock = stockList.begin(); thisStock != stockList.end(); thisStock++) {
-            stockThreadList[i] = std::thread(createStockMarket, thisStock->first);
-            ++i;
+        for (auto thisStock = stockList.begin(); thisStock != stockList.end(); ++thisStock) {
+            stockMarketThreadList[i++] = std::thread(createStockMarket, thisStock->first);
         }
     }
+    cout << endl
+         << "A total of " << numOfStocks << " stocks are ready in the Matching Engine." << endl
+         << "Waiting for quotes..." << endl
+         << endl;
 
-    // Initiate connection with BC
+    // Configure and start global clock
+    TimeSetting::getInstance().initiate(startTime, experimentSpeed);
+    TimeSetting::getInstance().setStartTime();
+
+    // Initiate FIX connections
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
+    FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
 
-    // for running in background
+    // Send request to Datafeed Engine for TRTH data and wait until data is ready
+    // TODO: We should also send DURATION_PER_DATA_CHUNK to DE
+    FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, startTime, endTime, symbols);
+
+    // Request data chunks in the background
+    std::thread(
+        [startTime, endTime, experimentSpeed]() mutable {
+            // Make sure to always keep at least DURATION_PER_DATA_CHUNK of data ahead in buffer
+            FIXInitiator::getInstance()->sendNextDataRequest();
+            startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
+
+            do {
+                FIXInitiator::getInstance()->sendNextDataRequest();
+                startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
+
+                std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK / experimentSpeed);
+            } while (startTime < endTime);
+
+            std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK / experimentSpeed);
+        })
+        .detach(); // run in background
+
+    // Running in background
     if (params.timer.isSet) {
         cout.clear();
         cout << '\n'
@@ -229,13 +243,19 @@ int main(int ac, char* av[])
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
+    // Close program
     FIXInitiator::getInstance()->disconnectDatafeedEngine();
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();
-    for (int i = 0; i < numOfStock; i++) {
-        stockThreadList[i].join();
+    StockList::s_isTimeout = true;
+    for (int i = 0; i < numOfStocks; i++) {
+        stockMarketThreadList[i].join();
     }
 
-    cout << "Success!" << endl;
+    if (params.isVerbose) {
+        cout.clear();
+        cout << "\nExecution finished. \nPlease press enter to close window: " << flush;
+        std::getchar();
+    }
 
     return 0;
 }

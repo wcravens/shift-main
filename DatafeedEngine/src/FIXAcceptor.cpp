@@ -5,7 +5,6 @@
 #include "FIXAcceptor.h"
 
 #include "PSQL.h"
-#include "Parameters.h"
 #include "RawData.h"
 #include "RequestsProcessorPerTarget.h"
 
@@ -283,22 +282,6 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(*pEndTimeString);
 
     m_requestsProcessors[targetID]->enqueueMarketDataRequest(*pRequestID, std::move(symbols), std::move(startTime), std::move(endTime));
-    // to make sure always keep at least DURATION_PER_DATA_CHUNK mins of data ahead of target computer:
-    m_requestsProcessors[targetID]->enqueueNextDataRequest();
-    startTime += boost::posix_time::seconds(DURATION_PER_DATA_CHUNK.count());
-
-    // streamed sender for the target:
-    std::thread(
-        [procPtr = m_requestsProcessors[targetID].get(), targetID, startTime, endTime]() mutable {
-            using namespace std::chrono_literals;
-            do {
-                procPtr->enqueueNextDataRequest();
-                startTime += boost::posix_time::seconds(DURATION_PER_DATA_CHUNK.count());
-
-                std::this_thread::sleep_for(DURATION_PER_DATA_CHUNK);
-            } while (startTime < endTime);
-        })
-        .detach(); // run in background
 
     if (prevCnt) { // > 1 threads
         delete pRequestID;
@@ -317,12 +300,12 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
  */
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
 {
-    // const std::string targetID = sessionID.getTargetCompID().getValue();
+    const std::string targetID = sessionID.getTargetCompID().getValue();
 
-    // if (m_requestsProcessors.count(targetID)) {
-    //     m_requestsProcessors[targetID]->enqueueNextDataRequest();
-    // } else {
-    //     cout << COLOR_ERROR "ERROR: No market data request from " << targetID << NO_COLOR << endl;
-    //     return;
-    // }
+    if (m_requestsProcessors.count(targetID)) {
+        m_requestsProcessors[targetID]->enqueueNextDataRequest();
+    } else {
+        cout << COLOR_ERROR "ERROR: No market data request from " << targetID << NO_COLOR << endl;
+        return;
+    }
 }

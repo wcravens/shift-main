@@ -37,7 +37,6 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/RequestsProcessorPerTarget.h
     ${PROJECT_SOURCE_DIR}/include/TRTHAPI.h
     ${PROJECT_SOURCE_DIR}/include/TRTHRequest.h
-    ${PROJECT_SOURCE_DIR}/include/Parameters.h
 )
 
 set(SRC

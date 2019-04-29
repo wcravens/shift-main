@@ -64,7 +64,7 @@ static std::atomic<bool> s_isBroadcasting{ true };
 static void s_broadcastOrderBooks()
 {
     while (::s_isBroadcasting) {
-        // broadcast the full order book of every stock every 1min (forcing a refresh in the client side)
+        // broadcast the full order book of every stock every BROADCAST_ORDERBOOK_PERIOD (forcing a refresh in the client side)
         std::this_thread::sleep_for(::BROADCAST_ORDERBOOK_PERIOD);
         BCDocuments::getInstance()->broadcastOrderBooks();
     }
@@ -277,29 +277,19 @@ int main(int ac, char* av[])
         }
     }
 
-    /*
-     * @brief   Try to connect Matching Engine
-     */
+    // Try to connect to Matching Engine
     FIXInitiator::getInstance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose);
 
-    /*
-     * @brief   Wait for complete security list
-     */
+    // Wait for complete security list
     while (!BCDocuments::s_isSecurityListReady)
         std::this_thread::sleep_for(500ms);
-    /*
-     * @brief   Try to connect to clients
-     */
+    // Try to connect to clients
     FIXAcceptor::getInstance()->connectClients(params.configDir + "acceptor.cfg", params.isVerbose);
 
-    /*
-     * @brief   Create a broadcaster to broadcast all order books
-     */
+    // Create a broadcaster to broadcast all order books
     std::thread broadcaster(&::s_broadcastOrderBooks);
 
-    /*
-     * @brief   Running in background
-     */
+    // Running in background
     if (params.timer.isSet) {
         cout.clear();
         cout << '\n'
@@ -328,9 +318,7 @@ int main(int ac, char* av[])
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
-    /*
-     * @brief   Close program
-     */
+    // Close program
     ::s_isBroadcasting = false; // to terminate broadcaster
     if (broadcaster.joinable())
         broadcaster.join(); // wait for termination

@@ -4,4 +4,4 @@
 
 using namespace std::chrono_literals;
 
-static const auto DURATION_PER_DATA_CHUNK = 300s; // default = 60s
+static const auto DURATION_PER_DATA_CHUNK = 300s;

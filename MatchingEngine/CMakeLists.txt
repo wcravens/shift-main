@@ -33,8 +33,9 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/FIXInitiator.h
     ${PROJECT_SOURCE_DIR}/include/Order.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookEntry.h
-    ${PROJECT_SOURCE_DIR}/include/PriceLevel.h
     ${PROJECT_SOURCE_DIR}/include/OrderConfirmation.h
+    ${PROJECT_SOURCE_DIR}/include/Parameters.h
+    ${PROJECT_SOURCE_DIR}/include/PriceLevel.h
     ${PROJECT_SOURCE_DIR}/include/Stock.h
     ${PROJECT_SOURCE_DIR}/include/threadFunction.h
     ${PROJECT_SOURCE_DIR}/include/TimeSetting.h

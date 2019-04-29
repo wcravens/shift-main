@@ -2,7 +2,6 @@
 
 #include "FIXAcceptor.h"
 #include "PSQL.h"
-#include "Parameters.h"
 #include "TRTHAPI.h"
 
 #include <shift/miscutils/concurrency/Consumer.h>
@@ -222,7 +221,7 @@ void RequestsProcessorPerTarget::processRequests()
 
     // get start time and end time
     const boost::posix_time::ptime& sendFrom = lastMarketRequestPtr->getStartTime();
-    boost::posix_time::ptime sendTo = sendFrom + boost::posix_time::seconds(DURATION_PER_DATA_CHUNK.count());
+    boost::posix_time::ptime sendTo = sendFrom + boost::posix_time::seconds(300);
     if (sendTo >= lastMarketRequestPtr->getEndTime()) {
         sendTo = lastMarketRequestPtr->getEndTime();
     }
