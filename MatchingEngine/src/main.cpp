@@ -174,9 +174,10 @@ int main(int ac, char* av[])
     std::vector<std::thread> stockMarketThreadList(numOfStocks);
     {
         int i = 0;
-        auto& stockList = StockList::getInstance();
-        for (auto thisStock = stockList.begin(); thisStock != stockList.end(); ++thisStock) {
-            stockMarketThreadList[i++] = std::thread(createStockMarket, thisStock->first);
+
+        for (auto& stockEntry: StockList::getInstance()) {
+            stockMarketThreadList[i] = std::thread(std::ref(stockEntry.second));
+            ++i;
         }
     }
     cout << endl

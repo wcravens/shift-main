@@ -1,8 +1,14 @@
 #include "Stock.h"
 
+#include "FIXAcceptor.h"
 #include "TimeSetting.h"
 
+#include <chrono>
+#include <thread>
+
 #include <shift/miscutils/terminal/Common.h>
+
+using namespace std::chrono_literals;
 
 Stock::Stock(const std::string& symbol)
     : m_symbol(symbol)
@@ -12,6 +18,129 @@ Stock::Stock(const std::string& symbol)
 Stock::Stock(const Stock& stock)
     : m_symbol(stock.m_symbol)
 {
+}
+
+// Function to start one stock matching engine, for exchange thread
+void Stock::operator()() {
+
+    Order nextOrder;
+    Order prevGlobalOrder;
+
+    while (!StockList::s_isTimeout) { // process orders
+
+        if (!getNextOrder(nextOrder)) {
+            std::this_thread::sleep_for(10ms);
+            continue;
+
+        } else {
+            switch (nextOrder.getType()) {
+
+            case Order::Type::LIMIT_BUY: {
+                doLocalLimitBuy(nextOrder);
+                if (nextOrder.getSize() != 0) {
+                    insertLocalBid(nextOrder);
+                    cout << "Insert Bid" << endl;
+                }
+                break;
+            }
+
+            case Order::Type::LIMIT_SELL: {
+                doLocalLimitSell(nextOrder);
+                if (nextOrder.getSize() != 0) {
+                    insertLocalAsk(nextOrder);
+                    cout << "Insert Ask" << endl;
+                }
+                break;
+            }
+
+            case Order::Type::MARKET_BUY: {
+                doLocalMarketBuy(nextOrder);
+                if (nextOrder.getSize() != 0) {
+                    insertLocalBid(nextOrder);
+                    cout << "Insert Bid" << endl;
+                }
+                break;
+            }
+
+            case Order::Type::MARKET_SELL: {
+                doLocalMarketSell(nextOrder);
+                if (nextOrder.getSize() != 0) {
+                    insertLocalAsk(nextOrder);
+                    cout << "Insert Ask" << endl;
+                }
+                break;
+            }
+
+            case Order::Type::CANCEL_BID: {
+                doLocalCancelBid(nextOrder);
+                std::cout << "Cancel Bid Done" << endl;
+                break;
+            }
+
+            case Order::Type::CANCEL_ASK: {
+                doLocalCancelAsk(nextOrder);
+                std::cout << "Cancel Ask Done" << endl;
+                break;
+            }
+
+            case Order::Type::TRTH_TRADE: {
+                doGlobalLimitBuy(nextOrder);
+                doGlobalLimitSell(nextOrder);
+                if (nextOrder.getSize() != 0) {
+                    auto now = TimeSetting::getInstance().simulationTimestamp();
+                    executionReports.push_back({ nextOrder.getSymbol(),
+                        nextOrder.getPrice(),
+                        nextOrder.getSize(),
+                        "T1",
+                        "T2",
+                        Order::Type::LIMIT_BUY,
+                        Order::Type::LIMIT_SELL,
+                        "O1",
+                        "O2",
+                        '5', // decision '5' means this is a trade update from TRTH
+                        "TRTH",
+                        now,
+                        now });
+                }
+                break;
+            }
+
+            case Order::Type::TRTH_BID: {
+                // If same price, size, and destination, skip
+                if (nextOrder == prevGlobalOrder) {
+                    break;
+                }
+                prevGlobalOrder = nextOrder;
+                doGlobalLimitBuy(nextOrder);
+                if (nextOrder.getSize() != 0)
+                    updateGlobalBids(nextOrder);
+                break;
+            }
+
+            case Order::Type::TRTH_ASK: {
+                // If same price, size, and destination, skip
+                if (nextOrder == prevGlobalOrder) {
+                    break;
+                }
+                prevGlobalOrder = nextOrder;
+                doGlobalLimitSell(nextOrder);
+                if (nextOrder.getSize() != 0)
+                    updateGlobalAsks(nextOrder);
+                break;
+            }
+            }
+
+            for (const auto& report : executionReports) {
+                FIXAcceptor::getInstance()->sendExecutionReport2All(report);
+            }
+            executionReports.clear();
+
+            for (const auto& entry : orderBookUpdates) {
+                FIXAcceptor::getInstance()->sendOrderBookUpdate2All(entry);
+            }
+            orderBookUpdates.clear();
+        }
+    }
 }
 
 const std::string& Stock::getSymbol() const
