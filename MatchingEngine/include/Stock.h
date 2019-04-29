@@ -22,6 +22,9 @@ public:
     Stock(const std::string& symbol);
     Stock(const Stock& other);
 
+    // Function to start one stock matching engine, for exchange thread
+    void operator()();
+
     const std::string& getSymbol() const;
     void setSymbol(const std::string& symbol);
 
