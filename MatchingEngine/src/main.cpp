@@ -184,6 +184,10 @@ int main(int ac, char* av[])
          << "Waiting for quotes..." << endl
          << endl;
 
+    // Configure and start global clock
+    TimeSetting::getInstance().initiate(startTime, experimentSpeed);
+    TimeSetting::getInstance().setStartTime();
+
     // Initiate FIX connections
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
     FIXInitiator::getInstance()->connectDatafeedEngine(params.configDir + "initiator.cfg");
@@ -191,10 +195,6 @@ int main(int ac, char* av[])
     // Send request to Datafeed Engine for TRTH data and wait until data is ready
     // TODO: We should also send DURATION_PER_DATA_CHUNK to DE
     FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, startTime, endTime, symbols);
-
-    // Configure and start global clock
-    TimeSetting::getInstance().initiate(startTime, experimentSpeed);
-    TimeSetting::getInstance().setStartTime();
 
     // Request data chunks in the background
     std::thread(
