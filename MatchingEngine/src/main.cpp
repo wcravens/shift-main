@@ -89,7 +89,7 @@ int main(int ac, char* av[])
         false,
         {
             false,
-            400,
+            0,
         },
     };
 
@@ -204,7 +204,7 @@ int main(int ac, char* av[])
     {
         int i = 0;
 
-        for (auto& stockEntry: StockList::getInstance()) {
+        for (auto& stockEntry : StockList::getInstance()) {
             stockMarketThreadList[i] = std::thread(std::ref(stockEntry.second));
             ++i;
         }
