@@ -218,9 +218,11 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 
     const std::string targetID = sessionID.getTargetCompID().getValue();
 
-    if (m_requestsProcessors.count(targetID) == 0) {
-        m_requestsProcessors[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
+    std::unique_lock<std::mutex> lockRP(m_mtxReqsProcs);
+    if (m_requestsProcessorByTarget.find(targetID) == m_requestsProcessorByTarget.end()) {
+        m_requestsProcessorByTarget[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
     }
+    lockRP.unlock();
 
     static FIX::SecurityResponseID requestID;
     static FIX::SecurityListID startTimeString;
@@ -288,7 +290,9 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 
     const int numSecondsPerDataChunk = std::stoi(pDataChunkPeriod->getValue());
 
-    m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(*pRequestID), std::move(symbols), std::move(startTime), std::move(endTime), numSecondsPerDataChunk);
+    lockRP.lock();
+    m_requestsProcessorByTarget[targetID]->enqueueMarketDataRequest(std::move(*pRequestID), std::move(symbols), std::move(startTime), std::move(endTime), numSecondsPerDataChunk);
+    lockRP.unlock();
 
     if (prevCnt) { // > 1 threads
         delete pRequestID;
@@ -308,12 +312,13 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
  */
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
 {
-    const std::string targetID = sessionID.getTargetCompID().getValue();
+    const std::string& targetID = sessionID.getTargetCompID().getValue();
 
-    if (m_requestsProcessors.count(targetID)) {
-        m_requestsProcessors[targetID]->enqueueNextDataRequest();
+    std::lock_guard<std::mutex> guard(m_mtxReqsProcs);
+    if (m_requestsProcessorByTarget.find(targetID) != m_requestsProcessorByTarget.end()) {
+        m_requestsProcessorByTarget[targetID]->enqueueNextDataRequest();
     } else {
-        cout << COLOR_ERROR "ERROR: No market data request from " << targetID << NO_COLOR << endl;
+        cout << COLOR_ERROR "ERROR: No security list ever requested by the target [" << targetID << "] hence no market data chunk to send!" NO_COLOR << endl;
         return;
     }
 }
