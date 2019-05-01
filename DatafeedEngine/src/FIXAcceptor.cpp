@@ -280,8 +280,12 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     for (int i = 1; i <= numOfGroups.getValue(); ++i) {
         message.getGroup(static_cast<unsigned int>(i), *pRelatedSymGroup);
         pRelatedSymGroup->get(*pSymbol);
-        cout << i << ":\t" << pSymbol->getValue() << endl;
-        symbols.push_back(pSymbol->getValue());
+
+        std::string symbol = pSymbol->getValue();
+        ::cvtRICToDEInternalRepresentation(symbol);
+
+        cout << i << ":\t" << symbol << endl;
+        symbols.push_back(symbol);
     }
     cout << endl;
 

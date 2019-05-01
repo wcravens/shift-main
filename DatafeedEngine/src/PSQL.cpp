@@ -3,6 +3,7 @@
 #include "FIXAcceptor.h"
 #include "RawData.h"
 
+#include <algorithm>
 #include <cmath>
 #include <ctime>
 #include <iomanip>
@@ -10,6 +11,12 @@
 #include <shift/miscutils/terminal/Common.h>
 
 #define __DBG_DUMP_PQCMD false
+
+void cvtRICToDEInternalRepresentation(std::string& cvtThis, bool reverse /*= false*/)
+{
+    const char from = reverse ? '_' : '.', to = reverse ? '.' : '_';
+    std::replace(cvtThis.begin(), cvtThis.end(), from, to);
+}
 
 /**
  * @brief Generates Reuters-Time-Order series numbers (as a column data) so that they combined with the Reuters-Time column be used as primary key.

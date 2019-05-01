@@ -183,13 +183,6 @@ int main(int ac, char* av[])
      */
     for (auto& symbol : symbols) {
         StockList::getInstance().insert(std::pair<std::string, Stock>(symbol, { symbol }));
-
-        // TODO: This should be done in the DE
-        // Transform symbol's punctuation (if any) before passing to Datafeed Engine
-        for (unsigned int j = 0; j < symbol.size(); ++j) {
-            if (symbol[j] == '.')
-                symbol[j] = '_';
-        }
     }
     if (StockList::getInstance().size() != symbols.size()) {
         cout << "Error during stock list creation!" << endl;
