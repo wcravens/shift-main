@@ -225,7 +225,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     static FIX::SecurityResponseID requestID;
     static FIX::SecurityListID startTimeString;
     static FIX::SecurityListRefID endTimeString;
-    static FIX::SecurityListDesc slDesc;
+    static FIX::SecurityListDesc dataChunkPeriod;
 
     static FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
     static FIX::Symbol symbol;
@@ -235,7 +235,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     FIX::SecurityResponseID* pRequestID;
     FIX::SecurityListID* pStartTimeString;
     FIX::SecurityListRefID* pEndTimeString;
-    FIX::SecurityListDesc* pSLDesc;
+    FIX::SecurityListDesc* pDataChunkPeriod;
 
     FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup;
     FIX::Symbol* pSymbol;
@@ -251,14 +251,14 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
         pRequestID = &requestID;
         pStartTimeString = &startTimeString;
         pEndTimeString = &endTimeString;
-        pSLDesc = &slDesc;
+        pDataChunkPeriod = &dataChunkPeriod;
         pRelatedSymGroup = &relatedSymGroup;
         pSymbol = &symbol;
     } else { // > 1 threads; always safe way:
         pRequestID = new decltype(requestID);
         pStartTimeString = new decltype(startTimeString);
         pEndTimeString = new decltype(endTimeString);
-        pSLDesc = new decltype(slDesc);
+        pDataChunkPeriod = new decltype(dataChunkPeriod);
         pRelatedSymGroup = new decltype(relatedSymGroup);
         pSymbol = new decltype(symbol);
     }
@@ -266,7 +266,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     message.get(*pRequestID);
     message.get(*pStartTimeString);
     message.get(*pEndTimeString);
-    message.get(*pSLDesc);
+    message.get(*pDataChunkPeriod);
 
     cout << "Request info:" << '\n'
          << pRequestID->getValue() << '\n'
@@ -286,7 +286,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     boost::posix_time::ptime startTime = boost::posix_time::from_iso_string(*pStartTimeString);
     boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(*pEndTimeString);
 
-    const int numSecondsPerDataChunk = std::stoi(pSLDesc->getValue());
+    const int numSecondsPerDataChunk = std::stoi(pDataChunkPeriod->getValue());
 
     m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(*pRequestID), std::move(symbols), std::move(startTime), std::move(endTime), numSecondsPerDataChunk);
 
@@ -294,7 +294,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
         delete pRequestID;
         delete pStartTimeString;
         delete pEndTimeString;
-        delete pSLDesc;
+        delete pDataChunkPeriod;
         delete pRelatedSymGroup;
         delete pSymbol;
     }
