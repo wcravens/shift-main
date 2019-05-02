@@ -56,13 +56,14 @@ static void s_requestDatafeedEngineData(const std::string configFullPath, const 
         // Since real time (i.e. absolute time) may have been elapsed considerably because of the system waiting for download to finish,
         // we shall compensate data consumer for that elapsed real time with tantamount simulation time of data:
         auto elapsedSimlTime = std::chrono::milliseconds(TimeSetting::getInstance().pastMilli(true)); // take simulation speed (experimentSpeed) into account
-        if (elapsedSimlTime.count() > (std::chrono::duration_cast<decltype(elapsedSimlTime)>(DURATION_PER_DATA_CHUNK).count() >> 1)) { // It's called "considerably" lagged iff. lag at least half of the duration per chunk
-            auto numChunksToCoverElapsedTime = elapsedSimlTime / std::chrono::duration_cast<decltype(elapsedSimlTime)>(::DURATION_PER_DATA_CHUNK) + 1;
+        auto adjustedDPDC = std::chrono::duration_cast<decltype(elapsedSimlTime)>(::DURATION_PER_DATA_CHUNK); // unify the time units
+        if (elapsedSimlTime.count() > (adjustedDPDC.count() >> 1)) { // It's called "considerably" lagged iff. lag at least half of the duration per chunk
+            auto numChunksToCoverElapsedTime = elapsedSimlTime / adjustedDPDC + 1;
             while (numChunksToCoverElapsedTime--)
                 requestOnce(&startTime);
         }
 
-        // to guarentee a smooth data streaming: supplier shall always keep at least DURATION_PER_DATA_CHUNK of data ahead of consumer in buffer
+        // to guarentee a smooth data streaming: supplier shall always keep some safe amount of data ahead of consumer in buffer
         requestOnce(&startTime);
 
         // begin periodic streaming:
@@ -224,7 +225,7 @@ int main(int ac, char* av[])
     TimeSetting::getInstance().setStartTime();
 
     // Request data chunks in the background
-    std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
+    std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), ::DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
 
     // Initiate Brokerage Center connection
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");

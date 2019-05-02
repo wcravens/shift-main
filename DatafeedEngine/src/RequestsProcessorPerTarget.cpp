@@ -162,7 +162,7 @@ void RequestsProcessorPerTarget::processRequests()
     } // for
 
     for (auto idx : requestedSymbolsIndexes) {
-        cout << "\033[0;33m" << std::setw(10 + 9) << std::right << symbols[idx] << " is absent." NO_COLOR << endl;
+        cout << "\033[0;33m" << std::setw(10 + 9) << std::right << symbols[idx] << '(' << marketReq.getDate() << ") is absent." NO_COLOR << endl;
     }
 
     for (auto idx : requestedSymbolsIndexes) {
