@@ -1276,36 +1276,36 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
  *
  * @param message as a QuoteAcknowledgement type object contains the current waiting list information.
  */
-void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& message, const FIX::SessionID&) // override
+void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const FIX::SessionID&) // override
 {
     while (!m_connected)
         std::this_thread::sleep_for(10ms);
 
-    static FIX::Account userID;
-    static FIX::NoQuoteSets n;
+    static FIX::ClientBidID userID;
+    static FIX::NoOrders n;
 
-    static FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets quoteSetGroup;
-    static FIX::QuoteSetID orderID;
-    static FIX::UnderlyingSymbol originalName;
-    static FIX::UnderlyingOptAttribute orderType;
-    static FIX::UnderlyingQty size;
-    static FIX::UnderlyingPx price;
-    static FIX::UnderlyingAdjustedQuantity executedSize;
-    static FIX::UnderlyingFXRateCalc status;
+    static FIX50SP2::NewOrderList::NoOrders quoteSetGroup;
+    static FIX::ClOrdID orderID;
+    static FIX::Symbol originalName;
+    static FIX::OrdType orderType;
+    static FIX::OrderQty size;
+    static FIX::Price price;
+    static FIX::OrderQty2 executedSize;
+    static FIX::PositionEffect status;
 
     // #pragma GCC diagnostic ignored ....
 
-    FIX::Account* pUserID;
-    FIX::NoQuoteSets* pN;
+    FIX::ClientBidID* pUserID;
+    FIX::NoOrders* pN;
 
-    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets* pQuoteSetGroup;
-    FIX::QuoteSetID* pOrderID;
-    FIX::UnderlyingSymbol* pOriginalName;
-    FIX::UnderlyingOptAttribute* pOrderType;
-    FIX::UnderlyingQty* pSize;
-    FIX::UnderlyingPx* pPrice;
-    FIX::UnderlyingAdjustedQuantity* pExecutedSize;
-    FIX::UnderlyingFXRateCalc* pStatus;
+    FIX50SP2::NewOrderList::NoOrders* pQuoteSetGroup;
+    FIX::ClOrdID* pOrderID;
+    FIX::Symbol* pOriginalName;
+    FIX::OrdType* pOrderType;
+    FIX::OrderQty* pSize;
+    FIX::Price* pPrice;
+    FIX::OrderQty2* pExecutedSize;
+    FIX::PositionEffect* pStatus;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
@@ -1343,7 +1343,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MassQuoteAcknowledgement& me
 
     std::vector<shift::Order> waitingList;
 
-    for (int i = 1; i <= pN->getValue(); i++) {
+    for (int i = 1; i <= *pN; i++) {
         message.getGroup(static_cast<unsigned int>(i), *pQuoteSetGroup);
 
         pQuoteSetGroup->get(*pOrderID);

@@ -369,7 +369,6 @@ void FIXAcceptor::sendPortfolioItem(const std::string& userID, const PortfolioIt
     FIX::Session::sendToTarget(message);
 }
 
-// SecurityStatus
 void FIXAcceptor::sendWaitingList(const std::string& userID, const std::unordered_map<std::string, Order>& orders)
 {
     const auto& targetID = BCDocuments::getInstance()->getTargetIDByUserID(userID);
@@ -379,28 +378,33 @@ void FIXAcceptor::sendWaitingList(const std::string& userID, const std::unordere
         return;
     }
 
-    FIX50SP2::MassQuoteAcknowledgement message;
+    FIX50SP2::NewOrderList message;
     FIX::Header& header = message.getHeader();
 
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_MassQuoteAcknowledgement));
+    header.setField(FIX::MsgType(FIX::MsgType_NewOrderList));
 
-    message.setField(::FIXFIELD_QUOTESTATUS_ACCEPTED); // Required by FIX
-    message.setField(FIX::Account(userID));
+    message.setField(FIX::ListID(shift::crossguid::newGuid().str())); // FIX Required
+    message.setField(FIX::ClientBidID(userID));
+    message.setField(FIX::BidType(1)); // FIX Required
+    message.setField(FIX::TotNoOrders(orders.size())); // FIX Required
 
-    FIX50SP2::MassQuoteAcknowledgement::NoQuoteSets orderSetGroup;
+    FIX50SP2::NewOrderList::NoOrders orderGroup;
+    int i = 1;
     for (const auto& kv : orders) {
         auto& order = kv.second;
-        orderSetGroup.setField(FIX::QuoteSetID(order.getID()));
-        orderSetGroup.setField(FIX::UnderlyingSymbol(order.getSymbol()));
-        orderSetGroup.setField(FIX::UnderlyingOptAttribute(order.getType())); // TODO: incorrect field (require new message type)
-        orderSetGroup.setField(FIX::UnderlyingQty(order.getSize()));
-        orderSetGroup.setField(FIX::UnderlyingPx(order.getPrice()));
-        orderSetGroup.setField(FIX::UnderlyingAdjustedQuantity(order.getExecutedSize()));
-        orderSetGroup.setField(FIX::UnderlyingFXRateCalc(order.getStatus())); // TODO: incorrect field (require new message type)
-        message.addGroup(orderSetGroup);
+        orderGroup.setField(FIX::ListSeqNo(i++)); // FIX Required
+        orderGroup.setField(FIX::ClOrdID(order.getID()));
+        orderGroup.setField(FIX::Symbol(order.getSymbol()));
+        orderGroup.setField(FIX::OrdType(order.getType()));
+        orderGroup.setField(FIX::Side(order.getType()));
+        orderGroup.setField(FIX::OrderQty(order.getSize()));
+        orderGroup.setField(FIX::Price(order.getPrice()));
+        orderGroup.setField(FIX::OrderQty2(order.getExecutedSize()));
+        orderGroup.setField(FIX::PositionEffect(order.getStatus()));
+        message.addGroup(orderGroup);
     }
 
     FIX::Session::sendToTarget(message);
