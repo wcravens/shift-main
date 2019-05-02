@@ -267,7 +267,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
 
     cout << endl;
     cout << "----- Receive NOTICE -----" << endl;
-    cout << "request_id: " << pRequestID->getValue() << endl;
+    cout << "request id: " << pRequestID->getValue() << endl;
     cout << "text: " << pText->getValue() << endl;
 
     bool isReadyNews = pText->getValue() == "READY";
@@ -278,6 +278,10 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
             m_lastMarketDataRequestID = pRequestID->getValue() + (isEmptyNews ? "[EMPTY]" : "");
         }
         m_cvMarketDataReady.notify_all();
+    } else if (pText->getValue() == "SENDFINISH") {
+        auto ti = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
+        cout << "real timestamp: " << std::ctime(&ti)
+             << endl;
     }
 
     if (prevCnt) { // > 1 threads

@@ -252,8 +252,8 @@ void RequestsProcessorPerTarget::processRequests()
 
     lastMarketRequestPtr->updateStartTime(sendTo);
 
-    cout << "\nSend done.\n"
-         << endl;
+    auto ti = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
+    cout << "\nSend done. Real timestamp: " << std::ctime(&ti) << endl;
 }
 
 #undef __PRE_CONDITION__
