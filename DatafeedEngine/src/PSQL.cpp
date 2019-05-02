@@ -187,6 +187,12 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     pRes = PQexec(m_pConn, "END");
     PQclear(pRes);
 
+    if (TABLE_STATUS::NOT_EXIST == status) {
+        // enforce cleaning up old table
+        auto tableName = PSQL::s_createTableName(ric, reutersDate.substr(0, 4) + reutersDate.substr(5, 2) + reutersDate.substr(8, 2));
+        doQuery("DROP TABLE " + tableName + " CASCADE", "");
+    }
+
     return status;
 }
 
