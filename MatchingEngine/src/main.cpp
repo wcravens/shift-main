@@ -48,14 +48,23 @@ static void s_requestDatafeedEngineData(const std::string configFullPath, const 
 
     // Send request to Datafeed Engine for TRTH data and *wait* until data is ready
     if (FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, startTime, endTime, symbols, numSecondsPerDataChunk)) {
-        // Make sure to always keep at least DURATION_PER_DATA_CHUNK of data ahead in buffer
-        FIXInitiator::getInstance()->sendNextDataRequest();
-        startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
-
-        do {
+        auto makeOneProgress = [](auto* pStartTime) {
             FIXInitiator::getInstance()->sendNextDataRequest();
-            startTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
+            *pStartTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
+        };
 
+        // Since real time(i.e. absolute time) can have been elapsed considerably because of the system waiting for download finish, we shall compensate data consumer for that elapsed real time with tantamount simulation time of data:
+        const auto elapsedSimlTime = std::chrono::milliseconds(TimeSetting::getInstance().pastMilli(true)); // take simulation speed(experimentSpeed) into account
+        auto numChunksToCoverElapsedTime = elapsedSimlTime / std::chrono::duration_cast<std::chrono::milliseconds>(::DURATION_PER_DATA_CHUNK) + 1;
+        while (numChunksToCoverElapsedTime--)
+            makeOneProgress(&startTime);
+
+        // to guarentee a smooth data streaming: supplier shall always keep at least DURATION_PER_DATA_CHUNK of data ahead of consumer in buffer
+        makeOneProgress(&startTime);
+
+        // begin periodic streaming:
+        do {
+            makeOneProgress(&startTime);
             std::this_thread::sleep_for(::DURATION_PER_DATA_CHUNK / experimentSpeed);
         } while (s_isRequestingData && startTime < endTime);
     }
