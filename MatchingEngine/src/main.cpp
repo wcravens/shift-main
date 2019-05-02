@@ -53,8 +53,9 @@ static void s_requestDatafeedEngineData(const std::string configFullPath, const 
             *pStartTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
         };
 
-        // Since real time(i.e. absolute time) can have been elapsed considerably because of the system waiting for download finish, we shall compensate data consumer for that elapsed real time with tantamount simulation time of data:
-        const auto elapsedSimlTime = std::chrono::milliseconds(TimeSetting::getInstance().pastMilli(true)); // take simulation speed(experimentSpeed) into account
+        // Since real time (i.e. absolute time) may have been elapsed considerably because of the system waiting for download to finish,
+        // we shall compensate data consumer for that elapsed real time with tantamount simulation time of data:
+        const auto elapsedSimlTime = std::chrono::milliseconds(TimeSetting::getInstance().pastMilli(true)); // take simulation speed (experimentSpeed) into account
         auto numChunksToCoverElapsedTime = elapsedSimlTime / std::chrono::duration_cast<std::chrono::milliseconds>(::DURATION_PER_DATA_CHUNK) + 1;
         while (numChunksToCoverElapsedTime--)
             makeOneProgress(&startTime);
