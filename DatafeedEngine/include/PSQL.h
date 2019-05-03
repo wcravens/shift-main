@@ -12,6 +12,8 @@
 
 #include <postgresql/libpq-fe.h>
 
+void cvtRICToDEInternalRepresentation(std::string& cvtThis, bool reverse = false /*otherwise, from internal to RIC*/);
+
 struct TradingRecord;
 
 /**

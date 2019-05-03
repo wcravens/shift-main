@@ -39,7 +39,7 @@
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
 #include <quickfix/fix50sp2/MarketDataSnapshotFullRefresh.h>
-#include <quickfix/fix50sp2/MassQuoteAcknowledgement.h>
+#include <quickfix/fix50sp2/NewOrderList.h>
 #include <quickfix/fix50sp2/PositionReport.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 

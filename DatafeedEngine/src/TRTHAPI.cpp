@@ -249,9 +249,9 @@ void TRTHAPI::processRequests()
 /**@brief The main method to search, check, request and download data from TRTH. Gives processing status as feedback. */
 int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& requestDate) // Date format: YYYY-MM-DD
 {
-    // prepare symbol format for TRTH request (_ to .)
+    // prepare symbol format for TRTH request
     std::string ric = symbol;
-    std::replace(ric.begin(), ric.end(), '_', '.');
+    ::cvtRICToDEInternalRepresentation(ric, true); // '_' => '.'
 
     // HTTP client configuration
     web::http::client::http_client_config hcconf;

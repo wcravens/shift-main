@@ -218,14 +218,16 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 
     const std::string targetID = sessionID.getTargetCompID().getValue();
 
-    if (m_requestsProcessors.count(targetID) == 0) {
-        m_requestsProcessors[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
+    std::unique_lock<std::mutex> lockRP(m_mtxReqsProcs);
+    if (m_requestsProcessorByTarget.find(targetID) == m_requestsProcessorByTarget.end()) {
+        m_requestsProcessorByTarget[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
     }
+    lockRP.unlock();
 
     static FIX::SecurityResponseID requestID;
     static FIX::SecurityListID startTimeString;
     static FIX::SecurityListRefID endTimeString;
-    static FIX::SecurityListDesc slDesc;
+    static FIX::SecurityListDesc dataChunkPeriod;
 
     static FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
     static FIX::Symbol symbol;
@@ -235,7 +237,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     FIX::SecurityResponseID* pRequestID;
     FIX::SecurityListID* pStartTimeString;
     FIX::SecurityListRefID* pEndTimeString;
-    FIX::SecurityListDesc* pSLDesc;
+    FIX::SecurityListDesc* pDataChunkPeriod;
 
     FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup;
     FIX::Symbol* pSymbol;
@@ -251,14 +253,14 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
         pRequestID = &requestID;
         pStartTimeString = &startTimeString;
         pEndTimeString = &endTimeString;
-        pSLDesc = &slDesc;
+        pDataChunkPeriod = &dataChunkPeriod;
         pRelatedSymGroup = &relatedSymGroup;
         pSymbol = &symbol;
     } else { // > 1 threads; always safe way:
         pRequestID = new decltype(requestID);
         pStartTimeString = new decltype(startTimeString);
         pEndTimeString = new decltype(endTimeString);
-        pSLDesc = new decltype(slDesc);
+        pDataChunkPeriod = new decltype(dataChunkPeriod);
         pRelatedSymGroup = new decltype(relatedSymGroup);
         pSymbol = new decltype(symbol);
     }
@@ -266,7 +268,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     message.get(*pRequestID);
     message.get(*pStartTimeString);
     message.get(*pEndTimeString);
-    message.get(*pSLDesc);
+    message.get(*pDataChunkPeriod);
 
     cout << "Request info:" << '\n'
          << pRequestID->getValue() << '\n'
@@ -278,23 +280,29 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     for (int i = 1; i <= numOfGroups.getValue(); ++i) {
         message.getGroup(static_cast<unsigned int>(i), *pRelatedSymGroup);
         pRelatedSymGroup->get(*pSymbol);
-        cout << i << ":\t" << pSymbol->getValue() << endl;
-        symbols.push_back(pSymbol->getValue());
+
+        std::string symbol = pSymbol->getValue();
+        ::cvtRICToDEInternalRepresentation(symbol);
+
+        cout << i << ":\t" << symbol << endl;
+        symbols.push_back(symbol);
     }
     cout << endl;
 
     boost::posix_time::ptime startTime = boost::posix_time::from_iso_string(*pStartTimeString);
     boost::posix_time::ptime endTime = boost::posix_time::from_iso_string(*pEndTimeString);
 
-    const int numSecondsPerDataChunk = std::stoi(pSLDesc->getValue());
+    const int numSecondsPerDataChunk = std::stoi(pDataChunkPeriod->getValue());
 
-    m_requestsProcessors[targetID]->enqueueMarketDataRequest(std::move(*pRequestID), std::move(symbols), std::move(startTime), std::move(endTime), numSecondsPerDataChunk);
+    lockRP.lock();
+    m_requestsProcessorByTarget[targetID]->enqueueMarketDataRequest(std::move(*pRequestID), std::move(symbols), std::move(startTime), std::move(endTime), numSecondsPerDataChunk);
+    lockRP.unlock();
 
     if (prevCnt) { // > 1 threads
         delete pRequestID;
         delete pStartTimeString;
         delete pEndTimeString;
-        delete pSLDesc;
+        delete pDataChunkPeriod;
         delete pRelatedSymGroup;
         delete pSymbol;
     }
@@ -308,12 +316,13 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
  */
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
 {
-    const std::string targetID = sessionID.getTargetCompID().getValue();
+    const std::string& targetID = sessionID.getTargetCompID().getValue();
 
-    if (m_requestsProcessors.count(targetID)) {
-        m_requestsProcessors[targetID]->enqueueNextDataRequest();
+    std::lock_guard<std::mutex> guard(m_mtxReqsProcs);
+    if (m_requestsProcessorByTarget.find(targetID) != m_requestsProcessorByTarget.end()) {
+        m_requestsProcessorByTarget[targetID]->enqueueNextDataRequest();
     } else {
-        cout << COLOR_ERROR "ERROR: No market data request from " << targetID << NO_COLOR << endl;
+        cout << COLOR_ERROR "ERROR: No security list ever requested by the target [" << targetID << "] hence no market data chunk to send!" NO_COLOR << endl;
         return;
     }
 }

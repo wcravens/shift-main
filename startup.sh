@@ -8,8 +8,8 @@ LOADING_TIME[3]=5   # BrokerageCenter
 LOADING_TIME[4]=1   # WebClient backend  (WebClient)
 LOADING_TIME[5]=1   # WebClient frontend (pushServer)
 
-# default time-out parameter for services
-TIME_OUT=400
+# default timeout parameter for services
+TIMEOUT=395
 
 # whether to keep execution log or not
 LOG_FLAG=0
@@ -44,7 +44,7 @@ function usage
     echo "  -r [ --reset ]                     Reset stored portfolio and trading records information"
     echo "  -e [ --readonlyportfolio ]         Read-only portfolio information"
     echo "  -t [ --timeout ]                   Time-out duration counted in minutes"
-    echo "                                     (default: 400)"
+    echo "                                     (default: 395)"
     echo "  -l [ --log ]                       Create a log of the execution"
     echo "  -s [ --status ]                    Status of the running services"
     echo "  -k [ --kill ]                      Kill all running services"
@@ -263,7 +263,7 @@ while [ "${1}" != "" ]; do
             shift
             if [[ ${1} =~ ${IS_NUMBER} ]]
             then
-                TIME_OUT=${1}
+                TIMEOUT=${1}
             fi
             shift
             ;;
@@ -393,24 +393,24 @@ then
     do
         case ${i} in
             1_DE )
-                startService "DatafeedEngine" ${LOADING_TIME[1]} "-t ${TIME_OUT}"
+                startService "DatafeedEngine" ${LOADING_TIME[1]} "-t ${TIMEOUT}"
                 ;;
             2_ME )
-                [ ${SIMULATION_DATE} ] || startService "MatchingEngine" ${LOADING_TIME[2]} "-t ${TIME_OUT}"
-                [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-t ${TIME_OUT} -d ${SIMULATION_DATE}"
+                [ ${SIMULATION_DATE} ] || startService "MatchingEngine" ${LOADING_TIME[2]} "-t ${TIMEOUT}"
+                [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-t ${TIMEOUT} -d ${SIMULATION_DATE}"
                 ;;
             3_BC )
                 if [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
                 then
-                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT}"
+                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIMEOUT}"
                 elif [ ${RESET_FLAG} -ne 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
                 then
-                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r"
+                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIMEOUT} -r"
                 elif [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -ne 0 ]
                 then
-                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -e"
+                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIMEOUT} -e"
                 else
-                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIME_OUT} -r -e"
+                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIMEOUT} -r -e"
                 fi
                 ;;
             4_WC )

@@ -30,7 +30,7 @@
 #include <quickfix/fix50sp2/Advertisement.h>
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
-#include <quickfix/fix50sp2/MassQuoteAcknowledgement.h>
+#include <quickfix/fix50sp2/NewOrderList.h>
 #include <quickfix/fix50sp2/PositionReport.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 #include <quickfix/fix50sp2/SecurityStatus.h>
@@ -116,7 +116,7 @@ protected:
     R_FIXINIT void onMessage(const FIX50SP2::SecurityStatus&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::PositionReport&, const FIX::SessionID&) override;
-    R_FIXINIT void onMessage(const FIX50SP2::MassQuoteAcknowledgement&, const FIX::SessionID&) override;
+    R_FIXINIT void onMessage(const FIX50SP2::NewOrderList&, const FIX::SessionID&) override;
 
     // Price methods
     R_FIXSUB double getOpenPrice(const std::string& symbol);

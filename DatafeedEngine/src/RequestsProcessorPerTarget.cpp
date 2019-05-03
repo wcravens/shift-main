@@ -91,15 +91,17 @@ void RequestsProcessorPerTarget::processRequests()
 }
 
 /**@brief Announces requested data is ready to send. */
-/*static*/ void RequestsProcessorPerTarget::s_announceDataReady(const std::string& targetID, const std::string& requestID, int size)
+/*static*/ void RequestsProcessorPerTarget::s_announceSecurityListRequestComplete(const std::string& targetID, const std::string& requestID, int numAvailableSecurities)
 {
     static std::mutex mtxReadyMsg; // Its only purpose is to ensure atomically print message and send signal at the same time. Its lifetime will last from first time the program encountered it, to when the entire DE program terminates.
-    std::lock_guard<std::mutex> guard(mtxReadyMsg);
-    cout << '\n'
-         << COLOR_PROMPT "Ready to send chunk to " << targetID << NO_COLOR << '\n'
-         << endl;
+    if (numAvailableSecurities > 0) {
+        std::lock_guard<std::mutex> guard(mtxReadyMsg);
+        cout << '\n'
+             << COLOR_PROMPT "Ready to send chunk to " << targetID << NO_COLOR << '\n'
+             << endl;
+    }
 
-    FIXAcceptor::sendNotice(targetID, requestID, size > 0 ? "READY" : "EMPTY");
+    FIXAcceptor::sendNotice(targetID, requestID, numAvailableSecurities > 0 ? "READY" : "EMPTY");
 }
 
 /**@brief Processor helper for one Market Data request.
@@ -115,14 +117,16 @@ void RequestsProcessorPerTarget::processRequests()
         return {};
     }
 
-    std::string tableName;
-    const auto& symbols = marketReq.getSymbols();
+    auto symbols = marketReq.getSymbols();
     std::vector<std::promise<bool>> proms(symbols.size()); /* NOTE: Do NOT add/remove elements, to prevent any vector's internal reallocation.
                                                                 Otherwise, element's memory location might be unreliable and hence communication
                                                                 with TRTHAPI via promise<>* might NOT work! */
     std::vector<size_t> requestedSymbolsIndexes; // To postpone the TRTH requests to a later standalone loop so that the messages of DB query results and of TRTH downloads will not interleave in the terminal
+    std::string tableName;
 
     for (size_t idx{}; idx < symbols.size(); idx++) {
+        ::cvtRICToDEInternalRepresentation(symbols[idx]);
+
         auto flag = db.checkTableOfTradeAndQuoteRecordsExist(symbols[idx], marketReq.getDate(), tableName);
         using PTS = shift::database::TABLE_STATUS;
 
@@ -158,7 +162,7 @@ void RequestsProcessorPerTarget::processRequests()
     } // for
 
     for (auto idx : requestedSymbolsIndexes) {
-        cout << "\033[0;33m" << std::setw(10 + 9) << std::right << symbols[idx] << " is absent." NO_COLOR << endl;
+        cout << "\033[0;33m" << std::setw(10 + 9) << std::right << symbols[idx] << '(' << marketReq.getDate() << ") is absent." NO_COLOR << endl;
     }
 
     for (auto idx : requestedSymbolsIndexes) {
@@ -183,13 +187,13 @@ void RequestsProcessorPerTarget::processRequests()
                 isPerfect &= prom.get_future().get();
 
             TRTHAPI::getInstance()->removeUnavailableRICs(symbols);
-            s_announceDataReady(targetID, requestID, symbols.size());
+            s_announceSecurityListRequestComplete(targetID, requestID, symbols.size());
 
             return isPerfect;
         } // []{}
 
         ,
-        std::move(proms), targetID, marketReq.getRequestID(), marketReq.getSymbols()
+        std::move(proms), targetID, marketReq.getRequestID(), std::move(symbols)
         /* All these arguments will be used to create corresponding value(non-reference) objects for std::async's internal use.
                     If the argument is std::move-ed, then such object is move-constructed, otherwise copy-constructed.
                     After these, those objects will again move-constructs the lambda's parameters.
@@ -248,8 +252,8 @@ void RequestsProcessorPerTarget::processRequests()
 
     lastMarketRequestPtr->updateStartTime(sendTo);
 
-    cout << "\nSend done.\n"
-         << endl;
+    auto ti = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
+    cout << "\nSend done. Real timestamp: " << std::ctime(&ti) << endl;
 }
 
 #undef __PRE_CONDITION__

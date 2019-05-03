@@ -267,8 +267,12 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
 
     cout << endl;
     cout << "----- Receive NOTICE -----" << endl;
-    cout << "request_id: " << pRequestID->getValue() << endl;
+    cout << "request id: " << pRequestID->getValue() << endl;
     cout << "text: " << pText->getValue() << endl;
+
+    auto ti = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
+    cout << "real timestamp: " << std::ctime(&ti)
+         << endl;
 
     bool isReadyNews = pText->getValue() == "READY";
     bool isEmptyNews = !isReadyNews && (pText->getValue() == "EMPTY");
