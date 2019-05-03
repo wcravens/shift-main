@@ -83,11 +83,11 @@ private:
 
 class StockMarketList {
 public:
-    using stock_list_t = std::map<std::string, StockMarket>;
+    using stock_market_list_t = std::map<std::string, StockMarket>;
 
     static std::atomic<bool> s_isTimeout;
 
-    static stock_list_t& getInstance();
+    static stock_market_list_t& getInstance();
 
 private:
     StockMarketList() = default;

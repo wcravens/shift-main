@@ -1166,8 +1166,8 @@ void StockMarket::insertLocalAsk(Order newAsk)
 
 /* static */ std::atomic<bool> StockMarketList::s_isTimeout{ false };
 
-/* static */ StockMarketList::stock_list_t& StockMarketList::getInstance()
+/* static */ StockMarketList::stock_market_list_t& StockMarketList::getInstance()
 {
-    static stock_list_t data;
+    static stock_market_list_t data;
     return data;
 }
