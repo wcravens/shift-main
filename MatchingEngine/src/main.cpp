@@ -3,7 +3,7 @@
 #include "Parameters.h"
 #include "StockMarket.h"
 #include "TimeSetting.h"
-#include "configFunction.h"
+#include "configFunctions.h"
 
 #include <atomic>
 #include <future>
@@ -211,7 +211,7 @@ int main(int ac, char* av[])
     {
         int i = 0;
 
-        for (auto& stockMarketEntry: StockMarketList::getInstance()) {
+        for (auto& stockMarketEntry : StockMarketList::getInstance()) {
             stockMarketThreadList[i] = std::thread(std::ref(stockMarketEntry.second));
             ++i;
         }
