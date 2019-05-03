@@ -36,7 +36,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/OrderConfirmation.h
     ${PROJECT_SOURCE_DIR}/include/Parameters.h
     ${PROJECT_SOURCE_DIR}/include/PriceLevel.h
-    ${PROJECT_SOURCE_DIR}/include/Stock.h
+    ${PROJECT_SOURCE_DIR}/include/StockMarket.h
     ${PROJECT_SOURCE_DIR}/include/threadFunction.h
     ${PROJECT_SOURCE_DIR}/include/TimeSetting.h
 )
@@ -48,7 +48,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/Order.cpp
     ${PROJECT_SOURCE_DIR}/src/OrderBookEntry.cpp
     ${PROJECT_SOURCE_DIR}/src/PriceLevel.cpp
-    ${PROJECT_SOURCE_DIR}/src/Stock.cpp
+    ${PROJECT_SOURCE_DIR}/src/StockMarket.cpp
     ${PROJECT_SOURCE_DIR}/src/threadFunction.cpp
     ${PROJECT_SOURCE_DIR}/src/TimeSetting.cpp
 )

@@ -1,6 +1,6 @@
 #include "FIXInitiator.h"
 
-#include "Stock.h"
+#include "StockMarket.h"
 #include "TimeSetting.h"
 
 #include <atomic>
@@ -367,8 +367,8 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     message.getGroup(1, *pIDGroup);
     pIDGroup->getField(*pBuyerID);
 
-    auto stockIt = StockList::getInstance().find(pSymbol->getValue());
-    if (stockIt == StockList::getInstance().end()) {
+    auto stockMarketIt = StockMarketList::getInstance().find(pSymbol->getValue());
+    if (stockMarketIt == StockMarketList::getInstance().end()) {
         cout << "Receive error in Global!" << endl;
         return;
     }
@@ -390,9 +390,9 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         Order order2{ pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), Order::Type::TRTH_ASK, pSellerID->getValue(), pTransactTime->getValue() };
         order2.setMilli(mili);
 
-        stockIt->second.bufNewGlobalOrder(std::move(order2));
+        stockMarketIt->second.bufNewGlobalOrder(std::move(order2));
     }
-    stockIt->second.bufNewGlobalOrder(std::move(order));
+    stockMarketIt->second.bufNewGlobalOrder(std::move(order));
 
     if (prevCnt) { // > 1 threads
         delete pSymbol;

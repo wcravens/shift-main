@@ -4,7 +4,7 @@
 
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
-#include "Stock.h"
+#include "StockMarket.h"
 
 #include <atomic>
 #include <thread>

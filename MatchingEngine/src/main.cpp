@@ -1,7 +1,7 @@
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
 #include "Parameters.h"
-#include "Stock.h"
+#include "StockMarket.h"
 #include "TimeSetting.h"
 #include "threadFunction.h"
 
@@ -179,10 +179,10 @@ int main(int ac, char* av[])
     boost::posix_time::ptime endTime(boost::posix_time::time_from_string(dateString + " " + endTimeString));
 
     /*
-     * @brief  Create Stock List and Stock Market objects
+     * @brief  Create Stock Market List and Stock Market objects
      */
     for (auto& symbol : symbols) {
-        StockList::getInstance().insert(std::pair<std::string, Stock>(symbol, { symbol }));
+        StockMarketList::getInstance().insert(std::pair<std::string, StockMarket>(symbol, { symbol }));
 
         // TODO: This should be done in the DE
         // Transform symbol's punctuation (if any) before passing to Datafeed Engine
@@ -191,7 +191,7 @@ int main(int ac, char* av[])
                 symbol[j] = '_';
         }
     }
-    if (StockList::getInstance().size() != symbols.size()) {
+    if (StockMarketList::getInstance().size() != symbols.size()) {
         cout << "Error during stock list creation!" << endl;
         return 4;
     }
@@ -199,18 +199,18 @@ int main(int ac, char* av[])
     /*
      * @brief  Begin Stock Market threads
      */
-    int numOfStocks = StockList::getInstance().size();
-    std::vector<std::thread> stockMarketThreadList(numOfStocks);
+    int numOfStockMarkets = StockMarketList::getInstance().size();
+    std::vector<std::thread> stockMarketThreadList(numOfStockMarkets);
     {
         int i = 0;
 
-        for (auto& stockEntry: StockList::getInstance()) {
-            stockMarketThreadList[i] = std::thread(std::ref(stockEntry.second));
+        for (auto& stockMarketEntry: StockMarketList::getInstance()) {
+            stockMarketThreadList[i] = std::thread(std::ref(stockMarketEntry.second));
             ++i;
         }
     }
     cout << endl
-         << "A total of " << numOfStocks << " stocks are ready in the Matching Engine." << endl
+         << "A total of " << numOfStockMarkets << " StockMarkets are ready in the Matching Engine." << endl
          << "Waiting for quotes..." << endl
          << endl;
 
@@ -260,8 +260,8 @@ int main(int ac, char* av[])
     if (dataRequester.joinable())
         dataRequester.join(); // wait for termination
 
-    StockList::s_isTimeout = true;
-    for (int i = 0; i < numOfStocks; i++) {
+    StockMarketList::s_isTimeout = true;
+    for (int i = 0; i < numOfStockMarkets; i++) {
         stockMarketThreadList[i].join();
     }
 

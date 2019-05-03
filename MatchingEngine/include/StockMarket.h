@@ -13,14 +13,14 @@
 
 #include <quickfix/FieldTypes.h>
 
-class Stock {
+class StockMarket {
 public:
     std::list<ExecutionReport> executionReports;
     std::list<OrderBookEntry> orderBookUpdates;
 
-    Stock() = default;
-    Stock(const std::string& symbol);
-    Stock(const Stock& other);
+    StockMarket() = default;
+    StockMarket(const std::string& symbol);
+    StockMarket(const StockMarket& other);
 
     // Function to start one stock matching engine, for exchange thread
     void operator()();
@@ -81,14 +81,14 @@ private:
     std::list<Order>::iterator m_thisLocalOrder;
 };
 
-class StockList {
+class StockMarketList {
 public:
-    using stock_list_t = std::map<std::string, Stock>;
+    using stock_list_t = std::map<std::string, StockMarket>;
 
     static std::atomic<bool> s_isTimeout;
 
     static stock_list_t& getInstance();
 
 private:
-    StockList() = default;
+    StockMarketList() = default;
 };

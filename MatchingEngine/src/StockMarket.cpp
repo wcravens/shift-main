@@ -1,4 +1,4 @@
-#include "Stock.h"
+#include "StockMarket.h"
 
 #include "FIXAcceptor.h"
 #include "TimeSetting.h"
@@ -10,23 +10,23 @@
 
 using namespace std::chrono_literals;
 
-Stock::Stock(const std::string& symbol)
+StockMarket::StockMarket(const std::string& symbol)
     : m_symbol(symbol)
 {
 }
 
-Stock::Stock(const Stock& stock)
-    : m_symbol(stock.m_symbol)
+StockMarket::StockMarket(const StockMarket& StockMarket)
+    : m_symbol(StockMarket.m_symbol)
 {
 }
 
-// Function to start one stock matching engine, for exchange thread
-void Stock::operator()() {
+// Function to start one StockMarket matching engine, for exchange thread
+void StockMarket::operator()() {
 
     Order nextOrder;
     Order prevGlobalOrder;
 
-    while (!StockList::s_isTimeout) { // process orders
+    while (!StockMarketList::s_isTimeout) { // process orders
 
         if (!getNextOrder(nextOrder)) {
             std::this_thread::sleep_for(10ms);
@@ -143,17 +143,17 @@ void Stock::operator()() {
     }
 }
 
-const std::string& Stock::getSymbol() const
+const std::string& StockMarket::getSymbol() const
 {
     return m_symbol;
 }
 
-void Stock::setSymbol(const std::string& symbol)
+void StockMarket::setSymbol(const std::string& symbol)
 {
     m_symbol = symbol;
 }
 
-void Stock::bufNewGlobalOrder(Order&& newOrder)
+void StockMarket::bufNewGlobalOrder(Order&& newOrder)
 {
     try {
         std::lock_guard<std::mutex> ngGuard(m_mtxNewGlobalOrders);
@@ -163,7 +163,7 @@ void Stock::bufNewGlobalOrder(Order&& newOrder)
     }
 }
 
-void Stock::bufNewLocalOrder(Order&& newOrder)
+void StockMarket::bufNewLocalOrder(Order&& newOrder)
 {
     try {
         std::lock_guard<std::mutex> nlGuard(m_mtxNewLocalOrders);
@@ -173,7 +173,7 @@ void Stock::bufNewLocalOrder(Order&& newOrder)
     }
 }
 
-bool Stock::getNextOrder(Order& orderRef)
+bool StockMarket::getNextOrder(Order& orderRef)
 {
     bool good = false;
     long now = TimeSetting::getInstance().pastMilli(true);
@@ -207,7 +207,7 @@ bool Stock::getNextOrder(Order& orderRef)
 }
 
 // decision '2' means this is a trade record, '4' means cancel record; record trade or cancel with object actions
-void Stock::executeGlobalOrder(Order& orderRef, int size, double price, char decision)
+void StockMarket::executeGlobalOrder(Order& orderRef, int size, double price, char decision)
 {
     int executionSize = std::min(m_thisGlobalOrder->getSize(), orderRef.getSize());
 
@@ -235,7 +235,7 @@ void Stock::executeGlobalOrder(Order& orderRef, int size, double price, char dec
 }
 
 // decision '2' means this is a trade record, '4' means cancel record; record trade or cancel with object actions
-void Stock::executeLocalOrder(Order& orderRef, int size, double price, char decision)
+void StockMarket::executeLocalOrder(Order& orderRef, int size, double price, char decision)
 {
     int executionSize = std::min(m_thisLocalOrder->getSize(), orderRef.getSize());
     m_thisPriceLevel->setSize(m_thisPriceLevel->getSize() - executionSize);
@@ -263,17 +263,17 @@ void Stock::executeLocalOrder(Order& orderRef, int size, double price, char deci
         orderRef.getTime() });
 }
 
-void Stock::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& simulationTime)
+void StockMarket::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& simulationTime)
 {
     orderBookUpdates.push_back({ type, symbol, price, size, destination, simulationTime });
 }
 
-void Stock::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& simulationTime)
+void StockMarket::orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& simulationTime)
 {
     orderBookUpdates.push_back({ type, symbol, price, size, simulationTime });
 }
 
-void Stock::showGlobalOrderBooks()
+void StockMarket::showGlobalOrderBooks()
 {
     std::stringstream ss;
     std::string output;
@@ -307,7 +307,7 @@ void Stock::showGlobalOrderBooks()
     output = ss.str();
 }
 
-void Stock::showLocalOrderBooks()
+void StockMarket::showLocalOrderBooks()
 {
     std::stringstream ss;
     std::string output;
@@ -341,11 +341,11 @@ void Stock::showLocalOrderBooks()
     output = ss.str();
 }
 
-void Stock::doGlobalLimitBuy(Order& orderRef)
+void StockMarket::doGlobalLimitBuy(Order& orderRef)
 {
     m_thisPriceLevel = m_localAsks.begin();
 
-    // see Stock::insertLocalAsk for more info
+    // see StockMarket::insertLocalAsk for more info
     double price = 0.0;
     bool update = false;
 
@@ -399,11 +399,11 @@ void Stock::doGlobalLimitBuy(Order& orderRef)
     }
 }
 
-void Stock::doGlobalLimitSell(Order& orderRef)
+void StockMarket::doGlobalLimitSell(Order& orderRef)
 {
     m_thisPriceLevel = m_localBids.begin();
 
-    // see Stock::insertLocalBid for more info
+    // see StockMarket::insertLocalBid for more info
     double price = 0.0;
     bool update = false;
 
@@ -457,7 +457,7 @@ void Stock::doGlobalLimitSell(Order& orderRef)
     }
 }
 
-void Stock::updateGlobalBids(Order newBestBid)
+void StockMarket::updateGlobalBids(Order newBestBid)
 {
     // broadcast global order book update
     orderBookUpdate(OrderBookEntry::Type::GLB_BID, m_symbol, newBestBid.getPrice(), newBestBid.getSize(),
@@ -487,7 +487,7 @@ void Stock::updateGlobalBids(Order newBestBid)
     m_globalBids.push_back(std::move(newBestBid));
 }
 
-void Stock::updateGlobalAsks(Order newBestAsk)
+void StockMarket::updateGlobalAsks(Order newBestAsk)
 {
     // broadcast global order book update
     orderBookUpdate(OrderBookEntry::Type::GLB_ASK, m_symbol, newBestAsk.getPrice(), newBestAsk.getSize(),
@@ -516,12 +516,12 @@ void Stock::updateGlobalAsks(Order newBestAsk)
     m_globalAsks.push_back(std::move(newBestAsk));
 }
 
-void Stock::doLocalLimitBuy(Order& orderRef)
+void StockMarket::doLocalLimitBuy(Order& orderRef)
 {
     double maxAskPrice = std::numeric_limits<double>::max();
     double localBestAsk = 0.0;
     double globalBestAsk = 0.0;
-    bool update = false; // see Stock::insertLocalAsk for more info
+    bool update = false; // see StockMarket::insertLocalAsk for more info
 
     // should execute as a market order
     orderRef.setType(Order::Type::MARKET_BUY);
@@ -629,12 +629,12 @@ void Stock::doLocalLimitBuy(Order& orderRef)
     orderRef.setType(Order::Type::LIMIT_BUY);
 }
 
-void Stock::doLocalLimitSell(Order& orderRef)
+void StockMarket::doLocalLimitSell(Order& orderRef)
 {
     double minBidPrice = std::numeric_limits<double>::min();
     double localBestBid = 0.0;
     double globalBestBid = 0.0;
-    bool update = false; // see Stock::insertLocalBid for more info
+    bool update = false; // see StockMarket::insertLocalBid for more info
 
     // should execute as a market order
     orderRef.setType(Order::Type::MARKET_SELL);
@@ -742,12 +742,12 @@ void Stock::doLocalLimitSell(Order& orderRef)
     orderRef.setType(Order::Type::LIMIT_SELL);
 }
 
-void Stock::doLocalMarketBuy(Order& orderRef)
+void StockMarket::doLocalMarketBuy(Order& orderRef)
 {
     double maxAskPrice = std::numeric_limits<double>::max();
     double localBestAsk = 0.0;
     double globalBestAsk = 0.0;
-    bool update = false; // see Stock::insertLocalAsk for more info
+    bool update = false; // see StockMarket::insertLocalAsk for more info
 
     // init
     m_thisPriceLevel = m_localAsks.begin();
@@ -844,12 +844,12 @@ void Stock::doLocalMarketBuy(Order& orderRef)
     }
 }
 
-void Stock::doLocalMarketSell(Order& orderRef)
+void StockMarket::doLocalMarketSell(Order& orderRef)
 {
     double minBidPrice = std::numeric_limits<double>::min();
     double localBestBid = 0.0;
     double globalBestBid = 0.0;
-    bool update = false; // see Stock::insertLocalBid for more info
+    bool update = false; // see StockMarket::insertLocalBid for more info
 
     // init
     m_thisPriceLevel = m_localBids.begin();
@@ -946,7 +946,7 @@ void Stock::doLocalMarketSell(Order& orderRef)
     }
 }
 
-void Stock::doLocalCancelBid(Order& orderRef)
+void StockMarket::doLocalCancelBid(Order& orderRef)
 {
     m_thisPriceLevel = m_localBids.begin();
 
@@ -975,7 +975,7 @@ void Stock::doLocalCancelBid(Order& orderRef)
             int size = m_thisLocalOrder->getSize() - orderRef.getSize();
             executeLocalOrder(orderRef, size, orderRef.getPrice(), '4');
 
-            if (m_thisLocalOrder->getType() != Order::Type::MARKET_BUY) { // see Stock::insertLocalBid for more info
+            if (m_thisLocalOrder->getType() != Order::Type::MARKET_BUY) { // see StockMarket::insertLocalBid for more info
                 // broadcast local order book update
                 orderBookUpdate(OrderBookEntry::Type::LOC_BID, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
                     TimeSetting::getInstance().simulationTimestamp());
@@ -997,7 +997,7 @@ void Stock::doLocalCancelBid(Order& orderRef)
     }
 }
 
-void Stock::doLocalCancelAsk(Order& orderRef)
+void StockMarket::doLocalCancelAsk(Order& orderRef)
 {
     m_thisPriceLevel = m_localAsks.begin();
 
@@ -1026,7 +1026,7 @@ void Stock::doLocalCancelAsk(Order& orderRef)
             int size = m_thisLocalOrder->getSize() - orderRef.getSize();
             executeLocalOrder(orderRef, size, orderRef.getPrice(), '4');
 
-            if (m_thisLocalOrder->getType() != Order::Type::MARKET_SELL) { // see Stock::insertLocalAsk for more info
+            if (m_thisLocalOrder->getType() != Order::Type::MARKET_SELL) { // see StockMarket::insertLocalAsk for more info
                 // broadcast local order book update
                 orderBookUpdate(OrderBookEntry::Type::LOC_ASK, m_symbol, m_thisPriceLevel->getPrice(), m_thisPriceLevel->getSize(),
                     TimeSetting::getInstance().simulationTimestamp());
@@ -1048,7 +1048,7 @@ void Stock::doLocalCancelAsk(Order& orderRef)
     }
 }
 
-void Stock::insertLocalBid(Order newBid)
+void StockMarket::insertLocalBid(Order newBid)
 {
     // market orders are only added to the order book if the order book in the other side is currently empty
     // they do, however, have to receive "special threatment":
@@ -1108,7 +1108,7 @@ void Stock::insertLocalBid(Order newBid)
     }
 }
 
-void Stock::insertLocalAsk(Order newAsk)
+void StockMarket::insertLocalAsk(Order newAsk)
 {
     // market orders are only added to the order book if the order book in the other side is currently empty
     // they do, however, have to receive "special threatment":
@@ -1168,9 +1168,9 @@ void Stock::insertLocalAsk(Order newAsk)
     }
 }
 
-/* static */ std::atomic<bool> StockList::s_isTimeout{ false };
+/* static */ std::atomic<bool> StockMarketList::s_isTimeout{ false };
 
-/* static */ StockList::stock_list_t& StockList::getInstance()
+/* static */ StockMarketList::stock_list_t& StockMarketList::getInstance()
 {
     static stock_list_t data;
     return data;

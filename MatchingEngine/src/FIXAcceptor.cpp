@@ -1,7 +1,7 @@
 #include "FIXAcceptor.h"
 
 #include "Order.h"
-#include "Stock.h"
+#include "StockMarket.h"
 #include "TimeSetting.h"
 
 #include <atomic>
@@ -183,7 +183,7 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID)
 
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
 
-    for (const auto& kv : StockList::getInstance()) {
+    for (const auto& kv : StockMarketList::getInstance()) {
         relatedSymGroup.set(FIX::Symbol(kv.first));
         message.addGroup(relatedSymGroup);
     }
@@ -342,9 +342,9 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     order.setMilli(milli);
 
     // Add new quote to buffer
-    auto stockIt = StockList::getInstance().find(pSymbol->getValue());
-    if (stockIt != StockList::getInstance().end()) {
-        stockIt->second.bufNewLocalOrder(std::move(order));
+    auto stockMarketIt = StockMarketList::getInstance().find(pSymbol->getValue());
+    if (stockMarketIt != StockMarketList::getInstance().end()) {
+        stockMarketIt->second.bufNewLocalOrder(std::move(order));
     } else {
         return;
     }
