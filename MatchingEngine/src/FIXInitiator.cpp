@@ -185,6 +185,7 @@ void FIXInitiator::storeOrder(const Order& order) // FIXME: not used
     message.setField(FIX::Symbol(order.getSymbol()));
     message.setField(::FIXFIELD_SIDE_BUY); // Required by FIX
     message.setField(FIX::OrdType(order.getType()));
+    message.setField(FIX::Side(order.getType()));
     message.setField(FIX::OrderQty(order.getSize()));
     message.setField(FIX::TransactTime(6));
 
