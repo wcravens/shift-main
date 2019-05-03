@@ -1,4 +1,4 @@
-#include "threadFunction.h"
+#include "configFunction.h"
 
 #include "TimeSetting.h"
 

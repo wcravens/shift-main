@@ -3,7 +3,7 @@
 #include "Parameters.h"
 #include "StockMarket.h"
 #include "TimeSetting.h"
-#include "threadFunction.h"
+#include "configFunction.h"
 
 #include <atomic>
 #include <future>
