@@ -83,9 +83,9 @@ void FIXAcceptor::disconnectBrokerageCenter()
 }
 
 /*
- * @brief Send order book update to brokers
+ * @brief Send all orderbook updates to brokers
  */
-void FIXAcceptor::sendOrderBookUpdate2All(const OrderBookEntry& update)
+void FIXAcceptor::sendOrderBookUpdates(const std::list<OrderBookEntry>& ordBookUpdates)
 {
     FIX::Message message;
 
@@ -94,30 +94,34 @@ void FIXAcceptor::sendOrderBookUpdate2All(const OrderBookEntry& update)
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
 
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
-    entryGroup.setField(FIX::MDEntryType(update.getType()));
-    entryGroup.setField(FIX::Symbol(update.getSymbol()));
-    entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
-    entryGroup.setField(FIX::MDEntrySize(update.getSize()));
-    auto utc = update.getUTCTime();
-    entryGroup.setField(FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())));
-    entryGroup.setField(FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)));
-    entryGroup.setField(FIX::MDMkt(update.getDestination()));
-    message.addGroup(entryGroup);
+    for (const auto& update : ordBookUpdates) {
+        FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
+        entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
+        entryGroup.setField(FIX::MDEntryType(update.getType()));
+        entryGroup.setField(FIX::Symbol(update.getSymbol()));
+        entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
+        entryGroup.setField(FIX::MDEntrySize(update.getSize()));
+        auto utc = update.getUTCTime();
+        entryGroup.setField(FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())));
+        entryGroup.setField(FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)));
+        entryGroup.setField(FIX::MDMkt(update.getDestination()));
+        message.addGroup(entryGroup);
 
-    std::lock_guard<std::mutex> lock(m_mtxTargetSet);
+        {
+            std::lock_guard<std::mutex> lock(m_mtxTargetSet);
 
-    for (const auto& targetID : m_targetSet) {
-        header.setField(FIX::TargetCompID(targetID));
-        FIX::Session::sendToTarget(message);
+            for (const auto& targetID : m_targetSet) {
+                header.setField(FIX::TargetCompID(targetID));
+                FIX::Session::sendToTarget(message);
+            }
+        }
     }
 }
 
 /**
- * @brief Sending execution report to brokers
+ * @brief Sending all execution reports to brokers
  */
-void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
+void FIXAcceptor::sendExecutionReports(const std::list<ExecutionReport>& execReports)
 {
     FIX::Message message;
 
@@ -126,44 +130,48 @@ void FIXAcceptor::sendExecutionReport2All(const ExecutionReport& report)
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
 
-    message.setField(FIX::OrderID(report.orderID1));
-    message.setField(FIX::SecondaryOrderID(report.orderID2));
-    message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
-    message.setField(FIX::OrdStatus(report.decision));
-    message.setField(FIX::Symbol(report.symbol));
-    message.setField(FIX::Side(report.orderType1));
-    message.setField(FIX::OrdType(report.orderType2));
-    message.setField(FIX::Price(report.price));
-    message.setField(FIX::EffectiveTime(TimeSetting::getInstance().simulationTimestamp(), 6));
-    message.setField(FIX::LastMkt(report.destination));
-    message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
-    message.setField(FIX::CumQty(report.size));
-    message.setField(FIX::TransactTime(6));
+    for (const auto& report : execReports) {
+        message.setField(FIX::OrderID(report.orderID1));
+        message.setField(FIX::SecondaryOrderID(report.orderID2));
+        message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
+        message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
+        message.setField(FIX::OrdStatus(report.decision));
+        message.setField(FIX::Symbol(report.symbol));
+        message.setField(FIX::Side(report.orderType1));
+        message.setField(FIX::OrdType(report.orderType2));
+        message.setField(FIX::Price(report.price));
+        message.setField(FIX::EffectiveTime(TimeSetting::getInstance().simulationTimestamp(), 6));
+        message.setField(FIX::LastMkt(report.destination));
+        message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
+        message.setField(FIX::CumQty(report.size));
+        message.setField(FIX::TransactTime(6));
 
-    FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
-    idGroup1.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup1.setField(FIX::PartyID(report.traderID1));
-    message.addGroup(idGroup1);
+        FIX50SP2::ExecutionReport::NoPartyIDs idGroup1;
+        idGroup1.setField(::FIXFIELD_PARTYROLE_CLIENTID);
+        idGroup1.setField(FIX::PartyID(report.traderID1));
+        message.addGroup(idGroup1);
 
-    FIX50SP2::ExecutionReport::NoPartyIDs idGroup2;
-    idGroup2.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup2.setField(FIX::PartyID(report.traderID2));
-    message.addGroup(idGroup2);
+        FIX50SP2::ExecutionReport::NoPartyIDs idGroup2;
+        idGroup2.setField(::FIXFIELD_PARTYROLE_CLIENTID);
+        idGroup2.setField(FIX::PartyID(report.traderID2));
+        message.addGroup(idGroup2);
 
-    FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
-    timeGroup1.setField(FIX::TrdRegTimestamp(report.simulationTime1, 6));
-    message.addGroup(timeGroup1);
+        FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup1;
+        timeGroup1.setField(FIX::TrdRegTimestamp(report.simulationTime1, 6));
+        message.addGroup(timeGroup1);
 
-    FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup2;
-    timeGroup2.setField(FIX::TrdRegTimestamp(report.simulationTime2, 6));
-    message.addGroup(timeGroup2);
+        FIX50SP2::ExecutionReport::NoTrdRegTimestamps timeGroup2;
+        timeGroup2.setField(FIX::TrdRegTimestamp(report.simulationTime2, 6));
+        message.addGroup(timeGroup2);
 
-    std::lock_guard<std::mutex> lock(m_mtxTargetSet);
+        {
+            std::lock_guard<std::mutex> lock(m_mtxTargetSet);
 
-    for (const auto& targetID : m_targetSet) {
-        header.setField(FIX::TargetCompID(targetID));
-        FIX::Session::sendToTarget(message);
+            for (const auto& targetID : m_targetSet) {
+                header.setField(FIX::TargetCompID(targetID));
+                FIX::Session::sendToTarget(message);
+            }
+        }
     }
 }
 

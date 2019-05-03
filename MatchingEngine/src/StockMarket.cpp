@@ -21,8 +21,8 @@ StockMarket::StockMarket(const StockMarket& StockMarket)
 }
 
 // Function to start one StockMarket matching engine, for exchange thread
-void StockMarket::operator()() {
-
+void StockMarket::operator()()
+{
     Order nextOrder;
     Order prevGlobalOrder;
 
@@ -130,14 +130,10 @@ void StockMarket::operator()() {
             }
             }
 
-            for (const auto& report : executionReports) {
-                FIXAcceptor::getInstance()->sendExecutionReport2All(report);
-            }
+            FIXAcceptor::getInstance()->sendExecutionReports(executionReports);
             executionReports.clear();
 
-            for (const auto& entry : orderBookUpdates) {
-                FIXAcceptor::getInstance()->sendOrderBookUpdate2All(entry);
-            }
+            FIXAcceptor::getInstance()->sendOrderBookUpdates(orderBookUpdates);
             orderBookUpdates.clear();
         }
     }
