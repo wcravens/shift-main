@@ -79,6 +79,11 @@ $(document).ready(function () {
             },
             errorbar: {
                 color: 'white'
+            },
+            column: {
+                dataGrouping: {
+                    enabled: false
+                }
             }
         },
         legend: {
