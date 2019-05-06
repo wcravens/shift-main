@@ -57,8 +57,8 @@ static void s_requestDatafeedEngineData(const std::string configFullPath, const 
         // we shall compensate data consumer for that elapsed real time with tantamount simulation time of data:
         auto elapsedSimlTime = std::chrono::milliseconds(TimeSetting::getInstance().pastMilli(true)); // take simulation speed (experimentSpeed) into account
         auto adjustedDPDC = std::chrono::duration_cast<decltype(elapsedSimlTime)>(::DURATION_PER_DATA_CHUNK); // unify the time units
-        if (elapsedSimlTime.count() > (adjustedDPDC.count() >> 1)) { // It's called "considerably" lagged iff. lag at least half of the duration per chunk
-            auto numChunksToCoverElapsedTime = elapsedSimlTime / adjustedDPDC + 1;
+        if (elapsedSimlTime.count() > (adjustedDPDC.count() / 2)) { // It's called "considerably" lagged iff. lag at least half of the duration per chunk
+            auto numChunksToCoverElapsedTime = static_cast<long>(elapsedSimlTime.count() / adjustedDPDC.count()) + 1;
             while (numChunksToCoverElapsedTime--)
                 requestOnce(&startTime);
         }
