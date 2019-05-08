@@ -12,7 +12,7 @@
 
 #include <postgresql/libpq-fe.h>
 
-void cvtRICToDEInternalRepresentation(std::string& cvtThis, bool reverse = false /*otherwise, from internal to RIC*/);
+void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse = false /*otherwise, from internal to RIC*/);
 
 struct TradingRecord;
 
@@ -21,7 +21,7 @@ struct TradingRecord;
  */
 class PSQL {
 public:
-    static std::string s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string& lastRTime, int& lastRTimeOrder);
+    static std::string s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string* pLastRTime, int* pLastRTimeOrder);
 
     static std::string s_createTableName(const std::string& symbol, const std::string& yyyymmdd);
 
@@ -51,7 +51,7 @@ public:
     bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
     /*@brief Check if the Trade and Quote data for specific ric and date exist, and if so feeds back the table name */
-    shift::database::TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName);
+    shift::database::TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName);
 
     /*@brief Create new table of Trade & Quote data for one kind of RIC */
     bool createTableOfTradeAndQuoteRecords(std::string tableName);

@@ -186,7 +186,7 @@ void TRTHAPI::processRequests()
         }
 
         // Shall detect duplicated requests and skip them:
-        auto dbFlag = db.checkTableOfTradeAndQuoteRecordsExist(req.symbol, req.date, tableName);
+        auto dbFlag = db.checkTableOfTradeAndQuoteRecordsExist(req.symbol, req.date, &tableName);
         using PTS = shift::database::TABLE_STATUS;
 
         bool isPerfect = true;
@@ -251,7 +251,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
 {
     // prepare symbol format for TRTH request
     std::string ric = symbol;
-    ::cvtRICToDEInternalRepresentation(ric, true); // '_' => '.'
+    ::cvtRICToDEInternalRepresentation(&ric, true); // '_' => '.'
 
     // HTTP client configuration
     web::http::client::http_client_config hcconf;

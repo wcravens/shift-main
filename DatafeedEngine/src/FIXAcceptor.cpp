@@ -282,7 +282,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
         pRelatedSymGroup->get(*pSymbol);
 
         std::string symbol = pSymbol->getValue();
-        ::cvtRICToDEInternalRepresentation(symbol);
+        ::cvtRICToDEInternalRepresentation(&symbol);
 
         cout << i << ":\t" << symbol << endl;
         symbols.push_back(symbol);

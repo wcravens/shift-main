@@ -12,10 +12,10 @@
 
 #define __DBG_DUMP_PQCMD false
 
-void cvtRICToDEInternalRepresentation(std::string& cvtThis, bool reverse /*= false*/)
+void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= false*/)
 {
     const char from = reverse ? '_' : '.', to = reverse ? '.' : '_';
-    std::replace(cvtThis.begin(), cvtThis.end(), from, to);
+    std::replace(pCvtThis->begin(), pCvtThis->end(), from, to);
 }
 
 /**
@@ -24,9 +24,9 @@ void cvtRICToDEInternalRepresentation(std::string& cvtThis, bool reverse /*= fal
  *          SELECT reuters_time, reuters_time_order
  *          FROM public.<a table name here>;
  */
-/* static */ std::string PSQL::s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string& lastRTime, int& lastRTimeOrder)
+/* static */ std::string PSQL::s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string* pLastRTime, int* pLastRTimeOrder)
 {
-    if (currReutersTime.length() != lastRTime.length() // Different size must implies different strings!
+    if (currReutersTime.length() != pLastRTime->length() // Different size must implies different strings!
         /* Reuters time data are always in increasing order, usually with strides of some microseconds(10^-6s) to some milliseconds.
         *   This means that higher order time(e.g. Hours) are changing relatively slowly while lower one(e.g. Milliseconds) is changing frequently.
         *   Therefore, to efficiently compare the difference between adjacent Reuters Time strings, we shall use REVERSED comparison of these time strings.
@@ -34,16 +34,16 @@ void cvtRICToDEInternalRepresentation(std::string& cvtThis, bool reverse /*= fal
         *  std::lexicographical_compare() lexicographically checks whether the 1st string is conceptually "less than" the 2nd one. */
         || std::lexicographical_compare(
                currReutersTime.rbegin(), currReutersTime.rend(),
-               lastRTime.rbegin(), lastRTime.rend(),
+               pLastRTime->rbegin(), pLastRTime->rend(),
                // comparator: Conceptually(i.e. not arithmetically) "Less than"; a "Equivalent to" b == !(a "Less than" b) && !(b "Less than" a).
                [](const std::string::value_type& lhs, const std::string::value_type& rhs) { return lhs != rhs; }) // currReutersTime "<" lastRTime ?
     ) {
-        lastRTime = currReutersTime;
-        lastRTimeOrder = 1;
+        *pLastRTime = currReutersTime;
+        *pLastRTimeOrder = 1;
         return "1";
     }
 
-    return std::to_string(++lastRTimeOrder);
+    return std::to_string(++*pLastRTimeOrder);
 }
 
 /* static */ inline std::string PSQL::s_createTableName(const std::string& symbol, const std::string& yyyymmdd)
@@ -151,7 +151,7 @@ bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusT
 /* Check if the Trade and Quote data for a specific Ric-ReutersDate combination is exist.
    If exist, saves the found table name to the parameter 'tableName'.
 */
-shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string& tableName)
+shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName)
 {
     auto lock{ lockPSQL() };
     using TABLE_STATUS = shift::database::TABLE_STATUS;
@@ -174,7 +174,7 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     if (0 == nrows) {
         status = TABLE_STATUS::NOT_EXIST;
     } else if (1 == nrows) {
-        tableName = PQgetvalue(pRes, 0, shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::VAL_IDX::REUT_TABLE_NAME);
+        *pTableName = PQgetvalue(pRes, 0, shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::VAL_IDX::REUT_TABLE_NAME);
         status = TABLE_STATUS::EXISTS;
     } else {
         cout << COLOR_ERROR "ERROR: More than one Trade & Quote table for [ " << ric << ' ' << reutersDate << " ] exist." NO_COLOR << endl;
@@ -271,7 +271,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                 pqQuery += "',";
 
                 // reuters time order (for primary key purpose)
-                pqQuery += s_getUpdateReutersTimeOrder(rtMicroSec, lastRTime, lastRTimeOrder);
+                pqQuery += s_getUpdateReutersTimeOrder(rtMicroSec, &lastRTime, &lastRTimeOrder);
                 pqQuery += ',';
 
                 // reuters time offset

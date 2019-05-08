@@ -125,9 +125,9 @@ void RequestsProcessorPerTarget::processRequests()
     std::string tableName;
 
     for (size_t idx{}; idx < symbols.size(); idx++) {
-        ::cvtRICToDEInternalRepresentation(symbols[idx]);
+        ::cvtRICToDEInternalRepresentation(&symbols[idx]);
 
-        auto flag = db.checkTableOfTradeAndQuoteRecordsExist(symbols[idx], marketReq.getDate(), tableName);
+        auto flag = db.checkTableOfTradeAndQuoteRecordsExist(symbols[idx], marketReq.getDate(), &tableName);
         using PTS = shift::database::TABLE_STATUS;
 
         bool isPerfect = true;
