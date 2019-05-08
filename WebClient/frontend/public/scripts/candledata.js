@@ -79,12 +79,12 @@ $(document).ready(function () {
             },
             errorbar: {
                 color: 'white'
-            },
-            column: {
-                dataGrouping: {
-                    enabled: false
-                }
-            }
+            } // ,
+            // column: {
+            //     dataGrouping: {
+            //         enabled: false
+            //     }
+            // }
         },
         legend: {
             itemStyle: {
@@ -318,15 +318,15 @@ $(document).ready(function () {
 
         title: {
             text: php_symbol_companyName_map_json[
-                    localStorage.getItem("cur_symbol")] ?
-                    (localStorage.getItem("cur_symbol")
-                            + " ("
-                            + php_symbol_companyName_map_json[localStorage
-                                    .getItem("cur_symbol")]
-                                    .replace("?", "\'")
-                                    .replace("=", "\"")
-                                    + ")")
-                    : localStorage.getItem("cur_symbol"),
+                localStorage.getItem("cur_symbol")] ?
+                (localStorage.getItem("cur_symbol")
+                    + " ("
+                    + php_symbol_companyName_map_json[localStorage
+                        .getItem("cur_symbol")]
+                        .replace("?", "\'")
+                        .replace("=", "\"")
+                    + ")")
+                : localStorage.getItem("cur_symbol"),
             style: {
                 fontWeight: 'bold'
             }
@@ -359,11 +359,11 @@ $(document).ready(function () {
             H.addEvent(chart.container, 'click', function (e) {
                 e = chart.pointer.normalize();
                 curPeriod.attr({
-                        text: '<span style="color: #6f6f6f; font-weight: bold;">'
+                    text: '<span style="color: #6f6f6f; font-weight: bold;">'
                         + series.currentDataGrouping.count
                         + ' ' + series.currentDataGrouping.unitName
                         + (series.currentDataGrouping.count == 1 ? '' : 's')
-                        });
+                });
             });
         });
     }(Highcharts));
@@ -417,29 +417,29 @@ $(document).ready(function () {
                 if (data.length && data.length > 0) {
                     for (var i = 0; i < data.length; i++) {
                         var mydata = data[i];
-                        series.addPoint([mydata.data.time * 1000, 
-                                parseFloat(parseFloat(mydata.data.open).toFixed(2)),
-                                parseFloat(parseFloat(mydata.data.high).toFixed(2)),
-                                parseFloat(parseFloat(mydata.data.low).toFixed(2)),
-                                parseFloat(parseFloat(mydata.data.close).toFixed(2))],
-                                false);
+                        series.addPoint([mydata.data.time * 1000,
+                        parseFloat(parseFloat(mydata.data.open).toFixed(2)),
+                        parseFloat(parseFloat(mydata.data.high).toFixed(2)),
+                        parseFloat(parseFloat(mydata.data.low).toFixed(2)),
+                        parseFloat(parseFloat(mydata.data.close).toFixed(2))],
+                            false);
                     }
                 } else {
                     series.addPoint([data.data.time * 1000,
-                            parseFloat(parseFloat(data.data.open).toFixed(2)),
-                            parseFloat(parseFloat(data.data.high).toFixed(2)),
-                            parseFloat(parseFloat(data.data.low).toFixed(2)),
-                            parseFloat(parseFloat(data.data.close).toFixed(2))],
-                            false);
+                    parseFloat(parseFloat(data.data.open).toFixed(2)),
+                    parseFloat(parseFloat(data.data.high).toFixed(2)),
+                    parseFloat(parseFloat(data.data.low).toFixed(2)),
+                    parseFloat(parseFloat(data.data.close).toFixed(2))],
+                        false);
                 }
                 chart.redraw();
                 curPeriod.attr({
-                        text: '<span style="color: #6f6f6f; font-weight: bold;">'
+                    text: '<span style="color: #6f6f6f; font-weight: bold;">'
                         + series.currentDataGrouping.count
                         + ' '
                         + series.currentDataGrouping.unitName
                         + (series.currentDataGrouping.count == 1 ? '' : 's')
-                        });
+                });
             });
         },
         function () {
