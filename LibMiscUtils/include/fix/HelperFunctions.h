@@ -2,28 +2,28 @@
 
 #include "../MiscUtils_EXPORTS.h"
 
-#include <map>
-
 namespace shift {
 namespace fix {
-    template <typename GroupType>
-    GroupType createFIXGroup(GroupType g)
-    {
-        return g;
-    }
+    namespace details {
+        template <typename GroupType>
+        GroupType createFIXGroupImpl(GroupType& g)
+        {
+            return g;
+        }
 
-    template <typename GroupType, typename FieldType, typename... Args>
-    GroupType createFIXGroup(GroupType g, FieldType f, Args... args)
-    {
-        g.setField(f);
-        return createFIXGroup(g, args...);
-    }
+        template <typename GroupType, typename FieldType, typename... Args>
+        GroupType createFIXGroupImpl(GroupType& g, FieldType f, Args... args)
+        {
+            g.setField(f);
+            return createFIXGroupImpl(g, args...);
+        }
+    } // namespace details
 
     template <typename GroupType, typename... Args>
     GroupType createFIXGroup(Args... args)
     {
         GroupType g;
-        return createFIXGroup(g, args...);
+        return details::createFIXGroupImpl(g, args...);
     }
 
 } // fix
