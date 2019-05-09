@@ -26,6 +26,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/crossguid/Guid.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Decryptor.h
     ${PROJECT_SOURCE_DIR}/include/crypto/Encryptor.h
+    ${PROJECT_SOURCE_DIR}/include/fix/HelperFunctions.h
     ${PROJECT_SOURCE_DIR}/include/statistics/BasicStatistics.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Common.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Functions.h

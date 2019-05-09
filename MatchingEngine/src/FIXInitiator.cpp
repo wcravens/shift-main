@@ -8,6 +8,7 @@
 #include <map>
 
 #include <shift/miscutils/crossguid/Guid.h>
+#include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
 
 /* static */ std::string FIXInitiator::s_senderID;
@@ -153,13 +154,9 @@ void FIXInitiator::sendNextDataRequest()
     message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
     message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
 
-    FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup1;
-    FIX50SP2::MarketDataRequest::NoMDEntryTypes typeGroup2;
-    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup; // Empty, not used
-    typeGroup1.set(::FIXFIELD_MDENTRYTYPE_BID);
-    typeGroup2.set(::FIXFIELD_MDENTRYTYPE_OFFER);
-    relatedSymGroup.set(::FIXFIELD_FAKE_SYMBOL);
-
+    auto typeGroup1 = shift::fix::createFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(::FIXFIELD_MDENTRYTYPE_BID);
+    auto typeGroup2 = shift::fix::createFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(::FIXFIELD_MDENTRYTYPE_OFFER);
+    auto relatedSymGroup = shift::fix::createFIXGroup<FIX50SP2::MarketDataRequest::NoRelatedSym>(::FIXFIELD_FAKE_SYMBOL); // Empty, not used
     message.addGroup(typeGroup1);
     message.addGroup(typeGroup2);
     message.addGroup(relatedSymGroup);
@@ -189,9 +186,9 @@ void FIXInitiator::storeOrder(const Order& order) // FIXME: not used
     message.setField(FIX::OrderQty(order.getSize()));
     message.setField(FIX::TransactTime(6));
 
-    FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    idGroup.set(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup.set(FIX::PartyID(order.getTraderID()));
+    auto idGroup = shift::fix::createFIXGroup<FIX50SP2::NewOrderSingle::NoPartyIDs>(
+        ::FIXFIELD_PARTYROLE_CLIENTID,
+        FIX::PartyID(order.getTraderID()));
     message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
