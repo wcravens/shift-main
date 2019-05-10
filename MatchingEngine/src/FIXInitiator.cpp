@@ -109,9 +109,8 @@ bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
     message.setField(FIX::SecurityListDesc(std::to_string(numSecondsPerDataChunk)));
 
     for (size_t i = 0; i < symbols.size(); i++) {
-        FIX50SP2::SecurityList::NoRelatedSym group;
-        group.set(FIX::Symbol(symbols[i]));
-        message.addGroup(group);
+        shift::fix::addFIXGroup<FIX50SP2::SecurityList::NoRelatedSym>(message,
+            FIX::Symbol(symbols[i]));
     }
 
     FIX::Session::sendToTarget(message);
@@ -154,12 +153,9 @@ void FIXInitiator::sendNextDataRequest()
     message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
     message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
 
-    auto typeGroup1 = shift::fix::createFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(::FIXFIELD_MDENTRYTYPE_BID);
-    auto typeGroup2 = shift::fix::createFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(::FIXFIELD_MDENTRYTYPE_OFFER);
-    auto relatedSymGroup = shift::fix::createFIXGroup<FIX50SP2::MarketDataRequest::NoRelatedSym>(::FIXFIELD_FAKE_SYMBOL); // Empty, not used
-    message.addGroup(typeGroup1);
-    message.addGroup(typeGroup2);
-    message.addGroup(relatedSymGroup);
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(message, ::FIXFIELD_MDENTRYTYPE_BID);
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(message, ::FIXFIELD_MDENTRYTYPE_OFFER);
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoRelatedSym>(message, ::FIXFIELD_FAKE_SYMBOL); // Empty, not used
 
     FIX::Session::sendToTarget(message);
 }
@@ -186,10 +182,9 @@ void FIXInitiator::storeOrder(const Order& order) // FIXME: not used
     message.setField(FIX::OrderQty(order.getSize()));
     message.setField(FIX::TransactTime(6));
 
-    auto idGroup = shift::fix::createFIXGroup<FIX50SP2::NewOrderSingle::NoPartyIDs>(
+    shift::fix::addFIXGroup<FIX50SP2::NewOrderSingle::NoPartyIDs>(message,
         ::FIXFIELD_PARTYROLE_CLIENTID,
         FIX::PartyID(order.getTraderID()));
-    message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
 }

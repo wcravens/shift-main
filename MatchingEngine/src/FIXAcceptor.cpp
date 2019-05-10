@@ -98,7 +98,8 @@ void FIXAcceptor::sendOrderBookUpdates(const std::list<OrderBookEntry>& ordBookU
     for (const auto& update : ordBookUpdates) {
         auto utc = update.getUTCTime();
 
-        auto g = shift::fix::createFIXGroup<FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries>(
+        shift::fix::addFIXGroup<FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries>(
+            message,
             ::FIXFIELD_MDUPDATEACTION_CHANGE,
             FIX::MDEntryType(update.getType()),
             FIX::Symbol(update.getSymbol()),
@@ -107,7 +108,6 @@ void FIXAcceptor::sendOrderBookUpdates(const std::list<OrderBookEntry>& ordBookU
             FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())),
             FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)),
             FIX::MDMkt(update.getDestination()));
-        message.addGroup(g);
 
         {
             std::lock_guard<std::mutex> lock(m_mtxTargetSet);
@@ -148,23 +148,23 @@ void FIXAcceptor::sendExecutionReports(const std::list<ExecutionReport>& execRep
         message.setField(FIX::CumQty(report.size));
         message.setField(FIX::TransactTime(6));
 
-        auto idGroup1 = shift::fix::createFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(
+        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(
+            message,
             ::FIXFIELD_PARTYROLE_CLIENTID,
             FIX::PartyID(report.traderID1));
-        message.addGroup(idGroup1);
 
-        auto idGroup2 = shift::fix::createFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(
+        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(
+            message,
             ::FIXFIELD_PARTYROLE_CLIENTID,
             FIX::PartyID(report.traderID2));
-        message.addGroup(idGroup2);
 
-        auto timeGroup1 = shift::fix::createFIXGroup<FIX50SP2::ExecutionReport::NoTrdRegTimestamps>(
+        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoTrdRegTimestamps>(
+            message,
             FIX::TrdRegTimestamp(report.simulationTime1, 6));
-        message.addGroup(timeGroup1);
 
-        auto timeGroup2 = shift::fix::createFIXGroup<FIX50SP2::ExecutionReport::NoTrdRegTimestamps>(
+        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoTrdRegTimestamps>(
+            message,
             FIX::TrdRegTimestamp(report.simulationTime2, 6));
-        message.addGroup(timeGroup2);
 
         {
             std::lock_guard<std::mutex> lock(m_mtxTargetSet);
@@ -191,11 +191,9 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID)
 
     message.setField(FIX::SecurityResponseID(shift::crossguid::newGuid().str()));
 
-    FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
-
     for (const auto& kv : StockMarketList::getInstance()) {
-        relatedSymGroup.set(FIX::Symbol(kv.first));
-        message.addGroup(relatedSymGroup);
+        shift::fix::addFIXGroup<FIX50SP2::SecurityList::NoRelatedSym>(message,
+            FIX::Symbol(kv.first));
     }
 
     FIX::Session::sendToTarget(message);
@@ -231,10 +229,9 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Order
     message.setField(::FIXFIELD_CUMQTY_0); // Required by FIX
     message.setField(FIX::TransactTime(6));
 
-    auto idGroup = shift::fix::createFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(
+    shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(message,
         ::FIXFIELD_PARTYROLE_CLIENTID,
         FIX::PartyID(confirmation.traderID));
-    message.addGroup(idGroup);
 
     FIX::Session::sendToTarget(message);
 }

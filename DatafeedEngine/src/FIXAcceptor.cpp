@@ -14,6 +14,7 @@
 #include <sstream>
 
 #include <shift/miscutils/crossguid/Guid.h>
+#include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
 
 // Predefined constant FIX message fields (to avoid recalculations):
@@ -117,10 +118,10 @@ void FIXAcceptor::disconnectMatchingEngine()
 
     // The RequestID of requested job
     message.setField(FIX::Headline(requestID));
+
     // Notice message
-    FIX50SP2::News::NoLinesOfText textGroup;
-    textGroup.set(FIX::Text(text));
-    message.addGroup(textGroup);
+    shift::fix::addFIXGroup<FIX50SP2::News::NoLinesOfText>(message,
+        FIX::Text(text));
 
     FIX::Session::sendToTarget(message);
 }
@@ -155,17 +156,14 @@ void FIXAcceptor::disconnectMatchingEngine()
     message.setField(FIX::Symbol(rawData.symbol));
     message.setField(FIX::TransactTime(FIX::UtcTimeStamp(utcSecs, millisec, 6), 6));
 
-    FIX50SP2::Quote::NoPartyIDs idGroup1;
-    idGroup1.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);
-    idGroup1.setField( // keep the order of idGroup1 and idGroup2
+    shift::fix::addFIXGroup<FIX50SP2::Quote::NoPartyIDs>(message,
+        FIXFIELD_PARTYROLE_EXECUTION_VENUE,
         'Q' == rawData.toq.front() ? FIX::PartyID(rawData.buyerID) : FIX::PartyID(rawData.exchangeID));
-    message.addGroup(idGroup1);
 
     if ('Q' == rawData.toq.front()) {
-        FIX50SP2::Quote::NoPartyIDs idGroup2;
-        idGroup2.setField(FIXFIELD_PARTYROLE_EXECUTION_VENUE);
-        idGroup2.setField(FIX::PartyID(rawData.sellerID));
-        message.addGroup(idGroup2);
+        shift::fix::addFIXGroup<FIX50SP2::Quote::NoPartyIDs>(message,
+            FIXFIELD_PARTYROLE_EXECUTION_VENUE,
+            FIX::PartyID(rawData.sellerID));
 
         message.setField(FIX::BidPx(rawData.bidPrice));
         message.setField(FIX::OfferPx(rawData.askPrice));

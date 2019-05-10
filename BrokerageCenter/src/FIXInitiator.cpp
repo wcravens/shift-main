@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cassert>
 
+#include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
 
 using namespace std::chrono_literals;
@@ -101,10 +102,9 @@ void FIXInitiator::sendOrder(const Order& order)
     message.setField(FIX::OrdType(order.getType())); // FIXME: separate Side and OrdType
     message.setField(FIX::Price(order.getPrice()));
 
-    FIX50SP2::NewOrderSingle::NoPartyIDs idGroup;
-    idGroup.set(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup.set(FIX::PartyID(order.getUserID()));
-    message.addGroup(idGroup);
+    shift::fix::addFIXGroup<FIX50SP2::NewOrderSingle::NoPartyIDs>(message,
+        ::FIXFIELD_PARTYROLE_CLIENTID,
+        FIX::PartyID(order.getUserID()));
 
     FIX::Session::sendToTarget(message);
 }

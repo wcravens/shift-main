@@ -18,9 +18,11 @@
 
 #ifdef _WIN32
 #include <crypto/Encryptor.h>
+#include <fix/HelperFunctions.h>
 #include <terminal/Common.h>
 #else
 #include <shift/miscutils/crypto/Encryptor.h>
+#include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
 #endif
 
@@ -408,16 +410,12 @@ void shift::FIXInitiator::sendOrderBookRequest(const std::string& symbol, bool i
     }
     message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
 
-    FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup1;
-    FIX50SP2::MarketDataRequest::NoMDEntryTypes entryTypeGroup2;
-    entryTypeGroup1.setField(::FIXFIELD_MDENTRYTYPE_BID);
-    entryTypeGroup2.setField(::FIXFIELD_MDENTRYTYPE_OFFER);
-    message.addGroup(entryTypeGroup1);
-    message.addGroup(entryTypeGroup2);
-
-    FIX50SP2::MarketDataRequest::NoRelatedSym relatedSymGroup;
-    relatedSymGroup.setField(FIX::Symbol(symbol));
-    message.addGroup(relatedSymGroup);
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(message,
+        ::FIXFIELD_MDENTRYTYPE_BID);
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(message,
+        ::FIXFIELD_MDENTRYTYPE_OFFER);
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoRelatedSym>(message,
+        FIX::Symbol(symbol));
 
     FIX::Session::sendToTarget(message);
 }
@@ -437,9 +435,8 @@ void shift::FIXInitiator::sendCandleDataRequest(const std::string& symbol, bool 
 
     message.setField(FIX::RFQReqID(shift::crossguid::newGuid().str()));
 
-    FIX50SP2::RFQRequest::NoRelatedSym relatedSymGroup;
-    relatedSymGroup.setField(FIX::Symbol(symbol));
-    message.addGroup(relatedSymGroup);
+    shift::fix::addFIXGroup<FIX50SP2::RFQRequest::NoRelatedSym>(message,
+        FIX::Symbol(symbol));
 
     if (isSubscribed) {
         message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SUBSCRIBE);
@@ -474,16 +471,9 @@ void shift::FIXInitiator::submitOrder(const shift::Order& order, const std::stri
     message.setField(FIX::OrdType(order.getType())); // FIXME: separate Side and OrdType
     message.setField(FIX::Price(order.getPrice()));
 
-    FIX50SP2::NewOrderSingle::NoPartyIDs partyIDGroup;
-    partyIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    if (userID != "") {
-        partyIDGroup.setField(FIX::PartyID(userID));
-    } else {
-        // if (m_superUserID.empty())
-        //     std::terminate();
-        partyIDGroup.setField(FIX::PartyID(m_superUserID));
-    }
-    message.addGroup(partyIDGroup);
+    shift::fix::addFIXGroup<FIX50SP2::NewOrderSingle::NoPartyIDs>(message,
+        ::FIXFIELD_PARTYROLE_CLIENTID,
+        userID != "" ? FIX::PartyID(userID) : FIX::PartyID(m_superUserID));
 
     FIX::Session::sendToTarget(message);
 }
@@ -548,11 +538,10 @@ void shift::FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
 void shift::FIXInitiator::toAdmin(FIX::Message& message, const FIX::SessionID&) // override
 {
     if (FIX::MsgType_Logon == message.getHeader().getField(FIX::FIELD::MsgType)) {
-        FIXT11::Logon::NoMsgTypes msgTypeGroup;
-        msgTypeGroup.setField(FIX::RefMsgType(m_superUsername));
-        message.addGroup(msgTypeGroup);
-        msgTypeGroup.setField(FIX::RefMsgType(m_superUserPsw));
-        message.addGroup(msgTypeGroup);
+        shift::fix::addFIXGroup<FIXT11::Logon::NoMsgTypes>(message,
+            FIX::RefMsgType(m_superUsername));
+        shift::fix::addFIXGroup<FIXT11::Logon::NoMsgTypes>(message,
+            FIX::RefMsgType(m_superUserPsw));
     }
 }
 

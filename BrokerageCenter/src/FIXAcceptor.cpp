@@ -13,6 +13,7 @@
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/database/Common.h>
+#include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
 
 #define SHOW_FROMAPP_MSG false
@@ -149,18 +150,17 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
 
     message.setField(FIX::Symbol(orderBookName.begin()->second.begin()->second.getSymbol()));
 
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
     const auto obt = orderBookName.begin()->second.begin()->second.getType();
 
     if (obt == OrderBookEntry::Type::GLB_BID || obt == OrderBookEntry::Type::LOC_BID) { // reverse the global/local bid order book order
         for (auto ri = orderBookName.crbegin(); ri != orderBookName.crend(); ++ri) {
             for (const auto& j : ri->second)
-                s_setAddGroupIntoMarketDataMsg(message, entryGroup, j.second);
+                s_setAddGroupIntoMarketDataMsg(message, j.second);
         }
     } else { // *_ASK
         for (const auto& i : orderBookName) {
             for (const auto& j : i.second)
-                s_setAddGroupIntoMarketDataMsg(message, entryGroup, j.second);
+                s_setAddGroupIntoMarketDataMsg(message, j.second);
         }
     }
 
@@ -170,16 +170,15 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
     }
 }
 
-/*static*/ inline void FIXAcceptor::s_setAddGroupIntoMarketDataMsg(FIX::Message& message, FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries& entryGroup, const OrderBookEntry& entry)
+/*static*/ inline void FIXAcceptor::s_setAddGroupIntoMarketDataMsg(FIX::Message& message, const OrderBookEntry& entry)
 {
-    entryGroup.setField(FIX::MDEntryType((char)entry.getType()));
-    entryGroup.setField(FIX::MDEntryPx(entry.getPrice()));
-    entryGroup.setField(FIX::MDEntrySize(entry.getSize()));
-    entryGroup.setField(FIX::MDEntryDate(entry.getDate()));
-    entryGroup.setField(FIX::MDEntryTime(entry.getTime()));
-    entryGroup.setField(FIX::MDMkt(entry.getDestination()));
-
-    message.addGroup(entryGroup);
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries>(message,
+        FIX::MDEntryType((char)entry.getType()),
+        FIX::MDEntryPx(entry.getPrice()),
+        FIX::MDEntrySize(entry.getSize()),
+        FIX::MDEntryDate(entry.getDate()),
+        FIX::MDEntryTime(entry.getTime()),
+        FIX::MDMkt(entry.getDestination()));
 }
 
 /**
@@ -194,17 +193,15 @@ void FIXAcceptor::sendOrderBookUpdate(const std::vector<std::string>& targetList
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
 
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries entryGroup;
-    entryGroup.setField(::FIXFIELD_MDUPDATEACTION_CHANGE); // Required by FIX
-    entryGroup.setField(FIX::MDEntryType(update.getType()));
-    entryGroup.setField(FIX::Symbol(update.getSymbol()));
-    entryGroup.setField(FIX::MDEntryPx(update.getPrice()));
-    entryGroup.setField(FIX::MDEntrySize(update.getSize()));
-    entryGroup.setField(FIX::MDEntryDate(update.getDate()));
-    entryGroup.setField(FIX::MDEntryTime(update.getTime()));
-    entryGroup.setField(FIX::MDMkt(update.getDestination()));
-
-    message.addGroup(entryGroup);
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries>(message,
+        ::FIXFIELD_MDUPDATEACTION_CHANGE,
+        FIX::MDEntryType(update.getType()),
+        FIX::Symbol(update.getSymbol()),
+        FIX::MDEntryPx(update.getPrice()),
+        FIX::MDEntrySize(update.getSize()),
+        FIX::MDEntryDate(update.getDate()),
+        FIX::MDEntryTime(update.getTime()),
+        FIX::MDMkt(update.getDestination()));
 
     for (const auto& targetID : targetList) {
         header.setField(FIX::TargetCompID(targetID));
@@ -274,10 +271,9 @@ void FIXAcceptor::sendConfirmationReport(const ExecutionReport& report)
     message.setField(FIX::CumQty(report.executedSize));
     message.setField(FIX::TransactTime(report.realTime, 6));
 
-    FIX50SP2::ExecutionReport::NoPartyIDs idGroup;
-    idGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    idGroup.setField(FIX::PartyID(report.userID));
-    message.addGroup(idGroup);
+    shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(message,
+        ::FIXFIELD_PARTYROLE_CLIENTID,
+        FIX::PartyID(report.userID));
 
     FIX::Session::sendToTarget(message);
 }
@@ -308,22 +304,18 @@ void FIXAcceptor::sendPortfolioSummary(const std::string& userID, const Portfoli
     message.setField(::FIXFIELD_SECURITYTYPE_CASH);
     message.setField(FIX::PriceDelta(summary.getTotalPL()));
 
-    FIX50SP2::PositionReport::NoPartyIDs userIDGroup;
-    userIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    userIDGroup.setField(FIX::PartyID(userID));
-    message.addGroup(userIDGroup);
+    shift::fix::addFIXGroup<FIX50SP2::PositionReport::NoPartyIDs>(message,
+        ::FIXFIELD_PARTYROLE_CLIENTID,
+        FIX::PartyID(userID));
 
-    FIX50SP2::PositionReport::NoPositions qtyGroup;
-    qtyGroup.setField(FIX::LongQty(summary.getTotalShares()));
-    message.addGroup(qtyGroup);
+    shift::fix::addFIXGroup<FIX50SP2::PositionReport::NoPositions>(message,
+        FIX::LongQty(summary.getTotalShares()));
 
-    FIX50SP2::PositionReport::NoPosAmt buyingPowerGroup;
-    buyingPowerGroup.setField(FIX::PosAmt(summary.getBuyingPower()));
-    message.addGroup(buyingPowerGroup);
+    shift::fix::addFIXGroup<FIX50SP2::PositionReport::NoPosAmt>(message,
+        FIX::PosAmt(summary.getBuyingPower()));
 
-    FIX50SP2::PositionReport::NoPosAmt holdingBalanceGroup;
-    holdingBalanceGroup.setField(FIX::PosAmt(summary.getHoldingBalance()));
-    message.addGroup(holdingBalanceGroup);
+    shift::fix::addFIXGroup<FIX50SP2::PositionReport::NoPosAmt>(message,
+        FIX::PosAmt(summary.getHoldingBalance()));
 
     FIX::Session::sendToTarget(message);
 }
@@ -356,15 +348,13 @@ void FIXAcceptor::sendPortfolioItem(const std::string& userID, const PortfolioIt
     message.setField(FIX::PriorSettlPrice(item.getShortPrice()));
     message.setField(FIX::PriceDelta(item.getPL()));
 
-    FIX50SP2::PositionReport::NoPartyIDs userIDGroup;
-    userIDGroup.setField(::FIXFIELD_PARTYROLE_CLIENTID);
-    userIDGroup.setField(FIX::PartyID(userID));
-    message.addGroup(userIDGroup);
+    shift::fix::addFIXGroup<FIX50SP2::PositionReport::NoPartyIDs>(message,
+        ::FIXFIELD_PARTYROLE_CLIENTID,
+        FIX::PartyID(userID));
 
-    FIX50SP2::PositionReport::NoPositions qtyGroup;
-    qtyGroup.setField(FIX::LongQty(item.getLongShares()));
-    qtyGroup.setField(FIX::ShortQty(item.getShortShares()));
-    message.addGroup(qtyGroup);
+    shift::fix::addFIXGroup<FIX50SP2::PositionReport::NoPositions>(message,
+        FIX::LongQty(item.getLongShares()),
+        FIX::ShortQty(item.getShortShares()));
 
     FIX::Session::sendToTarget(message);
 }
@@ -391,20 +381,19 @@ void FIXAcceptor::sendWaitingList(const std::string& userID, const std::unordere
     message.setField(FIX::BidType(1)); // FIX Required
     message.setField(FIX::TotNoOrders(orders.size())); // FIX Required
 
-    FIX50SP2::NewOrderList::NoOrders orderGroup;
     int i = 1;
     for (const auto& kv : orders) {
         auto& order = kv.second;
-        orderGroup.setField(FIX::ListSeqNo(i++)); // FIX Required
-        orderGroup.setField(FIX::ClOrdID(order.getID()));
-        orderGroup.setField(FIX::Symbol(order.getSymbol()));
-        orderGroup.setField(FIX::OrdType(order.getType()));
-        orderGroup.setField(FIX::Side(order.getType()));
-        orderGroup.setField(FIX::OrderQty(order.getSize()));
-        orderGroup.setField(FIX::Price(order.getPrice()));
-        orderGroup.setField(FIX::OrderQty2(order.getExecutedSize()));
-        orderGroup.setField(FIX::PositionEffect(order.getStatus()));
-        message.addGroup(orderGroup);
+        shift::fix::addFIXGroup<FIX50SP2::NewOrderList::NoOrders>(message,
+            FIX::ListSeqNo(i++),
+            FIX::ClOrdID(order.getID()),
+            FIX::Symbol(order.getSymbol()),
+            FIX::OrdType(order.getType()),
+            FIX::Side(order.getType()),
+            FIX::OrderQty(order.getSize()),
+            FIX::Price(order.getPrice()),
+            FIX::OrderQty2(order.getExecutedSize()),
+            FIX::PositionEffect(order.getStatus()));
     }
 
     FIX::Session::sendToTarget(message);
@@ -429,11 +418,9 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID, const std::unord
     std::vector<std::string> ascSymbols(symbols.begin(), symbols.end());
     std::sort(ascSymbols.begin(), ascSymbols.end());
 
-    FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
-
     for (const auto& symbol : ascSymbols) {
-        relatedSymGroup.setField(FIX::Symbol(symbol));
-        message.addGroup(relatedSymGroup);
+        shift::fix::addFIXGroup<FIX50SP2::SecurityList::NoRelatedSym>(message,
+            FIX::Symbol(symbol));
     }
 
     FIX::Session::sendToTarget(message);
