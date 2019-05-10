@@ -79,12 +79,12 @@ $(document).ready(function () {
             },
             errorbar: {
                 color: 'white'
-            } // ,
-            // column: {
-            //     dataGrouping: {
-            //         enabled: false
-            //     }
-            // }
+            },
+            column: {
+                dataGrouping: {
+                    enabled: true
+                }
+            }
         },
         legend: {
             itemStyle: {
