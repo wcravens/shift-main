@@ -190,7 +190,7 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     if (TABLE_STATUS::NOT_EXIST == status) {
         // enforce cleaning up old table
         auto tableName = PSQL::s_createTableName(ric, reutersDate.substr(0, 4) + reutersDate.substr(5, 2) + reutersDate.substr(8, 2));
-        doQuery("DROP TABLE " + tableName + " CASCADE", "");
+        doQuery("DROP TABLE " + tableName + " CASCADE;", "");
     }
 
     return status;
@@ -307,7 +307,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                 pqQuery += cell;
                 pqQuery += "',";
             } else if (isTrade) {
-                pqQuery += "'TRADE_EXCH_ID',";
+                pqQuery += "'TRADEEXCHG',"; // exchange_id: character varying(10)
             } else {
                 pqQuery += "NULL,";
             }
@@ -375,7 +375,13 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
             std::ofstream of("./PSQL_INSERT_ERROR_DUMP.txt");
             if (of.good())
                 of.write(pqQuery.c_str(), pqQuery.length());
-            cout << COLOR_WARNING "The failed SQL query was written into ./PSQL_INSERT_ERROR_DUMP.txt. Please check it by manually executing the query." NO_COLOR << endl;
+
+            cout << COLOR_WARNING "The failed SQL query was written into './PSQL_INSERT_ERROR_DUMP.txt'. Please check it by manually executing the query. The table [" << tableName << "] was not created." NO_COLOR << endl;
+
+            // DE should NOT keep any data of erroneous table, just discard them:
+            doQuery("DELETE FROM " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " WHERE reuters_table_name = '" + tableName + "';", ""); // delete row
+            doQuery("DROP TABLE " + tableName + " CASCADE;", "");
+
             return false;
         }
     } // while(true)
