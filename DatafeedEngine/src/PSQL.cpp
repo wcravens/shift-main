@@ -307,7 +307,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                 pqQuery += cell;
                 pqQuery += "',";
             } else if (isTrade) {
-                pqQuery += "'TRADEEXCHG',"; // exchange_id: character varying(10)
+                pqQuery += "'TRTH',"; // exchange_id: character varying(10)
             } else {
                 pqQuery += "NULL,";
             }
