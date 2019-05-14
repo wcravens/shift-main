@@ -219,11 +219,11 @@ void FIXAcceptor::sendCandlestickData(const std::vector<std::string>& targetList
     header.setField(FIX::MsgType(FIX::MsgType_SecurityStatus));
 
     message.setField(FIX::Symbol(cdPoint.getSymbol()));
-    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(cdPoint.getTimeFrom()), 6)); // no need for timestamp
-    message.setField(FIX::FirstPx(cdPoint.getOpenPrice())); // Open price
     message.setField(FIX::HighPx(cdPoint.getHighPrice())); // High price
     message.setField(FIX::LowPx(cdPoint.getLowPrice())); // Low price
     message.setField(FIX::LastPx(cdPoint.getClosePrice())); // Close price
+    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(cdPoint.getTimeFrom()), 6)); // no need for timestamp
+    message.setField(FIX::FirstPx(cdPoint.getOpenPrice())); // Open price
 
     for (const auto& targetID : targetList) {
         header.setField(FIX::TargetCompID(targetID));
@@ -385,11 +385,11 @@ void FIXAcceptor::sendWaitingList(const std::string& userID, const std::unordere
     for (const auto& kv : orders) {
         auto& order = kv.second;
         shift::fix::addFIXGroup<FIX50SP2::NewOrderList::NoOrders>(message,
-            FIX::ListSeqNo(i++),
             FIX::ClOrdID(order.getID()),
+            FIX::ListSeqNo(i++),
             FIX::Symbol(order.getSymbol()),
-            FIX::OrdType(order.getType()),
             FIX::Side(order.getType()),
+            FIX::OrdType(order.getType()),
             FIX::OrderQty(order.getSize()),
             FIX::Price(order.getPrice()),
             FIX::OrderQty2(order.getExecutedSize()),

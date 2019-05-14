@@ -174,13 +174,12 @@ void FIXInitiator::storeOrder(const Order& order) // FIXME: not used
     header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
 
     message.setField(FIX::ClOrdID(order.getOrderID()));
-    message.setField(FIX::Price(order.getPrice()));
     message.setField(FIX::Symbol(order.getSymbol()));
-    message.setField(::FIXFIELD_SIDE_BUY); // Required by FIX
-    message.setField(FIX::OrdType(order.getType()));
     message.setField(FIX::Side(order.getType()));
-    message.setField(FIX::OrderQty(order.getSize()));
     message.setField(FIX::TransactTime(6));
+    message.setField(FIX::OrderQty(order.getSize()));
+    message.setField(FIX::OrdType(order.getType()));
+    message.setField(FIX::Price(order.getPrice()));
 
     shift::fix::addFIXGroup<FIX50SP2::NewOrderSingle::NoPartyIDs>(message,
         ::FIXFIELD_PARTYROLE_CLIENTID,

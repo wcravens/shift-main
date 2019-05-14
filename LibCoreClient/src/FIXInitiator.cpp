@@ -908,19 +908,19 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, const FIX::SessionID&) // override
 {
     static FIX::Symbol originalName;
-    static FIX::FirstPx openPrice;
     static FIX::HighPx highPrice;
     static FIX::LowPx lowPrice;
     static FIX::LastPx closePrice;
+    static FIX::FirstPx openPrice;
     static FIX::TransactTime timestamp;
 
     // #pragma GCC diagnostic ignored ....
 
     FIX::Symbol* pOriginalName;
-    FIX::FirstPx* pOpenPrice;
     FIX::HighPx* pHighPrice;
     FIX::LowPx* pLowPrice;
     FIX::LastPx* pClosePrice;
+    FIX::FirstPx* pOpenPrice;
     FIX::TransactTime* pTimestamp;
 
     static std::atomic<unsigned int> s_cntAtom{ 0 };
@@ -932,25 +932,25 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
 
     if (0 == prevCnt) { // sequential case; optimized:
         pOriginalName = &originalName;
-        pOpenPrice = &openPrice;
         pHighPrice = &highPrice;
         pLowPrice = &lowPrice;
         pClosePrice = &closePrice;
+        pOpenPrice = &openPrice;
         pTimestamp = &timestamp;
     } else { // > 1 threads; always safe way:
         pOriginalName = new decltype(originalName);
-        pOpenPrice = new decltype(openPrice);
         pHighPrice = new decltype(highPrice);
         pLowPrice = new decltype(lowPrice);
         pClosePrice = new decltype(closePrice);
+        pOpenPrice = new decltype(openPrice);
         pTimestamp = new decltype(timestamp);
     }
 
     message.get(*pOriginalName);
-    message.get(*pOpenPrice);
     message.get(*pHighPrice);
     message.get(*pLowPrice);
     message.get(*pClosePrice);
+    message.get(*pOpenPrice);
     message.get(*pTimestamp);
 
     std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
@@ -975,10 +975,10 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
 
     if (prevCnt) { // > 1 threads
         delete pOriginalName;
-        delete pOpenPrice;
         delete pHighPrice;
         delete pLowPrice;
         delete pClosePrice;
+        delete pOpenPrice;
         delete pTimestamp;
     }
 
@@ -1276,8 +1276,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
     static FIX50SP2::NewOrderList::NoOrders quoteSetGroup;
     static FIX::ClOrdID orderID;
     static FIX::Symbol originalName;
-    static FIX::OrdType orderType;
     static FIX::OrderQty size;
+    static FIX::OrdType orderType;
     static FIX::Price price;
     static FIX::OrderQty2 executedSize;
     static FIX::PositionEffect status;
@@ -1290,8 +1290,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
     FIX50SP2::NewOrderList::NoOrders* pQuoteSetGroup;
     FIX::ClOrdID* pOrderID;
     FIX::Symbol* pOriginalName;
-    FIX::OrdType* pOrderType;
     FIX::OrderQty* pSize;
+    FIX::OrdType* pOrderType;
     FIX::Price* pPrice;
     FIX::OrderQty2* pExecutedSize;
     FIX::PositionEffect* pStatus;
@@ -1309,8 +1309,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
         pQuoteSetGroup = &quoteSetGroup;
         pOrderID = &orderID;
         pOriginalName = &originalName;
-        pOrderType = &orderType;
         pSize = &size;
+        pOrderType = &orderType;
         pPrice = &price;
         pExecutedSize = &executedSize;
         pStatus = &status;
@@ -1320,8 +1320,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
         pQuoteSetGroup = new decltype(quoteSetGroup);
         pOrderID = new decltype(orderID);
         pOriginalName = new decltype(originalName);
-        pOrderType = new decltype(orderType);
         pSize = new decltype(size);
+        pOrderType = new decltype(orderType);
         pPrice = new decltype(price);
         pExecutedSize = new decltype(executedSize);
         pStatus = new decltype(status);
@@ -1337,8 +1337,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
 
         pQuoteSetGroup->get(*pOrderID);
         pQuoteSetGroup->get(*pOriginalName);
-        pQuoteSetGroup->get(*pOrderType);
         pQuoteSetGroup->get(*pSize);
+        pQuoteSetGroup->get(*pOrderType);
         pQuoteSetGroup->get(*pPrice);
         pQuoteSetGroup->get(*pExecutedSize);
         pQuoteSetGroup->get(*pStatus);
@@ -1381,8 +1381,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
         delete pQuoteSetGroup;
         delete pOrderID;
         delete pOriginalName;
-        delete pOrderType;
         delete pSize;
+        delete pOrderType;
         delete pPrice;
         delete pExecutedSize;
         delete pStatus;
