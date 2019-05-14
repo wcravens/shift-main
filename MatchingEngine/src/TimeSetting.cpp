@@ -37,10 +37,9 @@ void TimeSetting::initiate(const boost::posix_time::ptime& localPtime, int speed
     m_hhmmss = m_utcDateTime.time_of_day().total_seconds();
     m_speed = speed;
 
-    cout << endl;
-    cout << "UTC date time: " << boost::posix_time::to_iso_extended_string(m_utcDateTime) << endl;
-    cout << "HHMMSS: " << m_hhmmss << endl;
-    cout << "Speed: " << m_speed << endl;
+    cout << "UTC date and time: " << boost::posix_time::to_iso_extended_string(m_utcDateTime) << endl;
+    cout << "Seconds since 00:00: " << m_hhmmss << endl;
+    cout << "Simulation speed: " << m_speed << endl;
 }
 
 /**

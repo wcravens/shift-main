@@ -217,8 +217,8 @@ int main(int ac, char* av[])
         }
     }
     cout << endl
-         << "A total of " << numOfStockMarkets << " StockMarkets are ready in the Matching Engine." << endl
-         << "Waiting for quotes..." << endl
+         << "A total of " << numOfStockMarkets << " Stock Markets are ready in the Matching Engine." << endl
+         << "Waiting for orders..." << endl
          << endl;
 
     // Configure and start global clock
