@@ -271,17 +271,17 @@ $(document).ready(function () {
                     row.cells[cNum].className += " notimpcol2";
                     cNum++; // cancle order form
                     row.cells[cNum].appendChild(
-                            createCancelOrderForm(
-                                    // If the order was "Limit Buy" or "Market Buy", we create a CALCEL_BID.
-                                    //   Otherwise if it was "Limit Sell" or "Market Sell", we create a CANCEL_ASK.
-                                    //   orderType doesn't have other possible value in this case.
-                                    (data.data[i].orderType == "Limit Buy" || data.data[i].orderType == "Market Buy")
-                                            ? "5"
-                                            : "6",
-                                    data.data[i].symbol,
-                                    data.data[i].size,
-                                    data.data[i].price,
-                                    data.data[i].orderId));
+                        createCancelOrderForm(
+                            // If the order was "Limit Buy" or "Market Buy", we create a CALCEL_BID.
+                            //   Otherwise if it was "Limit Sell" or "Market Sell", we create a CANCEL_ASK.
+                            //   orderType doesn't have other possible value in this case.
+                            (data.data[i].orderType == "Limit Buy" || data.data[i].orderType == "Market Buy")
+                                ? "5"
+                                : "6",
+                            data.data[i].symbol,
+                            data.data[i].size,
+                            data.data[i].price,
+                            data.data[i].orderId));
                 }
 
                 var len = stock_list_table.rows.length;

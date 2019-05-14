@@ -23,9 +23,9 @@ $(document).ready(function () {
                     var index = i + 1;
 
                     if (data.data[i].bookType == 'A') {
-                        if (data.data[i].size == 0){
+                        if (data.data[i].size == 0) {
                             var len = global_ask_table.rows.length;
-                            for (var i = 1; i < len; i++){
+                            for (var i = 1; i < len; i++) {
                                 global_ask_table.deleteRow(-1);
                             }
                         } else {
@@ -49,9 +49,9 @@ $(document).ready(function () {
                         }
                         table_to_update = global_ask_table;
                     } else if (data.data[i].bookType == 'B') {
-                        if (data.data[i].size == 0){
+                        if (data.data[i].size == 0) {
                             var len = global_bid_table.rows.length;
-                            for (var i = 1; i < len; i++){
+                            for (var i = 1; i < len; i++) {
                                 global_bid_table.deleteRow(-1);
                             }
                         } else {
@@ -75,9 +75,9 @@ $(document).ready(function () {
                         }
                         table_to_update = global_bid_table;
                     } else if (data.data[i].bookType == 'a') {
-                        if (data.data[i].size == 0){
+                        if (data.data[i].size == 0) {
                             var len = local_ask_table.rows.length;
-                            for (var i = 1; i < len; i++){
+                            for (var i = 1; i < len; i++) {
                                 local_ask_table.deleteRow(-1);
                             }
                         } else {
@@ -100,9 +100,9 @@ $(document).ready(function () {
                         }
                         table_to_update = local_ask_table;
                     } else if (data.data[i].bookType == 'b') {
-                        if (data.data[i].size == 0){
+                        if (data.data[i].size == 0) {
                             var len = local_bid_table.rows.length;
-                            for (var i = 1; i < len; i++){
+                            for (var i = 1; i < len; i++) {
                                 local_bid_table.deleteRow(-1);
                             }
                         } else {

@@ -79,11 +79,6 @@ $(document).ready(function () {
             },
             errorbar: {
                 color: 'white'
-            },
-            column: {
-                dataGrouping: {
-                    enabled: true
-                }
             }
         },
         legend: {

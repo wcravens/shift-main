@@ -51,12 +51,12 @@ function checkSize() {
     return true;
 }
 
-function quantityOnchange(){
+function quantityOnchange() {
     var quantity = document.getElementById("quantity_input");
     var floatrx = new RegExp(/^[+-]?\d+(\.\d+)?$/);
-    if (quantity.value <= 0 ){
+    if (quantity.value <= 0) {
         quantity.value = 1;
-    } else if (floatrx.test(quantity.value)){
+    } else if (floatrx.test(quantity.value)) {
         quantity.value = Math.floor(quantity.value);
     }
 }
@@ -108,7 +108,7 @@ symbol_select.onchange = function () {
 // prepare the sendorder_form while the page is loaded
 $(document).ready(function () {
     $("#" + localStorage.getItem("cur_symbol") + "_select").prop("selected", true);
-    document.getElementById('sendorder_form').action="./utility/sendorder.php?symbol="+localStorage.getItem("cur_symbol");
+    document.getElementById('sendorder_form').action = "./utility/sendorder.php?symbol=" + localStorage.getItem("cur_symbol");
 
     // update sendorder_form after refreshed the symbol
     $(window).bind('refreshSymbolEvent storage', function (e) {
