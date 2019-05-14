@@ -167,7 +167,8 @@ void TRTHAPI::processRequests()
 {
     auto futQuit = m_reqProcQuitFlag.get_future();
     auto& db = PSQLManager::getInstance();
-    std::string tableName;
+    std::string tableName = "";
+    int flag = -1;
 
     while (true) {
         std::unique_lock<std::mutex> lock(m_mtxReqs);
@@ -217,7 +218,12 @@ void TRTHAPI::processRequests()
             break;
         } // switch
 
-        const auto flag = downloadAsCSV(req.symbol, req.date);
+        try {
+            flag = downloadAsCSV(req.symbol, req.date);
+        } catch (const web::http::http_exception& e) {
+            cout << e.what() << endl;
+            flag = 2;
+        }
 
         if (flag == 0) {
             std::string csvName = ::createCSVName(req.symbol, req.date);
@@ -336,7 +342,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     }
 
     if (extrJobID.empty())
-        throw web::http::http_exception(COLOR_ERROR "ERROR: Cannot get RawExtractionResults:JobId !" NO_COLOR);
+        throw web::http::http_exception(COLOR_ERROR "ERROR: Cannot get RawExtractionResults:JobId!" NO_COLOR);
 
     cout << "Downloading" << flush;
 
