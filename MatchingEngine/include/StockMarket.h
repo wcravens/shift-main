@@ -5,6 +5,7 @@
 #include "OrderBookEntry.h"
 #include "PriceLevel.h"
 
+#include <atomic>
 #include <list>
 #include <map>
 #include <mutex>
@@ -12,6 +13,10 @@
 #include <string>
 
 #include <quickfix/FieldTypes.h>
+
+// Lock-free implementation states
+static const unsigned int ORDER_BOOK_UPDATE = 1;
+static const unsigned int ORDER_BOOK_REFRESH = 2;
 
 class StockMarket {
 public:
@@ -59,6 +64,7 @@ public:
 
 private:
     std::string m_symbol;
+    std::atomic<unsigned int> flagAtom{ 0 };
     unsigned int m_depth = 5;
 
     // buffer new quotes & trades received from DE
@@ -71,8 +77,8 @@ private:
     std::list<Order>::iterator m_thisGlobalOrder;
 
     // buffer new orders received from clients
-    std::queue<Order> m_newLocalOrders;
     std::mutex m_mtxNewLocalOrders;
+    std::queue<Order> m_newLocalOrders;
 
     std::list<PriceLevel> m_localBids;
     std::list<PriceLevel> m_localAsks;
