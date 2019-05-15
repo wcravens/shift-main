@@ -25,6 +25,8 @@ public:
 
     static std::string s_createTableName(const std::string& symbol, const std::string& yyyymmdd);
 
+    static std::string s_reutersDateToY4M2D2(const std::string& reutersDate);
+
     static double s_decimalTruncate(double value, int precision);
 
     /*@brief Locker for SQL transactions. It also provides a simpler syntax to lock. */
@@ -44,9 +46,6 @@ public:
     /*@brief Check the list of Trade-and-Quote-tables and the Table of Trade-Records */
     void init();
 
-    /*@brief Insert one table name into the table created by createTableOfTableNames() */
-    bool insertTableName(std::string ric, std::string reutersDate, std::string tableName);
-
     /*@brief Common PSQL query method wrapper */
     bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
@@ -61,9 +60,6 @@ public:
 
     /*@brief Fetch chunk of Trade & Quote records from database and sends them to matching engine via FIXAcceptor */
     bool readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime);
-
-    // /*@brief Check if Trade & Quote is empty */
-    // long checkEmpty(std::string tableName);
 
     /*@brief Convertor from CSV data to database records */
     bool saveCSVIntoDB(std::string csvName, std::string symbol, std::string date);

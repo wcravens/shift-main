@@ -6,9 +6,6 @@ namespace database {
     /*@brief Tag of table for storing Trade and Quote records */
     struct TradeAndQuoteRecords;
 
-    /*@brief Tag of table for memorizing (by names) downloaded Trade and Quote tables */
-    struct NamesOfTradeAndQuoteTables;
-
     /*@brief Tag of table for storing Trading records */
     struct TradingRecords;
 
@@ -80,27 +77,6 @@ namespace database {
             ASK_SIZE,
             EXCH_TIME,
             QUOTE_TIME,
-
-            NUM_FIELDS
-        };
-    };
-
-    //----------------------------------------------------------------------------------------------------------
-
-    template <>
-    struct PSQLTable<NamesOfTradeAndQuoteTables> {
-        static constexpr char sc_colsDefinition[] = "( ric VARCHAR(15)"
-                                                    ", reuters_date DATE"
-                                                    ", reuters_table_name VARCHAR(23)"
-
-                                                    ", PRIMARY KEY (ric, reuters_date) )";
-
-        static const char* name;
-
-        enum VAL_IDX : int {
-            RIC = 0,
-            REUT_DATE,
-            REUT_TABLE_NAME,
 
             NUM_FIELDS
         };

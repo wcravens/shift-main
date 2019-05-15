@@ -51,6 +51,11 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
     return symbol + '_' + yyyymmdd;
 }
 
+/* static */ inline std::string PSQL::s_reutersDateToY4M2D2(const std::string& reutersDate)
+{
+    return reutersDate.substr(0, 4) + reutersDate.substr(5, 2) + reutersDate.substr(8, 2);
+}
+
 /* static */ inline double PSQL::s_decimalTruncate(double value, int precision)
 {
     return std::trunc(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
@@ -131,16 +136,6 @@ void PSQL::init()
     }
 
     cout << "Connection to database is good." << endl;
-
-    auto res = shift::database::checkCreateTable<shift::database::NamesOfTradeAndQuoteTables>(m_pConn);
-    (void)res;
-}
-
-/* Insert record to the table after updating one day quote&trade data to the database*/
-bool PSQL::insertTableName(std::string ric, std::string reutersDate, std::string tableName)
-{
-    auto lock{ lockPSQL() };
-    return doQuery("INSERT INTO " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " VALUES ('" + ric + "','" + reutersDate + "','" + tableName + "');", COLOR_ERROR "\tERROR: Insert into " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " table failed.\t" NO_COLOR);
 }
 
 bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
@@ -156,42 +151,29 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     auto lock{ lockPSQL() };
     using TABLE_STATUS = shift::database::TABLE_STATUS;
 
-    if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
-        return TABLE_STATUS::DB_ERROR;
-
-    if (!doQuery("DECLARE record CURSOR FOR SELECT * FROM " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " WHERE reuters_date='" + reutersDate + "' AND ric='" + ric + '\'', COLOR_ERROR "ERROR: DECLARE CURSOR failed. (check_taq_tbl_exist)\n" NO_COLOR))
-        return TABLE_STATUS::DB_ERROR;
+    auto tableName = PSQL::s_createTableName(ric, s_reutersDateToY4M2D2(reutersDate));
 
     PGresult* pRes;
-    if (!doQuery("FETCH ALL IN record", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
+    if (!doQuery("SELECT to_regclass('public." + tableName + "');", COLOR_ERROR "ERROR: SELECT to_regclass failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
         PQclear(pRes);
         return TABLE_STATUS::DB_ERROR;
     }
 
     int nrows = PQntuples(pRes);
-    TABLE_STATUS status;
+    TABLE_STATUS status = TABLE_STATUS::OTHER_ERROR;
 
-    if (0 == nrows) {
-        status = TABLE_STATUS::NOT_EXIST;
-    } else if (1 == nrows) {
-        *pTableName = PQgetvalue(pRes, 0, shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::VAL_IDX::REUT_TABLE_NAME);
-        status = TABLE_STATUS::EXISTS;
-    } else {
-        cout << COLOR_ERROR "ERROR: More than one Trade & Quote table for [ " << ric << ' ' << reutersDate << " ] exist." NO_COLOR << endl;
-        status = TABLE_STATUS::OTHER_ERROR;
+    if (1 == nrows) {
+        const std::string val = PQgetvalue(pRes, 0, 0);
+        if (val.length()) {
+            *pTableName = tableName;
+            status = TABLE_STATUS::EXISTS;
+        } else {
+            *pTableName = "";
+            status = TABLE_STATUS::NOT_EXIST;
+        }
     }
 
     PQclear(pRes);
-    pRes = PQexec(m_pConn, "CLOSE record");
-    PQclear(pRes);
-    pRes = PQexec(m_pConn, "END");
-    PQclear(pRes);
-
-    if (TABLE_STATUS::NOT_EXIST == status) {
-        // enforce cleaning up old table
-        auto tableName = PSQL::s_createTableName(ric, reutersDate.substr(0, 4) + reutersDate.substr(5, 2) + reutersDate.substr(8, 2));
-        doQuery("DROP TABLE " + tableName + " CASCADE;", "");
-    }
 
     return status;
 }
@@ -379,7 +361,6 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
             cout << COLOR_WARNING "The failed SQL query was written into './PSQL_INSERT_ERROR_DUMP.txt'. Please check it by manually executing the query. The table [" << tableName << "] was not created." NO_COLOR << endl;
 
             // DE should NOT keep any data of erroneous table, just discard them:
-            doQuery("DELETE FROM " + std::string(shift::database::PSQLTable<shift::database::NamesOfTradeAndQuoteTables>::name) + " WHERE reuters_table_name = '" + tableName + "';", ""); // delete row
             doQuery("DROP TABLE " + tableName + " CASCADE;", "");
 
             return false;
@@ -510,15 +491,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 
 bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) // Date format: YYYY-MM-DD
 {
-    std::string tableName = s_createTableName(symbol, date.substr(0, 4) + date.substr(5, 2) + date.substr(8, 2));
-
-    cout << "Insert [ " << symbol << ' ' << date << " ] into table name list";
-    if (insertTableName(symbol, date, tableName)) {
-        cout << " - OK." << endl;
-    } else {
-        cout << COLOR_ERROR " - Failed." NO_COLOR << endl;
-        return false;
-    }
+    const std::string tableName = s_createTableName(symbol, s_reutersDateToY4M2D2(date));
 
     cout << "Create table of [ " << symbol << ' ' << date << " ]";
     if (createTableOfTradeAndQuoteRecords(tableName)) {
