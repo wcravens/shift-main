@@ -48,7 +48,9 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
 
 /* static */ inline std::string PSQL::s_createTableName(const std::string& symbol, const std::string& yyyymmdd)
 {
-    return symbol + '_' + yyyymmdd;
+    std::string str;
+    std::transform(symbol.begin(), symbol.end(), std::back_inserter(str), [](char ch) { return std::tolower(ch); });
+    return str + '_' + yyyymmdd;
 }
 
 /* static */ inline std::string PSQL::s_reutersDateToY4M2D2(const std::string& reutersDate)
@@ -154,7 +156,12 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     auto tableName = PSQL::s_createTableName(ric, s_reutersDateToY4M2D2(reutersDate));
 
     PGresult* pRes;
-    if (!doQuery("SELECT to_regclass('public." + tableName + "');", COLOR_ERROR "ERROR: SELECT to_regclass failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
+    if (!doQuery("SELECT EXISTS ("
+                 "SELECT 1 "
+                 "FROM pg_tables "
+                 "WHERE schemaname = 'public' AND tablename = '"
+                + tableName + "');",
+            COLOR_ERROR "ERROR: SELECT EXISTS failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
         PQclear(pRes);
         return TABLE_STATUS::DB_ERROR;
     }
@@ -163,8 +170,8 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     TABLE_STATUS status = TABLE_STATUS::OTHER_ERROR;
 
     if (1 == nrows) {
-        const std::string val = PQgetvalue(pRes, 0, 0);
-        if (val.length()) {
+        char flag = *PQgetvalue(pRes, 0, 0);
+        if (std::tolower(flag) == 't') {
             *pTableName = tableName;
             status = TABLE_STATUS::EXISTS;
         } else {
