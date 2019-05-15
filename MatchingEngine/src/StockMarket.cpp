@@ -23,7 +23,6 @@ StockMarket::StockMarket(const StockMarket& StockMarket)
 // Function to start one StockMarket matching engine, for exchange thread
 void StockMarket::operator()()
 {
-    unsigned int flagZero = 0; // cannot be const
     Order nextOrder;
     Order prevGlobalOrder;
 
@@ -34,26 +33,21 @@ void StockMarket::operator()()
             continue;
 
         } else {
-            // This is to avoid the use of locks when accessing order book data:
-            // if flagAtom == flagZero:
-            //   - flagAtom is set to ORDER_BOOK_UPDATE (atomically)
-            //   - flagAtom.compare_exchange_strong() returns true
-            // if flagAtom != flagZero:
-            //   - flagZero is set to flagAtom (so we need to reset flagZero)
-            //   - flagAtom.compare_exchange_strong() returns false
-            while (!flagAtom.compare_exchange_strong(flagZero, ORDER_BOOK_UPDATE))
-                flagZero = 0;
+            // Spinlock implementation:
+            // It is better than a standard lock in this scenario, since,
+            // most of the time, only this thread needs access to order book data
+            while (flagAtom.test_and_set())
+                continue;
 
             /*
             other side:
 
-            int flagZero = 0;
-            while(!flagAtom.compare_exchange_strong(flagZero, ORDER_BOOK_REFRESH))
-                flagZero = 0;
+            while (flagAtom.test_and_set())
+                continue;
 
             ....
 
-            flagAtom = 0;
+            flagAtom.clear();
             */
 
             switch (nextOrder.getType()) {
@@ -159,7 +153,7 @@ void StockMarket::operator()()
             FIXAcceptor::getInstance()->sendOrderBookUpdates(orderBookUpdates);
             orderBookUpdates.clear();
 
-            flagAtom = 0;
+            flagAtom.clear();
         }
     }
 }

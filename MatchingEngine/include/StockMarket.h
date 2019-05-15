@@ -14,10 +14,6 @@
 
 #include <quickfix/FieldTypes.h>
 
-// Lock-free implementation states
-static const unsigned int ORDER_BOOK_UPDATE = 1;
-static const unsigned int ORDER_BOOK_REFRESH = 2;
-
 class StockMarket {
 public:
     std::list<ExecutionReport> executionReports;
@@ -64,8 +60,8 @@ public:
 
 private:
     std::string m_symbol;
-    std::atomic<unsigned int> flagAtom{ 0 };
-    unsigned int m_depth = 5;
+    std::atomic_flag flagAtom{ ATOMIC_FLAG_INIT };
+    unsigned int m_depth{ 5 };
 
     // buffer new quotes & trades received from DE
     std::mutex m_mtxNewGlobalOrders;
