@@ -50,17 +50,17 @@ void OrderBook::process()
             return;
 
         switch (m_obeBuff.front().getType()) {
-        case OrderBookEntry::Type::GLB_ASK:
-            saveGlobalAskOrderBookUpdate(m_obeBuff.front());
-            break;
-        case OrderBookEntry::Type::LOC_ASK:
-            saveLocalAskOrderBookUpdate(m_obeBuff.front());
-            break;
         case OrderBookEntry::Type::GLB_BID:
             saveGlobalBidOrderBookUpdate(m_obeBuff.front());
             break;
+        case OrderBookEntry::Type::GLB_ASK:
+            saveGlobalAskOrderBookUpdate(m_obeBuff.front());
+            break;
         case OrderBookEntry::Type::LOC_BID:
             saveLocalBidOrderBookUpdate(m_obeBuff.front());
+            break;
+        case OrderBookEntry::Type::LOC_ASK:
+            saveLocalAskOrderBookUpdate(m_obeBuff.front());
             break;
         default:
             break;
@@ -195,6 +195,12 @@ void OrderBook::saveGlobalBidOrderBookUpdate(const OrderBookEntry& update)
     double price = update.getPrice();
     std::lock_guard<std::mutex> guard(m_mtxGlobalBidOrderBook);
 
+    // price <= 0.0 means clear the order book
+    if (price <= 0.0) {
+        m_globalBidOrderBook.clear();
+        return;
+    }
+
     m_globalBidOrderBook[price][update.getDestination()] = update;
     // discard all higher bid prices, if any:
     m_globalBidOrderBook.erase(m_globalBidOrderBook.upper_bound(price), m_globalBidOrderBook.end());
@@ -207,6 +213,12 @@ void OrderBook::saveGlobalAskOrderBookUpdate(const OrderBookEntry& update)
 {
     double price = update.getPrice();
     std::lock_guard<std::mutex> guard(m_mtxGlobalAskOrderBook);
+
+    // price <= 0.0 means clear the order book
+    if (price <= 0.0) {
+        m_globalAskOrderBook.clear();
+        return;
+    }
 
     m_globalAskOrderBook[price][update.getDestination()] = update;
     // discard all lower ask prices, if any:
@@ -237,6 +249,12 @@ inline void OrderBook::saveLocalAskOrderBookUpdate(const OrderBookEntry& update)
 {
     double price = update.getPrice();
     std::lock_guard<std::mutex> guard(mtxLocalOrderBookk);
+
+    // price <= 0.0 means clear the order book
+    if (price <= 0.0) {
+        localOrderBook.clear();
+        return;
+    }
 
     if (update.getSize() > 0) {
         localOrderBook[price][update.getDestination()] = update;

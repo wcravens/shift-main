@@ -84,7 +84,48 @@ void FIXAcceptor::disconnectBrokerageCenter()
 }
 
 /*
- * @brief Send all orderbook updates to brokers
+ * @brief Send complete order book to brokers
+ */
+void FIXAcceptor::sendOrderBook(const std::vector<OrderBookEntry>& orderBook)
+{
+    FIX::Message message;
+
+    FIX::Header& header = message.getHeader();
+    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+    header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
+
+    message.setField(FIX::Symbol(orderBook.begin()->getSymbol()));
+
+    for (const auto& entry : orderBook) {
+        s_setAddGroupIntoMarketDataMsg(message, entry);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(m_mtxTargetSet);
+
+        for (const auto& targetID : m_targetSet) {
+            header.setField(FIX::TargetCompID(targetID));
+            FIX::Session::sendToTarget(message);
+        }
+    }
+}
+
+/*static*/ inline void FIXAcceptor::s_setAddGroupIntoMarketDataMsg(FIX::Message& message, const OrderBookEntry& entry)
+{
+    auto utc = entry.getUTCTime();
+
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries>(message,
+        FIX::MDEntryType(entry.getType()),
+        FIX::MDEntryPx(entry.getPrice()),
+        FIX::MDEntrySize(entry.getSize()),
+        FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())),
+        FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)),
+        FIX::MDMkt(entry.getDestination()));
+}
+
+/*
+ * @brief Send all order book updates to brokers
  */
 void FIXAcceptor::sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderBookUpdates)
 {
@@ -98,8 +139,7 @@ void FIXAcceptor::sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderB
     for (const auto& update : orderBookUpdates) {
         auto utc = update.getUTCTime();
 
-        shift::fix::addFIXGroup<FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries>(
-            message,
+        shift::fix::addFIXGroup<FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries>(message,
             ::FIXFIELD_MDUPDATEACTION_CHANGE,
             FIX::MDEntryType(update.getType()),
             FIX::Symbol(update.getSymbol()),
@@ -148,22 +188,18 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
         message.setField(FIX::CumQty(report.size));
         message.setField(FIX::TransactTime(6));
 
-        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(
-            message,
+        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(message,
             ::FIXFIELD_PARTYROLE_CLIENTID,
             FIX::PartyID(report.traderID1));
 
-        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(
-            message,
+        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(message,
             ::FIXFIELD_PARTYROLE_CLIENTID,
             FIX::PartyID(report.traderID2));
 
-        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoTrdRegTimestamps>(
-            message,
+        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoTrdRegTimestamps>(message,
             FIX::TrdRegTimestamp(report.simulationTime1, 6));
 
-        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoTrdRegTimestamps>(
-            message,
+        shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoTrdRegTimestamps>(message,
             FIX::TrdRegTimestamp(report.simulationTime2, 6));
 
         {

@@ -139,7 +139,7 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
 }
 
 /*
- * @brief Receive security list from ME. Only run once each system session.
+ * @brief Receive security list from ME.
  */
 void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
 {
@@ -170,6 +170,111 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
 
     // Now, it's safe to advance all routines that *read* permanent data structures created above:
     BCDocuments::s_isSecurityListReady = true;
+}
+
+/**
+ * @brief Receive complete order book
+ */
+void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID&) // override
+{
+    FIX::NoMDEntries numOfEntries;
+    message.get(numOfEntries);
+    if (numOfEntries.getValue() < 1) {
+        cout << "Cannot find the Entries group in MarketDataSnapshotFullRefresh!" << endl;
+        return;
+    }
+
+    static FIX::Symbol symbol;
+
+    static FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries entryGroup;
+    static FIX::MDEntryType bookType;
+    static FIX::MDEntryPx price;
+    static FIX::MDEntrySize size;
+    static FIX::MDEntryDate simulationDate;
+    static FIX::MDEntryTime simulationTime;
+    static FIX::MDMkt destination;
+
+    // #pragma GCC diagnostic ignored ....
+
+    FIX::Symbol* pSymbol;
+
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries* pEntryGroup;
+    FIX::MDEntryType* pBookType;
+    FIX::MDEntryPx* pPrice;
+    FIX::MDEntrySize* pSize;
+    FIX::MDEntryDate* pSimulationDate;
+    FIX::MDEntryTime* pSimulationTime;
+    FIX::MDMkt* pDestination;
+
+    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
+
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
+        continue;
+    assert(s_cntAtom > 0);
+
+    if (0 == prevCnt) { // sequential case; optimized:
+        pSymbol = &symbol;
+        pEntryGroup = &entryGroup;
+        pBookType = &bookType;
+        pPrice = &price;
+        pSize = &size;
+        pSimulationDate = &simulationDate;
+        pSimulationTime = &simulationTime;
+        pDestination = &destination;
+    } else { // > 1 threads; always safe way:
+        pSymbol = new decltype(symbol);
+        pEntryGroup = new decltype(entryGroup);
+        pBookType = new decltype(bookType);
+        pPrice = new decltype(price);
+        pSize = new decltype(size);
+        pSimulationDate = new decltype(simulationDate);
+        pSimulationTime = new decltype(simulationTime);
+        pDestination = new decltype(destination);
+    }
+
+    message.getField(*pSymbol);
+
+    for (int i = 1; i <= numOfEntries.getValue(); i++) {
+        message.getGroup(static_cast<unsigned int>(i), *pEntryGroup);
+
+        pEntryGroup->getField(*pBookType);
+        pEntryGroup->getField(*pPrice);
+        pEntryGroup->getField(*pSize);
+        pEntryGroup->getField(*pSimulationDate);
+        pEntryGroup->getField(*pSimulationTime);
+        pEntryGroup->getField(*pDestination);
+
+        OrderBookEntry entry{
+            static_cast<OrderBookEntry::Type>(pBookType->getValue()),
+            pSymbol->getValue(),
+            pPrice->getValue(),
+            static_cast<int>(pSize->getValue()),
+            pDestination->getValue(),
+            pSimulationDate->getValue(),
+            pSimulationTime->getValue()
+        };
+
+        // The first entry is guaranteed to have price <= 0.0: this will tell the
+        // Order Book object that the targeted order book type must first be cleared.
+        // The following entries will be in such order so that the standard update
+        // procedure for a given order book type may be used without information loss.
+        BCDocuments::getInstance()->onNewOBUpdateForOrderBook(pSymbol->getValue(), std::move(entry));
+    }
+
+    if (prevCnt) { // > 1 threads
+        delete pSymbol;
+        delete pEntryGroup;
+        delete pBookType;
+        delete pPrice;
+        delete pSize;
+        delete pSimulationDate;
+        delete pSimulationTime;
+        delete pDestination;
+    }
+
+    s_cntAtom--;
+    assert(s_cntAtom >= 0);
 }
 
 /**

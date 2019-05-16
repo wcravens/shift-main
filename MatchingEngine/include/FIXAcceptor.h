@@ -27,6 +27,7 @@
 // Sending Message Types
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
+#include <quickfix/fix50sp2/MarketDataSnapshotFullRefresh.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 
 class FIXAcceptor
@@ -42,6 +43,8 @@ public:
     void connectBrokerageCenter(const std::string& configFile);
     void disconnectBrokerageCenter();
 
+    void sendOrderBook(const std::vector<OrderBookEntry>& orderBook);
+    static void s_setAddGroupIntoMarketDataMsg(FIX::Message& message, const OrderBookEntry& entry);
     void sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderBookUpdates);
     void sendExecutionReports(const std::vector<ExecutionReport>& executionReports);
 

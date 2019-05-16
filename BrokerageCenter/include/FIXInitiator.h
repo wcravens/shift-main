@@ -21,6 +21,7 @@
 // Receiving Message Types
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
+#include <quickfix/fix50sp2/MarketDataSnapshotFullRefresh.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 
 // Sending Message Types
@@ -54,6 +55,7 @@ private:
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override; // To receive security list from Matching Engine
+    void onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh&, const FIX::SessionID&) override; // To receive complete order book from Matching Engine
     void onMessage(const FIX50SP2::MarketDataIncrementalRefresh&, const FIX::SessionID&) override; // To receive order book updates from Matching Engine
     void onMessage(const FIX50SP2::ExecutionReport&, const FIX::SessionID&) override; // To receive execution report (order confirmation, trade, cancel) from Matching Engine
 
