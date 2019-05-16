@@ -21,7 +21,6 @@ set(CMAKE
 )
 
 set(INCLUDE
-    ${PROJECT_SOURCE_DIR}/include/Common.h
     ${PROJECT_SOURCE_DIR}/include/clock/Timestamp.h
     ${PROJECT_SOURCE_DIR}/include/concurrency/Consumer.h
     ${PROJECT_SOURCE_DIR}/include/crossguid/Guid.h
@@ -32,6 +31,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/terminal/Common.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Functions.h
     ${PROJECT_SOURCE_DIR}/include/terminal/Options.h
+    ${PROJECT_SOURCE_DIR}/include/Common.h
     ${PROJECT_SOURCE_DIR}/include/MiscUtils_EXPORTS.h
 )
 
@@ -49,7 +49,6 @@ set(PKGCONFIG
 )
 
 set(SRC
-    ${PROJECT_SOURCE_DIR}/src/Common.cpp
     ${PROJECT_SOURCE_DIR}/src/clock/Timestamp.cpp
     ${PROJECT_SOURCE_DIR}/src/crossguid/Guid.cpp
     ${PROJECT_SOURCE_DIR}/src/crypto/Cryptor.cpp
@@ -60,6 +59,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/crypto/SHA1.cpp
     ${PROJECT_SOURCE_DIR}/src/terminal/Common.cpp
     ${PROJECT_SOURCE_DIR}/src/terminal/Options.cpp
+    ${PROJECT_SOURCE_DIR}/src/Common.cpp
 )
 
 if(DB)
