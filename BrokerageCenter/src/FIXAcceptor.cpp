@@ -139,7 +139,7 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
 /**
  * @brief Send complete order book by type
  */
-void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBookName)
+void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBook)
 {
     FIX::Message message;
 
@@ -148,17 +148,17 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
 
-    message.setField(FIX::Symbol(orderBookName.begin()->second.begin()->second.getSymbol()));
+    message.setField(FIX::Symbol(orderBook.begin()->second.begin()->second.getSymbol()));
 
-    const auto obt = orderBookName.begin()->second.begin()->second.getType();
+    const auto obt = orderBook.begin()->second.begin()->second.getType();
 
     if (obt == OrderBookEntry::Type::GLB_BID || obt == OrderBookEntry::Type::LOC_BID) { // reverse the global/local bid order book order
-        for (auto ri = orderBookName.crbegin(); ri != orderBookName.crend(); ++ri) {
+        for (auto ri = orderBook.crbegin(); ri != orderBook.crend(); ++ri) {
             for (const auto& j : ri->second)
                 s_setAddGroupIntoMarketDataMsg(message, j.second);
         }
     } else { // *_ASK
-        for (const auto& i : orderBookName) {
+        for (const auto& i : orderBook) {
             for (const auto& j : i.second)
                 s_setAddGroupIntoMarketDataMsg(message, j.second);
         }
