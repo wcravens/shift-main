@@ -60,8 +60,8 @@ public:
 
 private:
     std::string m_symbol;
-    std::atomic_flag flagAtom{ ATOMIC_FLAG_INIT };
-    unsigned int m_depth{ 5 };
+    std::atomic_flag m_spinlock = ATOMIC_FLAG_INIT;
+    unsigned int m_depth = 5;
 
     // buffer new quotes & trades received from DE
     std::mutex m_mtxNewGlobalOrders;

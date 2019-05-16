@@ -25,7 +25,7 @@ public:
 
     static std::string s_createTableName(const std::string& symbol, const std::string& yyyymmdd);
 
-    static std::string s_reutersDateToY4M2D2(const std::string& reutersDate);
+    static std::string s_reutersDateToYYYYMMDD(const std::string& reutersDate);
 
     static double s_decimalTruncate(double value, int precision);
 

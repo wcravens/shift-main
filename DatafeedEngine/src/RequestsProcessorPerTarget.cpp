@@ -251,9 +251,6 @@ void RequestsProcessorPerTarget::processRequests()
     FIXAcceptor::sendNotice(targetID, lastMarketRequestPtr->getRequestID(), "SENDFINISH");
 
     lastMarketRequestPtr->updateStartTime(sendTo);
-
-    auto ti = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
-    cout << "\nSend done. Real timestamp: " << std::ctime(&ti) << endl;
 }
 
 #undef __PRE_CONDITION__

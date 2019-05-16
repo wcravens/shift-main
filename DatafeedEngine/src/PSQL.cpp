@@ -53,7 +53,7 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
     return str + '_' + yyyymmdd;
 }
 
-/* static */ inline std::string PSQL::s_reutersDateToY4M2D2(const std::string& reutersDate)
+/* static */ inline std::string PSQL::s_reutersDateToYYYYMMDD(const std::string& reutersDate)
 {
     return reutersDate.substr(0, 4) + reutersDate.substr(5, 2) + reutersDate.substr(8, 2);
 }
@@ -153,7 +153,7 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     auto lock{ lockPSQL() };
     using TABLE_STATUS = shift::database::TABLE_STATUS;
 
-    auto tableName = PSQL::s_createTableName(ric, s_reutersDateToY4M2D2(reutersDate));
+    auto tableName = PSQL::s_createTableName(ric, s_reutersDateToYYYYMMDD(reutersDate));
 
     PGresult* pRes;
     if (!doQuery("SELECT EXISTS ("
@@ -174,7 +174,7 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
         if (std::tolower(flag) == 't') {
             *pTableName = tableName;
             status = TABLE_STATUS::EXISTS;
-        } else {
+        } else { // if (std::tolower(flag) == 'f')
             *pTableName = "";
             status = TABLE_STATUS::NOT_EXIST;
         }
@@ -498,7 +498,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 
 bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) // Date format: YYYY-MM-DD
 {
-    const std::string tableName = s_createTableName(symbol, s_reutersDateToY4M2D2(date));
+    const std::string tableName = s_createTableName(symbol, s_reutersDateToYYYYMMDD(date));
 
     cout << "Create table of [ " << symbol << ' ' << date << " ]";
     if (createTableOfTradeAndQuoteRecords(tableName)) {

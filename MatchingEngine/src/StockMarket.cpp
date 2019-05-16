@@ -36,18 +36,18 @@ void StockMarket::operator()()
             // Spinlock implementation:
             // It is better than a standard lock in this scenario, since,
             // most of the time, only this thread needs access to order book data
-            while (flagAtom.test_and_set())
+            while (m_spinlock.test_and_set())
                 continue;
 
             /*
             other side:
 
-            while (flagAtom.test_and_set())
+            while (m_spinlock.test_and_set())
                 continue;
 
             ....
 
-            flagAtom.clear();
+            m_spinlock.clear();
             */
 
             switch (nextOrder.getType()) {
@@ -153,7 +153,7 @@ void StockMarket::operator()()
             FIXAcceptor::getInstance()->sendOrderBookUpdates(orderBookUpdates);
             orderBookUpdates.clear();
 
-            flagAtom.clear();
+            m_spinlock.clear();
         }
     }
 }
