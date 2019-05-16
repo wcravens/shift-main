@@ -30,6 +30,7 @@
 #include <quickfix/fix50sp2/Advertisement.h>
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
+#include <quickfix/fix50sp2/MarketDataSnapshotFullRefresh.h>
 #include <quickfix/fix50sp2/NewOrderList.h>
 #include <quickfix/fix50sp2/PositionReport.h>
 #include <quickfix/fix50sp2/SecurityList.h>
@@ -38,7 +39,6 @@
 
 // Sending Message Types
 #include <quickfix/fix50sp2/MarketDataRequest.h>
-#include <quickfix/fix50sp2/MarketDataSnapshotFullRefresh.h>
 #include <quickfix/fix50sp2/NewOrderSingle.h>
 #include <quickfix/fix50sp2/RFQRequest.h>
 #include <quickfix/fixt11/Logon.h>
