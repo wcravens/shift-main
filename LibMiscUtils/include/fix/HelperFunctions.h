@@ -7,32 +7,31 @@
 namespace shift {
 namespace fix {
     namespace details {
-        template <typename GroupType>
-        GroupType createFIXGroupImpl(GroupType& g)
+        template <typename _GroupType>
+        _GroupType& createFIXGroupImpl(_GroupType& g)
         {
             return g;
         }
 
-        template <typename GroupType, typename FieldType, typename... Args>
-        GroupType createFIXGroupImpl(GroupType& g, const FieldType& f, Args&&... args)
+        template <typename _GroupType, typename FieldType, typename... _GroupItemTypes>
+        _GroupType& createFIXGroupImpl(_GroupType& g, const FieldType& f, _GroupItemTypes&&... items)
         {
             g.setField(f);
-            return createFIXGroupImpl(g, std::forward<Args>(args)...);
+            return createFIXGroupImpl(g, std::forward<_GroupItemTypes>(items)...);
         }
     } // namespace details
 
-    template <typename GroupType, typename... Args>
-    GroupType createFIXGroup(Args&&... args)
+    template <typename _GroupType, typename... _GroupItemTypes>
+    _GroupType createFIXGroup(_GroupItemTypes&&... items)
     {
-        GroupType g;
-        return details::createFIXGroupImpl(g, std::forward<Args>(args)...);
+        _GroupType g;
+        return details::createFIXGroupImpl(g, std::forward<_GroupItemTypes>(items)...);
     }
 
-    template <typename GroupType, typename MsgType, typename... Args>
-    void addFIXGroup(MsgType& msg, Args&&... args)
+    template <typename _GroupType, typename _MsgType, typename... _GroupItemTypes>
+    void addFIXGroup(_MsgType& msg, _GroupItemTypes&&... items)
     {
-        msg.addGroup(createFIXGroup<GroupType>(std::forward<Args>(args)...));
+        msg.addGroup(createFIXGroup<_GroupType>(std::forward<_GroupItemTypes>(items)...));
     }
-
 } // fix
 } // shift
