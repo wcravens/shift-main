@@ -8,6 +8,7 @@
 #include <ctime>
 #include <iomanip>
 
+#include <shift/miscutils/Common.h>
 #include <shift/miscutils/terminal/Common.h>
 
 #define __DBG_DUMP_PQCMD false
@@ -48,9 +49,7 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
 
 /* static */ inline std::string PSQL::s_createTableName(const std::string& symbol, const std::string& yyyymmdd)
 {
-    std::string str;
-    std::transform(symbol.begin(), symbol.end(), std::back_inserter(str), [](char ch) { return std::tolower(ch); });
-    return str + '_' + yyyymmdd;
+    return shift::toLower(symbol) + '_' + yyyymmdd;
 }
 
 /* static */ inline std::string PSQL::s_reutersDateToYYYYMMDD(const std::string& reutersDate)
@@ -174,7 +173,7 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
         if (std::tolower(flag) == 't') {
             *pTableName = tableName;
             status = TABLE_STATUS::EXISTS;
-        } else { // if (std::tolower(flag) == 'f')
+        } else { // == 'f'
             *pTableName = "";
             status = TABLE_STATUS::NOT_EXIST;
         }

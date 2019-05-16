@@ -16,9 +16,6 @@
 
 const std::string STDSTR_NULL = "NULL";
 
-std::string toUpper(const std::string&);
-std::string toLower(const std::string&);
-
 /*
 Some terminologies:
 

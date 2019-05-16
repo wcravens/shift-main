@@ -17,10 +17,12 @@
 #include <curl/curl.h>
 
 #ifdef _WIN32
+#include <Common.h>
 #include <crypto/Encryptor.h>
 #include <fix/HelperFunctions.h>
 #include <terminal/Common.h>
 #else
+#include <shift/miscutils/Common.h>
 #include <shift/miscutils/crypto/Encryptor.h>
 #include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
@@ -103,8 +105,7 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
 
     m_verbose = verbose;
 
-    std::string senderCompID = m_superUsername;
-    std::transform(senderCompID.begin(), senderCompID.end(), senderCompID.begin(), ::toupper);
+    std::string senderCompID = shift::toUpper(m_superUsername);
 
     FIX::SessionSettings settings(cfgFile);
     const FIX::Dictionary& commonDict = settings.get();

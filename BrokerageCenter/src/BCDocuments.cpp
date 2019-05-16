@@ -1,26 +1,13 @@
 #include "BCDocuments.h"
 #include "DBConnector.h"
 
+#include <shift/miscutils/Common.h>
 #include <shift/miscutils/database/Common.h>
 
 #include <algorithm>
 #include <cassert>
 
 using namespace std::chrono_literals;
-
-std::string toUpper(const std::string& str)
-{
-    std::string upStr;
-    std::transform(str.begin(), str.end(), std::back_inserter(upStr), [](char ch) { return std::toupper(ch); });
-    return upStr;
-}
-
-std::string toLower(const std::string& str)
-{
-    std::string upStr;
-    std::transform(str.begin(), str.end(), std::back_inserter(upStr), [](char ch) { return std::tolower(ch); });
-    return upStr;
-}
 
 //-------------------------------------------------------------------------------------------
 

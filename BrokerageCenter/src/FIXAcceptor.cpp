@@ -10,6 +10,7 @@
 #include <atomic>
 #include <cassert>
 
+#include <shift/miscutils/Common.h>
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/database/Common.h>
@@ -61,7 +62,7 @@ void FIXAcceptor::connectClients(const std::string& configFile, bool verbose)
     for (const auto& tarID : targetIDs) {
         FIX::SessionID sid(commonDict.getString("BeginString"), commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER
             ,
-            ::toUpper(tarID) // e.g. WEBCLIENT
+            shift::toUpper(tarID) // e.g. WEBCLIENT
         );
         FIX::Dictionary dict;
 
