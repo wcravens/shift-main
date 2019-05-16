@@ -86,7 +86,7 @@ void FIXAcceptor::disconnectBrokerageCenter()
 /*
  * @brief Send all orderbook updates to brokers
  */
-void FIXAcceptor::sendOrderBookUpdates(const std::list<OrderBookEntry>& ordBookUpdates)
+void FIXAcceptor::sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderBookUpdates)
 {
     FIX::Message message;
 
@@ -95,7 +95,7 @@ void FIXAcceptor::sendOrderBookUpdates(const std::list<OrderBookEntry>& ordBookU
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
 
-    for (const auto& update : ordBookUpdates) {
+    for (const auto& update : orderBookUpdates) {
         auto utc = update.getUTCTime();
 
         shift::fix::addFIXGroup<FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries>(
@@ -123,7 +123,7 @@ void FIXAcceptor::sendOrderBookUpdates(const std::list<OrderBookEntry>& ordBookU
 /**
  * @brief Sending all execution reports to brokers
  */
-void FIXAcceptor::sendExecutionReports(const std::list<ExecutionReport>& execReports)
+void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& executionReports)
 {
     FIX::Message message;
 
@@ -132,7 +132,7 @@ void FIXAcceptor::sendExecutionReports(const std::list<ExecutionReport>& execRep
     header.setField(FIX::SenderCompID(s_senderID));
     header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
 
-    for (const auto& report : execReports) {
+    for (const auto& report : executionReports) {
         message.setField(FIX::OrderID(report.orderID1));
         message.setField(FIX::SecondaryOrderID(report.orderID2));
         message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
