@@ -222,7 +222,7 @@ void RequestsProcessorPerTarget::processRequests()
     auto symbols = lastMarketRequestPtr->getSymbols();
     auto remCnt = TRTHAPI::getInstance()->removeUnavailableRICs(symbols);
     if (warnUnavailSkipped && remCnt) {
-        cout << COLOR_WARNING "NOTE: " << remCnt << " unavailable symbols will not be sent.\n" NO_COLOR << endl;
+        cout << COLOR_WARNING "NOTE: " << remCnt << " unavailable symbol(s) will not be sent.\n" NO_COLOR << endl;
     }
 
     // get start time and end time
