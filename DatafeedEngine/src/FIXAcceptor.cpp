@@ -324,3 +324,35 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
         return;
     }
 }
+
+/**
+ * @brief Receive the confirmed order from ME
+ */
+void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) // override
+{
+    FIX::ClOrdID orderID;
+    FIX::Symbol symbol;
+    FIX::OrderQty size;
+    FIX::OrdType type;
+    FIX::Price price;
+    FIX::PartyID traderID;
+
+    FIX50SP2::NewOrderSingle::NoPartyIDs g;
+    message.getGroup(1, g);
+    g.getField(traderID);
+
+    message.getField(orderID);
+    message.getField(symbol);
+    message.getField(size);
+    message.getField(type);
+    message.getField(price);
+    message.getField(traderID);
+
+    cout << "Confirmed Order:" << '\n'
+         << orderID << '\n'
+         << symbol << '\n'
+         << size << '\n'
+         << type << '\n'
+         << price << '\n'
+         << traderID << endl;
+}

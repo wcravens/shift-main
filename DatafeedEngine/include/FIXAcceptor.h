@@ -16,6 +16,7 @@
 // Receiving Message Types
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataRequest.h>
+#include <quickfix/fix50sp2/NewOrderSingle.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 
 // Sending Message Types
@@ -58,6 +59,7 @@ private:
     void fromApp(const FIX::Message&, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) override;
     void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::MarketDataRequest&, const FIX::SessionID&) override;
+    void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
 
     // Do NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
