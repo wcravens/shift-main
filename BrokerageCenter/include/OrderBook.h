@@ -21,7 +21,7 @@ public:
     OrderBook(const std::string& name);
     ~OrderBook() override;
 
-    void enqueueOrderBook(OrderBookEntry&& entry);
+    void enqueueOrderBookUpdate(OrderBookEntry&& update);
     void process();
     void spawn();
     // void stop();
@@ -33,11 +33,11 @@ public:
     void broadcastWholeOrderBookToAll();
     void broadcastSingleUpdateToAll(const OrderBookEntry& update);
 
-    void saveOrderBookGlobalBid(const OrderBookEntry& entry);
-    void saveOrderBookGlobalAsk(const OrderBookEntry& entry);
-    void saveOrderBookLocalBid(const OrderBookEntry& entry);
-    void saveOrderBookLocalAsk(const OrderBookEntry& entry);
-    static void s_saveOdrBkLocal(const OrderBookEntry& entry, std::mutex& mtxOdrBkLocal, std::map<double, std::map<std::string, OrderBookEntry>>& odrBkLocal);
+    void saveGlobalBidOrderBookUpdate(const OrderBookEntry& update);
+    void saveGlobalAskOrderBookUpdate(const OrderBookEntry& update);
+    void saveLocalBidOrderBookUpdate(const OrderBookEntry& update);
+    void saveLocalAskOrderBookUpdate(const OrderBookEntry& update);
+    static void s_saveLocalOrderBookUpdate(const OrderBookEntry& update, std::mutex& mtxLocalOrderBookk, std::map<double, std::map<std::string, OrderBookEntry>>& localOrderBook);
 
     double getGlobalBidOrderBookFirstPrice() const;
     double getGlobalAskOrderBookFirstPrice() const;
@@ -48,19 +48,19 @@ private:
     std::string m_symbol; ///> The stock name of this OrderBook instance.
 
     mutable std::mutex m_mtxOBEBuff; ///> Mutex for m_obeBuff.
-    mutable std::mutex m_mtxOdrBkGlobalAsk;
-    mutable std::mutex m_mtxOdrBkGlobalBid;
-    mutable std::mutex m_mtxOdrBkLocalAsk;
-    mutable std::mutex m_mtxOdrBkLocalBid;
+    mutable std::mutex m_mtxGlobalBidOrderBook;
+    mutable std::mutex m_mtxGlobalAskOrderBook;
+    mutable std::mutex m_mtxLocalBidOrderBook;
+    mutable std::mutex m_mtxLocalAskOrderBook;
 
     std::unique_ptr<std::thread> m_th;
     std::condition_variable m_cvOBEBuff;
     std::promise<void> m_quitFlag;
 
-    std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkGlobalAsk; // price, destination, order book entry
-    std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalAsk;
-    std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkGlobalBid;
-    std::map<double, std::map<std::string, OrderBookEntry>> m_odrBkLocalBid;
+    std::map<double, std::map<std::string, OrderBookEntry>> m_globalBidOrderBook; // price, destination, order book entry
+    std::map<double, std::map<std::string, OrderBookEntry>> m_globalAskOrderBook;
+    std::map<double, std::map<std::string, OrderBookEntry>> m_localBidOrderBook;
+    std::map<double, std::map<std::string, OrderBookEntry>> m_localAskOrderBook;
 
     std::queue<OrderBookEntry> m_obeBuff;
 };

@@ -270,7 +270,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pSimulationTime->getValue()
     };
 
-    BCDocuments::getInstance()->onNewOBEntryForOrderBook(pSymbol->getValue(), std::move(entry));
+    BCDocuments::getInstance()->onNewOBUpdateForOrderBook(pSymbol->getValue(), std::move(entry));
 
     if (prevCnt) { // > 1 threads
         delete pEntryGroup;

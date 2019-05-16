@@ -173,7 +173,7 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
 /*static*/ inline void FIXAcceptor::s_setAddGroupIntoMarketDataMsg(FIX::Message& message, const OrderBookEntry& entry)
 {
     shift::fix::addFIXGroup<FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries>(message,
-        FIX::MDEntryType((char)entry.getType()),
+        FIX::MDEntryType(entry.getType()),
         FIX::MDEntryPx(entry.getPrice()),
         FIX::MDEntrySize(entry.getSize()),
         FIX::MDEntryDate(entry.getDate()),
