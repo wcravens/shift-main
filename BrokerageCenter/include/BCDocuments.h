@@ -50,7 +50,7 @@ public:
 
     double getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const;
 
-    void onNewOBEntryForOrderBook(const std::string& symbol, OrderBookEntry&& entry);
+    void onNewOBUpdateForOrderBook(const std::string& symbol, OrderBookEntry&& update);
     void onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac);
     void onNewOrderForUserRiskManagement(const std::string& userID, Order&& order);
     void onNewExecutionReportForUserRiskManagement(const std::string& userID, ExecutionReport&& report);

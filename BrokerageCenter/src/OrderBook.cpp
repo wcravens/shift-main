@@ -24,14 +24,14 @@ OrderBook::~OrderBook() /*override*/
 
 /**
 *   @brief  Thread-safely adds an OrderBookEntry to the buffer, then notify to process the order.
-*	@param	entry: The OrderBookEntry to be enqueue the buffer.
+*	@param	update: The OrderBookEntry to be enqueue the buffer.
 *   @return nothing
 */
-void OrderBook::enqueueOrderBook(OrderBookEntry&& entry)
+void OrderBook::enqueueOrderBookUpdate(OrderBookEntry&& update)
 {
     {
         std::lock_guard<std::mutex> guard(m_mtxOBEBuff);
-        m_obeBuff.push(std::move(entry));
+        m_obeBuff.push(std::move(update));
     }
     m_cvOBEBuff.notify_one();
 }
@@ -51,16 +51,16 @@ void OrderBook::process()
 
         switch (m_obeBuff.front().getType()) {
         case OrderBookEntry::Type::GLB_ASK:
-            saveOrderBookGlobalAsk(m_obeBuff.front());
+            saveGlobalAskOrderBookUpdate(m_obeBuff.front());
             break;
         case OrderBookEntry::Type::LOC_ASK:
-            saveOrderBookLocalAsk(m_obeBuff.front());
+            saveLocalAskOrderBookUpdate(m_obeBuff.front());
             break;
         case OrderBookEntry::Type::GLB_BID:
-            saveOrderBookGlobalBid(m_obeBuff.front());
+            saveGlobalBidOrderBookUpdate(m_obeBuff.front());
             break;
         case OrderBookEntry::Type::LOC_BID:
-            saveOrderBookLocalBid(m_obeBuff.front());
+            saveLocalBidOrderBookUpdate(m_obeBuff.front());
             break;
         default:
             break;
@@ -108,19 +108,19 @@ void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     const std::vector<std::string> targetList{ targetID };
 
-    std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
-    std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
-    std::lock_guard<std::mutex> guard_B(m_mtxOdrBkGlobalBid);
-    std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
+    std::lock_guard<std::mutex> guard_B(m_mtxGlobalBidOrderBook);
+    std::lock_guard<std::mutex> guard_A(m_mtxGlobalAskOrderBook);
+    std::lock_guard<std::mutex> guard_b(m_mtxLocalBidOrderBook);
+    std::lock_guard<std::mutex> guard_a(m_mtxLocalAskOrderBook);
 
-    if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalAsk);
-    if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(targetList, m_odrBkLocalAsk);
-    if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalBid);
-    if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(targetList, m_odrBkLocalBid);
+    if (!m_globalBidOrderBook.empty())
+        toWCPtr->sendOrderBook(targetList, m_globalBidOrderBook);
+    if (!m_globalAskOrderBook.empty())
+        toWCPtr->sendOrderBook(targetList, m_globalAskOrderBook);
+    if (!m_localBidOrderBook.empty())
+        toWCPtr->sendOrderBook(targetList, m_localBidOrderBook);
+    if (!m_localAskOrderBook.empty())
+        toWCPtr->sendOrderBook(targetList, m_localAskOrderBook);
 }
 
 /**
@@ -134,19 +134,19 @@ void OrderBook::broadcastWholeOrderBookToAll()
     if (targetList.empty())
         return;
 
-    std::lock_guard<std::mutex> guard_A(m_mtxOdrBkGlobalAsk);
-    std::lock_guard<std::mutex> guard_a(m_mtxOdrBkLocalAsk);
-    std::lock_guard<std::mutex> guard_B(m_mtxOdrBkGlobalBid);
-    std::lock_guard<std::mutex> guard_b(m_mtxOdrBkLocalBid);
+    std::lock_guard<std::mutex> guard_B(m_mtxGlobalBidOrderBook);
+    std::lock_guard<std::mutex> guard_A(m_mtxGlobalAskOrderBook);
+    std::lock_guard<std::mutex> guard_b(m_mtxLocalBidOrderBook);
+    std::lock_guard<std::mutex> guard_a(m_mtxLocalAskOrderBook);
 
-    if (!m_odrBkGlobalAsk.empty())
-        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalAsk);
-    if (!m_odrBkLocalAsk.empty())
-        toWCPtr->sendOrderBook(targetList, m_odrBkLocalAsk);
-    if (!m_odrBkGlobalBid.empty())
-        toWCPtr->sendOrderBook(targetList, m_odrBkGlobalBid);
-    if (!m_odrBkLocalBid.empty())
-        toWCPtr->sendOrderBook(targetList, m_odrBkLocalBid);
+    if (!m_globalBidOrderBook.empty())
+        toWCPtr->sendOrderBook(targetList, m_globalBidOrderBook);
+    if (!m_globalAskOrderBook.empty())
+        toWCPtr->sendOrderBook(targetList, m_globalAskOrderBook);
+    if (!m_localBidOrderBook.empty())
+        toWCPtr->sendOrderBook(targetList, m_localBidOrderBook);
+    if (!m_localAskOrderBook.empty())
+        toWCPtr->sendOrderBook(targetList, m_localAskOrderBook);
 }
 
 /**
@@ -164,20 +164,20 @@ void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
     ulock_t lock;
 
     switch (update.getType()) {
-    case OrderBookEntry::Type::GLB_ASK: {
-        lock = ulock_t(m_mtxOdrBkGlobalAsk);
-        break;
-    }
-    case OrderBookEntry::Type::LOC_ASK: {
-        lock = ulock_t(m_mtxOdrBkLocalAsk);
-        break;
-    }
     case OrderBookEntry::Type::GLB_BID: {
-        lock = ulock_t(m_mtxOdrBkGlobalBid);
+        lock = ulock_t(m_mtxGlobalBidOrderBook);
+        break;
+    }
+    case OrderBookEntry::Type::GLB_ASK: {
+        lock = ulock_t(m_mtxGlobalAskOrderBook);
         break;
     }
     case OrderBookEntry::Type::LOC_BID: {
-        lock = ulock_t(m_mtxOdrBkLocalBid);
+        lock = ulock_t(m_mtxLocalBidOrderBook);
+        break;
+    }
+    case OrderBookEntry::Type::LOC_ASK: {
+        lock = ulock_t(m_mtxLocalAskOrderBook);
         break;
     }
     default:
@@ -190,96 +190,96 @@ void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 /**
 *   @brief  Thread-safely saves the latest order book entry to global bid order book, as the ceiling of all hitherto bid prices.
 */
-void OrderBook::saveOrderBookGlobalBid(const OrderBookEntry& entry)
+void OrderBook::saveGlobalBidOrderBookUpdate(const OrderBookEntry& update)
 {
-    double price = entry.getPrice();
-    std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalBid);
+    double price = update.getPrice();
+    std::lock_guard<std::mutex> guard(m_mtxGlobalBidOrderBook);
 
-    m_odrBkGlobalBid[price][entry.getDestination()] = entry;
+    m_globalBidOrderBook[price][update.getDestination()] = update;
     // discard all higher bid prices, if any:
-    m_odrBkGlobalBid.erase(m_odrBkGlobalBid.upper_bound(price), m_odrBkGlobalBid.end());
+    m_globalBidOrderBook.erase(m_globalBidOrderBook.upper_bound(price), m_globalBidOrderBook.end());
 }
 
 /**
 *   @brief  Thread-safely saves the latest order book entry to global ask order book, as the bottom of all hitherto ask prices.
 */
-void OrderBook::saveOrderBookGlobalAsk(const OrderBookEntry& entry)
+void OrderBook::saveGlobalAskOrderBookUpdate(const OrderBookEntry& update)
 {
-    double price = entry.getPrice();
-    std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalAsk);
+    double price = update.getPrice();
+    std::lock_guard<std::mutex> guard(m_mtxGlobalAskOrderBook);
 
-    m_odrBkGlobalAsk[price][entry.getDestination()] = entry;
+    m_globalAskOrderBook[price][update.getDestination()] = update;
     // discard all lower ask prices, if any:
-    m_odrBkGlobalAsk.erase(m_odrBkGlobalAsk.begin(), m_odrBkGlobalAsk.lower_bound(price));
+    m_globalAskOrderBook.erase(m_globalAskOrderBook.begin(), m_globalAskOrderBook.lower_bound(price));
 }
 
 /**
 *   @brief  Thread-safely saves order book entry to local bid order book at specific price.
-*   @param	entry: The order book entry to be saved.
+*   @param	update: The order book entry to be saved.
 *   @return nothing
 */
-inline void OrderBook::saveOrderBookLocalBid(const OrderBookEntry& entry)
+inline void OrderBook::saveLocalBidOrderBookUpdate(const OrderBookEntry& update)
 {
-    s_saveOdrBkLocal(entry, m_mtxOdrBkLocalBid, m_odrBkLocalBid);
+    s_saveLocalOrderBookUpdate(update, m_mtxLocalBidOrderBook, m_localBidOrderBook);
 }
 
 /**
 *   @brief  Thread-safely saves order book entry to local ask order book at specific price.
-*   @param	entry: The order book entry to be saved.
+*   @param	update: The order book entry to be saved.
 *   @return nothing
 */
-inline void OrderBook::saveOrderBookLocalAsk(const OrderBookEntry& entry)
+inline void OrderBook::saveLocalAskOrderBookUpdate(const OrderBookEntry& update)
 {
-    s_saveOdrBkLocal(entry, m_mtxOdrBkLocalAsk, m_odrBkLocalAsk);
+    s_saveLocalOrderBookUpdate(update, m_mtxLocalAskOrderBook, m_localAskOrderBook);
 }
 
-/*static*/ void OrderBook::s_saveOdrBkLocal(const OrderBookEntry& entry, std::mutex& mtxOdrBkLocal, std::map<double, std::map<std::string, OrderBookEntry>>& odrBkLocal)
+/*static*/ void OrderBook::s_saveLocalOrderBookUpdate(const OrderBookEntry& update, std::mutex& mtxLocalOrderBookk, std::map<double, std::map<std::string, OrderBookEntry>>& localOrderBook)
 {
-    double price = entry.getPrice();
-    std::lock_guard<std::mutex> guard(mtxOdrBkLocal);
+    double price = update.getPrice();
+    std::lock_guard<std::mutex> guard(mtxLocalOrderBookk);
 
-    if (entry.getSize() > 0) {
-        odrBkLocal[price][entry.getDestination()] = entry;
+    if (update.getSize() > 0) {
+        localOrderBook[price][update.getDestination()] = update;
     } else {
-        odrBkLocal[price].erase(entry.getDestination());
-        if (odrBkLocal[price].empty()) {
-            odrBkLocal.erase(price);
+        localOrderBook[price].erase(update.getDestination());
+        if (localOrderBook[price].empty()) {
+            localOrderBook.erase(price);
         }
     }
 }
 
 double OrderBook::getGlobalBidOrderBookFirstPrice() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalBid);
-    if (!m_odrBkGlobalBid.empty())
-        return (--m_odrBkGlobalBid.end())->first;
+    std::lock_guard<std::mutex> guard(m_mtxGlobalBidOrderBook);
+    if (!m_globalBidOrderBook.empty())
+        return (--m_globalBidOrderBook.end())->first;
     else
         return 0.0;
 }
 
 double OrderBook::getGlobalAskOrderBookFirstPrice() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxOdrBkGlobalAsk);
-    if (!m_odrBkGlobalAsk.empty())
-        return m_odrBkGlobalAsk.begin()->first;
+    std::lock_guard<std::mutex> guard(m_mtxGlobalAskOrderBook);
+    if (!m_globalAskOrderBook.empty())
+        return m_globalAskOrderBook.begin()->first;
     else
         return 0.0;
 }
 
 double OrderBook::getLocalBidOrderBookFirstPrice() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxOdrBkLocalBid);
-    if (!m_odrBkLocalBid.empty())
-        return (--m_odrBkLocalBid.end())->first;
+    std::lock_guard<std::mutex> guard(m_mtxLocalBidOrderBook);
+    if (!m_localBidOrderBook.empty())
+        return (--m_localBidOrderBook.end())->first;
     else
         return 0.0;
 }
 
 double OrderBook::getLocalAskOrderBookFirstPrice() const
 {
-    std::lock_guard<std::mutex> guard(m_mtxOdrBkLocalAsk);
-    if (!m_odrBkLocalAsk.empty())
-        return m_odrBkLocalAsk.begin()->first;
+    std::lock_guard<std::mutex> guard(m_mtxLocalAskOrderBook);
+    if (!m_localAskOrderBook.empty())
+        return m_localAskOrderBook.begin()->first;
     else
         return 0.0;
 }

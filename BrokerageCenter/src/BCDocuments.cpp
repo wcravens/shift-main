@@ -199,11 +199,11 @@ double BCDocuments::getOrderBookMarketFirstPrice(bool isBuy, const std::string& 
     }
 }
 
-void BCDocuments::onNewOBEntryForOrderBook(const std::string& symbol, OrderBookEntry&& entry)
+void BCDocuments::onNewOBUpdateForOrderBook(const std::string& symbol, OrderBookEntry&& update)
 {
     if (!s_isSecurityListReady)
         return;
-    m_orderBookBySymbol[symbol]->enqueueOrderBook(std::move(entry));
+    m_orderBookBySymbol[symbol]->enqueueOrderBookUpdate(std::move(update));
 }
 
 void BCDocuments::onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac)
