@@ -11,13 +11,14 @@
 #include <mutex>
 #include <queue>
 #include <string>
+#include <vector>
 
 #include <quickfix/FieldTypes.h>
 
 class StockMarket {
 public:
-    std::list<ExecutionReport> executionReports;
-    std::list<OrderBookEntry> orderBookUpdates;
+    std::vector<ExecutionReport> executionReports;
+    std::vector<OrderBookEntry> orderBookUpdates;
 
     StockMarket() = default;
     StockMarket(const std::string& symbol);
