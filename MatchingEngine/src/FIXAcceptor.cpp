@@ -318,7 +318,7 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
 void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) // override
 {
     FIX::NoPartyIDs numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) {
         cout << "Cannot find Trader ID in NewOrderSingle!" << endl;
         return;
@@ -369,14 +369,14 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         pTraderID = new decltype(traderID);
     }
 
-    message.get(*pOrderID);
-    message.get(*pSymbol);
-    message.get(*pSize);
-    message.get(*pOrderType);
-    message.get(*pPrice);
+    message.getField(*pOrderID);
+    message.getField(*pSymbol);
+    message.getField(*pSize);
+    message.getField(*pOrderType);
+    message.getField(*pPrice);
 
     message.getGroup(1, *pIDGroup);
-    pIDGroup->get(*pTraderID);
+    pIDGroup->getField(*pTraderID);
 
     long milli = TimeSetting::getInstance().pastMilli();
     FIX::UtcTimeStamp now = TimeSetting::getInstance().simulationTimestamp();

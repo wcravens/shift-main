@@ -577,7 +577,7 @@ void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::Sessio
 void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
 {
     FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) {
         cout << "Cannot find any Symbol in SecurityList!" << endl;
         return;
@@ -592,7 +592,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const
         m_stockList.clear();
         for (int i = 1; i <= numOfGroups.getValue(); ++i) {
             message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
-            relatedSymGroup.get(symbol);
+            relatedSymGroup.getField(symbol);
             m_stockList.push_back(symbol.getValue());
         }
 
@@ -668,11 +668,11 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
             pDestination = new decltype(destination);
         }
 
-        message.get(*pOriginalName);
-        message.get(*pSize);
-        message.get(*pPrice);
-        message.get(*pSimulationTime);
-        message.get(*pDestination);
+        message.getField(*pOriginalName);
+        message.getField(*pSize);
+        message.getField(*pPrice);
+        message.getField(*pSimulationTime);
+        message.getField(*pDestination);
 
         std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
@@ -706,7 +706,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
 void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID&) // override
 {
     FIX::NoMDEntries numOfEntries;
-    message.get(numOfEntries);
+    message.getField(numOfEntries);
     if (numOfEntries.getValue() < 1) {
         cout << "Cannot find the Entries group in MarketDataSnapshotFullRefresh!" << endl;
         return;
@@ -813,7 +813,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
 void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
 {
     FIX::NoMDEntries numOfEntries;
-    message.get(numOfEntries);
+    message.getField(numOfEntries);
     if (numOfEntries.getValue() < 1) {
         cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
         return;
@@ -867,13 +867,13 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     }
 
     message.getGroup(1, *pEntryGroup);
-    pEntryGroup->get(*pBookType);
-    pEntryGroup->get(*pOriginalName);
-    pEntryGroup->get(*pPrice);
-    pEntryGroup->get(*pSize);
-    pEntryGroup->get(*pSimulationDate);
-    pEntryGroup->get(*pSimulationTime);
-    pEntryGroup->get(*pDestination);
+    pEntryGroup->getField(*pBookType);
+    pEntryGroup->getField(*pOriginalName);
+    pEntryGroup->getField(*pPrice);
+    pEntryGroup->getField(*pSize);
+    pEntryGroup->getField(*pSimulationDate);
+    pEntryGroup->getField(*pSimulationTime);
+    pEntryGroup->getField(*pDestination);
 
     std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
@@ -947,12 +947,12 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
         pTimestamp = new decltype(timestamp);
     }
 
-    message.get(*pOriginalName);
-    message.get(*pHighPrice);
-    message.get(*pLowPrice);
-    message.get(*pClosePrice);
-    message.get(*pOpenPrice);
-    message.get(*pTimestamp);
+    message.getField(*pOriginalName);
+    message.getField(*pHighPrice);
+    message.getField(*pLowPrice);
+    message.getField(*pClosePrice);
+    message.getField(*pOpenPrice);
+    message.getField(*pTimestamp);
 
     std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
@@ -995,7 +995,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
 void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
     FIX::NoPartyIDs numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) {
         cout << "Cannot find any ClientID in ExecutionReport!" << endl;
         return;
@@ -1042,13 +1042,13 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
         pUserID = new decltype(userID);
     }
 
-    message.get(*pOrderID);
-    message.get(*pStatus);
-    message.get(*pExecutedPrice);
-    message.get(*pExecutedSize);
+    message.getField(*pOrderID);
+    message.getField(*pStatus);
+    message.getField(*pExecutedPrice);
+    message.getField(*pExecutedSize);
 
     message.getGroup(1, *pIDGroup);
-    pIDGroup->get(*pUserID);
+    pIDGroup->getField(*pUserID);
 
     try {
         getClientByUserID(pUserID->getValue())->storeExecution(pOrderID->getValue(), pExecutedSize->getValue(), pExecutedPrice->getValue(), static_cast<shift::Order::Status>(pStatus->getValue()));
@@ -1078,7 +1078,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         std::this_thread::sleep_for(10ms);
 
     FIX::SecurityType type;
-    message.get(type);
+    message.getField(type);
 
     if (type == FIX::SecurityType_COMMON_STOCK) { // Item
 
@@ -1137,17 +1137,17 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
             pShortSize = new decltype(shortSize);
         }
 
-        message.get(*pOriginalName);
-        message.get(*pLongPrice);
-        message.get(*pShortPrice);
-        message.get(*pRealizedPL);
+        message.getField(*pOriginalName);
+        message.getField(*pLongPrice);
+        message.getField(*pShortPrice);
+        message.getField(*pRealizedPL);
 
         message.getGroup(1, *pUserIDGroup);
-        pUserIDGroup->get(*pUserID);
+        pUserIDGroup->getField(*pUserID);
 
         message.getGroup(1, *pSizeGroup);
-        pSizeGroup->get(*pLongSize);
-        pSizeGroup->get(*pShortSize);
+        pSizeGroup->getField(*pLongSize);
+        pSizeGroup->getField(*pShortSize);
 
         // m_originalName_symbol shall be always thread-safe-readonly once after being initialized, so we shall prevent it from accidental insertion here
         if (m_originalName_symbol.find(pOriginalName->getValue()) == m_originalName_symbol.end()) {
@@ -1229,16 +1229,16 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
             pTotalBuyingPower = new decltype(totalBuyingPower);
         }
 
-        message.get(*pTotalRealizedPL);
+        message.getField(*pTotalRealizedPL);
 
         message.getGroup(1, *pUserIDGroup);
-        pUserIDGroup->get(*pUserID);
+        pUserIDGroup->getField(*pUserID);
 
         message.getGroup(1, *pTotalSharesGroup);
-        pTotalSharesGroup->get(*pTotalShares);
+        pTotalSharesGroup->getField(*pTotalShares);
 
         message.getGroup(1, *pTotalBuyingPowerGroup);
-        pTotalBuyingPowerGroup->get(*pTotalBuyingPower);
+        pTotalBuyingPowerGroup->getField(*pTotalBuyingPower);
 
         try {
             getClientByUserID(pUserID->getValue())->storePortfolioSummary(pTotalBuyingPower->getValue(), static_cast<int>(pTotalShares->getValue()), pTotalRealizedPL->getValue());
@@ -1328,21 +1328,21 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
         pStatus = new decltype(status);
     }
 
-    message.get(*pUserID);
-    message.get(*pN);
+    message.getField(*pUserID);
+    message.getField(*pN);
 
     std::vector<shift::Order> waitingList;
 
     for (int i = 1; i <= *pN; i++) {
         message.getGroup(static_cast<unsigned int>(i), *pQuoteSetGroup);
 
-        pQuoteSetGroup->get(*pOrderID);
-        pQuoteSetGroup->get(*pOriginalName);
-        pQuoteSetGroup->get(*pSize);
-        pQuoteSetGroup->get(*pOrderType);
-        pQuoteSetGroup->get(*pPrice);
-        pQuoteSetGroup->get(*pExecutedSize);
-        pQuoteSetGroup->get(*pStatus);
+        pQuoteSetGroup->getField(*pOrderID);
+        pQuoteSetGroup->getField(*pOriginalName);
+        pQuoteSetGroup->getField(*pSize);
+        pQuoteSetGroup->getField(*pOrderType);
+        pQuoteSetGroup->getField(*pPrice);
+        pQuoteSetGroup->getField(*pExecutedSize);
+        pQuoteSetGroup->getField(*pStatus);
 
         int sizeInt = static_cast<int>(pSize->getValue());
 

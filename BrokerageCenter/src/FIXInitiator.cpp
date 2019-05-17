@@ -149,7 +149,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
         return;
 
     FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) {
         cout << "Cannot find any Symbol in SecurityList!" << endl;
         return;
@@ -161,7 +161,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
     auto* docs = BCDocuments::getInstance();
     for (int i = 1; i <= numOfGroups.getValue(); i++) {
         message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
-        relatedSymGroup.get(symbol);
+        relatedSymGroup.getField(symbol);
 
         docs->addSymbol(symbol.getValue());
         docs->attachOrderBookToSymbol(symbol.getValue());
@@ -178,7 +178,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
 void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID&) // override
 {
     FIX::NoMDEntries numOfEntries;
-    message.get(numOfEntries);
+    message.getField(numOfEntries);
     if (numOfEntries.getValue() < 1) {
         cout << "Cannot find the Entries group in MarketDataSnapshotFullRefresh!" << endl;
         return;
@@ -303,7 +303,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
 void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
 {
     FIX::NoMDEntries numOfEntries;
-    message.get(numOfEntries);
+    message.getField(numOfEntries);
     if (numOfEntries.getValue() < 1) {
         cout << "Cannot find the Entries group in MarketDataIncrementalRefresh!" << endl;
         return;
@@ -357,13 +357,13 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     }
 
     message.getGroup(1, *pEntryGroup);
-    pEntryGroup->get(*pBookType);
-    pEntryGroup->get(*pSymbol);
-    pEntryGroup->get(*pPrice);
-    pEntryGroup->get(*pSize);
-    pEntryGroup->get(*pSimulationDate);
-    pEntryGroup->get(*pSimulationTime);
-    pEntryGroup->get(*pDestination);
+    pEntryGroup->getField(*pBookType);
+    pEntryGroup->getField(*pSymbol);
+    pEntryGroup->getField(*pPrice);
+    pEntryGroup->getField(*pSize);
+    pEntryGroup->getField(*pSimulationDate);
+    pEntryGroup->getField(*pSimulationTime);
+    pEntryGroup->getField(*pDestination);
 
     OrderBookEntry entry{
         static_cast<OrderBookEntry::Type>(pBookType->getValue()),
@@ -398,11 +398,11 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
     FIX::ExecType execType;
-    message.get(execType);
+    message.getField(execType);
 
     if (execType == FIX::ExecType_ORDER_STATUS) { // Confirmation Report
         FIX::NoPartyIDs numOfGroups;
-        message.get(numOfGroups);
+        message.getField(numOfGroups);
         if (numOfGroups.getValue() < 1) {
             cout << "Cannot find any ClientID in ExecutionReport!" << endl;
             return;
@@ -469,18 +469,18 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pUserID = new decltype(userID);
         }
 
-        message.get(*pOrderID);
-        message.get(*pStatus);
-        message.get(*pSymbol);
-        message.get(*pOrderType);
-        message.get(*pPrice);
-        message.get(*pConfirmTime);
-        message.get(*pDestination);
-        message.get(*pCurrentSize);
-        message.get(*pServerTime);
+        message.getField(*pOrderID);
+        message.getField(*pStatus);
+        message.getField(*pSymbol);
+        message.getField(*pOrderType);
+        message.getField(*pPrice);
+        message.getField(*pConfirmTime);
+        message.getField(*pDestination);
+        message.getField(*pCurrentSize);
+        message.getField(*pServerTime);
 
         message.getGroup(1, *pIDGroup);
-        pIDGroup->get(*pUserID);
+        pIDGroup->getField(*pUserID);
 
         cout << "Confirmation Report: "
              << pUserID->getValue() << "\t"
@@ -529,7 +529,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
     } else { // FIX::ExecType_TRADE: Execution Report
         FIX::NoPartyIDs numOfGroups;
-        message.get(numOfGroups);
+        message.getField(numOfGroups);
         if (numOfGroups.getValue() < 2) {
             cout << "Cannot find all ClientID in ExecutionReport!" << endl;
             return;
@@ -622,27 +622,27 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pUTCTime2 = new decltype(utcTime2);
         }
 
-        message.get(*pOrderID1);
-        message.get(*pOrderID2);
-        message.get(*pStatus);
-        message.get(*pSymbol);
-        message.get(*pOrderType1);
-        message.get(*pOrderType2);
-        message.get(*pPrice);
-        message.get(*pExecTime);
-        message.get(*pDestination);
-        message.get(*pExecutedSize);
-        message.get(*pServerTime);
+        message.getField(*pOrderID1);
+        message.getField(*pOrderID2);
+        message.getField(*pStatus);
+        message.getField(*pSymbol);
+        message.getField(*pOrderType1);
+        message.getField(*pOrderType2);
+        message.getField(*pPrice);
+        message.getField(*pExecTime);
+        message.getField(*pDestination);
+        message.getField(*pExecutedSize);
+        message.getField(*pServerTime);
 
         message.getGroup(1, *pIDGroup);
-        pIDGroup->get(*pUserID1);
+        pIDGroup->getField(*pUserID1);
         message.getGroup(2, *pIDGroup);
-        pIDGroup->get(*pUserID2);
+        pIDGroup->getField(*pUserID2);
 
         message.getGroup(1, *pTimeGroup);
-        pTimeGroup->get(*pUTCTime1);
+        pTimeGroup->getField(*pUTCTime1);
         message.getGroup(2, *pTimeGroup);
-        pTimeGroup->get(*pUTCTime2);
+        pTimeGroup->getField(*pUTCTime2);
 
         auto printRpts = [](bool rpt1or2, auto userID, auto orderID, auto orderType, auto symbol, auto executedSize, auto price, auto status, auto destination, auto execTime, auto serverTime) {
             cout << (rpt1or2 ? "Report1: " : "Report2: ")

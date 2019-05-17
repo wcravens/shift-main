@@ -523,9 +523,9 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
 void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::SessionID& sessionID) // override
 {
     FIX::Username username;
-    message.get(username);
+    message.getField(username);
     FIX::UserRequestID reqID;
-    message.get(reqID);
+    message.getField(reqID);
 
     auto idCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + username.getValue() + "';"));
     if (idCol.empty()) {
@@ -550,7 +550,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::UserRequest& message, const FIX::Ses
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
 {
     FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) {
         cout << "Cannot find Symbol in MarketDataRequest!" << endl;
         return;
@@ -585,10 +585,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
         pSymbol = new decltype(symbol);
     }
 
-    message.get(*pIsSubscribed);
+    message.getField(*pIsSubscribed);
 
     message.getGroup(1, *pRelatedSymGroup);
-    pRelatedSymGroup->get(*pSymbol);
+    pRelatedSymGroup->getField(*pSymbol);
 
     BCDocuments::getInstance()->manageSubscriptionInOrderBook('1' == pIsSubscribed->getValue(), pSymbol->getValue(), sessionID.getTargetCompID().getValue());
 
@@ -608,7 +608,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
 void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::SessionID& sessionID) // override
 {
     FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) { // make sure there is a symbol in group
         cout << "Cannot find Symbol in RFQRequest" << endl;
         return;
@@ -643,10 +643,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
         pSymbol = new decltype(symbol);
     }
 
-    message.get(*pIsSubscribed);
+    message.getField(*pIsSubscribed);
 
     message.getGroup(1, *pRelatedSymGroup);
-    pRelatedSymGroup->get(*pSymbol);
+    pRelatedSymGroup->getField(*pSymbol);
 
     BCDocuments::getInstance()->manageSubscriptionInCandlestickData('1' == pIsSubscribed->getValue(), pSymbol->getValue(), sessionID.getTargetCompID().getValue());
 
@@ -666,7 +666,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
 void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID&) // override
 {
     FIX::NoPartyIDs numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) {
         cout << "Cannot find userID in NewOrderSingle!" << endl;
         return;
@@ -717,14 +717,14 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         pOrderUserID = new decltype(orderUserID);
     }
 
-    message.get(*pOrderID);
-    message.get(*pOrderSymbol);
-    message.get(*pOrderSize);
-    message.get(*pOrderType);
-    message.get(*pOrderPrice);
+    message.getField(*pOrderID);
+    message.getField(*pOrderSymbol);
+    message.getField(*pOrderSize);
+    message.getField(*pOrderType);
+    message.getField(*pOrderPrice);
 
     message.getGroup(1, *pOrderIDGroup);
-    pOrderIDGroup->get(*pOrderUserID);
+    pOrderIDGroup->getField(*pOrderUserID);
 
     std::string id = pOrderID->getValue();
     std::string symbol = pOrderSymbol->getValue();

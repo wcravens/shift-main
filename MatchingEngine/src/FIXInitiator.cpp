@@ -217,7 +217,7 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
 void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID&) // override
 {
     FIX::NoLinesOfText numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) {
         cout << "Cannot find Text in Notice!" << endl;
         return;
@@ -252,10 +252,10 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
         pText = new decltype(text);
     }
 
-    message.get(*pRequestID);
+    message.getField(*pRequestID);
 
     message.getGroup(1, *pTextGroup);
-    pTextGroup->get(*pText);
+    pTextGroup->getField(*pText);
 
     cout << endl;
     cout << "----- Receive NOTICE -----" << endl;
@@ -288,10 +288,10 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
 void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID&) // override
 {
     FIX::QuoteType ordType; // 0 for Quote / 1 for Trade
-    message.get(ordType);
+    message.getField(ordType);
 
     FIX::NoPartyIDs numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
 
     if ((ordType.getValue() == 0 && numOfGroups.getValue() < 2) || (numOfGroups.getValue() < 1)) {
         cout << "Cannot find enough Party IDs!" << endl;
@@ -351,10 +351,10 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         pSellerID = new decltype(sellerID);
     }
 
-    message.get(*pSymbol);
-    message.get(*pBidPrice);
-    message.get(*pBidSize);
-    message.get(*pTransactTime);
+    message.getField(*pSymbol);
+    message.getField(*pBidPrice);
+    message.getField(*pBidSize);
+    message.getField(*pTransactTime);
 
     message.getGroup(1, *pIDGroup);
     pIDGroup->getField(*pBuyerID);
@@ -373,8 +373,8 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     if (ordType == 0) { // Quote
         order.setType(Order::Type::TRTH_BID); // Update as "bid" from Global
 
-        message.get(*pAskPrice);
-        message.get(*pAskSize);
+        message.getField(*pAskPrice);
+        message.getField(*pAskSize);
 
         message.getGroup(2, *pIDGroup);
         pIDGroup->getField(*pSellerID);

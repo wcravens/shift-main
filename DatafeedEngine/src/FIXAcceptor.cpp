@@ -208,7 +208,7 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
 void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
 {
     FIX::NoRelatedSym numOfGroups;
-    message.get(numOfGroups);
+    message.getField(numOfGroups);
     if (numOfGroups.getValue() < 1) {
         cout << "Cannot find any Symbol in SecurityList!" << endl;
         return;
@@ -263,10 +263,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
         pSymbol = new decltype(symbol);
     }
 
-    message.get(*pRequestID);
-    message.get(*pStartTimeString);
-    message.get(*pEndTimeString);
-    message.get(*pDataChunkPeriod);
+    message.getField(*pRequestID);
+    message.getField(*pStartTimeString);
+    message.getField(*pEndTimeString);
+    message.getField(*pDataChunkPeriod);
 
     cout << "Request info:" << '\n'
          << pRequestID->getValue() << '\n'
@@ -277,7 +277,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 
     for (int i = 1; i <= numOfGroups.getValue(); ++i) {
         message.getGroup(static_cast<unsigned int>(i), *pRelatedSymGroup);
-        pRelatedSymGroup->get(*pSymbol);
+        pRelatedSymGroup->getField(*pSymbol);
 
         std::string symbol = pSymbol->getValue();
         ::cvtRICToDEInternalRepresentation(&symbol);
