@@ -17,8 +17,6 @@
 #include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
 
-#define SHOW_FROMAPP_MSG false
-
 /* static */ std::string FIXAcceptor::s_senderID;
 
 // Predefined constant FIX message fields (to avoid recalculations):
@@ -28,7 +26,6 @@ static const auto& FIXFIELD_SYMBOL_CASH = FIX::Symbol("CASH");
 static const auto& FIXFIELD_SECURITYTYPE_CASH = FIX::SecurityType(FIX::SecurityType_CASH);
 static const auto& FIXFIELD_PARTYROLE_CLIENTID = FIX::PartyRole(FIX::PartyRole_CLIENT_ID);
 static const auto& FIXFIELD_SECURITYTYPE_CS = FIX::SecurityType(FIX::SecurityType_COMMON_STOCK);
-static const auto& FIXFIELD_QUOTESTATUS_ACCEPTED = FIX::QuoteStatus(FIX::QuoteStatus_ACCEPTED);
 static const auto& FIXFIELD_EXECTYPE_ORDER_STATUS = FIX::ExecType(FIX::ExecType_ORDER_STATUS);
 static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType(FIX::ExecType_TRADE);
 static const auto& FIXFIELD_ADVTRANSTYPE_NEW = FIX::AdvTransType(FIX::AdvTransType_NEW);
@@ -512,9 +509,7 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
 void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
 {
     crack(message, sessionID);
-#if SHOW_FROMAPP_MSG
-    synchPrint("\nfromAPP message: " + message + '\n');
-#endif
+    // synchPrint("\nfromAPP message: " + message + '\n');
 }
 
 /**
@@ -791,5 +786,3 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         FIXAcceptor::getInstance()->sendConfirmationReport(report);
     }
 }
-
-#undef SHOW_FROMAPP_MSG
