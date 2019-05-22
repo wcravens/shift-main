@@ -176,6 +176,15 @@ void CandlePlot::clearData(QString symbol)
     setAxisAutoScale(QwtPlot::xBottom);
 }
 
+bool CandlePlot::isDataReady(const QString &symbol)
+{
+    if(m_candle_data[symbol])
+        return true;
+    else
+        return false;
+
+}
+
 /**
  * @brief Method to update scale of x axis when the plot is zoomed.
  * @param long long the clicked time
