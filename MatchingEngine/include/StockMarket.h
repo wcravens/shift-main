@@ -30,6 +30,8 @@ public:
     const std::string& getSymbol() const;
     void setSymbol(const std::string& symbol);
 
+    void sendOrderBookDataToTarget(const std::string& targetID);
+
     void bufNewGlobalOrder(Order&& newOrder);
     void bufNewLocalOrder(Order&& newOrder);
     bool getNextOrder(Order& orderRef);

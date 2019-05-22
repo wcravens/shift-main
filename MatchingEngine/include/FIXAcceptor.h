@@ -43,7 +43,7 @@ public:
     void connectBrokerageCenter(const std::string& configFile);
     void disconnectBrokerageCenter();
 
-    void sendOrderBook(const std::vector<OrderBookEntry>& orderBook);
+    void sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook);
     static void s_setAddGroupIntoMarketDataMsg(FIX::Message& message, const OrderBookEntry& entry);
     void sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderBookUpdates);
     void sendExecutionReports(const std::vector<ExecutionReport>& executionReports);
