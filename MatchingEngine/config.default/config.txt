@@ -6,8 +6,10 @@
 #   any positive integer value is accepted, but no more than 5 is recommended.
 # Any line beginning with # will be ignored.
 
-# Dow Jones Industrial Average (last update: 2018-06-26)
+stock=SPY
+stock=DIA
 
+# Dow Jones Industrial Average (last update: 2018-06-26):
 stock=MMM
 stock=AXP
 stock=AAPL.O
