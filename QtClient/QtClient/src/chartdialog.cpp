@@ -16,7 +16,6 @@ ChartDialog::ChartDialog(QWidget* parent)
     , ui(new Ui::ChartDialog)
     , m_candle_plot(new CandlePlot(this))
     , m_navigation_plot(new NavigationPlot(this))
-    , m_wait_label(new QLabel("Please wait while candlestick data is loading...", this))
 {
     ui->setupUi(this);
 
@@ -24,12 +23,6 @@ ChartDialog::ChartDialog(QWidget* parent)
     setWindowFlags(Qt::Window);
     this->setWindowTitle("Candlestick Chart - SHIFT Beta");
 
-    QFont labelFont;
-    labelFont.setPointSize(30);
-    m_wait_label->setFont(labelFont);
-
-    ui->ChartLayout->addWidget(m_wait_label);
-    ui->ChartLayout->setAlignment(m_wait_label, Qt::AlignCenter);
     ui->ChartLayout->addWidget(m_candle_plot);
     ui->ChartLayout->addWidget(m_navigation_plot);
 
@@ -112,8 +105,6 @@ ChartDialog::ChartDialog(QWidget* parent)
  */
 void ChartDialog::refresh()
 {
-    if(!m_candle_plot->isDataReady(m_current_symbol))
-        return;
     m_candle_plot->refresh(m_current_symbol);
     m_navigation_plot->refresh(m_current_symbol);
 }
@@ -167,7 +158,7 @@ void ChartDialog::initializeChart()
     m_timer.start();
 }
 
-/**QDialog
+/**
  * @brief Method to check whether the ticker data is from Nasdaq.
  * @param std::string: ticker name to be checked.
  * @return bool: true if it's from nasdaq, vice versa.
@@ -189,28 +180,6 @@ bool ChartDialog::isFromNasdaq(QString name)
  */
 void ChartDialog::setTimePeriod(const int &index)
 {
-    if(!m_candle_plot->isDataReady(m_current_symbol))
-    {
-        m_wait_label->setHidden(false);
-        m_candle_plot->setHidden(true);
-        m_navigation_plot->setHidden(true);
-        ui->Zoom->setHidden(true);
-        ui->ZoomOptions->setHidden(true);
-        ui->TimeZoneLabel->setHidden(true);
-        ui->Frequency->setHidden(true);
-        ui->FrequencyOptions->setHidden(true);
-        return;
-    }
-
-    m_wait_label->setHidden(true);
-    m_candle_plot->setHidden(false);
-    m_navigation_plot->setHidden(false);
-    ui->Zoom->setHidden(false);
-    ui->ZoomOptions->setHidden(false);
-    ui->TimeZoneLabel->setHidden(false);
-    ui->Frequency->setHidden(false);
-    ui->FrequencyOptions->setHidden(false);
-
     if (!index && !m_current_interval_index) {
         m_candle_plot->setInterval(m_interval_options[m_current_interval_index]);
     } else if (index != m_current_interval_index) {

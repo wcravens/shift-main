@@ -5,7 +5,6 @@
 #include "include/stocklistfiltermodel.h"
 
 #include <QDialog>
-#include <QLabel>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QSortFilterProxyModel>
@@ -71,7 +70,6 @@ private:
     Ui::ChartDialog* ui;
     CandlePlot *m_candle_plot;
     NavigationPlot *m_navigation_plot;
-    QLabel* m_wait_label;
 
     QStringListModel* m_stock_list_model; //!< Model to be used in QTableView stocklist.
     StocklistFilterModel* m_filter_model; //!< Filter Model used to implement progressive search feature.
