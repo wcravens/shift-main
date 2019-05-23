@@ -98,7 +98,15 @@ void FIXAcceptor::sendOrderBook(const std::vector<OrderBookEntry>& orderBook)
     message.setField(FIX::Symbol(orderBook.begin()->getSymbol()));
 
     for (const auto& entry : orderBook) {
-        s_setAddGroupIntoMarketDataMsg(message, entry);
+        auto utc = entry.getUTCTime();
+
+        shift::fix::addFIXGroup<FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries>(message,
+            FIX::MDEntryType(entry.getType()),
+            FIX::MDEntryPx(entry.getPrice()),
+            FIX::MDEntrySize(entry.getSize()),
+            FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())),
+            FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)),
+            FIX::MDMkt(entry.getDestination()));
     }
 
     {
@@ -109,19 +117,6 @@ void FIXAcceptor::sendOrderBook(const std::vector<OrderBookEntry>& orderBook)
             FIX::Session::sendToTarget(message);
         }
     }
-}
-
-/*static*/ inline void FIXAcceptor::s_setAddGroupIntoMarketDataMsg(FIX::Message& message, const OrderBookEntry& entry)
-{
-    auto utc = entry.getUTCTime();
-
-    shift::fix::addFIXGroup<FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries>(message,
-        FIX::MDEntryType(entry.getType()),
-        FIX::MDEntryPx(entry.getPrice()),
-        FIX::MDEntrySize(entry.getSize()),
-        FIX::MDEntryDate(FIX::UtcDateOnly(utc.getDate(), utc.getMonth(), utc.getYear())),
-        FIX::MDEntryTime(FIX::UtcTimeOnly(utc.getTimeT(), utc.getFraction(6), 6)),
-        FIX::MDMkt(entry.getDestination()));
 }
 
 /*

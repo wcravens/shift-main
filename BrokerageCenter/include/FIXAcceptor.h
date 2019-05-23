@@ -57,7 +57,6 @@ public:
 
     void sendLastPrice2All(const Transaction& transac);
     void sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBook);
-    static void s_setAddGroupIntoMarketDataMsg(FIX::Message& message, const OrderBookEntry& entry);
     void sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update);
     void sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
 

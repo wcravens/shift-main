@@ -134,6 +134,17 @@ void FIXAcceptor::sendLastPrice2All(const Transaction& transac)
     }
 }
 
+static inline void s_addGroupToMsg(FIX::Message& message, const OrderBookEntry& entry)
+{
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries>(message,
+        FIX::MDEntryType(entry.getType()),
+        FIX::MDEntryPx(entry.getPrice()),
+        FIX::MDEntrySize(entry.getSize()),
+        FIX::MDEntryDate(entry.getDate()),
+        FIX::MDEntryTime(entry.getTime()),
+        FIX::MDMkt(entry.getDestination()));
+}
+
 /**
  * @brief Send complete order book by type
  */
@@ -153,12 +164,12 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
     if (obt == OrderBookEntry::Type::GLB_BID || obt == OrderBookEntry::Type::LOC_BID) { // reverse the global/local bid order book order
         for (auto ri = orderBook.crbegin(); ri != orderBook.crend(); ++ri) {
             for (const auto& j : ri->second)
-                s_setAddGroupIntoMarketDataMsg(message, j.second);
+                ::s_addGroupToMsg(message, j.second);
         }
     } else { // *_ASK
         for (const auto& i : orderBook) {
             for (const auto& j : i.second)
-                s_setAddGroupIntoMarketDataMsg(message, j.second);
+                ::s_addGroupToMsg(message, j.second);
         }
     }
 
@@ -166,17 +177,6 @@ void FIXAcceptor::sendOrderBook(const std::vector<std::string>& targetList, cons
         header.setField(FIX::TargetCompID(targetID));
         FIX::Session::sendToTarget(message);
     }
-}
-
-/*static*/ inline void FIXAcceptor::s_setAddGroupIntoMarketDataMsg(FIX::Message& message, const OrderBookEntry& entry)
-{
-    shift::fix::addFIXGroup<FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries>(message,
-        FIX::MDEntryType(entry.getType()),
-        FIX::MDEntryPx(entry.getPrice()),
-        FIX::MDEntrySize(entry.getSize()),
-        FIX::MDEntryDate(entry.getDate()),
-        FIX::MDEntryTime(entry.getTime()),
-        FIX::MDMkt(entry.getDestination()));
 }
 
 /**
