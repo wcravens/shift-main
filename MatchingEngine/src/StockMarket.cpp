@@ -39,17 +39,6 @@ void StockMarket::operator()()
             while (m_spinlock.test_and_set())
                 continue;
 
-            /*
-            other side:
-
-            while (m_spinlock.test_and_set())
-                continue;
-
-            ....
-
-            m_spinlock.clear();
-            */
-
             switch (nextOrder.getType()) {
 
             case Order::Type::LIMIT_BUY: {
@@ -166,6 +155,56 @@ const std::string& StockMarket::getSymbol() const
 void StockMarket::setSymbol(const std::string& symbol)
 {
     m_symbol = symbol;
+}
+
+void StockMarket::sendOrderBookDataToTarget(const std::string& targetID)
+{
+    // Temporary vectors to hold order book entries
+    std::vector<OrderBookEntry> globalBids;
+    std::vector<OrderBookEntry> globalAsks;
+    std::vector<OrderBookEntry> localBids;
+    std::vector<OrderBookEntry> localAsks;
+
+    // Spinlock implementation:
+    // It is better than a standard lock in this scenario, since
+    // this function will only be executed a couple of times during a simulation
+    while (m_spinlock.test_and_set())
+        continue;
+
+    // Requirements:
+    // - The first order book entry must have a price <= 0.0. This will signal the BC it
+    // needs to clear its current version of the order book before accepting new entries
+    // - Order book entries are sent from worst to best price (in reverse order) so
+    // that the BC can use the same update procedure as normal order book updates
+
+    auto now = TimeSetting::getInstance().simulationTimestamp();
+
+    globalBids.push_back({ OrderBookEntry::Type::GLB_BID, m_symbol, 0.0, 0, now });
+    for (auto rit = m_globalBids.rbegin(); rit != m_globalBids.rend(); ++rit) {
+        globalBids.push_back({ OrderBookEntry::Type::GLB_BID, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now });
+    }
+
+    globalAsks.push_back({ OrderBookEntry::Type::GLB_ASK, m_symbol, 0.0, 0, now });
+    for (auto rit = m_globalAsks.rbegin(); rit != m_globalAsks.rend(); ++rit) {
+        globalAsks.push_back({ OrderBookEntry::Type::GLB_ASK, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now });
+    }
+
+    localBids.push_back({ OrderBookEntry::Type::LOC_BID, m_symbol, 0.0, 0, now });
+    for (auto rit = m_localBids.rbegin(); rit != m_localBids.rend(); ++rit) {
+        localBids.push_back({ OrderBookEntry::Type::LOC_BID, m_symbol, rit->getPrice(), rit->getSize(), now });
+    }
+
+    localAsks.push_back({ OrderBookEntry::Type::LOC_ASK, m_symbol, 0.0, 0, now });
+    for (auto rit = m_localAsks.rbegin(); rit != m_localAsks.rend(); ++rit) {
+        localAsks.push_back({ OrderBookEntry::Type::LOC_ASK, m_symbol, rit->getPrice(), rit->getSize(), now });
+    }
+
+    FIXAcceptor::getInstance()->sendOrderBook(targetID, globalBids);
+    FIXAcceptor::getInstance()->sendOrderBook(targetID, globalAsks);
+    FIXAcceptor::getInstance()->sendOrderBook(targetID, localBids);
+    FIXAcceptor::getInstance()->sendOrderBook(targetID, localAsks);
+
+    m_spinlock.clear();
 }
 
 void StockMarket::bufNewGlobalOrder(Order&& newOrder)

@@ -86,13 +86,14 @@ void FIXAcceptor::disconnectBrokerageCenter()
 /*
  * @brief Send complete order book to brokers
  */
-void FIXAcceptor::sendOrderBook(const std::vector<OrderBookEntry>& orderBook)
+void FIXAcceptor::sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook)
 {
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
+    header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
 
     message.setField(FIX::Symbol(orderBook.begin()->getSymbol()));
@@ -109,14 +110,7 @@ void FIXAcceptor::sendOrderBook(const std::vector<OrderBookEntry>& orderBook)
             FIX::MDMkt(entry.getDestination()));
     }
 
-    {
-        std::lock_guard<std::mutex> lock(m_mtxTargetSet);
-
-        for (const auto& targetID : m_targetSet) {
-            header.setField(FIX::TargetCompID(targetID));
-            FIX::Session::sendToTarget(message);
-        }
-    }
+    FIX::Session::sendToTarget(message);
 }
 
 /*
@@ -214,6 +208,7 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
 void FIXAcceptor::sendSecurityList(const std::string& targetID)
 {
     FIX50SP2::SecurityList message;
+
     FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
@@ -278,9 +273,11 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 
     sendSecurityList(targetID);
-    // TODO: We should also send the current order books
-    // of all stocks for all new connecting targets
-    // (Implementing this without adding new locks will be tricky)
+
+    // Send current order book data of all securities to connecting target
+    // for (auto& stockMarketEntry : StockMarketList::getInstance()) {
+    //     stockMarketEntry.second.sendOrderBookDataToTarget(targetID);
+    // }
 
     {
         std::lock_guard<std::mutex> lock(m_mtxTargetSet);
