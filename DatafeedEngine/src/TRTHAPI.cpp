@@ -261,7 +261,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
 
     // HTTP client configuration
     web::http::client::http_client_config hcconf;
-    hcconf.set_timeout(10min);
+    hcconf.set_timeout(15min);
 
     web::json::value jCred;
     utility::ifstream_t{ m_cfgDir + CSTR_TRTHLOGIN_JSN } >> shift::crypto::Decryptor{ m_key } >> jCred;
