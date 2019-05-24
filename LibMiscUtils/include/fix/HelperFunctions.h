@@ -21,6 +21,12 @@ namespace fix {
         }
     } // namespace details
 
+    /**
+     * @brief Create a specified type of FIX group and add all FIX field object `items` 
+     *        into that.
+     * @param _GroupType: the type of FIX group
+     * @param items: FIX field objects
+     */
     template <typename _GroupType, typename... _GroupItemTypes>
     _GroupType createFIXGroup(_GroupItemTypes&&... items)
     {
@@ -28,13 +34,20 @@ namespace fix {
         return details::createFIXGroupImpl(g, std::forward<_GroupItemTypes>(items)...);
     }
 
+    /**
+     * @brief Create a specified type of FIX group and add all FIX field objects `items` 
+     *        into that, add the group into the FIX message `msg`
+     * @param _GroupType: the type of FIX group
+     * @param msg: FIX message
+     * @param item: FIX field objects
+     */
     template <typename _GroupType, typename _MsgType, typename... _GroupItemTypes>
     void addFIXGroup(_MsgType& msg, _GroupItemTypes&&... items)
     {
         msg.addGroup(createFIXGroup<_GroupType>(std::forward<_GroupItemTypes>(items)...));
     }
 
-    namespace experiment {
+    namespace experimental {
         template <typename _MsgType>
         void getFIXField(const _MsgType& msg)
         {
