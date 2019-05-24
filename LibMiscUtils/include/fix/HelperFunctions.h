@@ -33,5 +33,45 @@ namespace fix {
     {
         msg.addGroup(createFIXGroup<_GroupType>(std::forward<_GroupItemTypes>(items)...));
     }
+
+    namespace experiment {
+        template <typename _MsgType>
+        void getFIXField(const _MsgType& msg)
+        {
+            return;
+        }
+
+        template <typename _MsgType, typename _FieldType, typename... _FieldTypes>
+        void getFIXField(const _MsgType& msg, _FieldType& f, _FieldTypes&... items)
+        {
+            msg.getField(f);
+            getFIXField(msg, items...);
+        }
+
+        /** 
+         * @brief get fields from message
+         * @param msg: FIX message
+         * @param items: FIX field objects
+         */
+        template <typename _MsgType, typename... _FieldTypes>
+        void getFIXFields(const _MsgType& msg, _FieldTypes&... items)
+        {
+            getFIXField(msg, items...);
+        }
+
+        /**
+         * @brief get fields from one group inside the message
+         * @param noOfGroup: the no. of group in the message
+         * @param msg: FIX message
+         * @param items: FIX field objects
+         */
+        template <unsigned int noOfGroups, typename _GroupType, typename _MsgType, typename... _FieldTypes>
+        void getFIXFields(const _MsgType& msg, _FieldTypes&... items)
+        {
+            _GroupType g;
+            msg.getGroup(noOfGroups, g);
+            getFIXField(g, items...);
+        }
+    } // namespace experiment
 } // fix
 } // shift
