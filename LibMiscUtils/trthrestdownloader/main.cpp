@@ -66,10 +66,10 @@ int main(int argc, char* argv[])
     namespace po = boost::program_options;
     po::options_description desc("\nUSAGE: ./TRTHRESTDownloader [options] <args>\n\n\tThis is the TRTH Downloader utility application.\n\t"
                                  "If multiple RICs were requested, they are consecutively compacted in the single same CSV file.\n\t"
-                                 "Please configure the 'cred.json'(encrypted) and 'extract_raw.json' files to customize your downloads.\n\nOPTIONS");
+                                 "Please configure the 'cred.json'(encrypted) and 'extractRaw.json' files to customize your downloads.\n\nOPTIONS");
     desc.add_options() //
         (CSTR_HELP ",h", "produce help message") //
-        (CSTR_JSONDIR ",j", po::value<std::string>(), "shared directory of cred.json and extract_raw.json (default: ./)") //
+        (CSTR_JSONDIR ",j", po::value<std::string>(), "shared directory of cred.json and extractRaw.json (default: ./)") //
         (CSTR_KEY ",k", po::value<std::string>(), "crypto key of cred.json") //
         (CSTR_OUTPUT ",o", po::value<std::string>(), "name of the output file without extension (default: raw_data)") //
         (CSTR_UNZIP ",u", "unzip the output") //
@@ -158,10 +158,10 @@ int main(int argc, char* argv[])
 
     cout << endl;
 
-    utility::ifstream_t infExtract(strJsonDir + "extract_raw.json");
+    utility::ifstream_t infExtract(strJsonDir + "extractRaw.json");
     if (!infExtract.good()) {
         cout << COLOR_ERROR "ERROR: "
-             << "Cannot successfully access extract_raw.json!" << NO_COLOR << endl;
+             << "Cannot successfully access extractRaw.json!" << NO_COLOR << endl;
         cout << desc << endl;
         return 3;
     }
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
         infExtract >> cmdExtract;
     } catch (const web::json::json_exception& e) {
         cerr << COLOR_ERROR "ERROR: "
-             << "Please check and correct extract_raw.json" << NO_COLOR << endl;
+             << "Please check and correct extractRaw.json" << NO_COLOR << endl;
         return 4;
     }
     // cout << "##########################################################" << endl;

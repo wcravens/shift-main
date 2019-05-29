@@ -35,7 +35,7 @@ add_executable(TRTHRESTDownloader
                ${PROJECT_SOURCE_DIR}/trthrestdownloader/tools/read_cols_2.py
                ${PROJECT_SOURCE_DIR}/trthrestdownloader/tools/read_cols.py
                ${PROJECT_SOURCE_DIR}/trthrestdownloader/cred.json
-               ${PROJECT_SOURCE_DIR}/trthrestdownloader/extract_raw.json
+               ${PROJECT_SOURCE_DIR}/trthrestdownloader/extractRaw.json
                ${PROJECT_SOURCE_DIR}/trthrestdownloader/main.cpp
                ${PROJECT_SOURCE_DIR}/trthrestdownloader/README.txt)
 
@@ -52,9 +52,9 @@ configure_file(${PROJECT_SOURCE_DIR}/trthrestdownloader/cred.json
                ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/cred.json
                COPYONLY)
 
-# extract_raw.json
-configure_file(${PROJECT_SOURCE_DIR}/trthrestdownloader/extract_raw.json
-               ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/extract_raw.json
+# extractRaw.json
+configure_file(${PROJECT_SOURCE_DIR}/trthrestdownloader/extractRaw.json
+               ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/extractRaw.json
                COPYONLY)
 
 ###############################################################################

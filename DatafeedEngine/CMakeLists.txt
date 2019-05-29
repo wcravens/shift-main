@@ -17,7 +17,7 @@ IF(EXISTS ${PROJECT_SOURCE_DIR}/config)
     set(CONFIG
         ${PROJECT_SOURCE_DIR}/config/acceptor.cfg
         ${PROJECT_SOURCE_DIR}/config/dbLogin.txt
-        ${PROJECT_SOURCE_DIR}/config/extract_raw.json
+        ${PROJECT_SOURCE_DIR}/config/extractRaw.json
         ${PROJECT_SOURCE_DIR}/config/trthLogin.json
     )
 endif(EXISTS ${PROJECT_SOURCE_DIR}/config)
@@ -25,7 +25,7 @@ endif(EXISTS ${PROJECT_SOURCE_DIR}/config)
 set(CONFIGDEFAULT
     ${PROJECT_SOURCE_DIR}/config.default/acceptor.cfg
     ${PROJECT_SOURCE_DIR}/config.default/dbLogin.txt
-    ${PROJECT_SOURCE_DIR}/config.default/extract_raw.json
+    ${PROJECT_SOURCE_DIR}/config.default/extractRaw.json
     ${PROJECT_SOURCE_DIR}/config.default/trthLogin.json
 )
 

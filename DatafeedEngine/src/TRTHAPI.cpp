@@ -25,7 +25,7 @@ using namespace std::chrono_literals;
 #define CSTR_TRTHLOGIN_JSN \
     "trthLogin.json"
 #define CSTR_EXTRACTRAW_JSN \
-    "extract_raw.json"
+    "extractRaw.json"
 
 /**@brief Formulate a CSV file name */
 static inline std::string createCSVName(const std::string& symbol, const std::string& date /*yyyy-mm-dd*/)
@@ -286,7 +286,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     const auto c_credToken = jAuth["value"].as_string();
     //cout << "\n\nAuth Token:\n" << c_credToken << endl;
 
-    // cout << "Extract extract_raw.json..." << endl;
+    // cout << "Extract extractRaw.json..." << endl;
     web::json::value jExtr;
     utility::ifstream_t{ m_cfgDir + CSTR_EXTRACTRAW_JSN } >> jExtr;
 
