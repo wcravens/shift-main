@@ -134,7 +134,7 @@ void RequestsProcessorPerTarget::processRequests()
 
         switch (flag) {
         case PTS::EXISTS: {
-            cout << "\033[0;32m" << std::setw(10 + 9) << std::right << tableName << " already exists." NO_COLOR << endl;
+            cout << "\033[0;32m" << std::setw(10 + 9) << std::right << symbols[idx] << " (" << marketReq.getDate() << ") already exists." NO_COLOR << endl;
             proms[idx].set_value(isPerfect);
         } break;
 
@@ -162,7 +162,7 @@ void RequestsProcessorPerTarget::processRequests()
     } // for
 
     for (auto idx : requestedSymbolsIndexes) {
-        cout << "\033[0;33m" << std::setw(10 + 9) << std::right << symbols[idx] << '(' << marketReq.getDate() << ") is absent." NO_COLOR << endl;
+        cout << "\033[0;33m" << std::setw(10 + 9) << std::right << symbols[idx] << " (" << marketReq.getDate() << ") is absent." NO_COLOR << endl;
     }
 
     for (auto idx : requestedSymbolsIndexes) {
