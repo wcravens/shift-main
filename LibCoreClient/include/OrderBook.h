@@ -34,7 +34,8 @@ public:
     std::vector<shift::OrderBookEntry> getOrderBook(int maxLevel);
     std::vector<shift::OrderBookEntry> getOrderBookWithDestination();
 
-    void setOrderBook(const std::list<shift::OrderBookEntry>& entries);
+    void setOrderBook(std::list<shift::OrderBookEntry>&& entries);
+    void resetOrderBook();
 
     virtual void update(shift::OrderBookEntry&& entry) = 0;
 

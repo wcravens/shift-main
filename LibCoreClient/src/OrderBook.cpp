@@ -123,10 +123,19 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBookWithDestination
  * @brief Method to set the input list of entries into m_entries of current order book.
  * @param entries A list of shift::OrderBookEntry including all entries to be inserted.
  */
-void shift::OrderBook::setOrderBook(const std::list<shift::OrderBookEntry>& entries)
+void shift::OrderBook::setOrderBook(std::list<shift::OrderBookEntry>&& entries)
 {
     std::lock_guard<std::mutex> guard(m_mutex);
-    m_entries = entries;
+    m_entries = std::move(entries);
+}
+
+/**
+ * @brief Method to reset the m_entries of current order book (clear it).
+ */
+void shift::OrderBook::resetOrderBook()
+{
+    std::lock_guard<std::mutex> guard(m_mutex);
+    m_entries.clear();
 }
 
 /**

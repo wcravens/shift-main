@@ -1,5 +1,8 @@
 #include "OrderBookLocalBid.h"
 
+#include <cmath>
+#include <limits>
+
 /**
  * @brief Constructor with all members preset.
  * @param symbol string value to be set in m_symbol
@@ -23,7 +26,7 @@ void shift::OrderBookLocalBid::update(shift::OrderBookEntry&& entry)
         if (it->getPrice() < entry.getPrice())
             break;
 
-        if (it->getPrice() == entry.getPrice()) {
+        if (std::fabs(it->getPrice() - entry.getPrice()) < std::numeric_limits<double>::epsilon()) {
             if (!entry.getSize()) {
                 it = m_entries.erase(it);
             } else {

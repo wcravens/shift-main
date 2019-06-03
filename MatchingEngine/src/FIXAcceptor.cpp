@@ -275,9 +275,9 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     sendSecurityList(targetID);
 
     // Send current order book data of all securities to connecting target
-    // for (auto& stockMarketEntry : StockMarketList::getInstance()) {
-    //     stockMarketEntry.second.sendOrderBookDataToTarget(targetID);
-    // }
+    for (auto& stockMarketEntry : StockMarketList::getInstance()) {
+        stockMarketEntry.second.sendOrderBookDataToTarget(targetID);
+    }
 
     {
         std::lock_guard<std::mutex> lock(m_mtxTargetSet);

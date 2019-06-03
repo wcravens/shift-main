@@ -783,7 +783,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     }
 
     try {
-        m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->setOrderBook(orderBook);
+        m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->setOrderBook(std::move(orderBook));
     } catch (std::exception e) {
         debugDump(symbol + " doesn't work");
     }
@@ -877,14 +877,17 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
 
     std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
-    OrderBookEntry entry{
-        pPrice->getValue(),
-        static_cast<int>(pSize->getValue()),
-        pDestination->getValue(),
-        s_convertToTimePoint(pSimulationDate->getValue(), pSimulationTime->getValue())
-    };
-
-    m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->update(std::move(entry));
+    if (pPrice->getValue() > 0.0) {
+        OrderBookEntry entry{
+            pPrice->getValue(),
+            static_cast<int>(pSize->getValue()),
+            pDestination->getValue(),
+            s_convertToTimePoint(pSimulationDate->getValue(), pSimulationTime->getValue())
+        };
+        m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->update(std::move(entry));
+    } else {
+        m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->resetOrderBook();
+    }
 
     if (prevCnt) { // > 1 threads
         delete pEntryGroup;
