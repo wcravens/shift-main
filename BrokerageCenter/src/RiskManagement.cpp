@@ -31,9 +31,9 @@ RiskManagement::RiskManagement(const std::string& userID, double buyingPower)
     , m_porfolioSummary(buyingPower)
     , m_pendingShortCashAmount(0.0)
 {
-    // Create "empty" waiting list:
-    // This is required to be able to send empty waiting lists to clients,
-    // which will ignore any orders in the waiting list with size 0.
+    // create "empty" waiting list:
+    // this is required to be able to send empty waiting lists to clients,
+    // which will ignore any orders in the waiting list with size 0
     m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", userID };
 }
 
@@ -42,9 +42,9 @@ RiskManagement::RiskManagement(const std::string& userID, double buyingPower, do
     , m_porfolioSummary(buyingPower, holdingBalance, borrowedBalance, totalPL, totalShares)
     , m_pendingShortCashAmount(0.0)
 {
-    // Create "empty" waiting list:
-    // This is required to be able to send empty waiting lists to clients,
-    // which will ignore any orders in the waiting list with size 0.
+    // create "empty" waiting list:
+    // this is required to be able to send empty waiting lists to clients,
+    // which will ignore any orders in the waiting list with size 0
     m_waitingList["0"] = { Order::Type::LIMIT_BUY, "0", 0, 0.0, "0", userID };
 }
 

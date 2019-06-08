@@ -24,7 +24,7 @@ public:
 
     bool operator==(const Order& other);
 
-    // Getters
+    // getters
     const std::string& getSymbol() const;
     const std::string& getTraderID() const;
     const std::string& getOrderID() const;
@@ -35,7 +35,7 @@ public:
     const std::string& getDestination() const;
     const FIX::UtcTimeStamp& getTime() const;
 
-    // Setters
+    // setters
     void setSymbol(const std::string& symbol);
     void setMilli(long milli);
     void setPrice(double price);

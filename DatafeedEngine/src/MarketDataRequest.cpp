@@ -16,9 +16,8 @@ MarketDataRequest::MarketDataRequest(std::string&& requestID, std::vector<std::s
 }
 
 /**
- * @brief method to get requestID for current MarketDataRequest
- * @param None
- * @return the request id for the current MarketDataRequest.
+ * @brief Method to get requestID for current MarketDataRequest.
+ * @return The request id for the current MarketDataRequest.
  */
 const std::string& MarketDataRequest::getRequestID() const
 {
@@ -26,9 +25,8 @@ const std::string& MarketDataRequest::getRequestID() const
 }
 
 /**
- * @brief method to get a list of symbols for current MarketDataRequest
- * @param None
- * @return a vector with all symbols.
+ * @brief Method to get a list of symbols for current MarketDataRequest.
+ * @return A vector with all symbols.
  */
 const std::vector<std::string>& MarketDataRequest::getSymbols() const
 {
@@ -36,9 +34,8 @@ const std::vector<std::string>& MarketDataRequest::getSymbols() const
 }
 
 /**
- * @brief method to get start time for current MarketDataRequest
- * @param None
- * @return start time for the current MarketDataRequest
+ * @brief Method to get start time for current MarketDataRequest.
+ * @return Start time for the current MarketDataRequest
  */
 const boost::posix_time::ptime& MarketDataRequest::getStartTime() const
 {
@@ -46,9 +43,8 @@ const boost::posix_time::ptime& MarketDataRequest::getStartTime() const
 }
 
 /**
- * @brief method to get end time for current MarketDataRequest
- * @param None
- * @return end time for the current MarketDataRequest
+ * @brief Method to get end time for current MarketDataRequest.
+ * @return End time for the current MarketDataRequest
  */
 const boost::posix_time::ptime& MarketDataRequest::getEndTime() const
 {
@@ -61,9 +57,8 @@ int MarketDataRequest::getNumSecondsPerDataChunk() const
 }
 
 /**
- * @brief method to get requested date for current MarketDataRequest
- * @param None
- * @return requested date for the current MarketDataRequest
+ * @brief Method to get requested date for current MarketDataRequest.
+ * @return Requested date for the current MarketDataRequest
  */
 std::string MarketDataRequest::getDate() const
 {

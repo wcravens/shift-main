@@ -1,7 +1,3 @@
-/*
-** DBConnector maintains the connection between BC and database
-*/
-
 #pragma once
 
 #include <mutex>
@@ -15,7 +11,7 @@
 
 class DBConnector {
 public:
-    static bool s_isPortfolioDBReadOnly; // E.g. useful for research purpose when true
+    static bool s_isPortfolioDBReadOnly; // e.g. useful for research purpose when true
     static const std::string s_sessionID;
 
     ~DBConnector();
@@ -31,7 +27,7 @@ public:
 
     bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
-    /*@brief Inserts trade history into the table used to save the trading records*/
+    /*@ brief Inserts trade history into the table used to save the trading records. */
     bool insertTradingRecord(const TradingRecord& trade);
 
 protected:
@@ -39,6 +35,6 @@ protected:
     mutable std::mutex m_mtxPSQL;
 
 private:
-    DBConnector(); /* singleton pattern */
+    DBConnector(); // singleton pattern
     std::unordered_map<std::string, std::string> m_loginInfo;
 };

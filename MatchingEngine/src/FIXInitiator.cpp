@@ -14,7 +14,7 @@
 /* static */ std::string FIXInitiator::s_senderID;
 /* static */ std::string FIXInitiator::s_targetID;
 
-// Predefined constant FIX message fields (to avoid recalculations):
+// predefined constant FIX message fields (to avoid recalculations):
 static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
 static const auto& FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT = FIX::SubscriptionRequestType(FIX::SubscriptionRequestType_SNAPSHOT);
 static const auto& FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH = FIX::MarketDepth(0);
@@ -91,7 +91,7 @@ void FIXInitiator::disconnectDatafeedEngine()
 }
 
 /**
- * @brief Send security list and timestamps to Datafeed Engine
+ * @brief Send security list and timestamps to Datafeed Engine.
  */
 bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols, int numSecondsPerDataChunk)
 {
@@ -126,7 +126,7 @@ bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
         cout << endl
              << COLOR_WARNING "TRTH has no data for request [" << m_lastMarketDataRequestID.substr(0, pos) << "]! Nothing to be sent." NO_COLOR << endl;
 
-        m_lastMarketDataRequestID.clear(); // (reset for next use, if necessary, but this might seldomly happen)
+        m_lastMarketDataRequestID.clear(); // reset for next use, if necessary, but this might seldomly happen
         return false;
     }
     cout << endl
@@ -137,7 +137,7 @@ bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
 }
 
 /**
- * @brief Send market data request to Datafeed Engine
+ * @brief Send market data request to Datafeed Engine.
  */
 void FIXInitiator::sendNextDataRequest()
 {
@@ -150,18 +150,18 @@ void FIXInitiator::sendNextDataRequest()
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataRequest));
 
     message.setField(FIX::MDReqID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // Required by FIX
-    message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // Required by FIX
+    message.setField(::FIXFIELD_SUBSCRIPTIONREQUESTTYPE_SNAPSHOT); // required by FIX
+    message.setField(::FIXFIELD_MARKETDEPTH_FULL_BOOK_DEPTH); // required by FIX
 
     shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(message, ::FIXFIELD_MDENTRYTYPE_BID);
     shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(message, ::FIXFIELD_MDENTRYTYPE_OFFER);
-    shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoRelatedSym>(message, ::FIXFIELD_FAKE_SYMBOL); // Empty, not used
+    shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoRelatedSym>(message, ::FIXFIELD_FAKE_SYMBOL); // empty, not used
 
     FIX::Session::sendToTarget(message);
 }
 
 /**
- * @brief Store order in Database Engine after confirmed
+ * @brief Store order in Database Engine after confirmed.
  */
 void FIXInitiator::storeOrder(const Order& order) // FIXME: not used
 {
@@ -283,7 +283,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
 }
 
 /**
- * @brief Receive raw data from Datafeed Engine
+ * @brief Receive raw data from Datafeed Engine.
  */
 void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID&) // override
 {
@@ -370,8 +370,8 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     Order order{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()), Order::Type::TRTH_TRADE, pBuyerID->getValue(), pTransactTime->getValue() };
     order.setMilli(mili);
 
-    if (ordType == 0) { // Quote
-        order.setType(Order::Type::TRTH_BID); // Update as "bid" from Global
+    if (ordType == 0) { // quote
+        order.setType(Order::Type::TRTH_BID); // update as "bid" from Global
 
         message.getField(*pAskPrice);
         message.getField(*pAskSize);

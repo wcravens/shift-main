@@ -47,8 +47,8 @@ bool DBConnector::init(const std::string& cryptoKey, const std::string& fileName
 }
 
 /**
- * @brief   Establish connection to database
- * @return  whether the connection had been built
+ * @brief Establish connection to database.
+ * @return Whether the connection had been built.
  */
 bool DBConnector::connectDB()
 {
@@ -68,7 +68,7 @@ bool DBConnector::connectDB()
 }
 
 /**
- * @brief   Close connection to database
+ * @brief Close connection to database.
  */
 void DBConnector::disconnectDB()
 {
@@ -85,7 +85,7 @@ bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, Exec
 }
 
 /**
- * @brief Convert FIX::UtcTimeStamp to string used for date field in DB
+ * @brief Convert FIX::UtcTimeStamp to string used for date field in DB.
  */
 static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
 {

@@ -6,11 +6,11 @@
 
 class PriceLevel {
 public:
-    // Getters
+    // getters
     double getPrice() const;
     int getSize() const;
 
-    // Setters
+    // setters
     void setPrice(double price);
     void setSize(int size);
 

@@ -39,18 +39,18 @@ private:
 
     static void s_announceSecurityListRequestComplete(const std::string& targetID, const std::string& requestID, int numAvailableSecurities);
 
-    std::mutex m_mtxRequest; ///> One per target; for guarding all queues
-    std::condition_variable m_cvQueues; ///> For events of all queues
+    std::mutex m_mtxRequest; ///> One per target; for guarding all queues.
+    std::condition_variable m_cvQueues; ///> For events of all queues.
 
     static void s_processNextDataRequest(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const currMarketRequestPtr, const std::string& targetID);
     static std::future<bool> s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID);
 
     const std::string c_targetID;
 
-    std::thread m_proc; ///> The unique Requests Processor for this target
-    std::promise<void> m_procQuitFlag; ///> To terminate the Requests Processor
+    std::thread m_proc; ///> The unique Requests Processor for this target.
+    std::promise<void> m_procQuitFlag; ///> To terminate the Requests Processor.
 
     std::queue<REQUEST_TYPE> m_queueReqTypes; ///> Queue for received requests messages. The messages are identified by REQUEST_TYPE.
 
-    std::queue<MarketDataRequest> m_queueMarketReqs; ///> Special queue for storing received Market Data requests
+    std::queue<MarketDataRequest> m_queueMarketReqs; ///> Special queue for storing received Market Data requests.
 };

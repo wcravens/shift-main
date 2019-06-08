@@ -7,8 +7,7 @@
 #include <string>
 
 /**
- * @brief Data structure for carrying Trading Record data
- *        between database and FIX components.
+ * @brief Data structure for carrying Trading Record data between database and FIX components.
  *        Shall always use C++ standard types.
  */
 struct TradingRecord {

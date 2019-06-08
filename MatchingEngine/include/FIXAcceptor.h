@@ -1,7 +1,3 @@
-/*
-** Connector to BrokerageCenter
-**/
-
 #pragma once
 
 #include "ExecutionReport.h"
@@ -13,7 +9,7 @@
 #include <string>
 #include <unordered_set>
 
-// Acceptor
+// acceptor
 #include <quickfix/Application.h>
 #include <quickfix/FileLog.h>
 #include <quickfix/FileStore.h>
@@ -21,10 +17,10 @@
 #include <quickfix/NullStore.h>
 #include <quickfix/SocketAcceptor.h>
 
-// Receiving Message Types
+// receiving message types
 #include <quickfix/fix50sp2/NewOrderSingle.h>
 
-// Sending Message Types
+// sending message types
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
 #include <quickfix/fix50sp2/MarketDataSnapshotFullRefresh.h>
@@ -66,7 +62,7 @@ private:
     mutable std::mutex m_mtxTargetSet;
     std::unordered_set<std::string> m_targetSet;
 
-    // Do NOT change order of these unique_ptrs:
+    // DO NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
     std::unique_ptr<FIX::Acceptor> m_acceptorPtr;

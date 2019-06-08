@@ -1,7 +1,3 @@
-/*
-** This file contains the implementation of functions in FIXAcceptor.h
-**/
-
 #include "FIXAcceptor.h"
 
 #include "BCDocuments.h"
@@ -19,7 +15,7 @@
 
 /* static */ std::string FIXAcceptor::s_senderID;
 
-// Predefined constant FIX message fields (to avoid recalculations):
+// predefined constant FIX message fields (to avoid recalculations):
 static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
 static const auto& FIXFIELD_CLEARINGBUSINESSDATE = FIX::ClearingBusinessDate("20181217");
 static const auto& FIXFIELD_SYMBOL_CASH = FIX::Symbol("CASH");

@@ -1,7 +1,3 @@
-/*
-** Connnector to DatafeedEngine
-**/
-
 #pragma once
 
 #include "ExecutionReport.h"
@@ -14,7 +10,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-// Initiator
+// initiator
 #include <quickfix/Application.h>
 #include <quickfix/FileLog.h>
 #include <quickfix/FileStore.h>
@@ -22,12 +18,12 @@
 #include <quickfix/NullStore.h>
 #include <quickfix/SocketInitiator.h>
 
-// Receiving Message Types
+// receiving message types
 #include <quickfix/fix50sp2/MassQuoteAcknowledgement.h>
 #include <quickfix/fix50sp2/News.h>
 #include <quickfix/fix50sp2/Quote.h>
 
-// Sending Message Types
+// sending message types
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataRequest.h>
 #include <quickfix/fix50sp2/NewOrderSingle.h>

@@ -5,8 +5,7 @@
 #include <string>
 
 /**
- * @brief   Class that maintains an instance of list of orders, 
- *          and provides options-contract related controls.
+ * @brief Class that maintains an instance of list of orders, and provides options-contract related controls.
  */
 class OrderBookEntry {
 public:

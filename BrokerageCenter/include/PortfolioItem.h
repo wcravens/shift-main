@@ -3,9 +3,8 @@
 #include <string>
 
 /**
-*   @brief The "Positions" item of the user's portfolio.
-*/
-
+ * @brief The "Positions" item of the user's portfolio.
+ */
 class PortfolioItem {
 public:
     PortfolioItem();

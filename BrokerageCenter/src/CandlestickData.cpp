@@ -44,7 +44,7 @@ CandlestickData::CandlestickData(const std::string& symbol, double currPrice, do
 {
 }
 
-CandlestickData::~CandlestickData() /*override*/
+CandlestickData::~CandlestickData() // override
 {
     shift::concurrency::notifyConsumerThreadToQuit(m_quitFlag, m_cvCD, *m_th);
     m_th = nullptr;

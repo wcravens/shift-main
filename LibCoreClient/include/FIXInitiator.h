@@ -18,7 +18,7 @@
 #include <unordered_map>
 #include <vector>
 
-// Initiator
+// initiator
 #include <quickfix/Application.h>
 #include <quickfix/FileLog.h>
 #include <quickfix/FileStore.h>
@@ -26,7 +26,7 @@
 #include <quickfix/NullStore.h>
 #include <quickfix/SocketInitiator.h>
 
-// Receiving Message Types
+// receiving message types
 #include <quickfix/fix50sp2/Advertisement.h>
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
@@ -37,7 +37,7 @@
 #include <quickfix/fix50sp2/SecurityStatus.h>
 #include <quickfix/fix50sp2/UserResponse.h>
 
-// Sending Message Types
+// sending message types
 #include <quickfix/fix50sp2/MarketDataRequest.h>
 #include <quickfix/fix50sp2/NewOrderSingle.h>
 #include <quickfix/fix50sp2/RFQRequest.h>

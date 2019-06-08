@@ -1,13 +1,3 @@
-/*
-** This file contains the main function of BrokerageCenter
-**
-** Function List:
-** 1. parse the program options
-** 2. connect to database
-** 3. start FIXInitiator and FIXAcceptor
-** 4. run this program in the background
-*/
-
 #include "BCDocuments.h"
 #include "DBConnector.h"
 #include "FIXAcceptor.h"
@@ -59,7 +49,7 @@ using voh_t = shift::terminal::VerboseOptHelper;
 static std::atomic<bool> s_isBroadcasting{ true };
 
 /*
- * @brief   Function to broadcast order books, for broadcast order book thread
+ * @brief Function to broadcast order books, for broadcast order book thread.
  */
 static void s_broadcastOrderBooks()
 {
@@ -72,7 +62,7 @@ static void s_broadcastOrderBooks()
 
 int main(int ac, char* av[])
 {
-    char tz[] = "TZ=America/New_York"; // Set time zone to New York
+    char tz[] = "TZ=America/New_York"; // set time zone to New York
     putenv(tz);
 
     /**
@@ -277,19 +267,20 @@ int main(int ac, char* av[])
         }
     }
 
-    // Try to connect to Matching Engine
+    // try to connect to Matching Engine
     FIXInitiator::getInstance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose);
 
-    // Wait for complete security list
+    // wait for complete security list
     while (!BCDocuments::s_isSecurityListReady)
         std::this_thread::sleep_for(500ms);
-    // Try to connect to clients
+
+    // try to connect to clients
     FIXAcceptor::getInstance()->connectClients(params.configDir + "acceptor.cfg", params.isVerbose);
 
-    // Create a broadcaster to broadcast all order books
+    // create a broadcaster to broadcast all order books
     std::thread broadcaster(&::s_broadcastOrderBooks);
 
-    // Running in background
+    // running in background
     if (params.timer.isSet) {
         cout.clear();
         cout << '\n'
@@ -318,7 +309,7 @@ int main(int ac, char* av[])
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
-    // Close program
+    // close program
     ::s_isBroadcasting = false; // to terminate broadcaster
     if (broadcaster.joinable())
         broadcaster.join(); // wait for termination

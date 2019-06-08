@@ -91,7 +91,9 @@ std::unique_lock<std::mutex> PSQL::lockPSQL()
     return ul; // here it is MOVED(by C++11 mechanism) out in such situation, instead of being copied, hence ul's locked status will be preserved in caller side
 }
 
-/* Establish connection to database */
+/**
+ * @brief Establish connection to database.
+ */
 bool PSQL::connectDB()
 {
     std::string info = "hostaddr=" + m_loginInfo["DBHostaddr"] + " port=" + m_loginInfo["DBPort"] + " dbname=" + m_loginInfo["DBname"] + " user=" + m_loginInfo["DBUser"] + " password=" + m_loginInfo["DBPassword"];
@@ -116,7 +118,9 @@ bool PSQL::isConnected() const
     return m_pConn && PQstatus(m_pConn) == CONNECTION_OK;
 }
 
-/* Close connection to database */
+/**
+ * @brief Close connection to database.
+ */
 void PSQL::disconnectDB()
 {
     auto lock{ lockPSQL() };
@@ -144,9 +148,10 @@ bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusT
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
 }
 
-/* Check if the Trade and Quote data for a specific Ric-ReutersDate combination is exist.
-   If exist, saves the found table name to the parameter 'tableName'.
-*/
+/**
+ * @brief Check if the Trade and Quote data for a specific Ric-ReutersDate combination is exist.
+ *        If exist, saves the found table name to the parameter 'tableName'.
+ */
 shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName)
 {
     auto lock{ lockPSQL() };
@@ -184,22 +189,26 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
     return status;
 }
 
-/* Create Trade & Quote data table */
+/**
+ * @brief Create Trade & Quote data table.
+ */
 bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
 {
     auto lock{ lockPSQL() };
     return doQuery("CREATE TABLE " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
 }
 
-/* read csv file, Append statement and insert record into table */
+/**
+ * @brief Read csv file, Append statement and insert record into table.
+ */
 bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName)
 {
     std::ifstream file(csvName); //define input stream
     std::string line;
     std::string cell;
 
-    // to keep track ordering of reuters time so as to enable us create primary key (PK=(reuters_time, reuters_time_order)).
-    std::string lastRTime("N/A"); // **NOTE** : We assume that reuters time are always in increasing order in the CSV, otherwise the ordering algorithm here does NOT work!
+    // to keep track ordering of reuters time so as to enable us create primary key (PK=(reuters_time, reuters_time_order))
+    std::string lastRTime("N/A"); // **NOTE** : we assume that reuters time are always in increasing order in the CSV, otherwise the ordering algorithm here does NOT work!
     int lastRTimeOrder{ 1 }; // initial value is always 1
     bool hasAnyData = false;
 
@@ -233,11 +242,11 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
             // RIC
             readAppendField(lineStream, cell, pqQuery, false);
 
-            // skip Domain(?)
+            // skip domain(?)
             std::getline(lineStream, cell, ',');
 
-            // [PK] Date-Time & order
-            std::getline(lineStream, cell, ','); // YYYY-MM-DDTHH:MM:SS.SSSSSSSSS(Z|-XX|+XX), where T and Z are required character literals
+            // [PK] date-time & order
+            std::getline(lineStream, cell, ','); // YYYY-MM-DDTHH:MM:SS.SSSSSSSSS(Z|-XX|+XX), where 'T' and 'Z' are required character literals
             {
                 const auto dateTimeDelimPos = cell.find('T');
                 const bool bGMTUTC = (cell.rfind('Z') != std::string::npos);
@@ -274,7 +283,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
             }
 
             pqQuery += '\'';
-            // type: Trade / Quote
+            // type: trade / quote
             std::getline(lineStream, cell, ',');
             bool isTrade = true;
             if ("Quote" == cell) {
@@ -376,7 +385,9 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
     return true;
 }
 
-/* Fetch chunk of Quote and trading records, and send to matching engine*/
+/**
+ * @brief Fetch chunk of Quote and trading records, and send to matching engine.
+ */
 bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime)
 {
     const std::string stime = boost::posix_time::to_iso_extended_string(startTime).substr(11, 8);
@@ -432,7 +443,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
     RawData rawData;
     std::setprecision(15);
 
-    // Next, save each record for each row into struct RawData and send to matching engine
+    // next, save each record for each row into struct RawData and send to matching engine
     for (int i = 0, nt = PQntuples(pRes); i < nt; i++) {
         char* pCh{};
         using VAL_IDX = shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::VAL_IDX;
@@ -479,7 +490,9 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
     return true;
 }
 
-// /* Check if Trade & Quote is empty or not */
+// /**
+//  * @brief Check if Trade & Quote is empty or not.
+//  */
 // long PSQL::checkEmpty(std::string tableName)
 // {
 //     std::string pqQuery = "SELECT count(*) FROM " + tableName;
@@ -495,7 +508,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 //     return 1;
 // }
 
-bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) // Date format: YYYY-MM-DD
+bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) // date format: YYYY-MM-DD
 {
     const std::string tableName = s_createTableName(symbol, s_reutersDateToYYYYMMDD(date));
 

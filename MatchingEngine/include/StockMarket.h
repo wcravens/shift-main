@@ -24,7 +24,7 @@ public:
     StockMarket(const std::string& symbol);
     StockMarket(const StockMarket& other);
 
-    // Function to start one stock matching engine, for exchange thread
+    // function to start one stock matching engine, for stock market thread
     void operator()();
 
     const std::string& getSymbol() const;

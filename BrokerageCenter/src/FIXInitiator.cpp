@@ -1,7 +1,3 @@
-/*
-** Connector to MatchingEngine
-**/
-
 #include "FIXInitiator.h"
 
 #include "BCDocuments.h"
@@ -19,7 +15,7 @@ using namespace std::chrono_literals;
 /* static */ std::string FIXInitiator::s_senderID;
 /* static */ std::string FIXInitiator::s_targetID;
 
-// Predefined constant FIX message fields (to avoid recalculations):
+// predefined constant FIX message fields (to avoid recalculations):
 static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
 static const auto& FIXFIELD_PARTYROLE_CLIENTID = FIX::PartyRole(FIX::PartyRole_CLIENT_ID);
 
@@ -82,7 +78,7 @@ void FIXInitiator::disconnectMatchingEngine()
 }
 
 /**
- * @brief Sending the order to the server
+ * @brief Sending the order to the server.
  */
 void FIXInitiator::sendOrder(const Order& order)
 {
@@ -110,8 +106,7 @@ void FIXInitiator::sendOrder(const Order& order)
 }
 
 /**
- * @brief Method called when a new Session was created.
- * Set Sender and Target Comp ID.
+ * @brief Method called when a new Session was created. Set Sender and Target Comp ID.
  */
 void FIXInitiator::onCreate(const FIX::SessionID& sessionID) // override
 {
@@ -135,7 +130,7 @@ void FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
 
 void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
 {
-    crack(message, sessionID); // Message is message type
+    crack(message, sessionID); // message is message type
 }
 
 /*
@@ -143,8 +138,8 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
  */
 void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
 {
-    // This test is required because if there is a disconnection between ME and BC,
-    // the ME will send the security list again during the reconnection procedure.
+    // this test is required because if there is a disconnection between ME and BC,
+    // the ME will send the security list again during the reconnection procedure
     if (BCDocuments::s_isSecurityListReady)
         return;
 
@@ -168,7 +163,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
         docs->attachCandlestickDataToSymbol(symbol.getValue());
     }
 
-    // Now, it's safe to advance all routines that *read* permanent data structures created above:
+    // now, it's safe to advance all routines that *read* permanent data structures created above:
     BCDocuments::s_isSecurityListReady = true;
 }
 
@@ -255,10 +250,10 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
             pSimulationTime->getValue()
         };
 
-        // The first entry is guaranteed to have price <= 0.0: this will tell the
-        // Order Book object that the targeted order book type must first be cleared.
-        // The following entries will be in such order so that the standard update
-        // procedure for a given order book type may be used without information loss.
+        // - the first entry is guaranteed to have price <= 0.0: this will tell the
+        // order book object that the targeted order book type must first be cleared.
+        // - the following entries will be in such order so that the standard update
+        // procedure for a given order book type may be used without information loss
         BCDocuments::getInstance()->onNewOBUpdateForOrderBook(pSymbol->getValue(), std::move(entry));
     }
 
@@ -278,7 +273,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
 }
 
 /**
- * @brief Receive order book updates
+ * @brief Receive order book updates.
  *
  * @section OPTIMIZATION FOR THREAD-SAFE BASED ON
  * LOCK-FREE TECHNOLOGY
@@ -393,14 +388,14 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 }
 
 /**
- * @brief Deal with incoming messages which type is Execution Report
+ * @brief Deal with incoming messages which type is Execution Report.
  */
 void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
     FIX::ExecType execType;
     message.getField(execType);
 
-    if (execType == FIX::ExecType_ORDER_STATUS) { // Confirmation Report
+    if (execType == FIX::ExecType_ORDER_STATUS) { // confirmation report
         FIX::NoPartyIDs numOfGroups;
         message.getField(numOfGroups);
         if (numOfGroups.getValue() < 1) {
@@ -527,7 +522,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         s_cntAtom--;
         assert(s_cntAtom >= 0);
 
-    } else { // FIX::ExecType_TRADE: Execution Report
+    } else { // FIX::ExecType_TRADE: execution report
         FIX::NoPartyIDs numOfGroups;
         message.getField(numOfGroups);
         if (numOfGroups.getValue() < 2) {
@@ -693,7 +688,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
             FIXAcceptor::getInstance()->sendLastPrice2All(transac);
 
-            if (FIX::OrdStatus_FILLED == pStatus->getValue()) { // TRADE
+            if (FIX::OrdStatus_FILLED == pStatus->getValue()) { // trade
                 printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
                 printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 
@@ -729,11 +724,11 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 docs->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
                 docs->onNewExecutionReportForUserRiskManagement(pUserID1->getValue(), std::move(report1));
                 docs->onNewExecutionReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
-            } else { // FIX::OrdStatus_REPLACED: TRTH TRADE
+            } else { // FIX::OrdStatus_REPLACED: TRTH trade
                 BCDocuments::getInstance()->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
             }
         } break;
-        case FIX::OrdStatus_CANCELED: { // CANCELLATION
+        case FIX::OrdStatus_CANCELED: { // cancellation
             printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
             printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 

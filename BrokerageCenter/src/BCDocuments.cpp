@@ -20,7 +20,7 @@ using namespace std::chrono_literals;
 }
 
 void BCDocuments::addSymbol(const std::string& symbol)
-{ // Here no locking is needed only when satisfies precondition: addSymbol was run before others
+{ // here no locking is needed only when satisfies precondition: addSymbol was run before others
     m_symbols.insert(symbol);
 }
 

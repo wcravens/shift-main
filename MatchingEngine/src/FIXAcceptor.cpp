@@ -14,7 +14,7 @@
 
 /* static */ std::string FIXAcceptor::s_senderID;
 
-// Predefined constant FIX message fields (to avoid recalculations):
+// predefined constant FIX message fields (to avoid recalculations):
 static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
 static const auto& FIXFIELD_MDUPDATEACTION_CHANGE = FIX::MDUpdateAction(FIX::MDUpdateAction_CHANGE);
 static const auto& FIXFIELD_EXECTYPE_TRADE = FIX::ExecType(FIX::ExecType_TRADE);
@@ -84,7 +84,7 @@ void FIXAcceptor::disconnectBrokerageCenter()
 }
 
 /*
- * @brief Send complete order book to brokers
+ * @brief Send complete order book to brokers.
  */
 void FIXAcceptor::sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook)
 {
@@ -114,7 +114,7 @@ void FIXAcceptor::sendOrderBook(const std::string& targetID, const std::vector<O
 }
 
 /*
- * @brief Send all order book updates to brokers
+ * @brief Send all order book updates to brokers.
  */
 void FIXAcceptor::sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderBookUpdates)
 {
@@ -150,7 +150,7 @@ void FIXAcceptor::sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderB
 }
 
 /**
- * @brief Sending all execution reports to brokers
+ * @brief Sending all execution reports to brokers.
  */
 void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& executionReports)
 {
@@ -165,7 +165,7 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
         message.setField(FIX::OrderID(report.orderID1));
         message.setField(FIX::SecondaryOrderID(report.orderID2));
         message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
-        message.setField(::FIXFIELD_EXECTYPE_TRADE); // Required by FIX
+        message.setField(::FIXFIELD_EXECTYPE_TRADE); // required by FIX
         message.setField(FIX::OrdStatus(report.decision));
         message.setField(FIX::Symbol(report.symbol));
         message.setField(FIX::Side(report.orderType1));
@@ -173,7 +173,7 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
         message.setField(FIX::Price(report.price));
         message.setField(FIX::EffectiveTime(TimeSetting::getInstance().simulationTimestamp(), 6));
         message.setField(FIX::LastMkt(report.destination));
-        message.setField(::FIXFIELD_LEAVQTY_0); // Required by FIX
+        message.setField(::FIXFIELD_LEAVQTY_0); // required by FIX
         message.setField(FIX::CumQty(report.size));
         message.setField(FIX::TransactTime(6));
 
@@ -203,7 +203,7 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
 }
 
 /*
- * @brief Send security list to broker
+ * @brief Send security list to broker.
  */
 void FIXAcceptor::sendSecurityList(const std::string& targetID)
 {
@@ -226,7 +226,7 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID)
 }
 
 /**
- * @brief Send order confirmation to broker
+ * @brief Send order confirmation to broker.
  */
 void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation)
 {
@@ -240,8 +240,8 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Order
 
     message.setField(FIX::OrderID(confirmation.orderID));
     message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
-    message.setField(::FIXFIELD_EXECTYPE_ORDER_STATUS); // Required by FIX
-    if (confirmation.orderType != Order::Type::CANCEL_BID && confirmation.orderType != Order::Type::CANCEL_ASK) { // Not a cancellation
+    message.setField(::FIXFIELD_EXECTYPE_ORDER_STATUS); // required by FIX
+    if (confirmation.orderType != Order::Type::CANCEL_BID && confirmation.orderType != Order::Type::CANCEL_ASK) { // not a cancellation
         message.setField(::FIXFIELD_ORDSTATUS_NEW);
     } else {
         message.setField(::FIXFIELD_ORDSTATUS_PENDING_CANCEL);
@@ -252,7 +252,7 @@ void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const Order
     message.setField(FIX::EffectiveTime(TimeSetting::getInstance().simulationTimestamp(), 6));
     message.setField(FIX::LastMkt("SHIFT"));
     message.setField(FIX::LeavesQty(confirmation.size));
-    message.setField(::FIXFIELD_CUMQTY_0); // Required by FIX
+    message.setField(::FIXFIELD_CUMQTY_0); // required by FIX
     message.setField(FIX::TransactTime(6));
 
     shift::fix::addFIXGroup<FIX50SP2::ExecutionReport::NoPartyIDs>(message,
@@ -274,7 +274,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 
     sendSecurityList(targetID);
 
-    // Send current order book data of all securities to connecting target
+    // send current order book data of all securities to connecting target
     for (auto& stockMarketEntry : StockMarketList::getInstance()) {
         stockMarketEntry.second.sendOrderBookDataToTarget(targetID);
     }
@@ -290,7 +290,7 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
     const auto& targetID = sessionID.getTargetCompID().getValue();
     cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
 
-    // If we do not remove this targetID from the target set,
+    // if we do not remove this targetID from the target set,
     // messages sent during a disconnection will be resent upon reconnection
 
     // {
@@ -305,7 +305,7 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
 }
 
 /**
- * @brief Deal with the incoming messages which type are NewOrderSingle
+ * @brief Deal with the incoming messages which type are NewOrderSingle.
  */
 void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) // override
 {
@@ -376,7 +376,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     Order order{ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), static_cast<Order::Type>(pOrderType->getValue()), now };
     order.setMilli(milli);
 
-    // Add new quote to buffer
+    // add new quote to buffer
     auto stockMarketIt = StockMarketList::getInstance().find(pSymbol->getValue());
     if (stockMarketIt != StockMarketList::getInstance().end()) {
         stockMarketIt->second.bufNewLocalOrder(std::move(order));
@@ -384,7 +384,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         return;
     }
 
-    // Send confirmation to client
+    // send confirmation to client
     cout << "Sending confirmation: " << pOrderID->getValue() << endl;
     sendOrderConfirmation(sessionID.getTargetCompID().getValue(), { pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue() });
 

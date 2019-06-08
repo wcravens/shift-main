@@ -32,7 +32,7 @@ using voh_t = shift::terminal::VerboseOptHelper;
 
 int main(int ac, char* av[])
 {
-    char tz[] = "TZ=America/New_York"; // Set time zone to New York
+    char tz[] = "TZ=America/New_York"; // set time zone to New York
     putenv(tz);
 
     /**
@@ -120,7 +120,7 @@ int main(int ac, char* av[])
 
     voh_t voh(cout, params.isVerbose);
 
-    // Database init
+    // database init
     auto loginPSQL = shift::crypto::readEncryptedConfigFile(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
     PSQLManager::createInstance(std::move(loginPSQL)); // already moved-in, don't use loginPSQL thereafter!
     PSQLManager::getInstance().init();
@@ -132,7 +132,7 @@ int main(int ac, char* av[])
 
     FIXAcceptor::getInstance()->connectMatchingEngine(params.configDir + "acceptor.cfg", params.isVerbose);
 
-    // Running in background
+    // running in background
     if (params.timer.isSet) {
         cout.clear();
         cout << '\n'
@@ -161,7 +161,7 @@ int main(int ac, char* av[])
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
-    // Close program
+    // close program
     FIXAcceptor::getInstance()->disconnectMatchingEngine();
     TRTHAPI::getInstance()->stop();
 

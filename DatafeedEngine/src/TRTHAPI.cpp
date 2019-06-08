@@ -2,14 +2,14 @@
 
 #include "PSQL.h"
 
-#include <cpprest/containerstream.h> // Async streams backed by STL containers
+#include <cpprest/containerstream.h> // async streams backed by STL containers
 #include <cpprest/filestream.h>
 #include <cpprest/http_client.h>
 #include <cpprest/http_listener.h> // HTTP server
-#include <cpprest/interopstream.h> // Bridges for integrating Async streams with STL and WinRT streams
+#include <cpprest/interopstream.h> // bridges for integrating Async streams with STL and WinRT streams
 #include <cpprest/json.h> // JSON library
-#include <cpprest/producerconsumerstream.h> // Async streams for producer consumer scenarios
-#include <cpprest/rawptrstream.h> // Async streams backed by raw pointer to memory
+#include <cpprest/producerconsumerstream.h> // async streams for producer consumer scenarios
+#include <cpprest/rawptrstream.h> // async streams backed by raw pointer to memory
 #include <cpprest/uri.h> // URI library
 #include <cpprest/ws_client.h> // WebSocket client
 
@@ -27,13 +27,17 @@ using namespace std::chrono_literals;
 #define CSTR_EXTRACTRAW_JSN \
     "extractRaw.json"
 
-/**@brief Formulate a CSV file name */
+/**
+ * @brief Formulate a CSV file name.
+ */
 static inline std::string createCSVName(const std::string& symbol, const std::string& date /*yyyy-mm-dd*/)
 {
     return symbol + date + ".csv";
 }
 
-/**@brief Unzips a .GZ file (source) as a new file (destination) */
+/**
+ * @brief Unzips a .GZ file (source) as a new file (destination).
+ */
 static bool unzip(const char* src, const char* dst, int* errn)
 {
     unsigned char buf[GZ_BUF_LEN];
@@ -91,7 +95,9 @@ TRTHAPI* TRTHAPI::getInstance()
     return s_pInst;
 }
 
-/**@brief Creates and runs a Requests Processor thread */
+/**
+ * @brief Creates and runs a Requests Processor thread.
+ */
 void TRTHAPI::start()
 {
     if (!m_reqProcessorPtr) {
@@ -99,7 +105,9 @@ void TRTHAPI::start()
     }
 }
 
-/**@brief Terminates the Requests Processor. */
+/**
+ * @brief Terminates the Requests Processor.
+ */
 void TRTHAPI::stop()
 {
     if (!m_reqProcessorPtr)
@@ -162,7 +170,9 @@ size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs)
     return oldSize - originalRICs.size();
 }
 
-/**@brief The unique Requests Processor thread for all requests */
+/**
+ * @brief The unique Requests Processor thread for all requests.
+ */
 void TRTHAPI::processRequests()
 {
     auto futQuit = m_reqProcQuitFlag.get_future();
@@ -186,7 +196,7 @@ void TRTHAPI::processRequests()
             db.connectDB();
         }
 
-        // Shall detect duplicated requests and skip them:
+        // shall detect duplicated requests and skip them:
         auto dbFlag = db.checkTableOfTradeAndQuoteRecordsExist(req.symbol, req.date, &tableName);
         using PTS = shift::database::TABLE_STATUS;
 
@@ -197,7 +207,7 @@ void TRTHAPI::processRequests()
             if (s_bTRTHLoginJsonExists)
                 break; // go to download it from TRTH
 
-            // Issue #32: Do NOT download if NO trthLogin.json exist on this computer
+            // issue #32: DO NOT download if NO trthLogin.json exists on this computer
             req.prom->set_value(true);
             addUnavailableRequest(req);
             continue; // while(true)
@@ -252,8 +262,10 @@ void TRTHAPI::processRequests()
     } // while
 }
 
-/**@brief The main method to search, check, request and download data from TRTH. Gives processing status as feedback. */
-int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& requestDate) // Date format: YYYY-MM-DD
+/**
+ * @brief The main method to search, check, request and download data from TRTH. Gives processing status as feedback.
+ */
+int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& requestDate) // date format: YYYY-MM-DD
 {
     // prepare symbol format for TRTH request
     std::string ric = symbol;
@@ -266,7 +278,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     web::json::value jCred;
     utility::ifstream_t{ m_cfgDir + CSTR_TRTHLOGIN_JSN } >> shift::crypto::Decryptor{ m_key } >> jCred;
 
-    // Base http client for upcomming request
+    // base HTTP client for upcomming request
     web::http::client::http_client client("https://hosted.datascopeapi.reuters.com/RestApi/v1", hcconf);
 
     // cout << "Requesting Token..." << endl;
@@ -284,7 +296,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     // cout<<endl;
 
     const auto c_credToken = jAuth["value"].as_string();
-    //cout << "\n\nAuth Token:\n" << c_credToken << endl;
+    // cout << "\n\nAuth Token:\n" << c_credToken << endl;
 
     // cout << "Extract extractRaw.json..." << endl;
     web::json::value jExtr;
@@ -306,7 +318,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
 
     // cout << "##########################################################" << endl;
     // jExtr.serialize(cout);
-    // cout << "\n##########################################################" << endl;
+    // cout << "\n########################################################" << endl;
 
     cout << endl
          << "Requesting " << COLOR << '[' << symbol << ']' << NO_COLOR << flush;
@@ -317,7 +329,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     req.headers().clear();
     req.headers().add(web::http::header_names::authorization, U("Token ") + c_credToken);
     req.headers().add(web::http::header_names::content_type, U("application/json; odata=minimalmetadata")); // [[1]]
-    //req.headers().add(U("Prefer"), U("respond-async"));
+    // req.headers().add(U("Prefer"), U("respond-async"));
     req.headers().add(web::http::header_names::connection, U("keep-alive"));
     req.set_body(jExtr);
 

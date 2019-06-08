@@ -37,7 +37,7 @@ using voh_t = shift::terminal::VerboseOptHelper;
 static std::atomic<bool> s_isRequestingData{ true };
 
 /*
- * @brief   Function to request data chunks in the background
+ * @brief Function to request data chunks in the background.
  */
 static void s_requestDatafeedEngineData(const std::string configFullPath, const std::string requestID, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, const std::vector<std::string> symbols, int numSecondsPerDataChunk, int experimentSpeed)
 {
@@ -46,18 +46,18 @@ static void s_requestDatafeedEngineData(const std::string configFullPath, const 
         return;
     }
 
-    // Send request to Datafeed Engine for TRTH data and *wait* until data is ready
+    // send request to Datafeed Engine for TRTH data and *wait* until data is ready
     if (FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, startTime, endTime, symbols, numSecondsPerDataChunk)) {
         auto requestOnce = [](auto* pStartTime) {
             FIXInitiator::getInstance()->sendNextDataRequest();
             *pStartTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
         };
 
-        // Since real time (i.e. absolute time) may have been elapsed considerably because of the system waiting for download to finish,
+        // since real time (i.e. absolute time) may have been elapsed considerably because of the system waiting for download to finish,
         // we shall compensate data consumer for that elapsed real time with tantamount simulation time of data:
         auto elapsedSimlTime = std::chrono::milliseconds(TimeSetting::getInstance().pastMilli(true)); // take simulation speed (experimentSpeed) into account
         auto adjustedDPDC = std::chrono::duration_cast<decltype(elapsedSimlTime)>(::DURATION_PER_DATA_CHUNK); // unify the time units
-        if (elapsedSimlTime.count() > (adjustedDPDC.count() / 2)) { // It's called "considerably" lagged iff. lag at least half of the duration per chunk
+        if (elapsedSimlTime.count() > (adjustedDPDC.count() / 2)) { // it's called "considerably" lagged iff. lag at least half of the duration per chunk
             auto numChunksToCoverElapsedTime = static_cast<long>(elapsedSimlTime.count() / adjustedDPDC.count()) + 1;
             while (numChunksToCoverElapsedTime--)
                 requestOnce(&startTime);
@@ -78,7 +78,7 @@ static void s_requestDatafeedEngineData(const std::string configFullPath, const 
 
 int main(int ac, char* av[])
 {
-    char tz[] = "TZ=America/New_York"; // Set time zone to New York
+    char tz[] = "TZ=America/New_York"; // set time zone to New York
     putenv(tz);
 
     /**
@@ -191,9 +191,7 @@ int main(int ac, char* av[])
     boost::posix_time::ptime startTime(boost::posix_time::time_from_string(dateString + " " + startTimeString));
     boost::posix_time::ptime endTime(boost::posix_time::time_from_string(dateString + " " + endTimeString));
 
-    /*
-     * @brief  Create Stock Market List and Stock Market objects
-     */
+    // create Stock Market List and Stock Market objects
     for (auto& symbol : symbols) {
         StockMarketList::getInstance().insert(std::pair<std::string, StockMarket>(symbol, { symbol }));
     }
@@ -203,9 +201,7 @@ int main(int ac, char* av[])
         return 4;
     }
 
-    /*
-     * @brief  Begin Stock Market threads
-     */
+    // begin Stock Market threads
     int numOfStockMarkets = StockMarketList::getInstance().size();
     std::vector<std::thread> stockMarketThreadList(numOfStockMarkets);
     {
@@ -221,17 +217,17 @@ int main(int ac, char* av[])
          << "Waiting for orders..." << endl
          << endl;
 
-    // Configure and start global clock
+    // configure and start global clock
     TimeSetting::getInstance().initiate(startTime, experimentSpeed);
     TimeSetting::getInstance().setStartTime();
 
-    // Request data chunks in the background
+    // request data chunks in the background
     std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), ::DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
 
-    // Initiate Brokerage Center connection
+    // initiate Brokerage Center connection
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
 
-    // Running in background
+    // running in background
     if (params.timer.isSet) {
         cout.clear();
         cout << '\n'
@@ -260,7 +256,7 @@ int main(int ac, char* av[])
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
-    // Close program
+    // close program
     FIXAcceptor::getInstance()->disconnectBrokerageCenter();
 
     ::s_isRequestingData = false; // to terminate data requester

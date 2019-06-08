@@ -5,15 +5,14 @@
 #include <string>
 
 /**
- * @brief Data structure for carrying Trade or Quote data
- *        between database and FIX components.
+ * @brief Data structure for carrying Trade or Quote data between database and FIX components.
  *        Shall always use C++ standard types.
  */
 struct RawData {
     std::string symbol; // or RIC
     std::string reutersDate;
     std::string reutersTime;
-    std::string toq; // Trade or Quote
+    std::string toq; // trade or quote
     std::string exchangeID;
     double price;
     int volume;

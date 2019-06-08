@@ -17,7 +17,7 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse = fals
 struct TradingRecord;
 
 /**
- * @brief The PostgreSQL database manipulator
+ * @brief The PostgreSQL database manipulator.
  */
 class PSQL {
 public:
@@ -29,39 +29,39 @@ public:
 
     static double s_decimalTruncate(double value, int precision);
 
-    /*@brief Locker for SQL transactions. It also provides a simpler syntax to lock. */
+    /* @brief Locker for SQL transactions. It also provides a simpler syntax to lock. */
     std::unique_lock<std::mutex> lockPSQL();
 
     const std::unordered_map<std::string, std::string>& getLoginInfo() const { return m_loginInfo; }
 
-    /*@brief Establish connection to database */
+    /* @brief Establish connection to database. */
     bool connectDB();
 
-    /*@brief Test connection to database */
+    /* @brief Test connection to database. */
     bool isConnected() const;
 
-    /*@brief Close connection to database */
+    /* @brief Close connection to database. */
     void disconnectDB();
 
-    /*@brief Check the list of Trade-and-Quote-tables and the Table of Trade-Records */
+    /* @brief Check the list of Trade-and-Quote-tables and the Table of Trade-Records. */
     void init();
 
-    /*@brief Common PSQL query method wrapper */
+    /* @brief Common PSQL query method wrapper. */
     bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
 
-    /*@brief Check if the Trade and Quote data for specific ric and date exist, and if so feeds back the table name */
+    /* @brief Check if the Trade and Quote data for specific ric and date exist, and if so feeds back the table name. */
     shift::database::TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName);
 
-    /*@brief Create new table of Trade & Quote data for one kind of RIC */
+    /* @brief Create new table of Trade & Quote data for one kind of RIC. */
     bool createTableOfTradeAndQuoteRecords(std::string tableName);
 
-    /*@brief Read .csv records data file and insert them into table created by createTableOfTradeAndQuoteRecords() */
+    /* @brief Read .csv records data file and insert them into table created by createTableOfTradeAndQuoteRecords(). */
     bool insertTradeAndQuoteRecords(std::string csvName, std::string tableName);
 
-    /*@brief Fetch chunk of Trade & Quote records from database and sends them to matching engine via FIXAcceptor */
+    /* @brief Fetch chunk of Trade & Quote records from database and sends them to matching engine via FIXAcceptor. */
     bool readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime);
 
-    /*@brief Convertor from CSV data to database records */
+    /* @brief Convertor from CSV data to database records. */
     bool saveCSVIntoDB(std::string csvName, std::string symbol, std::string date);
 
 protected:
@@ -69,7 +69,7 @@ protected:
     virtual ~PSQL() = 0; // PSQL becomes an abstract class, hence forces users to access it via PSQLManager
 
 private:
-    std::mutex m_mtxPSQL; // To mutual-exclusively access db
+    std::mutex m_mtxPSQL; // to mutual-exclusively access db
     PGconn* m_pConn;
     std::unordered_map<std::string, std::string> m_loginInfo;
 };

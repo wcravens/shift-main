@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-// Acceptor
+// acceptor
 #include <quickfix/Application.h>
 #include <quickfix/FileLog.h>
 #include <quickfix/FileStore.h>
@@ -13,13 +13,13 @@
 #include <quickfix/NullStore.h>
 #include <quickfix/SocketAcceptor.h>
 
-// Receiving Message Types
+// receiving message types
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataRequest.h>
 #include <quickfix/fix50sp2/NewOrderSingle.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 
-// Sending Message Types
+// sending message yypes
 #include <quickfix/fix50sp2/News.h>
 #include <quickfix/fix50sp2/Quote.h>
 
@@ -61,11 +61,11 @@ private:
     void onMessage(const FIX50SP2::MarketDataRequest&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
 
-    // Do NOT change order of these unique_ptrs:
+    // DO NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
-    std::unique_ptr<FIX::Acceptor> m_acceptorPtr; ///> Underlying FIX protocal acceptor instance
+    std::unique_ptr<FIX::Acceptor> m_acceptorPtr; ///> Underlying FIX protocal acceptor instance.
 
-    std::mutex m_mtxReqsProcs; ///> to guard m_requestsProcessorByTarget
+    std::mutex m_mtxReqsProcs; ///> To guard m_requestsProcessorByTarget.
     std::unordered_map<std::string /*Target ID*/, std::unique_ptr<RequestsProcessorPerTarget>> m_requestsProcessorByTarget; ///> Collection of currently running Requests Processors for their targets. Each unique target (distinguished by Target ID) has its own independant processor.
 };

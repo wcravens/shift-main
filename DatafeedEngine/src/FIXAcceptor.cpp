@@ -1,7 +1,3 @@
-/*
-** Connector to MatchingEngine
-**/
-
 #include "FIXAcceptor.h"
 
 #include "PSQL.h"
@@ -17,7 +13,7 @@
 #include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
 
-// Predefined constant FIX message fields (to avoid recalculations):
+// predefined constant FIX message fields (to avoid recalculations):
 static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
 static const auto& FIXFIELD_PARTYROLE_EXECUTION_VENUE = FIX::PartyRole(FIX::PartyRole_EXECUTION_VENUE);
 
@@ -31,14 +27,13 @@ FIXAcceptor::FIXAcceptor()
 }
 
 /**
- * @brief This will automatically disconnects the
- *        FIX channel and PostgreSQL.
+ * @brief This will automatically disconnects the FIX channel and PostgreSQL.
  */
 FIXAcceptor::~FIXAcceptor() // override
 {
     disconnectMatchingEngine();
     PSQLManager::getInstance().disconnectDB();
-    /* All request processors of all targets (1 for each) are terminated and destroyed here */
+    // all request processors of all targets (1 for each) are terminated and destroyed here
 }
 
 /*static*/ FIXAcceptor* FIXAcceptor::getInstance()
@@ -49,7 +44,7 @@ FIXAcceptor::~FIXAcceptor() // override
 
 /**
  * @brief Initiates a FIX session as an acceptor.
- * @param configFile: The session settings file's full path.
+ * @param configFile The session settings file's full path.
  */
 void FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verbose)
 {
@@ -102,9 +97,8 @@ void FIXAcceptor::disconnectMatchingEngine()
 }
 
 /**
- * @brief For notifying ME requested works were done
- *
- * @param text: Indicate the meaning/type of the notice
+ * @brief For notifying ME requested works were done.
+ * @param text Indicate the meaning/type of the notice
  */
 /* static */ void FIXAcceptor::sendNotice(const std::string& targetID, const std::string& requestID, const std::string& text)
 {
@@ -116,10 +110,10 @@ void FIXAcceptor::disconnectMatchingEngine()
     header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_News));
 
-    // The RequestID of requested job
+    // the request ID of requested job
     message.setField(FIX::Headline(requestID));
 
-    // Notice message
+    // notice message
     shift::fix::addFIXGroup<FIX50SP2::News::NoLinesOfText>(message,
         FIX::Text(text));
 
@@ -144,8 +138,8 @@ void FIXAcceptor::disconnectMatchingEngine()
     std::time_t secs = rawData.secs + static_cast<int>(rawData.microsecs);
     std::tm* secs_tm = std::gmtime(&secs);
 
-    // A negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect
-    // More information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
+    // a negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect --
+    // more information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
     secs_tm->tm_isdst = -1;
     std::time_t utcSecs = std::mktime(secs_tm);
 
@@ -202,8 +196,7 @@ void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& ses
 }
 
 /**
- * @brief The FIX message handler of the acceptor.
- *        Identifies message types and push to processor accordingly.
+ * @brief The FIX message handler of the acceptor. Identifies message types and push to processor accordingly.
  */
 void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
 {
@@ -218,7 +211,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 
     std::unique_lock<std::mutex> lockRP(m_mtxReqsProcs);
     if (m_requestsProcessorByTarget.find(targetID) == m_requestsProcessorByTarget.end()) {
-        m_requestsProcessorByTarget[targetID].reset(new RequestsProcessorPerTarget(targetID)); // Spawn an unique processing thread for the target
+        m_requestsProcessorByTarget[targetID].reset(new RequestsProcessorPerTarget(targetID)); // spawn an unique processing thread for the target
     }
     lockRP.unlock();
 
@@ -310,7 +303,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 }
 
 /**
- * @brief receive the market data request from ME
+ * @brief Receive the market data request from ME.
  */
 void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FIX::SessionID& sessionID) // override
 {
@@ -326,7 +319,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
 }
 
 /**
- * @brief Receive the confirmed order from ME
+ * @brief Receive the confirmed order from ME.
  */
 void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::SessionID& sessionID) // override
 {

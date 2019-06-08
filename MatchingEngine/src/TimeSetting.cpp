@@ -9,7 +9,7 @@
 }
 
 /**
- * @brief Convert local ptime to UTC ptime
+ * @brief Convert local ptime to UTC ptime.
  */
 /* static */ boost::posix_time::ptime TimeSetting::getUTCPTime(const boost::posix_time::ptime& localPtime)
 {
@@ -19,8 +19,8 @@
     std::time_t ttLocal = boost::posix_time::to_time_t(localPtime);
     std::tm* tmLocal = std::gmtime(&ttLocal);
 
-    // A negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect
-    // More information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
+    // a negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect --
+    // more information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
     tmLocal->tm_isdst = -1;
     std::time_t ttUtc = mktime(tmLocal);
     std::tm* tmUtc = std::gmtime(&ttUtc);
@@ -29,7 +29,7 @@
 }
 
 /**
- * @brief Initiate member variables
+ * @brief Initiate member variables.
  */
 void TimeSetting::initiate(const boost::posix_time::ptime& localPtime, int speed)
 {
@@ -43,7 +43,7 @@ void TimeSetting::initiate(const boost::posix_time::ptime& localPtime, int speed
 }
 
 /**
- * @brief Set m_startTimePoint as real local timestamp
+ * @brief Set m_startTimePoint as real local timestamp.
  */
 void TimeSetting::setStartTime()
 {
@@ -52,7 +52,7 @@ void TimeSetting::setStartTime()
 }
 
 /**
- * @brief Get total millisecond from now
+ * @brief Get total millisecond from now.
  */
 long TimeSetting::pastMilli(bool simTime) // FIXME: can be replaced by microsecond
 {
@@ -64,7 +64,7 @@ long TimeSetting::pastMilli(bool simTime) // FIXME: can be replaced by microseco
 }
 
 /**
- * @ brief Get total millisecond from FIX::UtcTimeStamp
+ * @ brief Get total millisecond from FIX::UtcTimeStamp.
  */
 long TimeSetting::pastMilli(const FIX::UtcTimeStamp& utc, bool simTime)
 {
@@ -74,7 +74,7 @@ long TimeSetting::pastMilli(const FIX::UtcTimeStamp& utc, bool simTime)
 }
 
 /**
- * @brief Get FIX::UtcTimeStamp from now
+ * @brief Get FIX::UtcTimeStamp from now.
  */
 FIX::UtcTimeStamp TimeSetting::simulationTimestamp()
 {

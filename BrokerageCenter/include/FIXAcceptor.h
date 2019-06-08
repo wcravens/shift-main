@@ -1,8 +1,3 @@
-/*
-** This file contains the acceptor which is used to
-** accept/send FIX messages from/to CoreClient
-**/
-
 #pragma once
 
 #include "CandlestickDataPoint.h"
@@ -20,7 +15,7 @@
 #include <unordered_set>
 #include <vector>
 
-// Acceptor
+// acceptor
 #include <quickfix/Application.h>
 #include <quickfix/FileLog.h>
 #include <quickfix/FileStore.h>
@@ -28,14 +23,14 @@
 #include <quickfix/NullStore.h>
 #include <quickfix/SocketAcceptor.h>
 
-// Receiving Message Types
+// receiving message types
 #include <quickfix/fix50sp2/MarketDataRequest.h>
 #include <quickfix/fix50sp2/NewOrderSingle.h>
 #include <quickfix/fix50sp2/RFQRequest.h>
 #include <quickfix/fix50sp2/UserRequest.h>
 #include <quickfix/fixt11/Logon.h>
 
-// Sending Message Types
+// sending message types
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
 #include <quickfix/fix50sp2/MarketDataSnapshotFullRefresh.h>
@@ -84,7 +79,7 @@ private:
     void onMessage(const FIX50SP2::RFQRequest&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
 
-    // Do NOT change order of these unique_ptrs:
+    // DO NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_logFactoryPtr;
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
     std::unique_ptr<FIX::Acceptor> m_acceptorPtr;

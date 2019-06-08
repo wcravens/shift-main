@@ -13,7 +13,8 @@
 #define __PRE_CONDITION__(ASSERT_EXPR)
 #endif
 
-/**@brief Constructs a Requests Processor for one unique target.
+/**
+ * @brief Constructs a Requests Processor for one unique target.
  * @param targetID: The ID that uniquely identifies the target sending the requests.
  */
 RequestsProcessorPerTarget::RequestsProcessorPerTarget(const std::string& targetID)
@@ -22,7 +23,8 @@ RequestsProcessorPerTarget::RequestsProcessorPerTarget(const std::string& target
     m_proc = std::thread(&RequestsProcessorPerTarget::processRequests, this); // run only after all other members were already initialized
 }
 
-/**@brief Destructs a Requests Processor for this target.
+/**
+ * @brief Destructs a Requests Processor for this target.
  *        It will firstly terminates the running processing thread.
  */
 RequestsProcessorPerTarget::~RequestsProcessorPerTarget()
@@ -31,7 +33,7 @@ RequestsProcessorPerTarget::~RequestsProcessorPerTarget()
 }
 
 /**
- * @brief Enqueue one Market Data request to process
+ * @brief Enqueue one Market Data request to process.
  */
 void RequestsProcessorPerTarget::enqueueMarketDataRequest(std::string reqID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime, int numSecondsPerDataChunk)
 {
@@ -43,7 +45,9 @@ void RequestsProcessorPerTarget::enqueueMarketDataRequest(std::string reqID, std
     m_cvQueues.notify_one();
 }
 
-/**@brief Enqueue one Next Data request to process */
+/**
+ * @brief Enqueue one Next Data request to process.
+ */
 void RequestsProcessorPerTarget::enqueueNextDataRequest()
 {
     {
@@ -53,13 +57,15 @@ void RequestsProcessorPerTarget::enqueueNextDataRequest()
     m_cvQueues.notify_one();
 }
 
-/**@brief The unique Requests Processor thread for this target */
+/**
+ * @brief The unique Requests Processor thread for this target.
+ */
 void RequestsProcessorPerTarget::processRequests()
 {
     thread_local auto futQuit = m_procQuitFlag.get_future();
 
-    MarketDataRequest lastProcessedMarketReq; // Memorizes the last processed Market Data request for consecutive Next Data requests use
-    std::future<bool> futLastMarketReq; // Updated by MARKET_DATA proc, consumed by subsequent NEXT_DATA proc
+    MarketDataRequest lastProcessedMarketReq; // memorizes the last processed Market Data request for consecutive Next Data requests use
+    std::future<bool> futLastMarketReq; // updated by MARKET_DATA proc, consumed by subsequent NEXT_DATA proc
 
     while (true) {
         std::unique_lock<std::mutex> oneReqLock(m_mtxRequest);
@@ -90,10 +96,15 @@ void RequestsProcessorPerTarget::processRequests()
     } // while
 }
 
-/**@brief Announces requested data is ready to send. */
+/**
+ * @brief Announces requested data is ready to send.
+ */
 /*static*/ void RequestsProcessorPerTarget::s_announceSecurityListRequestComplete(const std::string& targetID, const std::string& requestID, int numAvailableSecurities)
 {
-    static std::mutex mtxReadyMsg; // Its only purpose is to ensure atomically print message and send signal at the same time. Its lifetime will last from first time the program encountered it, to when the entire DE program terminates.
+    // its only purpose is to ensure atomically print message and send signal at the same time
+    // its lifetime will last from first time the program encountered it, to when the entire DE program terminates
+    static std::mutex mtxReadyMsg;
+
     if (numAvailableSecurities > 0) {
         std::lock_guard<std::mutex> guard(mtxReadyMsg);
         cout << '\n'
@@ -104,7 +115,8 @@ void RequestsProcessorPerTarget::processRequests()
     FIXAcceptor::sendNotice(targetID, requestID, numAvailableSecurities > 0 ? "READY" : "EMPTY");
 }
 
-/**@brief Processor helper for one Market Data request.
+/**
+ * @brief Processor helper for one Market Data request.
  * @param marketReq: The Market Data request with necessary informations.
  * @param targetID: ID of this target.
  * @return future<bool> for waiting the TRTH downloads finish; bool value indicates whether it was a smooth, successful processing.
@@ -118,10 +130,10 @@ void RequestsProcessorPerTarget::processRequests()
     }
 
     auto symbols = marketReq.getSymbols();
-    std::vector<std::promise<bool>> proms(symbols.size()); /* NOTE: Do NOT add/remove elements, to prevent any vector's internal reallocation.
-                                                                Otherwise, element's memory location might be unreliable and hence communication
-                                                                with TRTHAPI via promise<>* might NOT work! */
-    std::vector<size_t> requestedSymbolsIndexes; // To postpone the TRTH requests to a later standalone loop so that the messages of DB query results and of TRTH downloads will not interleave in the terminal
+    std::vector<std::promise<bool>> proms(symbols.size()); /* NOTE: DO NOT add/remove elements, to prevent any vector's internal reallocation --
+                                                                    otherwise, element's memory location might be unreliable and hence communication
+                                                                    with TRTHAPI via promise<>* might NOT work! */
+    std::vector<size_t> requestedSymbolsIndexes; // to postpone the TRTH requests to a later standalone loop so that the messages of DB query results and of TRTH downloads will not interleave in the terminal
     std::string tableName;
 
     for (size_t idx{}; idx < symbols.size(); idx++) {
@@ -140,7 +152,7 @@ void RequestsProcessorPerTarget::processRequests()
 
         case PTS::NOT_EXIST:
             if (!TRTHAPI::s_bTRTHLoginJsonExists) {
-                // Issue #32: Do NOT download if NO trthLogin.json exist on this computer
+                // issue #32: DO NOT download if NO trthLogin.json exists on this computer
                 proms[idx].set_value(true);
                 TRTHAPI::getInstance()->addUnavailableRequest({ symbols[idx], marketReq.getDate(), &proms[idx] });
                 break; // skip this symbol
@@ -166,12 +178,13 @@ void RequestsProcessorPerTarget::processRequests()
     }
 
     for (auto idx : requestedSymbolsIndexes) {
-        // Here relies on the stability of the memory location that proms[idx] locates at!
+        // here relies on the stability of the memory location that proms[idx] locates at!
         TRTHRequest trthReq{ symbols[idx], marketReq.getDate(), &proms[idx] };
         TRTHAPI::getInstance()->enqueueRequest(std::move(trthReq));
     }
 
-    /** Creates and returns a future so as to
+    /** 
+     * creates and returns a future so as to:
      * (1) await asynchronous TRTH downloads;
      * (2) provide chances for other enqueuing threads to proceed.
     */
@@ -194,17 +207,19 @@ void RequestsProcessorPerTarget::processRequests()
 
         ,
         std::move(proms), targetID, marketReq.getRequestID(), std::move(symbols)
-        /* All these arguments will be used to create corresponding value(non-reference) objects for std::async's internal use.
-                    If the argument is std::move-ed, then such object is move-constructed, otherwise copy-constructed.
-                    After these, those objects will again move-constructs the lambda's parameters.
-                    Especially, proms shall be moved because we need to reliably transfer the vector's internal resource
-                    (i.e. array of promise<bool>), which is being shared by TRTHAPI part, into the new thread so that
-                    the thread can communicate with TRTHAPI via promise.
-                */
+        /** 
+         * All these arguments will be used to create corresponding value(non-reference) objects for std::async's internal use.
+         * If the argument is std::move-ed, then such object is move-constructed, otherwise copy-constructed.
+         * After these, those objects will again move-constructs the lambda's parameters.
+         * Especially, proms shall be moved because we need to reliably transfer the vector's internal resource
+         * (i.e. array of promise<bool>), which is being shared by TRTHAPI part, into the new thread so that
+         * the thread can communicate with TRTHAPI via promise.
+         */
     ); // return
 }
 
-/**@brief Processor helper for one Next Data request.
+/**
+ * @brief Processor helper for one Next Data request.
  * @param lastDownloadFutPtr: The pointer to the future that waiting for the last downloading. The future object will be mutated.
  * @param lastMarketRequestPtr: The pointer to last Market Data request with necessary informations. The request object will be mutated.
  * @param targetID: ID of this target.

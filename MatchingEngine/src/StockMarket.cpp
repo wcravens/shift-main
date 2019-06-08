@@ -20,7 +20,9 @@ StockMarket::StockMarket(const StockMarket& StockMarket)
 {
 }
 
-// Function to start one StockMarket matching engine, for exchange thread
+/**
+ * @brief Function to start one StockMarket matching engine, for exchange thread.
+ */
 void StockMarket::operator()()
 {
     Order nextOrder;
@@ -33,8 +35,8 @@ void StockMarket::operator()()
             continue;
 
         } else {
-            // Spinlock implementation:
-            // It is better than a standard lock in this scenario, since,
+            // spinlock implementation:
+            // it is better than a standard lock in this scenario, since,
             // most of the time, only this thread needs access to order book data
             while (m_spinlock.test_and_set())
                 continue;
@@ -112,7 +114,7 @@ void StockMarket::operator()()
             }
 
             case Order::Type::TRTH_BID: {
-                // If same price, size, and destination, skip
+                // if same price, size, and destination, skip
                 if (nextOrder == prevGlobalOrder) {
                     break;
                 }
@@ -124,7 +126,7 @@ void StockMarket::operator()()
             }
 
             case Order::Type::TRTH_ASK: {
-                // If same price, size, and destination, skip
+                // if same price, size, and destination, skip
                 if (nextOrder == prevGlobalOrder) {
                     break;
                 }
@@ -136,7 +138,7 @@ void StockMarket::operator()()
             }
             }
 
-            // For debugging:
+            // for debugging:
             // displayGlobalOrderBooks();
             // displayLocalOrderBooks();
 
@@ -163,22 +165,22 @@ void StockMarket::setSymbol(const std::string& symbol)
 
 void StockMarket::sendOrderBookDataToTarget(const std::string& targetID)
 {
-    // Temporary vectors to hold order book entries
+    // temporary vectors to hold order book entries
     std::vector<OrderBookEntry> globalBids;
     std::vector<OrderBookEntry> globalAsks;
     std::vector<OrderBookEntry> localBids;
     std::vector<OrderBookEntry> localAsks;
 
-    // Spinlock implementation:
-    // It is better than a standard lock in this scenario, since
+    // spinlock implementation:
+    // it is better than a standard lock in this scenario, since
     // this function will only be executed a couple of times during a simulation
     while (m_spinlock.test_and_set())
         continue;
 
-    // Requirements:
-    // - The first order book entry must have a price <= 0.0. This will signal the BC it
+    // requirements:
+    // - the first order book entry must have a price <= 0.0. This will signal the BC it
     // needs to clear its current version of the order book before accepting new entries
-    // - Order book entries are sent from worst to best price (in reverse order) so
+    // - order book entries are sent from worst to best price (in reverse order) so
     // that the BC can use the same update procedure as normal order book updates
 
     auto now = TimeSetting::getInstance().simulationTimestamp();

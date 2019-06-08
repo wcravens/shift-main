@@ -16,13 +16,12 @@
 
 const std::string STDSTR_NULL = "NULL";
 
-/*
-Some terminologies:
-
-(1) "Target" or "Target Computer ID": Identifies a certain physical(FIX) connection between the BC and a remote device.
-(2) "User", "Username", "Name", "Client", or "UserID": Identifies a certain trading user(or, "client") that remote interact with the BC.
-(3) One (1) can consist of multiple (2)s; one (2) can interact(e.g. login) through various (1)s, but each (1) will maintain that respectively.
-*/
+/**
+ * Some terminologies:
+ * (1) "Target" or "Target Computer ID": Identifies a certain physical(FIX) connection between the BC and a remote device.
+ * (2) "User", "Username", "Name", "Client", or "UserID": Identifies a certain trading user(or, "client") that remote interact with the BC.
+ * (3) One (1) can consist of multiple (2)s; one (2) can interact(e.g. login) through various (1)s, but each (1) will maintain that respectively.
+ */
 class BCDocuments : public ITargetsInfo {
 public:
     static std::atomic<bool> s_isSecurityListReady;

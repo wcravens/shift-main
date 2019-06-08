@@ -6,7 +6,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 /**
- * @brief class to save Market Data Request information from Matching Engine.
+ * @brief Class to save Market Data Request information from Matching Engine.
  */
 class MarketDataRequest {
 public:
@@ -22,9 +22,9 @@ public:
     void updateStartTime(const boost::posix_time::ptime& newStartTime);
 
 private:
-    std::string m_requestID; // Field for request ID
-    std::vector<std::string> m_symbols; // Field for names of all requested tickers
-    boost::posix_time::ptime m_startTime; // Start time for the requested data
-    boost::posix_time::ptime m_endTime; // End time for the requested data
-    int m_numSecondsPerDataChunk = 300; // Send data chunk every 5min periodically by default
+    std::string m_requestID; ///> Field for request ID.
+    std::vector<std::string> m_symbols; ///> Field for names of all requested tickers.
+    boost::posix_time::ptime m_startTime; ///> Start time for the requested data.
+    boost::posix_time::ptime m_endTime; ///> End time for the requested data.
+    int m_numSecondsPerDataChunk = 300; ///> Send data chunk every 5min periodically by default.
 };

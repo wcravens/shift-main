@@ -1,14 +1,13 @@
 #pragma once
 
 /**
-*   @brief The "Account Summary" of the user's portfolio.
-*/
-
+ * @brief The "Account Summary" of the user's portfolio.
+ */
 class PortfolioSummary {
 public:
     PortfolioSummary(double buyingPower);
     PortfolioSummary(double buyingPower, int totalShares); //> For default use, i.e. Holding Balance/Borrowed Balance/Total P&L == 0.
-    PortfolioSummary(double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use
+    PortfolioSummary(double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use.
 
     void holdBalance(double value);
     void releaseBalance(double value);

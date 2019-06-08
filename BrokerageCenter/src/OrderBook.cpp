@@ -8,24 +8,23 @@
 #include <shift/miscutils/concurrency/Consumer.h>
 
 /**
-*   @brief  Constructs OrderBook instance with stock name.
-*	@param	name: The stock name.
-*/
+ * @brief Constructs OrderBook instance with stock name.
+ * @param name The stock name.
+ */
 OrderBook::OrderBook(const std::string& name)
     : m_symbol(name)
 {
 }
 
-OrderBook::~OrderBook() /*override*/
+OrderBook::~OrderBook() // override
 {
     shift::concurrency::notifyConsumerThreadToQuit(m_quitFlag, m_cvOBEBuff, *m_th);
     m_th = nullptr;
 }
 
 /**
-*   @brief  Thread-safely adds an OrderBookEntry to the buffer, then notify to process the order.
-*	@param	update: The OrderBookEntry to be enqueue the buffer.
-*   @return nothing
+* @brief Thread-safely adds an OrderBookEntry to the buffer, then notify to process the order.
+* @param update The OrderBookEntry to be enqueue the buffer.
 */
 void OrderBook::enqueueOrderBookUpdate(OrderBookEntry&& update)
 {
@@ -37,9 +36,8 @@ void OrderBook::enqueueOrderBookUpdate(OrderBookEntry&& update)
 }
 
 /**
-*   @brief  Thread-safely save the OrderBookEntry items correspondingly with respect to their order book type.
-*   @return nothing
-*/
+ * @brief Thread-safely save the OrderBookEntry items correspondingly with respect to their order book type.
+ */
 void OrderBook::process()
 {
     thread_local auto quitFut = m_quitFlag.get_future();
@@ -72,18 +70,16 @@ void OrderBook::process()
 }
 
 /**
-*   @brief  Spawns and launch the process thread.
-*   @return nothing
-*/
+ * @brief Spawns and launch the process thread.
+ */
 void OrderBook::spawn()
 {
     m_th.reset(new std::thread(&OrderBook::process, this));
 }
 
 /**
-*   @brief  Record the target ID that subscribes this OrderBook and send the
-*   @return nothing
-*/
+ * @brief Record the target ID that subscribes to this order book and send a copy of the order book to it.
+ */
 void OrderBook::onSubscribeOrderBook(const std::string& targetID)
 {
     broadcastWholeOrderBookToOne(targetID);
@@ -91,18 +87,16 @@ void OrderBook::onSubscribeOrderBook(const std::string& targetID)
 }
 
 /**
-*   @brief  Thread-safely unregisters a target.
-*   @return nothing
-*/
+ * @brief Thread-safely unregisters a target.
+ */
 void OrderBook::onUnsubscribeOrderBook(const std::string& targetID)
 {
     unregisterTarget(targetID);
 }
 
 /**
-*   @brief  Thread-safely sends complete order books to one user user.
-*   @return nothing
-*/
+ * @brief Thread-safely sends complete order books to one user user.
+ */
 void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
@@ -124,9 +118,8 @@ void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
 }
 
 /**
-*   @brief  Thread-safely sends complete order books to all targets.
-*   @return nothing
-*/
+ * @brief Thread-safely sends complete order books to all targets.
+ */
 void OrderBook::broadcastWholeOrderBookToAll()
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
@@ -150,10 +143,9 @@ void OrderBook::broadcastWholeOrderBookToAll()
 }
 
 /**
-*   @brief  Thread-safely sends an order book's single update to all targets.
-*	@param	update: The order book update record to be sent.
-*   @return nothing
-*/
+ * @brief Thread-safely sends an order book's single update to all targets.
+ * @param update The order book update record to be sent.
+ */
 void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 {
     auto targetList = getTargetList();
@@ -188,8 +180,8 @@ void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 }
 
 /**
-*   @brief  Thread-safely saves the latest order book entry to global bid order book, as the ceiling of all hitherto bid prices.
-*/
+ * @brief Thread-safely saves the latest order book entry to global bid order book, as the ceiling of all hitherto bid prices.
+ */
 void OrderBook::saveGlobalBidOrderBookUpdate(const OrderBookEntry& update)
 {
     double price = update.getPrice();
@@ -202,13 +194,14 @@ void OrderBook::saveGlobalBidOrderBookUpdate(const OrderBookEntry& update)
     }
 
     m_globalBidOrderBook[price][update.getDestination()] = update;
-    // discard all higher bid prices, if any:
+
+    // discard all higher bid prices, if any
     m_globalBidOrderBook.erase(m_globalBidOrderBook.upper_bound(price), m_globalBidOrderBook.end());
 }
 
 /**
-*   @brief  Thread-safely saves the latest order book entry to global ask order book, as the bottom of all hitherto ask prices.
-*/
+ * @brief Thread-safely saves the latest order book entry to global ask order book, as the bottom of all hitherto ask prices.
+ */
 void OrderBook::saveGlobalAskOrderBookUpdate(const OrderBookEntry& update)
 {
     double price = update.getPrice();
@@ -221,25 +214,24 @@ void OrderBook::saveGlobalAskOrderBookUpdate(const OrderBookEntry& update)
     }
 
     m_globalAskOrderBook[price][update.getDestination()] = update;
-    // discard all lower ask prices, if any:
+
+    // discard all lower ask prices, if any
     m_globalAskOrderBook.erase(m_globalAskOrderBook.begin(), m_globalAskOrderBook.lower_bound(price));
 }
 
 /**
-*   @brief  Thread-safely saves order book entry to local bid order book at specific price.
-*   @param	update: The order book entry to be saved.
-*   @return nothing
-*/
+ * @brief Thread-safely saves order book entry to local bid order book at specific price.
+ * @param update The order book entry to be saved.
+ */
 inline void OrderBook::saveLocalBidOrderBookUpdate(const OrderBookEntry& update)
 {
     s_saveLocalOrderBookUpdate(update, m_mtxLocalBidOrderBook, m_localBidOrderBook);
 }
 
 /**
-*   @brief  Thread-safely saves order book entry to local ask order book at specific price.
-*   @param	update: The order book entry to be saved.
-*   @return nothing
-*/
+ * @brief Thread-safely saves order book entry to local ask order book at specific price.
+ * @param update The order book entry to be saved.
+ */
 inline void OrderBook::saveLocalAskOrderBookUpdate(const OrderBookEntry& update)
 {
     s_saveLocalOrderBookUpdate(update, m_mtxLocalAskOrderBook, m_localAskOrderBook);
