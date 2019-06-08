@@ -42,8 +42,8 @@ public:
     void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& simulationTime);
     void orderBookUpdate(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& simulationTime);
 
-    void showGlobalOrderBooks();
-    void showLocalOrderBooks();
+    void displayGlobalOrderBooks();
+    void displayLocalOrderBooks();
 
     void doGlobalLimitBuy(Order& orderRef);
     void doGlobalLimitSell(Order& orderRef);
@@ -64,7 +64,6 @@ public:
 private:
     std::string m_symbol;
     std::atomic_flag m_spinlock = ATOMIC_FLAG_INIT;
-    unsigned int m_depth = 5;
 
     // buffer new quotes & trades received from DE
     std::mutex m_mtxNewGlobalOrders;

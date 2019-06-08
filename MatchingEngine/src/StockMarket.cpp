@@ -136,6 +136,10 @@ void StockMarket::operator()()
             }
             }
 
+            // For debugging:
+            // displayGlobalOrderBooks();
+            // displayLocalOrderBooks();
+
             FIXAcceptor::getInstance()->sendExecutionReports(executionReports);
             executionReports.clear();
 
@@ -327,72 +331,54 @@ void StockMarket::orderBookUpdate(OrderBookEntry::Type type, const std::string& 
     orderBookUpdates.push_back({ type, symbol, price, size, simulationTime });
 }
 
-void StockMarket::showGlobalOrderBooks()
+void StockMarket::displayGlobalOrderBooks()
 {
-    std::stringstream ss;
-    std::string output;
-
     long simulationMilli = TimeSetting::getInstance().pastMilli(true);
 
-    ss << simulationMilli << ';'
-       << "Global: "
-       << ';';
+    cout << endl
+         << "(" << simulationMilli << ") "
+         << "Global Ask:"
+         << endl;
 
-    unsigned int depth = m_globalAsks.size();
-    depth = m_depth > depth ? depth : m_depth;
-
-    m_thisGlobalOrder = m_globalAsks.begin();
-    for (unsigned int i = 0; i < depth; i++) {
-        ss << m_thisGlobalOrder->getPrice() << ',' << m_thisGlobalOrder->getSize() << ',' << m_thisGlobalOrder->getDestination() << ',';
-        m_thisGlobalOrder++;
+    for (auto it = m_globalAsks.begin(); it != m_globalAsks.end(); ++it) {
+        cout << it->getPrice() << '\t' << it->getSize() << '\t' << it->getDestination() << endl;
     }
-    ss << ';';
 
-    depth = m_globalBids.size();
-    depth = m_depth > depth ? depth : m_depth;
+    cout << endl
+         << "(" << simulationMilli << ") "
+         << "Global Bid:"
+         << endl;
 
-    m_thisGlobalOrder = m_globalBids.begin();
-    for (unsigned int i = 0; i < depth; i++) {
-        ss << m_thisGlobalOrder->getPrice() << ',' << m_thisGlobalOrder->getSize() << ',' << m_thisGlobalOrder->getDestination() << ',';
-        m_thisGlobalOrder++;
+    for (auto it = m_globalBids.begin(); it != m_globalBids.end(); ++it) {
+        cout << it->getPrice() << '\t' << it->getSize() << '\t' << it->getDestination() << endl;
     }
-    ss << ';';
 
-    output = ss.str();
+    cout << endl;
 }
 
-void StockMarket::showLocalOrderBooks()
+void StockMarket::displayLocalOrderBooks()
 {
-    std::stringstream ss;
-    std::string output;
-
     long simulationMilli = TimeSetting::getInstance().pastMilli(true);
 
-    ss << simulationMilli << ';'
-       << "Local: "
-       << ';';
+    cout << endl
+         << "(" << simulationMilli << ") "
+         << "Local Ask:"
+         << endl;
 
-    unsigned int depth = m_localAsks.size();
-    depth = m_depth > depth ? depth : m_depth;
-
-    m_thisPriceLevel = m_localAsks.begin();
-    for (unsigned int i = 0; i < depth; i++) {
-        ss << m_thisPriceLevel->getPrice() << ',' << m_thisPriceLevel->getSize() << ',';
-        m_thisPriceLevel++;
+    for (auto it = m_localAsks.begin(); it != m_localAsks.end(); ++it) {
+        cout << it->getPrice() << '\t' << it->getSize() << endl;
     }
-    ss << ';';
 
-    depth = m_localBids.size();
-    depth = m_depth > depth ? depth : m_depth;
+    cout << endl
+         << "(" << simulationMilli << ") "
+         << "Local Bid:"
+         << endl;
 
-    m_thisPriceLevel = m_localBids.begin();
-    for (unsigned int i = 0; i < depth; i++) {
-        ss << m_thisPriceLevel->getPrice() << ',' << m_thisPriceLevel->getSize() << ',';
-        m_thisPriceLevel++;
+    for (auto it = m_localBids.begin(); it != m_localBids.end(); ++it) {
+        cout << it->getPrice() << '\t' << it->getSize() << endl;
     }
-    ss << ';';
 
-    output = ss.str();
+    cout << endl;
 }
 
 void StockMarket::doGlobalLimitBuy(Order& orderRef)
