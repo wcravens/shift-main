@@ -2,8 +2,8 @@
 
 /**
  * @brief Constructor with all members preset.
- * @param symbol string value to be set in m_symbol
- * @param type Type value for m_type
+ * @param symbol String value to be set in m_symbol.
+ * @param type Type value for m_type.
  */
 shift::OrderBook::OrderBook(const std::string& symbol, shift::OrderBook::Type type)
     : m_symbol(symbol)
@@ -107,7 +107,7 @@ std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBook(int maxLevel)
 
 /**
  * @brief Method to return the designated order book searched by destination.
- * @return the target order book with their own destination. (Not combined to "Market")
+ * @return the target order book with their own destination (not combined to "Market"). 
  */
 std::vector<shift::OrderBookEntry> shift::OrderBook::getOrderBookWithDestination()
 {
@@ -154,8 +154,8 @@ void shift::OrderBook::displayOrderBook()
 
 /**
  * @brief Method to return target position of the order book entry who has the requested price and destination.
- * @param price the target price value as a double
- * @param destination the target destination as a string
+ * @param price The target price value as a double.
+ * @param destination The target destination as a string.
  * @return A list iterator who points to the position of the requested order book entry.
  */
 std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntry(double price, const std::string& destination)

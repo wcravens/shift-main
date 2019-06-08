@@ -2,7 +2,7 @@
 
 /**
  * @brief Constructor with all members preset.
- * @param symbol string value to be set in m_symbol
+ * @param symbol String value to be set in m_symbol.
  */
 shift::OrderBookGlobalAsk::OrderBookGlobalAsk(const std::string& symbol)
     : OrderBook(symbol, shift::OrderBook::Type::GLOBAL_ASK)

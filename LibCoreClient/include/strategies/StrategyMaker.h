@@ -12,11 +12,11 @@
 namespace shift {
 namespace strategies {
 
-    /// Helper template to simplify the process of generating strategy-maker
+    // helper template to simplify the process of generating strategy-maker
     template <typename T>
     class StrategyMaker : public IStrategyMaker {
     public:
-        /// When created, the strategy maker will automaticaly register itself with the factory
+        // when created, the strategy maker will automaticaly register itself with the factory
         StrategyMaker(const std::string& name)
         {
             StrategyFactory::Instance().RegisterMaker(name, this);
@@ -24,8 +24,8 @@ namespace strategies {
 
         virtual IStrategy* Create(shift::CoreClient& client, bool verbose, const std::initializer_list<StrategyParameter>& parameters) const override
         {
-            // Create new instance of T
-            // Assumes T has a constructor that accepts std::initializer_list<StrategyParameter>
+            // create new instance of T
+            // assumes T has a constructor that accepts std::initializer_list<StrategyParameter>
             return new T(client, verbose, parameters);
         }
     };

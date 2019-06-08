@@ -25,7 +25,7 @@
 
 namespace shift {
 /**
- * @brief Core class for LibCoreClient including all core functions
+ * @brief Core class for LibCoreClient including all core functions.
  */
 class CORECLIENT_EXPORTS FIXInitiator;
 class CORECLIENT_EXPORTS CoreClient {
@@ -50,7 +50,7 @@ public:
     void submitOrder(const shift::Order& order);
     void submitCancellation(shift::Order order);
 
-    // Portfolio methods
+    // portfolio methods
     PortfolioSummary getPortfolioSummary();
     std::map<std::string, PortfolioItem> getPortfolioItems();
     PortfolioItem getPortfolioItem(const std::string& symbol);
@@ -61,25 +61,25 @@ public:
     std::vector<shift::Order> getWaitingList();
     void cancelAllPendingOrders();
 
-    // Price methods
+    // price methods
     double getOpenPrice(const std::string& symbol);
     double getClosePrice(const std::string& symbol, bool buy, int size);
     double getLastPrice(const std::string& symbol);
     int getLastSize(const std::string& symbol);
     std::chrono::system_clock::time_point getLastTradeTime();
 
-    // Order book methods
+    // order book methods
     shift::BestPrice getBestPrice(const std::string& symbol);
     std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel = 99);
     std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type);
 
-    // Symbols list and company names
+    // symbols list and company names
     std::vector<std::string> getStockList();
     void requestCompanyNames();
     std::map<std::string, std::string> getCompanyNames();
     std::string getCompanyName(const std::string& symbol);
 
-    // Sample prices
+    // sample prices
     bool requestSamplePrices(std::vector<std::string> symbols, double samplingFrequency = 1, unsigned int samplingWindow = 31);
     bool cancelSamplePricesRequest(const std::vector<std::string>& symbols);
     bool cancelAllSamplePricesRequests();
@@ -88,7 +88,7 @@ public:
     int getLogReturnsSize(const std::string& symbol);
     std::list<double> getLogReturns(const std::string& symbol, bool midPrices = false);
 
-    // Subscription methods
+    // subscription methods
     bool subOrderBook(const std::string& symbol);
     bool unsubOrderBook(const std::string& symbol);
     bool subAllOrderBook();
@@ -101,7 +101,7 @@ public:
     std::vector<std::string> getSubscribedCandlestickList();
 
 protected:
-    // Inline methods
+    // inline methods
     void debugDump(const std::string& message);
 
     // FIXInitiator interface
@@ -112,14 +112,14 @@ protected:
     void storeWaitingList(std::vector<shift::Order>&& waitingList);
 
     // FIXInitiator callback methods
-    virtual void receiveLastPrice(const std::string& /*symbol*/) {}
-    virtual void receiveCandlestickData(const std::string& /*symbol*/, double /*open*/, double /*high*/, double /*low*/, double /*close*/, const std::string& /*timestamp*/) {}
-    virtual void receiveExecution(const std::string& /*orderID*/) {}
+    virtual void receiveLastPrice(const std::string& symbol) {}
+    virtual void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) {}
+    virtual void receiveExecution(const std::string& orderID) {}
     virtual void receivePortfolioSummary() {}
-    virtual void receivePortfolioItem(const std::string& /*symbol*/) {}
+    virtual void receivePortfolioItem(const std::string& symbol) {}
     virtual void receiveWaitingList() {}
 
-    // Sample prices
+    // sample prices
     void calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow);
 
 private:
@@ -129,7 +129,7 @@ private:
     bool m_verbose;
 
     std::mutex m_mutex_portfolioSummary;
-    std::mutex m_mutex_symbol_portfolioItem; //!< Mutex for the <Symbol, PortfolioItem> map.
+    std::mutex m_mutex_symbol_portfolioItem;
     std::mutex m_mutex_submittedOrders;
     std::mutex m_mutex_waitingList;
     std::mutex m_mutex_samplePricesFlags;

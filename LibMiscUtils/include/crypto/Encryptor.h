@@ -9,13 +9,13 @@
 namespace shift {
 namespace crypto {
 
-    /*
-    * @brief General-purpose encryption tool; the counterpart of class Decryptor.
-    */
+    /**
+     * @brief General-purpose encryption tool; the counterpart of class Decryptor.
+     */
     class MISCUTILS_EXPORTS Encryptor {
     public:
         Encryptor(const std::string& cryptoKey);
-        Encryptor(); ///> SHA1
+        Encryptor(); ///> SHA1.
 
         ~Encryptor();
 
@@ -25,7 +25,7 @@ namespace crypto {
         friend std::ostream& operator<<(std::ostream& os, Encryptor& enc); ///> Output stream operator << overloading for Encryptor.
 
     private:
-        // Implementation is hidden by Pimpl-idiom.
+        // implementation is hidden by Pimpl-idiom
         struct Impl;
         std::unique_ptr<Impl> m_impl;
     };

@@ -18,7 +18,7 @@ namespace strategies {
     // of our hierarchy of strategies
     class IStrategy {
     public:
-        // Constructor attaches a client to the strategy
+        // constructor attaches a client to the strategy
         IStrategy(shift::CoreClient& client, bool verbose = false)
             : m_client(client)
             , m_verbose(false)
@@ -26,19 +26,19 @@ namespace strategies {
         {
         }
 
-        // Attaches a different client to the strategy
+        // attaches a different client to the strategy
         void reattach(shift::CoreClient& client)
         {
             m_client = std::ref(client);
         }
 
-        // Runs the strategy
+        // runs the strategy
         virtual void run(std::string username = "") = 0;
 
-        // More virtual functions here
+        // more virtual functions here
 
-        // Every C++ interface should define a public virtual destructor
-        // Why? http://stackoverflow.com/questions/270917/why-should-i-declare-a-virtual-destructor-for-an-abstract-class-in-c
+        // every C++ interface should define a public virtual destructor
+        // why? http://stackoverflow.com/questions/270917/why-should-i-declare-a-virtual-destructor-for-an-abstract-class-in-c
         virtual ~IStrategy() = default;
 
     protected:

@@ -50,7 +50,7 @@ static uint32_t blk(const uint32_t block[BLOCK_INTS], const size_t i)
 }
 
 /*
- * (R0+R1), R2, R3, R4 are the different operations used in SHA1
+ * (R0+R1), R2, R3, R4 are the different operations used in SHA1.
  */
 
 static void R0(const uint32_t block[BLOCK_INTS], const uint32_t v, uint32_t& w, const uint32_t x, const uint32_t y, uint32_t& z, const size_t i)
@@ -100,7 +100,8 @@ static void transform(uint32_t digest[], uint32_t block[BLOCK_INTS], uint64_t& t
     uint32_t d = digest[3];
     uint32_t e = digest[4];
 
-    /* 4 rounds of 20 operations each. Loop unrolled. */
+    /* 4 rounds of 20 operations each */
+    /* Loop unrolled */
     R0(block, a, b, c, d, e, 0);
     R0(block, e, a, b, c, d, 1);
     R0(block, d, e, a, b, c, 2);

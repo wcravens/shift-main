@@ -7,7 +7,9 @@
 namespace shift {
 namespace terminal {
 
-    /**@brief Utility for handling and controling command line '--verbose' option. */
+    /**
+     * @brief Utility for handling and controling command line '--verbose' option.
+     */
     struct MISCUTILS_EXPORTS VerboseOptHelper {
         VerboseOptHelper(std::ostream& os, bool isVerbose, bool keepIfOutOfScope = false);
         ~VerboseOptHelper();
@@ -16,7 +18,7 @@ namespace terminal {
     private:
         std::ostream& m_os;
         bool m_isVerbose;
-        bool m_shallKeep; ///> whether or not keep verbose/mute effection after go out of object's lifetime
+        bool m_shallKeep; // whether or not keep verbose/mute effection after go out of object's lifetime
     };
 
 } // terminal

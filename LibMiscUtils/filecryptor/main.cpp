@@ -18,13 +18,13 @@
 #define CSTR_OUT \
     "output"
 
-/*
-* @brief Given an output file stream as the cryption destination, try to open it, if not already openned, with a viable file.
-* @param outf: The file stream object that will hold the output file.
-* @param vm: The program options that holds the user arguments given to this program.
-* @param outputOptionName: The output option name used for this program, e.g. 'output'.
-* @return outf, if the outf is openned already; otherwise, use outf to open the user-specified file indicated by the output option(e.g. --output FileName.txt) and return this stream; otherwise, creates a file and generates a random 10 characters as name, then open and return as file stream.
-*/
+/**
+ * @brief Given an output file stream as the cryption destination, try to open it, if not already openned, with a viable file.
+ * @param outf: The file stream object that will hold the output file.
+ * @param vm: The program options that holds the user arguments given to this program.
+ * @param outputOptionName: The output option name used for this program, e.g. 'output'.
+ * @return outf, if the outf is openned already; otherwise, use outf to open the user-specified file indicated by the output option(e.g. --output FileName.txt) and return this stream; otherwise, creates a file and generates a random 10 characters as name, then open and return as file stream.
+ */
 std::ofstream& openCryptOutputStream(std::ofstream& outf, const boost::program_options::variables_map& vm, const char* outputOptionName = CSTR_OUT)
 {
     if (outf.is_open())
@@ -35,7 +35,7 @@ std::ofstream& openCryptOutputStream(std::ofstream& outf, const boost::program_o
     } else // no output file option specified, create a random named file and write.
     {
         std::string name;
-        std::random_device rd; // Will be used to obtain a seed for the random number engine
+        std::random_device rd; // will be used to obtain a seed for the random number engine
         std::mt19937 gen(rd());
 
         const size_t sz = 10 + 26; // '0'-'9', 'A'-'Z'
@@ -52,14 +52,14 @@ std::ofstream& openCryptOutputStream(std::ofstream& outf, const boost::program_o
     return outf;
 }
 
-/*
-* @brief Operates encryption or decryption, depending on the template parameter type, using the given key and name of the input file to be encrypted/decrypted, and then output to a viable file.
-* @param key: The cryptographical key used for the cryption operation.
-* @param inFileName: The name of the input file to be encrypted/decrypted.
-* @param vm: The program options that holds the user arguments given to this program.
-* @param outputOptionName: The output option name used for this program, e.g. 'output'.
-* @return true if the file was successfuly read, encrypted/decrypted and wrote to output file, otherwise false.
-*/
+/**
+ * @brief Operates encryption or decryption, depending on the template parameter type, using the given key and name of the input file to be encrypted/decrypted, and then output to a viable file.
+ * @param key: The cryptographical key used for the cryption operation.
+ * @param inFileName: The name of the input file to be encrypted/decrypted.
+ * @param vm: The program options that holds the user arguments given to this program.
+ * @param outputOptionName: The output option name used for this program, e.g. 'output'.
+ * @return true if the file was successfuly read, encrypted/decrypted and wrote to output file, otherwise false.
+ */
 template <typename _Cryptor>
 bool cryptOut(const std::string& key, const std::string& inFileName, const boost::program_options::variables_map& vm, const char* outputOptionName = CSTR_OUT)
 {
@@ -83,9 +83,9 @@ bool cryptOut(const std::string& key, const std::string& inFileName, const boost
     return true;
 }
 
-/*
-* @brief The test program of LibMiscUtils::crypto. Usage: $./FileCryptor --help
-*/
+/**
+ * @brief The test program of LibMiscUtils::crypto. Usage: $./FileCryptor --help
+ */
 int main(int argc, char* argv[])
 {
     namespace po = boost::program_options;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     bool isDec = vm.count(CSTR_DEC) > 0;
     bool bCryptable = isEnc || isDec;
 
-    if (!bCryptable) { // this is not an allowed case anyway, so just print help to notify the user.
+    if (!bCryptable) { // this is not an allowed case anyway, so just print help to notify the user
         cout << odsc << endl;
         return 1;
     }
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
     if (vm.count(CSTR_KEY)) {
         key = vm[CSTR_KEY].as<std::string>();
     } else {
-        key = "SHIFT123"; // This is the default key value.
+        key = "SHIFT123"; // this is the default key value
         cout << "NOTE: Since no -p option was provided, default key value will be used:" << endl
              << '\t' << key << endl
              << "Changing the key is recommended." << endl;

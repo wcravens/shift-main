@@ -1,6 +1,7 @@
 #include "terminal/Options.h"
 
-/**@brief Use this constructor to handle the --verbose option.
+/**
+ * @brief Use this constructor to handle the --verbose option.
  * @param keepIfOutOfScope: If set true, then if the option is on (isVerbose == true) the effect of it will still keep/last even if this VerboseOptHelper object's lifetime ends.
  *                          By default, it is set false, which means that verbose effect is cleared immediately after the VerboseOptHelper object destroys.
  */

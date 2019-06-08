@@ -1,11 +1,8 @@
 #include "OrderBookLocalBid.h"
 
-#include <cmath>
-#include <limits>
-
 /**
  * @brief Constructor with all members preset.
- * @param symbol string value to be set in m_symbol
+ * @param symbol String value to be set in m_symbol.
  */
 shift::OrderBookLocalBid::OrderBookLocalBid(const std::string& symbol)
     : OrderBook(symbol, shift::OrderBook::Type::LOCAL_BID)

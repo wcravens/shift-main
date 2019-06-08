@@ -41,7 +41,7 @@ THE SOFTWARE.
 namespace shift {
 namespace crossguid {
 
-    // Class to represent a GUID/UUID. Each instance acts as a wrapper around a
+    // class to represent a GUID/UUID. Each instance acts as a wrapper around a
     // 16 byte value that can be passed around by value. It also supports
     // conversion to string (via the stream operator <<) and conversion from a
     // string via constructor.
@@ -79,12 +79,12 @@ namespace crossguid {
 
 namespace std {
 
-// Template specialization for std::swap<Guid>() --
-// See guid.cpp for the function definition
+// template specialization for std::swap<Guid>() --
+// see guid.cpp for the function definition
 // template <>
 // void swap(shift::crossguid::Guid& guid0, shift::crossguid::Guid& guid1);
 
-// Specialization for std::hash<Guid> -- this implementation
+// specialization for std::hash<Guid> -- this implementation
 // uses std::hash<std::string> on the stringification of the guid
 // to calculate the hash
 template <>

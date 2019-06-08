@@ -177,7 +177,7 @@ namespace crossguid {
                 continue;
 
             if (nextByte >= 16 || !isValidHexChar(ch)) {
-                // Invalid string so bail
+                // invalid string so bail
                 zeroify();
                 return;
             }
@@ -243,7 +243,7 @@ namespace crossguid {
         _bytes.swap(other._bytes);
     }
 
-// This is the linux friendly implementation, but it could work on other
+// this is the linux friendly implementation, but it could work on other
 // systems that have libuuid available
 #ifdef __linux__
     Guid newGuid()

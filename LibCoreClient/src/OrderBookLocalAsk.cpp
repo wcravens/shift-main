@@ -1,8 +1,9 @@
 #include "OrderBookLocalAsk.h"
 
-#include <cmath>
-#include <limits>
-
+/**
+ * @brief Constructor with all members preset.
+ * @param symbol String value to be set in m_symbol.
+ */
 shift::OrderBookLocalAsk::OrderBookLocalAsk(const std::string& symbol)
     : OrderBook(symbol, shift::OrderBook::Type::LOCAL_ASK)
 {

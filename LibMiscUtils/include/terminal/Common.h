@@ -19,6 +19,6 @@ using std::flush;
 #define NO_COLOR \
     "\033[0m"
 
-// guaranteed interleaving-free printing:
+// guaranteed interleaving-free printing
 void synchPrint(const char* msg);
 void synchPrint(const std::string& msg);

@@ -28,7 +28,7 @@ public:
         CANCEL_ASK = '6',
     };
 
-    enum Status : char { // See FIX::OrdStatus
+    enum Status : char { // see FIX::OrdStatus
         PENDING_NEW = 'A',
         NEW = '0',
         PARTIALLY_FILLED = '1',

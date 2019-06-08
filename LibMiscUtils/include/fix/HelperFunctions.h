@@ -6,7 +6,9 @@
 
 namespace shift {
 namespace fix {
+
     namespace details {
+
         template <typename _GroupType>
         _GroupType& createFIXGroupImpl(_GroupType& g)
         {
@@ -19,13 +21,13 @@ namespace fix {
             g.setField(f);
             return createFIXGroupImpl(g, std::forward<_GroupItemTypes>(items)...);
         }
-    } // namespace details
+
+    } // details
 
     /**
-     * @brief Create a specified type of FIX group and add all FIX field object `items` 
-     *        into that.
-     * @param _GroupType: the type of FIX group
-     * @param items: FIX field objects
+     * @brief Create a specified type of FIX group and add all FIX field object 'items' into that.
+     * @param _GroupType The type of FIX group.
+     * @param items FIX field objects.
      */
     template <typename _GroupType, typename... _GroupItemTypes>
     _GroupType createFIXGroup(_GroupItemTypes&&... items)
@@ -35,11 +37,10 @@ namespace fix {
     }
 
     /**
-     * @brief Create a specified type of FIX group and add all FIX field objects `items` 
-     *        into that, add the group into the FIX message `msg`
-     * @param _GroupType: the type of FIX group
-     * @param msg: FIX message
-     * @param item: FIX field objects
+     * @brief Create a specified type of FIX group and add all FIX field objects 'items' into that, add the group into the FIX message 'msg'.
+     * @param _GroupType The type of FIX group.
+     * @param msg FIX message.
+     * @param item FIX field objects.
      */
     template <typename _GroupType, typename _MsgType, typename... _GroupItemTypes>
     void addFIXGroup(_MsgType& msg, _GroupItemTypes&&... items)
@@ -48,6 +49,7 @@ namespace fix {
     }
 
     namespace experimental {
+
         template <typename _MsgType>
         void getFIXField(const _MsgType& msg)
         {
@@ -62,9 +64,9 @@ namespace fix {
         }
 
         /** 
-         * @brief get fields from message
-         * @param msg: FIX message
-         * @param items: FIX field objects
+         * @brief Get fields from message.
+         * @param msg FIX message.
+         * @param items FIX field objects.
          */
         template <typename _MsgType, typename... _FieldTypes>
         void getFIXFields(const _MsgType& msg, _FieldTypes&... items)
@@ -73,10 +75,10 @@ namespace fix {
         }
 
         /**
-         * @brief get fields from one group inside the message
-         * @param noOfGroup: the no. of group in the message
-         * @param msg: FIX message
-         * @param items: FIX field objects
+         * @brief Get fields from one group inside the message.
+         * @param noOfGroup The no. of group in the message.
+         * @param msg FIX message.
+         * @param items FIX field objects.
          */
         template <unsigned int noOfGroups, typename _GroupType, typename _MsgType, typename... _FieldTypes>
         void getFIXFields(const _MsgType& msg, _FieldTypes&... items)
@@ -85,6 +87,8 @@ namespace fix {
             msg.getGroup(noOfGroups, g);
             getFIXField(g, items...);
         }
-    } // namespace experiment
+
+    } // experiment
+
 } // fix
 } // shift

@@ -3,10 +3,14 @@
 namespace shift {
 namespace database {
 
-    /*@brief Tag of table for storing Trade and Quote records */
+    /**
+     * @brief Tag of table for storing Trade and Quote records.
+     */
     struct TradeAndQuoteRecords;
 
-    /*@brief Tag of table for storing Trading records */
+    /**
+     * @brief Tag of table for storing Trading records.
+     */
     struct TradingRecords;
 
     struct PortfolioSummary;
@@ -26,7 +30,7 @@ namespace database {
                                                     ", reuters_time TIME"
                                                     ", reuters_time_order INTEGER"
                                                     ", reuters_time_offset SMALLINT"
-                                                    ", toq CHAR" /*Trade Or Quote*/
+                                                    ", toq CHAR" /* trade or quote */
                                                     ", exchange_id VARCHAR(10)"
                                                     ", price REAL"
                                                     ", volume INTEGER"

@@ -13,14 +13,14 @@ References:
 
 #include <boost/program_options.hpp>
 
-#include <cpprest/containerstream.h> // Async streams backed by STL containers
+#include <cpprest/containerstream.h> // async streams backed by STL containers
 #include <cpprest/filestream.h>
 #include <cpprest/http_client.h>
 #include <cpprest/http_listener.h> // HTTP server
-#include <cpprest/interopstream.h> // Bridges for integrating Async streams with STL and WinRT streams
+#include <cpprest/interopstream.h> // bridges for integrating async streams with STL and WinRT streams
 #include <cpprest/json.h> // JSON library
-#include <cpprest/producerconsumerstream.h> // Async streams for producer consumer scenarios
-#include <cpprest/rawptrstream.h> // Async streams backed by raw pointer to memory
+#include <cpprest/producerconsumerstream.h> // async streams for producer consumer scenarios
+#include <cpprest/rawptrstream.h> // async streams backed by raw pointer to memory
 #include <cpprest/uri.h> // URI library
 #include <cpprest/ws_client.h> // WebSocket client
 
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
     infCred >> dec >> cred;
     infCred.close();
 
-    // Create htturi_builderp_client to send the request.
+    // create htturi_builderp_client to send the request
     web::http::client::http_client client("https://hosted.datascopeapi.reuters.com/RestApi/v1", hcconf);
 
     cout << "Requesting Token..." << endl;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     // cout << "\n############" << endl;
 
     const auto credToken = jtask.get()["value"].as_string();
-    //cout << "\n\nAuth Token:\n" << credToken << endl;
+    // cout << "\n\nAuth Token:\n" << credToken << endl;
 
     cout << endl;
 
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
     }
     // cout << "##########################################################" << endl;
     cmdExtract.serialize(cout);
-    // cout << "\n##########################################################" << endl;
+    // cout << "\n########################################################" << endl;
 
     cout << "Requesting Extraction..." << endl;
 

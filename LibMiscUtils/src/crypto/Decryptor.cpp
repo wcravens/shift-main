@@ -6,7 +6,7 @@
 #include <fstream>
 
 struct shift::crypto::Decryptor::Impl : shift::crypto::Cryptor {
-    //using shift::crypto::Cryptor::Cryptor;
+    // using shift::crypto::Cryptor::Cryptor;
     Impl(const std::string& cryptoKey)
         : Cryptor(cryptoKey)
     {

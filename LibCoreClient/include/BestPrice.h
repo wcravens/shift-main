@@ -36,17 +36,17 @@ public:
     int getLocalAskSize() const;
 
 private:
-    double m_globalBidPrice; //!< Global bid price for current BestPrice object
-    int m_globalBidSize; //!< Size of orders with the best global bid price.
+    double m_globalBidPrice;
+    int m_globalBidSize;
 
-    double m_globalAskPrice; //!< Global ask price for current BestPrice object
-    int m_globalAskSize; //!< Size of orders with the best global ask price.
+    double m_globalAskPrice;
+    int m_globalAskSize;
 
-    double m_localBidPrice; //!< Local bid price for current BestPrice object
-    int m_localBidSize; //!< Size of orders with the best local bid price.
+    double m_localBidPrice;
+    int m_localBidSize;
 
-    double m_localAskPrice; //!< Local ask price for current BestPrice object
-    int m_localAskSize; //!< Size of orders with the best local ask price.
+    double m_localAskPrice;
+    int m_localAskSize;
 };
 
 } // shift

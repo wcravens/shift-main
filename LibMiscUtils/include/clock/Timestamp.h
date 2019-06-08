@@ -14,11 +14,11 @@ namespace clock {
         Timestamp(const std::time_t& sec, int usec = 0);
         Timestamp(const std::string& dateTime, const std::string& format);
 
-        // Getters
+        // getters
         const std::time_t& getSeconds() const;
         int getMicroseconds() const;
 
-        // Setters
+        // setters
         void setSeconds(const std::time_t& sec);
         void setMicroseconds(int usec);
 

@@ -31,7 +31,7 @@ shift::BestPrice::BestPrice(double globalBidPrice, int globalBidSize, double glo
  */
 double shift::BestPrice::getBidPrice() const
 {
-    // Pick the highest between global bid price and local bid price.
+    // pick the highest between global bid price and local bid price
     if (m_globalBidPrice > m_localBidPrice)
         return m_globalBidPrice;
 
@@ -62,7 +62,7 @@ int shift::BestPrice::getBidSize() const
  */
 double shift::BestPrice::getAskPrice() const
 {
-    // Pick the lowest between global ask price and local ask price.
+    // pick the lowest between global ask price and local ask price
     if ((m_globalAskPrice && m_globalAskPrice < m_localAskPrice) || !m_localAskPrice)
         return m_globalAskPrice;
 

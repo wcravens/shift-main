@@ -3,7 +3,7 @@
 #include "Cryptor.h"
 
 struct shift::crypto::Encryptor::Impl : shift::crypto::Cryptor {
-    //using shift::crypto::Cryptor::Cryptor;
+    // using shift::crypto::Cryptor::Cryptor;
     Impl(const std::string& cryptoKey)
         : Cryptor(cryptoKey)
         , m_useSHA1(false)

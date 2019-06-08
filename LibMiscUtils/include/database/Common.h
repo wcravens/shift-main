@@ -12,7 +12,9 @@
 namespace shift {
 namespace database {
 
-    /*@brief Indicates table status when querying */
+    /**
+     * @brief Indicates table status when querying.
+     */
     enum class TABLE_STATUS : int {
         NOT_EXIST = 0, // table does not exist
         EXISTS, // table exists
@@ -20,7 +22,9 @@ namespace database {
         OTHER_ERROR, // other error
     };
 
-    /*@brief Check if specific table already exists */
+    /**
+     * @brief Check if specific table already exists
+     */
     TABLE_STATUS checkTableExist(PGconn* const pConn, const std::string& tableName);
 
     bool doQuery(PGconn* const pConn, const std::string query, const std::string msgIfStatMismatch, const ExecStatusType statToMatch = ExecStatusType::PGRES_COMMAND_OK, PGresult** ppRes = nullptr);

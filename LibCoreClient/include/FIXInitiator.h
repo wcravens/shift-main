@@ -52,7 +52,7 @@
 namespace shift {
 
 /**
- * @brief FIX Initiator for LibCoreClient to communicate with Brokerage Center
+ * @brief FIX Initiator for LibCoreClient to communicate with Brokerage Center.
  */
 class CORECLIENT_EXPORTS CoreClient;
 class CORECLIENT_EXPORTS FIXInitiator
@@ -75,22 +75,23 @@ public:
     void connectBrokerageCenter(const std::string& cfgFile, CoreClient* client, const std::string& password, bool verbose = false, int timeout = 1000);
     void disconnectBrokerageCenter();
 
-    // Call this function to attach both ways
+    // call this function to attach both ways
     R_REMOVE bool attachClient(shift::CoreClient* client, const std::string& password = "NA");
 
-    // call this function to send webClient username to and register at BC, with a userID as response, if any, for LC internal use. Returns true if user is resolved in BC.
+    // call this function to send webClient username to and register at BC, with a userID as response, if any, for LC internal use
+    // returns true if user is resolved in BC
     bool registerUserInBCWaitResponse(shift::CoreClient* client);
 
     std::vector<CoreClient*> getAttachedClients();
     R_REMOVE CoreClient* getSuperUser();
-    CoreClient* getClient(const std::string& name); // for end-clients compartabiliy use
+    CoreClient* getClient(const std::string& name); // for end-clients compatibility use
 
 protected:
     CoreClient* getClientByUserID(const std::string& userID); // for core-client internal use
 
     R_FIXINIT bool isConnected();
 
-    // Inline methods
+    // inline methods
     R_TODO void debugDump(const std::string& message);
     R_TODO void createSymbolMap();
     R_TODO void initializePrices();
@@ -118,24 +119,25 @@ protected:
     R_FIXINIT void onMessage(const FIX50SP2::PositionReport&, const FIX::SessionID&) override;
     R_FIXINIT void onMessage(const FIX50SP2::NewOrderList&, const FIX::SessionID&) override;
 
-    // Price methods
+    // price methods
     R_FIXSUB double getOpenPrice(const std::string& symbol);
     R_FIXSUB double getLastPrice(const std::string& symbol);
     R_FIXSUB int getLastSize(const std::string& symbol);
     R_FIXSUB std::chrono::system_clock::time_point getLastTradeTime();
-    // Order book methods
+    
+    // order book methods
     R_FIXSUB shift::BestPrice getBestPrice(const std::string& symbol);
     R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel);
     R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type);
 
-    // Symbols list and company names
+    // symbols list and company names
     R_FIXSUB std::vector<std::string> getStockList();
     R_TODO void fetchCompanyName(std::string tickerName);
     R_FIXSUB void requestCompanyNames();
     R_FIXSUB std::map<std::string, std::string> getCompanyNames();
     R_FIXSUB std::string getCompanyName(const std::string& symbol);
 
-    // Subscription methods
+    // subscription methods
     R_FIXSUB void subOrderBook(const std::string& symbol);
     R_FIXSUB void unsubOrderBook(const std::string& symbol);
     R_FIXSUB void subAllOrderBook();
@@ -150,12 +152,12 @@ protected:
 private:
     FIXInitiator();
 
-    // Do NOT change order of these unique_ptrs:
+    // DO NOT change order of these unique_ptrs:
     R_FIXINIT std::unique_ptr<FIX::LogFactory> m_pLogFactory;
     R_FIXINIT std::unique_ptr<FIX::MessageStoreFactory> m_pMessageStoreFactory;
     R_FIXINIT std::unique_ptr<FIX::SocketInitiator> m_pSocketInitiator;
 
-    // FIXInitiator - Logon related
+    // FIXInitiator - logon related
     R_FIXINIT std::string m_superUsername;
     R_FIXINIT std::string m_superUserPsw;
     R_FIXINIT std::string m_superUserID;
@@ -165,13 +167,13 @@ private:
     R_FIXINIT std::mutex m_mtxLogon;
     R_FIXINIT std::condition_variable m_cvLogon;
 
-    // FIXInitiator - Subscriber management
+    // FIXInitiator - subscriber management
     R_FIXINIT std::mutex m_mtxClientByUserID;
     R_FIXINIT std::unordered_map<std::string, CoreClient*> m_clientByUserID;
 
     R_TODO std::atomic<bool> m_openPricesReady;
     R_FIXSUB std::mutex m_mtxOpenPrices;
-    R_FIXSUB std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value
+    R_FIXSUB std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value.
     R_FIXSUB std::unordered_map<std::string, std::pair<double, int>> m_lastTrades; //!< Map with stock symbol as key and a pair with their last price and size as value.
     R_FIXSUB std::chrono::system_clock::time_point m_lastTradeTime;
 
@@ -189,9 +191,9 @@ private:
     R_FIXSUB std::mutex m_mtxCompanyNames;
     R_FIXSUB std::map<std::string, std::string> m_companyNames;
 
-    R_TODO std::mutex m_mtxSubscribedOrderBookSet; //!< Mutex for the subscribed order book list
+    R_TODO std::mutex m_mtxSubscribedOrderBookSet; //!< Mutex for the subscribed order book list.
     R_TODO std::set<std::string> m_subscribedOrderBookSet; //!< Set of stock symbols whose orderbook has been subscribed.
-    R_TODO std::mutex m_mtxSubscribedCandleStickSet; //!< Mutex for the subscribed candle stick list
+    R_TODO std::mutex m_mtxSubscribedCandleStickSet; //!< Mutex for the subscribed candle stick list.
     R_TODO std::set<std::string> m_subscribedCandleStickSet; //!< Set of stock symbols whose candlestick data has been subscribed.
 };
 

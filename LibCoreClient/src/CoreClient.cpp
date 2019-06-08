@@ -179,7 +179,7 @@ void shift::CoreClient::cancelAllPendingOrders()
         submitCancellation(order);
     }
 
-    // Wait to make sure cancellation went through
+    // wait to make sure cancellation went through
     while (getWaitingListSize() != 0) {
         std::this_thread::sleep_for(1s);
     }
@@ -219,31 +219,31 @@ double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int
     }
 
     while (size != 0) {
-        if (globalIt == global.end()) { // Reached the end of the global order book
+        if (globalIt == global.end()) { // reached the end of the global order book
             globalDone = true;
             globalIt = localIt;
         }
-        if (localIt == local.end()) { // Reached the end of the local order book
+        if (localIt == local.end()) { // reached the end of the local order book
             localDone = true;
             localIt = globalIt;
         }
-        if (globalDone && localDone) { // Reached the end of both order books
+        if (globalDone && localDone) { // reached the end of both order books
             break;
         }
 
-        // Which one has a better price?
-        // - If buying: global < local -> global
+        // which one has a better price?
+        // - if buying: global < local -> global
         //              local >= global -> local
-        // - If selling: -global < -local -> global
+        // - if selling: -global < -local -> global
         //               -local >= -global -> local
-        if ((buySign * globalIt->getPrice()) < (buySign * localIt->getPrice())) { // Global has a better price
+        if ((buySign * globalIt->getPrice()) < (buySign * localIt->getPrice())) { // global has a better price
             bestPriceIt = globalIt;
 
             if (localIt == globalIt) {
                 ++localIt;
             }
             ++globalIt;
-        } else { // Local has a better price
+        } else { // local has a better price
             bestPriceIt = localIt;
 
             if (globalIt == localIt) {
@@ -252,10 +252,10 @@ double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int
             ++localIt;
         }
 
-        // Add best price to the vector of prices
+        // add best price to the vector of prices
         prices.push_back(bestPriceIt->getPrice());
 
-        // Add best size to the vector of sizes
+        // add best size to the vector of sizes
         if (size > bestPriceIt->getSize()) {
             sizes.push_back(bestPriceIt->getSize());
             size -= bestPriceIt->getSize();
@@ -627,7 +627,7 @@ void shift::CoreClient::storeExecution(const std::string& orderID, int executedS
     order.setExecutedSize(newExecutedSize);
     order.setExecutedPrice(newExecutedPrice);
 
-    // This is required in case cancellation orders are sent
+    // this is required in case cancellation orders are sent
     // before FILLED status is received, possibly originating:
     // - PENDING_CANCEL status from the Matching Engine
     // - REJECTED status from the Brokerage Center
@@ -675,7 +675,7 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
     std::unordered_map<std::string, double> bestBid;
     std::unordered_map<std::string, double> bestAsk;
 
-    // Wait until first prices are available
+    // wait until first prices are available
     while (ready != symbols.size()) {
         ready = 0;
         for (const std::string& sym : symbols) {
@@ -689,10 +689,10 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
 
     while (symbols.begin() != symbols.end()) {
         for (const std::string& sym : symbols) {
-            // Last price
+            // last price
             lastPrice[sym] = getLastPrice(sym);
 
-            // Mid price
+            // mid price
             bp = getBestPrice(sym);
             bestBid[sym] = (bp.getBidPrice() > 0.0) ? bp.getBidPrice() : lastPrice[sym];
             bestAsk[sym] = (bp.getAskPrice() > 0.0) ? bp.getAskPrice() : lastPrice[sym];
