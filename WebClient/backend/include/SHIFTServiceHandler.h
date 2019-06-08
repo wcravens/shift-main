@@ -7,9 +7,8 @@
 #include <thrift/transport/TServerSocket.h>
 
 /**
- * @brief SHIFT WebClient Thrift service Handler
+ * @brief SHIFT WebClient Thrift service Handler.
  */
-
 class SHIFTServiceHandler : public SHIFTServiceIf {
 public:
     void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, int32_t orderSize, double orderPrice, const std::string& orderID);

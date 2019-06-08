@@ -111,9 +111,11 @@ void UserClient::sendSubmittedOrders()
     MyZMQ::getInstance().send(s);
 }
 
+/**
+ * @brief To send the user's portfolio to front.
+ */
 void UserClient::sendPortfolioToFront()
 {
-    // this function send its own portfolio to front
     std::string username = getUsername();
 
     auto portfolioSummary = getPortfolioSummary();

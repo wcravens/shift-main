@@ -40,7 +40,7 @@ void MainClient::receiveCandlestickData(const std::string& symbol, double open, 
 
 void MainClient::sendAllPortfoliosToFront()
 {
-    // TODO: may have problem
+    // TODO: may have a problem
     for (auto& client : getAttachedClients()) {
         UserClient* wclient = dynamic_cast<UserClient*>(client);
         wclient->sendPortfolioToFront();
@@ -111,8 +111,7 @@ void MainClient::sendOrderBookToFront()
     }
 }
 
-// only called by Default Client (Default(main) CLient works like instance of FIXInitiator)
-void MainClient::receiveRequestFromPHP()
+void MainClient::receiveRequestFromPHP() // only called by Main Client (Main CLient works like instance of FIXInitiator)
 {
     // TODO: really bad, modify later
     while (1) {
@@ -197,7 +196,9 @@ void MainClient::sendOnce(const std::string& category)
     }
 }
 
-// To send stock list to front end after all stock information has been received
+/**
+ * @brief To send stock list to front end after all stock information has been received.
+ */
 void MainClient::sendStockListToFront()
 {
     std::ostringstream out;
@@ -217,7 +218,9 @@ void MainClient::sendStockListToFront()
     MyZMQ::getInstance().send(out.str());
 }
 
-// To send company names to front end after all information has been received
+/**
+ * @brief To send company names to front end after all information has been received.
+ */
 void MainClient::sendCompanyNamesToFront()
 {
     std::ostringstream out;

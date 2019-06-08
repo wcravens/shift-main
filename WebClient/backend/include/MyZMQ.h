@@ -6,7 +6,7 @@
 #include <zmq.hpp>
 
 /**
- * @brief MyZMQ class works as a ZMQ Client, which send message to frontend
+ * @brief MyZMQ class works as a ZMQ Client, which send message to frontend.
  */
 class MyZMQ {
 private:

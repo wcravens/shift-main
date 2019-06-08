@@ -4,7 +4,6 @@
 
 #include <shift/coreclient/CoreClient.h>
 
-// class FIXInitiator;
 class UserClient : public shift::CoreClient {
 private:
     void debugDump(const std::string& message);

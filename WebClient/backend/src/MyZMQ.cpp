@@ -7,8 +7,7 @@
 #include <shift/miscutils/terminal/Common.h>
 
 /**
- * @brief Constructor for a MyZMQ instance
- * @param None
+ * @brief Constructor for a MyZMQ instance.
  */
 MyZMQ::MyZMQ()
     : m_context(new zmq::context_t(1))
@@ -23,8 +22,7 @@ MyZMQ::MyZMQ()
 
 /**
  * @brief Method to get the singleton instance of MyZMQ.
- * @param None
- * @return MyZMQ&: reference of current MyZMQ instance
+ * @return Reference of current MyZMQ instance.
  */
 MyZMQ& MyZMQ::getInstance()
 {
@@ -33,9 +31,8 @@ MyZMQ& MyZMQ::getInstance()
 }
 
 /**
- * @brief Method to send data to the frontend
- * @param msg: the message to send
- * @return None
+ * @brief Method to send data to the frontend.
+ * @param msg The message to send.
  */
 void MyZMQ::send(std::string msg)
 {
@@ -52,9 +49,7 @@ void MyZMQ::send(std::string msg)
 }
 
 /**
- * @brief Method to receive request and send reply to frontend
- * @param None
- * @return None
+ * @brief Method to receive request and send reply to frontend.
  */
 void MyZMQ::receiveReq()
 {

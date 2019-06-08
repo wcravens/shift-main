@@ -9,9 +9,7 @@
 #include <shift/coreclient/Order.h>
 
 /**
- * @brief Method for submitting Orders to BC
- * @param username: who send the order, orderType: order items, orderSymbol: the stock under operation, price, shareSize, orderID: a uuid for each order
- * @return None
+ * @brief Method for submitting orders to BC.
  */
 void SHIFTServiceHandler::submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, int32_t orderSize, double orderPrice = 0.0, const std::string& orderID = "")
 {
@@ -26,9 +24,8 @@ void SHIFTServiceHandler::submitOrder(const std::string& username, const std::st
 }
 
 /**
- * @brief Method for sending current username to frontend
- * @param username: the current user who is operating on WebClient
- * @return None
+ * @brief Method for sending current username to frontend.
+ * @param username The current user who is operating on WebClient.
  */
 void SHIFTServiceHandler::webUserLogin(const std::string& username)
 {

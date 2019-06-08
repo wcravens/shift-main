@@ -39,7 +39,7 @@ int main(int ac, char* av[])
         bool isVerbose;
     } params = {
         "/usr/local/share/shift/WebClient/", // default installation folder for configuration
-        "SHIFT123",  // built-in initial crypto key used for encrypting dbLogin.txt
+        "SHIFT123", // built-in initial crypto key used for encrypting dbLogin.txt
         false,
     };
 
@@ -99,11 +99,11 @@ int main(int ac, char* av[])
     pMClient->setVerbose(params.isVerbose);
     shift::FIXInitiator::getInstance().connectBrokerageCenter(params.configDir + "initiator.cfg", pMClient, "password", params.isVerbose, 1000);
 
-    // Get all company names and send it to front - Start
+    // get all company names and send it to front - start
     pMClient->requestCompanyNames();
     std::thread tCompanyNames(&MainClient::sendCompanyNamesToFront, pMClient);
     tCompanyNames.detach();
-    // Get all company names and send it to front - End
+    // get all company names and send it to front - end
 
     std::thread tRecReq(&MainClient::receiveRequestFromPHP, pMClient);
 
@@ -112,10 +112,10 @@ int main(int ac, char* av[])
     pMClient->subAllCandleData();
     pMClient->sendStockListToFront();
 
-    /** @brief start thread of WebClient::checkEverySecond function */
+    // start thread of WebClient::checkEverySecond function
     std::thread tCheck(&MainClient::checkEverySecond, pMClient);
 
-    /** @brief thrift service start */
+    // thrift service start
     int port = 9090;
     apache::thrift::stdcxx::shared_ptr<SHIFTServiceHandler> handler(new SHIFTServiceHandler());
     apache::thrift::stdcxx::shared_ptr<apache::thrift::server::TProcessor> processor(new SHIFTServiceProcessor(handler));
@@ -126,7 +126,7 @@ int main(int ac, char* av[])
     apache::thrift::server::TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
     std::thread tThrift(&apache::thrift::server::TSimpleServer::serve, &server);
 
-    /** @brief join all threads before exit */
+    // join all threads before exit
     server.stop();
     tThrift.join();
     tCheck.join();
