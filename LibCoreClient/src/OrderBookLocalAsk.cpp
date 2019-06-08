@@ -18,19 +18,22 @@ void shift::OrderBookLocalAsk::update(shift::OrderBookEntry&& entry)
 
     auto it = m_entries.begin();
 
-    for (; it != m_entries.end(); it++) {
+    while (it != m_entries.end()) {
         if (it->getPrice() > entry.getPrice())
             break;
 
-        if (std::fabs(it->getPrice() - entry.getPrice()) < std::numeric_limits<double>::epsilon()) {
-            if (!entry.getSize()) {
-                it = m_entries.erase(it);
-            } else {
+        if (it->getPrice() == entry.getPrice()) {
+            if (entry.getSize() > 0) {
                 it->setSize(entry.getSize());
+            } else {
+                it = m_entries.erase(it);
             }
 
             return;
         }
+
+        ++it;
     }
+
     m_entries.insert(it, std::move(entry));
 }

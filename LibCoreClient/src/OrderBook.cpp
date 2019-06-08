@@ -139,6 +139,20 @@ void shift::OrderBook::resetOrderBook()
 }
 
 /**
+ * @brief Method to display the current order book (for debugging).
+ */
+void shift::OrderBook::displayOrderBook()
+{
+    std::cout << std::endl << static_cast<char>(m_type) << ':' << std::endl;
+
+    for (auto it = m_entries.begin(); it != m_entries.end(); ++it) {
+        std::cout << it->getPrice() << '\t' << it->getSize() << '\t' << it->getDestination() << std::endl;
+    }
+
+    std::cout << std::endl;
+}
+
+/**
  * @brief Method to return target position of the order book entry who has the requested price and destination.
  * @param price the target price value as a double
  * @param destination the target destination as a string
@@ -147,11 +161,14 @@ void shift::OrderBook::resetOrderBook()
 std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntry(double price, const std::string& destination)
 {
     for (auto it = m_entries.begin(); it != m_entries.end(); it++) {
-        if (it->getPrice() != price)
+        if (it->getPrice() != price) {
             break;
+        }
 
-        if (it->getDestination() == destination)
+        if (it->getDestination() == destination) {
             return it;
+        }
     }
+
     return m_entries.end();
 }

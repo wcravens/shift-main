@@ -36,6 +36,7 @@ public:
 
     void setOrderBook(std::list<shift::OrderBookEntry>&& entries);
     void resetOrderBook();
+    void displayOrderBook();
 
     virtual void update(shift::OrderBookEntry&& entry) = 0;
 
