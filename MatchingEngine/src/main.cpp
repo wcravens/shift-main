@@ -24,6 +24,10 @@ using namespace std::chrono_literals;
     "verbose"
 #define CSTR_DATE \
     "date"
+#define CSTR_STARTTIME \
+    "starttime"
+#define CSTR_ENDTIME \
+    "endtime"
 #define CSTR_MANUAL \
     "manual"
 #define CSTR_TIMEOUT \
@@ -89,6 +93,8 @@ int main(int ac, char* av[])
         std::string configDir;
         bool isVerbose;
         std::string simulationDate;
+        std::string simulationStartTime;
+        std::string simulationEndTime;
         bool isManualInput;
         struct { // timeout settings
             using min_t = std::chrono::minutes::rep;
@@ -98,6 +104,8 @@ int main(int ac, char* av[])
     } params = {
         "/usr/local/share/shift/MatchingEngine/", // default installation folder for configuration
         false,
+        "",
+        "",
         "",
         false,
         {
@@ -112,6 +120,8 @@ int main(int ac, char* av[])
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         (CSTR_DATE ",d", po::value<std::string>(), "simulation date") //
+        (CSTR_STARTTIME ",b", po::value<std::string>(), "simulation start time (default: 09:30:00)") //
+        (CSTR_ENDTIME ",e", po::value<std::string>(), "simulation end time (default 16:00:00)") //
         (CSTR_MANUAL ",m", "set manual input of all parameters") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         ; // add_options
@@ -154,6 +164,14 @@ int main(int ac, char* av[])
         params.simulationDate = vm[CSTR_DATE].as<std::string>();
     }
 
+    if (vm.count(CSTR_STARTTIME)) {
+        params.simulationStartTime = vm[CSTR_STARTTIME].as<std::string>();
+    }
+
+    if (vm.count(CSTR_ENDTIME)) {
+        params.simulationEndTime = vm[CSTR_ENDTIME].as<std::string>();
+    }
+
     if (vm.count(CSTR_MANUAL)) {
         params.isManualInput = true;
     }
@@ -185,6 +203,14 @@ int main(int ac, char* av[])
 
     if (!params.simulationDate.empty()) {
         dateString = params.simulationDate;
+    }
+
+    if (!params.simulationStartTime.empty()) {
+        startTimeString = params.simulationStartTime;
+    }
+
+    if (!params.simulationEndTime.empty()) {
+        endTimeString = params.simulationEndTime;
     }
 
     std::string requestID = dateString + " :: " + std::to_string(symbols.size());
