@@ -27,7 +27,7 @@ public:
 
     static std::string s_reutersDateToYYYYMMDD(const std::string& reutersDate);
 
-    static double s_decimalTruncate(double value, int precision);
+    static double s_decimalRound(double value, int precision);
 
     /* @brief Locker for SQL transactions. It also provides a simpler syntax to lock. */
     std::unique_lock<std::mutex> lockPSQL();

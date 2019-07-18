@@ -57,9 +57,9 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
     return reutersDate.substr(0, 4) + reutersDate.substr(5, 2) + reutersDate.substr(8, 2);
 }
 
-/* static */ inline double PSQL::s_decimalTruncate(double value, int precision)
+/* static */ inline double PSQL::s_decimalRound(double value, int precision)
 {
-    return std::trunc(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
+    return std::round(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -470,7 +470,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
             if (rawData.volume < 100) {
                 continue;
             }
-            rawData.price = s_decimalTruncate(rawData.price, 2);
+            rawData.price = s_decimalRound(rawData.price, 2);
             rawData.volume /= 100; // this is and *should be* an int division
         }
 

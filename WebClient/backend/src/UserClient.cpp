@@ -17,7 +17,7 @@ inline void UserClient::debugDump(const std::string& message)
     cout << message << endl;
 }
 
-inline double UserClient::decimalTruncate(double value, int precision)
+inline double UserClient::decimalRound(double value, int precision)
 {
     return std::round(value * std::pow(10, precision)) / std::pow(10, precision);
 }
@@ -136,7 +136,7 @@ void UserClient::sendPortfolioToFront()
             double closePrice = (currentShares == 0) ? 0.0 : getClosePrice(symbol, buy, currentShares / 100);
             double unrealizedPL = (closePrice - tradedPrice) * currentShares;
             portfolioUnrealizedPL += unrealizedPL;
-            auto pl = decimalTruncate(it->second.getRealizedPL() + unrealizedPL, 2);
+            auto pl = decimalRound(it->second.getRealizedPL() + unrealizedPL, 2);
 
             std::ostringstream out;
             out << "{ "
@@ -164,7 +164,7 @@ void UserClient::sendPortfolioToFront()
         MyZMQ::getInstance().send(out.str());
     }
 
-    totalPL = decimalTruncate(portfolioSummary.getTotalRealizedPL() + portfolioUnrealizedPL, 2);
+    totalPL = decimalRound(portfolioSummary.getTotalRealizedPL() + portfolioUnrealizedPL, 2);
 
     std::ostringstream out;
     out << std::fixed << "{\"category\": \"portfolioSummary_" << username << "\", \"data\":{ "

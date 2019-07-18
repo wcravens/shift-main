@@ -7,7 +7,7 @@
 class UserClient : public shift::CoreClient {
 private:
     void debugDump(const std::string& message);
-    double decimalTruncate(double value, int precision);
+    double decimalRound(double value, int precision);
 
 public:
     UserClient(const std::string& username);
