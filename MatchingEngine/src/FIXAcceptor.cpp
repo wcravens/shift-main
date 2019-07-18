@@ -118,14 +118,14 @@ void FIXAcceptor::sendOrderBook(const std::string& targetID, const std::vector<O
  */
 void FIXAcceptor::sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderBookUpdates)
 {
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
-
     for (const auto& update : orderBookUpdates) {
+        FIX::Message message;
+
+        FIX::Header& header = message.getHeader();
+        header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+        header.setField(FIX::SenderCompID(s_senderID));
+        header.setField(FIX::MsgType(FIX::MsgType_MarketDataIncrementalRefresh));
+
         auto utc = update.getUTCTime();
 
         shift::fix::addFIXGroup<FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries>(message,
@@ -154,14 +154,14 @@ void FIXAcceptor::sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderB
  */
 void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& executionReports)
 {
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
-
     for (const auto& report : executionReports) {
+        FIX::Message message;
+
+        FIX::Header& header = message.getHeader();
+        header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+        header.setField(FIX::SenderCompID(s_senderID));
+        header.setField(FIX::MsgType(FIX::MsgType_ExecutionReport));
+
         message.setField(FIX::OrderID(report.orderID1));
         message.setField(FIX::SecondaryOrderID(report.orderID2));
         message.setField(FIX::ExecID(shift::crossguid::newGuid().str()));
