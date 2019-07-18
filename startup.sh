@@ -41,8 +41,10 @@ function usage
     echo "  -h [ --help ]                      Display available options"
     echo "  -m [ --modules ] DE|ME|BC|WC|PS    List of modules to start up or terminate"
     echo "  -d [ --date ]                      Simulation date (format: YYYY-MM-DD)"
+    echo "  -b [ --starttime ]                 Simulation start time (format: HH:MM:SS)"
+    echo "  -e [ --endtime ]                   Simulation end time (format: HH:MM:SS)"
     echo "  -r [ --reset ]                     Reset stored portfolio and trading records information"
-    echo "  -e [ --readonlyportfolio ]         Read-only portfolio information"
+    echo "  -o [ --readonlyportfolio ]         Read-only portfolio information"
     echo "  -t [ --timeout ]                   Time-out duration counted in minutes"
     echo "                                     (default: 395)"
     echo "  -l [ --log ]                       Create a log of the execution"
@@ -198,6 +200,8 @@ function killPushServer
 declare -a MODULES
 
 SIMULATION_DATE=""
+SIMULATION_START_TIME=""
+SIMULATION_END_TIME=""
 RESET_FLAG=0
 PFDBREADONLY_FLAG=0
 
@@ -251,11 +255,21 @@ while [ "${1}" != "" ]; do
             SIMULATION_DATE=${1}
             shift
             ;;
+        -b | --starttime )
+            shift
+            SIMULATION_START_TIME=${1}
+            shift
+            ;;
+        -e | --endtime )
+            shift
+            SIMULATION_END_TIME=${1}
+            shift
+            ;;
         -r | --reset )
             RESET_FLAG=1
             shift
             ;;
-        -e | --readonlyportfolio )
+        -o | --readonlyportfolio )
             PFDBREADONLY_FLAG=1
             shift
             ;;
@@ -393,25 +407,21 @@ then
     do
         case ${i} in
             1_DE )
-                startService "DatafeedEngine" ${LOADING_TIME[1]} "-t ${TIMEOUT}"
+                OPTIONS="-t ${TIMEOUT}"
+                startService "DatafeedEngine" ${LOADING_TIME[1]} "${OPTIONS}"
                 ;;
             2_ME )
-                [ ${SIMULATION_DATE} ] || startService "MatchingEngine" ${LOADING_TIME[2]} "-t ${TIMEOUT}"
-                [ ${SIMULATION_DATE} ] && startService "MatchingEngine" ${LOADING_TIME[2]} "-t ${TIMEOUT} -d ${SIMULATION_DATE}"
+                OPTIONS="-t ${TIMEOUT}"
+                [ ${SIMULATION_DATE} ] && OPTIONS="${OPTIONS} -d ${SIMULATION_DATE}"
+                [ ${SIMULATION_START_TIME} ] && OPTIONS="${OPTIONS} -b ${SIMULATION_START_TIME}"
+                [ ${SIMULATION_END_TIME} ] && OPTIONS="${OPTIONS} -e ${SIMULATION_END_TIME}"
+                startService "MatchingEngine" ${LOADING_TIME[2]} "${OPTIONS}"
                 ;;
             3_BC )
-                if [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
-                then
-                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIMEOUT}"
-                elif [ ${RESET_FLAG} -ne 0 ] && [ ${PFDBREADONLY_FLAG} -eq 0 ]
-                then
-                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIMEOUT} -r"
-                elif [ ${RESET_FLAG} -eq 0 ] && [ ${PFDBREADONLY_FLAG} -ne 0 ]
-                then
-                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIMEOUT} -e"
-                else
-                    startService "BrokerageCenter" ${LOADING_TIME[3]} "-t ${TIMEOUT} -r -e"
-                fi
+                OPTIONS="-t ${TIMEOUT}"
+                [ ${RESET_FLAG} -ne 0 ] && OPTIONS="${OPTIONS} -r"
+                [ ${PFDBREADONLY_FLAG} -ne 0 ] && OPTIONS="${OPTIONS} -o"
+                startService "BrokerageCenter" ${LOADING_TIME[3]} "${OPTIONS}"
                 ;;
             4_WC )
                 startService "WebClient" ${LOADING_TIME[4]}
