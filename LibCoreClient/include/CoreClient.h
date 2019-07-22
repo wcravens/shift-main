@@ -57,6 +57,7 @@ public:
     int getSubmittedOrdersSize();
     std::vector<shift::Order> getSubmittedOrders();
     shift::Order getOrder(const std::string& orderID);
+    std::vector<shift::Order> getExecutedOrders(const std::string& orderID);
     int getWaitingListSize();
     std::vector<shift::Order> getWaitingList();
     void cancelAllPendingOrders();
@@ -106,7 +107,7 @@ protected:
 
     // FIXInitiator interface
     bool attachInitiator(FIXInitiator& initiator);
-    void storeExecution(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus);
+    void storeExecution(const std::string& orderID, shift::Order::Type orderType, int executedSize, double executedPrice, shift::Order::Status newStatus);
     void storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
     void storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);
     void storeWaitingList(std::vector<shift::Order>&& waitingList);
@@ -130,7 +131,7 @@ private:
 
     std::mutex m_mutex_portfolioSummary;
     std::mutex m_mutex_symbol_portfolioItem;
-    std::mutex m_mutex_submittedOrders;
+    std::mutex m_mutex_orders;
     std::mutex m_mutex_waitingList;
     std::mutex m_mutex_samplePricesFlags;
     std::mutex m_mutex_samplePrices;
@@ -140,9 +141,10 @@ private:
     std::vector<std::string> m_submittedOrdersIDs;
     std::unordered_map<std::string, shift::Order> m_submittedOrders;
     std::atomic<int> m_submittedOrdersSize;
-
+    std::unordered_multimap<std::string, shift::Order> m_executedOrders;
     std::vector<shift::Order> m_waitingList;
     std::atomic<int> m_waitingListSize;
+
     std::vector<std::thread> m_samplePriceThreads;
     std::unordered_map<std::string, bool> m_samplePricesFlags;
     std::unordered_map<std::string, std::list<double>> m_sampleLastPrices;

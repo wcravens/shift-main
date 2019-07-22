@@ -93,7 +93,7 @@ void shift::CoreClient::submitOrder(const shift::Order& order)
     }
 
     if (order.getType() != shift::Order::CANCEL_BID && order.getType() != shift::Order::CANCEL_ASK) {
-        std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
+        std::lock_guard<std::mutex> lk(m_mutex_orders);
         m_submittedOrdersIDs.push_back(order.getID());
         m_submittedOrders[order.getID()] = order;
         m_submittedOrdersSize++;
@@ -148,18 +148,33 @@ int shift::CoreClient::getSubmittedOrdersSize()
 
 std::vector<shift::Order> shift::CoreClient::getSubmittedOrders()
 {
-    std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
     std::vector<shift::Order> submittedOrders;
+
+    std::lock_guard<std::mutex> lk(m_mutex_orders);
     for (const std::string& id : m_submittedOrdersIDs) {
         submittedOrders.push_back(m_submittedOrders[id]);
     }
+
     return submittedOrders;
 }
 
 shift::Order shift::CoreClient::getOrder(const std::string& orderID)
 {
-    std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
+    std::lock_guard<std::mutex> lk(m_mutex_orders);
     return m_submittedOrders[orderID];
+}
+
+std::vector<shift::Order> shift::CoreClient::getExecutedOrders(const std::string& orderID)
+{
+    std::vector<shift::Order> executedOrders;
+
+    std::lock_guard<std::mutex> lk(m_mutex_orders);
+    auto range = m_executedOrders.equal_range(orderID);
+    for (auto it = range.first; it != range.second; ++it) {
+        executedOrders.push_back(it->second);
+    }
+
+    return executedOrders;
 }
 
 int shift::CoreClient::getWaitingListSize()
@@ -607,9 +622,9 @@ bool shift::CoreClient::attachInitiator(FIXInitiator& initiator)
     return m_fixInitiator;
 }
 
-void shift::CoreClient::storeExecution(const std::string& orderID, int executedSize, double executedPrice, shift::Order::Status newStatus)
+void shift::CoreClient::storeExecution(const std::string& orderID, shift::Order::Type orderType, int executedSize, double executedPrice, shift::Order::Status newStatus)
 {
-    std::lock_guard<std::mutex> lk(m_mutex_submittedOrders);
+    std::lock_guard<std::mutex> lk(m_mutex_orders);
 
     auto& order = m_submittedOrders[orderID];
 
@@ -638,6 +653,12 @@ void shift::CoreClient::storeExecution(const std::string& orderID, int executedS
     if ((newStatus == shift::Order::Status::CANCELED) && (order.getSize() > newExecutedSize)) {
         order.setStatus(shift::Order::Status::PARTIALLY_FILLED);
     }
+
+    auto executedOrder = order;
+    executedOrder.setType(orderType);
+    executedOrder.setExecutedSize(executedSize);
+    executedOrder.setExecutedPrice(executedPrice);
+    m_executedOrders.insert({ orderID, executedOrder });
 }
 
 void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)

@@ -990,6 +990,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 
     static FIX::OrderID orderID;
     static FIX::OrdStatus status;
+    static FIX::OrdType orderType;
     static FIX::Price executedPrice;
     static FIX::CumQty executedSize;
 
@@ -1000,6 +1001,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 
     FIX::OrderID* pOrderID;
     FIX::OrdStatus* pStatus;
+    FIX::OrdType* pOrderType;
     FIX::Price* pExecutedPrice;
     FIX::CumQty* pExecutedSize;
 
@@ -1016,6 +1018,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     if (0 == prevCnt) { // sequential case; optimized:
         pOrderID = &orderID;
         pStatus = &status;
+        pOrderType = &orderType;
         pExecutedPrice = &executedPrice;
         pExecutedSize = &executedSize;
         pIDGroup = &idGroup;
@@ -1023,6 +1026,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     } else { // > 1 threads; always safe way:
         pOrderID = new decltype(orderID);
         pStatus = new decltype(status);
+        pOrderType = new decltype(orderType);
         pExecutedPrice = new decltype(executedPrice);
         pExecutedSize = new decltype(executedSize);
         pIDGroup = new decltype(idGroup);
@@ -1031,6 +1035,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
 
     message.getField(*pOrderID);
     message.getField(*pStatus);
+    message.getField(*pOrderType);
     message.getField(*pExecutedPrice);
     message.getField(*pExecutedSize);
 
@@ -1038,7 +1043,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     pIDGroup->getField(*pUserID);
 
     try {
-        getClientByUserID(pUserID->getValue())->storeExecution(pOrderID->getValue(), pExecutedSize->getValue(), pExecutedPrice->getValue(), static_cast<shift::Order::Status>(pStatus->getValue()));
+        getClientByUserID(pUserID->getValue())->storeExecution(pOrderID->getValue(), static_cast<shift::Order::Type>(pOrderType->getValue()), pExecutedSize->getValue(), pExecutedPrice->getValue(), static_cast<shift::Order::Status>(pStatus->getValue()));
         getClientByUserID(pUserID->getValue())->receiveExecution(pOrderID->getValue());
     } catch (...) {
     }
