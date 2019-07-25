@@ -654,11 +654,15 @@ void shift::CoreClient::storeExecution(const std::string& orderID, shift::Order:
         order.setStatus(shift::Order::Status::PARTIALLY_FILLED);
     }
 
-    auto executedOrder = order;
-    executedOrder.setType(orderType);
-    executedOrder.setExecutedSize(executedSize);
-    executedOrder.setExecutedPrice(executedPrice);
-    m_executedOrders.insert({ orderID, executedOrder });
+    if ((newStatus == shift::Order::Status::PARTIALLY_FILLED)
+        || (newStatus == shift::Order::Status::FILLED)
+        || (newStatus == shift::Order::Status::CANCELED)) {
+        auto executedOrder = order;
+        executedOrder.setType(orderType);
+        executedOrder.setExecutedSize(executedSize);
+        executedOrder.setExecutedPrice(executedPrice);
+        m_executedOrders.insert({ orderID, executedOrder });
+    }
 }
 
 void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)
