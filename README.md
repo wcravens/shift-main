@@ -62,14 +62,14 @@ ln -s /usr/local/opt/postgresql/include /usr/local/include/postgresql
 
 ## Required Tools
 
-| Tool              | Ubuntu [pkg]                    | macOS [formula]       |
-| ----------------- | ------------------------------- | --------------------- |
-| CMake             | `cmake`                         | `cmake`               |
-| Doxygen           | `doxygen`                       | `doxygen --with-llvm` |
-| Git               | `git`                           | `git`                 |
-| Pandoc            | `pandoc`                        | `pandoc`              |
-| pkg-config        | `pkg-config`                    | `pkg-config`          |
-| PostgreSQL **\*** | `postgresql postgresql-contrib` | `postgresql`          |
+| Tool              | Ubuntu [pkg]                    | macOS [formula] |
+| ----------------- | ------------------------------- | --------------- |
+| CMake             | `cmake`                         | `cmake`         |
+| Doxygen           | `doxygen`                       | `doxygen`       |
+| Git               | `git`                           | `git`           |
+| Pandoc            | `pandoc`                        | `pandoc`        |
+| pkg-config        | `pkg-config`                    | `pkg-config`    |
+| PostgreSQL **\*** | `postgresql postgresql-contrib` | `postgresql`    |
 
 **\*** Required only in the machines where a PostgreSQL instance is needed.
 
