@@ -18,7 +18,6 @@ stock=CAT
 stock=CVX
 stock=CSCO.O
 stock=KO
-stock=DWDP.K
 stock=XOM
 stock=GS
 stock=HD
