@@ -7,9 +7,9 @@
 namespace shift {
 
 /** 
- * @brief ConnectionTimeout exception for when the Brokerage Center is not accessible.
+ * @brief ConnectionTimeoutError exception for when the Brokerage Center is not accessible.
  */
-struct CORECLIENT_EXPORTS ConnectionTimeout : public std::exception {
+struct CORECLIENT_EXPORTS ConnectionTimeoutError : public std::exception {
     const char* what() const throw()
     {
         return "Connection Timeout Error";
