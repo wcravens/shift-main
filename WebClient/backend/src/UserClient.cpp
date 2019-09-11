@@ -69,7 +69,7 @@ void UserClient::sendSubmittedOrders()
     for (const auto& order : submittedOrders) {
         std::ostringstream out;
 
-        if (order.getExecutedSize() == order.getSize()) {
+        if (order.getStatus() == shift::Order::Status::FILLED) {
             price = order.getExecutedPrice();
         } else {
             price = order.getPrice();

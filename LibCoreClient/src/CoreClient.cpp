@@ -650,8 +650,15 @@ void shift::CoreClient::storeExecution(const std::string& orderID, shift::Order:
         order.setStatus(newStatus);
     }
 
-    if ((newStatus == shift::Order::Status::CANCELED) && (order.getSize() > newExecutedSize)) {
-        order.setStatus(shift::Order::Status::PARTIALLY_FILLED);
+    if (newStatus == shift::Order::Status::CANCELED) {
+        // not everything was canceled -> there is still volume to be executed
+        if (order.getSize() > newExecutedSize) {
+            order.setStatus(shift::Order::Status::PARTIALLY_FILLED);
+        }
+        // there is nothing else to be executed, but some was executed before the cancellation
+        else if (newExecutedPrice > 0.0) {
+            order.setStatus(shift::Order::Status::FILLED);
+        }
     }
 
     if ((newStatus == shift::Order::Status::PARTIALLY_FILLED)

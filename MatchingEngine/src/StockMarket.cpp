@@ -1015,7 +1015,7 @@ void StockMarket::doLocalCancelBid(Order& orderRef)
 
         if (m_thisLocalOrder != m_thisPriceLevel->end()) {
             int size = m_thisLocalOrder->getSize() - orderRef.getSize();
-            executeLocalOrder(orderRef, size, orderRef.getPrice(), '4');
+            executeLocalOrder(orderRef, size, 0.0, '4'); // cancellation orders have executed price = 0.0
 
             if (m_thisLocalOrder->getType() != Order::Type::MARKET_BUY) { // see StockMarket::insertLocalBid for more info
                 // broadcast local order book update
@@ -1066,7 +1066,7 @@ void StockMarket::doLocalCancelAsk(Order& orderRef)
 
         if (m_thisLocalOrder != m_thisPriceLevel->end()) {
             int size = m_thisLocalOrder->getSize() - orderRef.getSize();
-            executeLocalOrder(orderRef, size, orderRef.getPrice(), '4');
+            executeLocalOrder(orderRef, size, 0.0, '4'); // cancellation orders have executed price = 0.0
 
             if (m_thisLocalOrder->getType() != Order::Type::MARKET_SELL) { // see StockMarket::insertLocalAsk for more info
                 // broadcast local order book update

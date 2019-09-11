@@ -976,8 +976,8 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
 }
 
 /**
- * @brief Method to receive LatestStockPrice from Brokerage Center.
- * @param message as a ExecutionReport type object contains the last price information.
+ * @brief Method to receive Execution Reports from Brokerage Center.
+ * @param message as a ExecutionReport type object contains the last execution report.
  */
 void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
 {
