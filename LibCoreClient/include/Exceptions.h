@@ -12,17 +12,17 @@ namespace shift {
 struct CORECLIENT_EXPORTS ConnectionTimeout : public std::exception {
     const char* what() const throw()
     {
-        return "Connection Timeout";
+        return "Connection Timeout Error";
     }
 };
 
 /** 
- * @brief IncorrectPassword exception for when the user password is incorrect.
+ * @brief IncorrectPasswordError exception for when the user password is incorrect.
  */
-struct CORECLIENT_EXPORTS IncorrectPassword : public std::exception {
+struct CORECLIENT_EXPORTS IncorrectPasswordError : public std::exception {
     const char* what() const throw()
     {
-        return "Incorrect Password";
+        return "Incorrect Password Error";
     }
 };
 

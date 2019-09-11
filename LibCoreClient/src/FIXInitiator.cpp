@@ -158,9 +158,9 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
         disconnectBrokerageCenter();
 
         if (wasNotified) {
-            throw shift::IncorrectPassword();
+            throw shift::IncorrectPasswordError();
         } else {
-            throw shift::ConnectionTimeout();
+            throw shift::ConnectionTimeoutError();
         }
     }
 }

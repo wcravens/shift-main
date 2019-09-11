@@ -8,7 +8,6 @@
 // LibCoreClient
 #include <Exceptions.h>
 
-
 LoginDialog::LoginDialog(QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::LoginDialog)
@@ -36,16 +35,14 @@ void LoginDialog::on_login_button_clicked()
 {
     Global::qt_core_client.setUsername(ui->UsernameText->text().toStdString());
     try {
-        shift::FIXInitiator::getInstance().connectBrokerageCenter("./config/initiator.cfg"
-                                                                  , &Global::qt_core_client
-                                                                  , ui->PasswordText->text().toStdString());
+        shift::FIXInitiator::getInstance().connectBrokerageCenter("./config/initiator.cfg", &Global::qt_core_client, ui->PasswordText->text().toStdString());
         emit brokerageCenterConnected();
         this->accept();
-    } catch (shift::ConnectionTimeout e) {
+    } catch (shift::ConnectionTimeoutError e) {
         QMessageBox msg;
         msg.setText(e.what());
         msg.exec();
-    } catch (shift::IncorrectPassword e) {
+    } catch (shift::IncorrectPasswordError e) {
         QMessageBox msg;
         msg.setText(e.what());
         msg.exec();
