@@ -1,6 +1,5 @@
 #include "include/CandlestickChart/candledataset.h"
 
-
 CandleDataSet::CandleDataSet()
 {
 }

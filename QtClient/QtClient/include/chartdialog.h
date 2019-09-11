@@ -56,21 +56,21 @@ public:
     static bool isFromNasdaq(QString real_name);
 
 public slots:
-    void setStocklist(const QStringList &stocklist);
-    void setTimePeriod(const int &index);
-    void setZoomLevel(const int &index);
+    void setStocklist(const QStringList& stocklist);
+    void setTimePeriod(const int& index);
+    void setZoomLevel(const int& index);
     void onStockListIndexChanged(const QModelIndex& indexes);
-    void receiveData(const QString &symbol, const long long &timestamp, const double &open, const double &high, const double &low, const double &close);
+    void receiveData(const QString& symbol, const long long& timestamp, const double& open, const double& high, const double& low, const double& close);
     void refresh();
-    void updateXAxis(const long long &time);
-    void updateIntervalSelection(const long long &interval);
-    void updateZoomSelection(const long long &interval);
-    void updateMarker(const long long &, const long long &);
+    void updateXAxis(const long long& time);
+    void updateIntervalSelection(const long long& interval);
+    void updateZoomSelection(const long long& interval);
+    void updateMarker(const long long&, const long long&);
 
 private:
     Ui::ChartDialog* ui;
-    CandlePlot *m_candle_plot;
-    NavigationPlot *m_navigation_plot;
+    CandlePlot* m_candle_plot;
+    NavigationPlot* m_navigation_plot;
     QLabel* m_wait_label;
 
     QStringListModel* m_stock_list_model; //!< Model to be used in QTableView stocklist.

@@ -5,8 +5,8 @@
 #include "include/qtcoreclient.h"
 
 #include <QDateTime>
-#include <QTimeZone>
 #include <QRegExp>
+#include <QTimeZone>
 
 CandlePlot::CandlePlot(QWidget* parent)
     : QwtPlot(parent)
@@ -79,7 +79,7 @@ void CandlePlot::refresh(QString symbol)
     QString companyName = QString::fromStdString(Global::qt_core_client.getCompanyName(m_current_symbol.toStdString()));
     setTitle(m_current_symbol + (companyName == "" ? "" : " (" + companyName + ")"));
 
-    qDebug()<<m_current_symbol;
+    qDebug() << m_current_symbol;
     long long firstTimestamp = m_candle_data[m_current_symbol]->d_samples[0].time;
     long long lastTimestamp = m_candle_data[m_current_symbol]->d_samples[m_candle_data[m_current_symbol]->d_samples.size() - 1].time;
 
@@ -166,9 +166,8 @@ void CandlePlot::setInterval(long long interval)
 void CandlePlot::clearData(QString symbol)
 {
     CandleDataSet* candleDataSet = m_candle_data[symbol];
-    if(!candleDataSet)
-    {
-        qDebug()<<"no such symbol: " << symbol;
+    if (!candleDataSet) {
+        qDebug() << "no such symbol: " << symbol;
         return;
     }
     candleDataSet->d_samples.clear();
@@ -176,13 +175,12 @@ void CandlePlot::clearData(QString symbol)
     setAxisAutoScale(QwtPlot::xBottom);
 }
 
-bool CandlePlot::isDataReady(const QString &symbol)
+bool CandlePlot::isDataReady(const QString& symbol)
 {
-    if(m_candle_data[symbol])
+    if (m_candle_data[symbol])
         return true;
     else
         return false;
-
 }
 
 /**

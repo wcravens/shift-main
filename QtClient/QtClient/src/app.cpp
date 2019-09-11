@@ -5,7 +5,7 @@
 
 #include <QThread>
 
-App::App(int &argc, char **argv)
+App::App(int& argc, char** argv)
     : QApplication(argc, argv)
     , m_main_window(new MainWindow())
     , m_login_dialog(new LoginDialog())
@@ -16,18 +16,17 @@ App::App(int &argc, char **argv)
     connect(m_login_dialog, &LoginDialog::brokerageCenterConnected, this, &App::startConnection);
 
     //! Trigger login window after QEventLoop of App is initialized
-    QTimer::singleShot(1, [this](){login();});
+    QTimer::singleShot(1, [this]() { login(); });
 }
 
 App::~App()
 {
-    qDebug()<<"~App()";
+    qDebug() << "~App()";
     stopConnection();
-    if(m_main_window)
+    if (m_main_window)
         m_main_window->deleteLater();
-    if(m_login_dialog)
+    if (m_login_dialog)
         m_login_dialog->deleteLater();
-
 }
 
 void App::login()

@@ -7,7 +7,6 @@
 // LibCoreClient
 #include <Order.h>
 
-
 struct WaitingListModelItem {
     QString m_id;
     QString m_symbol;
@@ -46,7 +45,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
     // virtual
-    bool removeRows(const int &begin, const int &rows, const QModelIndex& index);
+    bool removeRows(const int& begin, const int& rows, const QModelIndex& index);
 
     bool getCancelOrderByID(QString id, shift::Order& q);
     std::vector<shift::Order> getAllOrders();

@@ -2,7 +2,6 @@
 
 #include <QModelIndex>
 
-
 WaitingListModel::WaitingListModel()
 {
 }
@@ -74,7 +73,7 @@ QVariant WaitingListModel::headerData(int section, Qt::Orientation orientation, 
     return QVariant::Invalid;
 }
 
-bool WaitingListModel::removeRows(const int &begin, const int &rows, const QModelIndex& index)
+bool WaitingListModel::removeRows(const int& begin, const int& rows, const QModelIndex& index)
 {
     if (rows < 1)
         return false;

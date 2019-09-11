@@ -2,8 +2,8 @@
 
 #include "global.h"
 #include "include/orderbookmodel.h"
-#include "include/stocklistfiltermodel.h"
 #include "include/qtcoreclient.h"
+#include "include/stocklistfiltermodel.h"
 
 #include <QDialog>
 #include <QStringListModel>
@@ -34,7 +34,7 @@ public slots:
 private:
     Ui::OrderBookDialog* ui;
     static OrderBookDialog* m_instance;
-    QTimer *m_timer;
+    QTimer* m_timer;
 
     OrderBookModel m_global_bid_data;
     OrderBookModel m_global_ask_data;

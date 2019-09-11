@@ -5,11 +5,11 @@
 
 #include "qwt_scale_widget.h"
 
+#include <QDateTime>
 #include <QDebug>
 #include <QMessageBox>
-#include <QDateTime>
-#include <QTimeZone>
 #include <QRegExp>
+#include <QTimeZone>
 
 ChartDialog::ChartDialog(QWidget* parent)
     : QDialog(parent)
@@ -112,7 +112,7 @@ ChartDialog::ChartDialog(QWidget* parent)
  */
 void ChartDialog::refresh()
 {
-    if(!m_candle_plot->isDataReady(m_current_symbol))
+    if (!m_candle_plot->isDataReady(m_current_symbol))
         return;
     m_candle_plot->refresh(m_current_symbol);
     m_navigation_plot->refresh(m_current_symbol);
@@ -134,8 +134,9 @@ void ChartDialog::start()
     // Save the previously selected position.
     if (m_last_clicked_index == 0) {
         ui->StockList->selectRow(0);
-//        QString selected_symbol = ui->StockList->indexAt(QPoint(0, 0)).data().toString();
-        m_current_symbol = ui->StockList->indexAt(QPoint(0, 0)).data().toString();;
+        //        QString selected_symbol = ui->StockList->indexAt(QPoint(0, 0)).data().toString();
+        m_current_symbol = ui->StockList->indexAt(QPoint(0, 0)).data().toString();
+        ;
     } else {
         ui->StockList->selectRow(m_last_clicked_index);
     }
@@ -187,10 +188,9 @@ bool ChartDialog::isFromNasdaq(QString name)
  * @brief Called when the selected time period changes.
  * @param int: the index for the newly selected time period.
  */
-void ChartDialog::setTimePeriod(const int &index)
+void ChartDialog::setTimePeriod(const int& index)
 {
-    if(!m_candle_plot->isDataReady(m_current_symbol))
-    {
+    if (!m_candle_plot->isDataReady(m_current_symbol)) {
         m_wait_label->setHidden(false);
         m_candle_plot->setHidden(true);
         m_navigation_plot->setHidden(true);
@@ -259,7 +259,7 @@ void ChartDialog::setTimePeriod(const int &index)
  * @brief Method to set current stocklist into the tableview
  * @param QStringlist: the stocklist to be set.
  */
-void ChartDialog::setStocklist(const QStringList &stocklist)
+void ChartDialog::setStocklist(const QStringList& stocklist)
 {
     m_stock_list_model->setStringList(stocklist);
 }
@@ -305,7 +305,7 @@ void ChartDialog::onStockListIndexChanged(const QModelIndex& index)
  * @param long long: timestamp of the updated data.
  * @param double: open/high/low/close of the updated data.
  */
-void ChartDialog::receiveData(const QString &symbol, const long long &timestamp, const double &open, const double &high, const double &low, const double &close)
+void ChartDialog::receiveData(const QString& symbol, const long long& timestamp, const double& open, const double& high, const double& low, const double& close)
 {
     CandleDataSample sample(timestamp, open, high, low, close);
     m_raw_samples[symbol].push_back(sample);
@@ -318,7 +318,7 @@ void ChartDialog::receiveData(const QString &symbol, const long long &timestamp,
     QString firstSymbol = QString::fromStdString(Global::qt_core_client.getStockList().front());
     QString lastSymbol = QString::fromStdString(Global::qt_core_client.getStockList().back());
 
-//    qDebug() << m_raw_samples[firstSymbol].size() << "\t" << m_raw_samples[lastSymbol].size();
+    //    qDebug() << m_raw_samples[firstSymbol].size() << "\t" << m_raw_samples[lastSymbol].size();
     if (m_raw_samples[firstSymbol].size() > m_raw_samples[lastSymbol].size() - 10 && !m_is_loading_done) {
         m_is_loading_done = true;
         emit dataLoaded();
@@ -329,7 +329,7 @@ void ChartDialog::receiveData(const QString &symbol, const long long &timestamp,
  * @brief Accept timeFrameSelected signal and call the updateXAxis for CandlePlot class.
  * @param long long the newly selected time 
  */
-void ChartDialog::updateXAxis(const long long &time)
+void ChartDialog::updateXAxis(const long long& time)
 {
     m_candle_plot->updateXAxis(time);
 }
@@ -339,7 +339,7 @@ void ChartDialog::updateXAxis(const long long &time)
  *        combo box of frequency.
  * @param long long new interval
  */
-void ChartDialog::updateIntervalSelection(const long long &interval)
+void ChartDialog::updateIntervalSelection(const long long& interval)
 {
     int i;
     // find the index of the new interval in the combo box
@@ -359,7 +359,7 @@ void ChartDialog::updateIntervalSelection(const long long &interval)
  * @param long long starting timestamp
  * @param long long ending timestamp
  */
-void ChartDialog::updateMarker(const long long &start, const long long &end)
+void ChartDialog::updateMarker(const long long& start, const long long& end)
 {
     m_navigation_plot->updateMarker(start, end);
 }
@@ -369,7 +369,7 @@ void ChartDialog::updateMarker(const long long &start, const long long &end)
  *        in both candleplot and navbar.
  * @param int seleceted index
  */
-void ChartDialog::setZoomLevel(const int &index)
+void ChartDialog::setZoomLevel(const int& index)
 {
     m_candle_plot->setZoomBlock(m_zoom_options[index]);
     m_navigation_plot->setZoomBlock(m_zoom_options[index]);
@@ -379,7 +379,7 @@ void ChartDialog::setZoomLevel(const int &index)
  * @brief Method called when the zoom level is changed outside chartdialog class
  * @param long long new zoom level selection
  */
-void ChartDialog::updateZoomSelection(const long long &interval)
+void ChartDialog::updateZoomSelection(const long long& interval)
 {
     int i;
     for (i = 0; i < m_zoom_options.size(); i++) {
@@ -392,5 +392,3 @@ void ChartDialog::updateZoomSelection(const long long &interval)
 
     ui->ZoomOptions->setCurrentIndex(i);
 }
-
-

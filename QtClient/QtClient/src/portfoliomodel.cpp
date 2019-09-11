@@ -2,17 +2,16 @@
 
 #include "include/qtcoreclient.h"
 
-#include <QMutexLocker>
 #include <QDebug>
-
+#include <QMutexLocker>
 
 PortfolioModel::PortfolioModel()
 {
-    QTimer *t = new QTimer(this);
+    QTimer* t = new QTimer(this);
     t->setInterval(1000);
     t->setSingleShot(false);
-    connect(t, &QTimer::timeout, [this](){
-        for(std::string symbol : m_portfolio_item_vec)
+    connect(t, &QTimer::timeout, [this]() {
+        for (std::string symbol : m_portfolio_item_vec)
             updatePortfolioItem(symbol);
     });
     t->start();
@@ -145,14 +144,10 @@ void PortfolioModel::updatePortfolioItem(std::string symbol)
     } else {
         emit dataChanged(this->index(index, 1), this->index(index, 2));
     }
-
 }
 
 void PortfolioModel::updatePortfolioSummary()
 {
     m_portfolio_summary = Global::qt_core_client.getPortfolioSummary();
-    emit updateTotalPortfolio(m_portfolio_summary.getTotalBP()
-                              , m_portfolio_summary.getTotalShares()
-                              , m_portfolio_summary.getTotalRealizedPL());
+    emit updateTotalPortfolio(m_portfolio_summary.getTotalBP(), m_portfolio_summary.getTotalShares(), m_portfolio_summary.getTotalRealizedPL());
 }
-

@@ -7,7 +7,6 @@
 // LibCoreClient
 #include <OrderBookEntry.h>
 
-
 struct OrderBookItem {
     QString m_price;
     int m_size;

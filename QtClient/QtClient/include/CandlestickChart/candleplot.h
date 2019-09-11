@@ -19,7 +19,6 @@
 class DateScaleDraw;
 class CandlePlot;
 
-
 /**
  * @brief A brief class to customize the QwtDateScaleDraw to show dates/time on the x-axis
  *        of our candlestick plot in the style we want.
@@ -50,7 +49,7 @@ public:
     ~CandlePlot();
     void setInterval(long long interval);
     void clearData(QString symbol);
-    bool isDataReady(const QString &symbol);
+    bool isDataReady(const QString& symbol);
     void updateXAxis(long long time);
 
 public slots:

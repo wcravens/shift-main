@@ -5,7 +5,6 @@
 #include <QColor>
 #include <QFont>
 
-
 OverviewModel::OverviewModel()
 {
     m_timer.setInterval(1000);

@@ -8,24 +8,25 @@
 
 // LibCoreClient
 #include <CoreClient.h>
-#include <Order.h>
 #include <FIXInitiator.h>
+#include <Order.h>
 
 class QtCoreClient
-        : public QObject
-        , public shift::CoreClient
-{
+    : public QObject,
+      public shift::CoreClient {
     Q_OBJECT
 
 public:
     QtCoreClient(QObject* parent = nullptr)
         : QObject(parent)
-    {}
+    {
+    }
 
     QtCoreClient(std::string username, QObject* parent = nullptr)
         : QObject(parent)
         , CoreClient(username)
-    {}
+    {
+    }
 
     QStringList getStocklist();
     void adaptStocklist();
@@ -38,7 +39,6 @@ protected:
     void receiveWaitingList() override;
 
 private:
-
     QStringList m_stocklist; //!< All received stocks for this session.
     bool is_first_time = true;
 

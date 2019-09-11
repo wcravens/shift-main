@@ -35,13 +35,13 @@ public slots:
     void onThemeActionClicked();
 
 private:
-    ChartDialog *m_chart_dialog;
-    OrderBookDialog *m_order_book_dialog;
+    ChartDialog* m_chart_dialog;
+    OrderBookDialog* m_order_book_dialog;
     OverviewModel m_overview_model;
     PortfolioModel m_portfolio_model;
     WaitingListModel m_waiting_list_model;
 
-    void setTheme(const QString &path);
+    void setTheme(const QString& path);
 
 private slots:
     void on_actionCandlestick_Chart_triggered();

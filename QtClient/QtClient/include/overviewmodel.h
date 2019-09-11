@@ -4,12 +4,11 @@
 #include "qtcoreclient.h"
 
 #include <QAbstractTableModel>
+#include <QMap>
+#include <QPair>
 #include <QTimer>
 #include <QVariant>
 #include <QVector>
-#include <QMap>
-#include <QPair>
-
 
 struct OverviewModelItem {
     QString m_symbol;

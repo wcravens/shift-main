@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    qDebug()<<"MainWindow::~MainWindow()";
+    qDebug() << "MainWindow::~MainWindow()";
     delete ui;
 }
 
@@ -85,7 +85,7 @@ void MainWindow::submitOrder(shift::Order::Type type)
     if (abs(price100 - round_price) > 0.01 || price <= 0.0) {
         qDebug() << price100 << "\t" << round_price << price;
         QMessageBox msg;
-        msg.setText("Price " +QString::number(ui->Price->value()) + " is invalid.");
+        msg.setText("Price " + QString::number(ui->Price->value()) + " is invalid.");
         msg.exec();
         return;
     }
@@ -208,17 +208,16 @@ void MainWindow::on_CancelAllButton_clicked()
 
 void MainWindow::onThemeActionClicked()
 {
-    qDebug()<<"Change Theme";
-    if(sender() == ui->theme_none_action){
-    } else if(sender() == ui->theme_material_action) {
+    qDebug() << "Change Theme";
+    if (sender() == ui->theme_none_action) {
+    } else if (sender() == ui->theme_material_action) {
         setTheme(":/theme/material.theme");
-    } else if(sender() == ui->theme_dark_action) {
+    } else if (sender() == ui->theme_dark_action) {
         setTheme(":/theme/dark.theme");
     }
-
 }
 
-void MainWindow::setTheme(const QString &path)
+void MainWindow::setTheme(const QString& path)
 {
     QFile styleFile(path);
     styleFile.open(QFile::ReadOnly);
@@ -232,9 +231,9 @@ void MainWindow::setTheme(const QString &path)
 void MainWindow::hideLoadingLabel()
 {
     ui->loadingLabel->hide();
-//    ui->menuChart->setVisible(true);'
-//    QMenu* chartMenu = new QMenu("Charts", this);
-//    chartMenu->addAction("Candlestick Charts", this, SLOT(on_actionShow_Chart_triggered()));
-//    ui->menuBar->addMenu(chartMenu);
+    //    ui->menuChart->setVisible(true);'
+    //    QMenu* chartMenu = new QMenu("Charts", this);
+    //    chartMenu->addAction("Candlestick Charts", this, SLOT(on_actionShow_Chart_triggered()));
+    //    ui->menuBar->addMenu(chartMenu);
     ui->actionCandlestick_Chart->setEnabled(true);
 }

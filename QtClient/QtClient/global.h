@@ -3,11 +3,9 @@
 
 #include "./include/qtcoreclient.h"
 
-class Global
-{
+class Global {
 public:
     static QtCoreClient qt_core_client;
-
 };
 
 #endif // GLOBAL_H

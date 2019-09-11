@@ -6,8 +6,8 @@
 #include <QVariant>
 #include <QVector>
 
-#include <PortfolioSummary.h>
 #include "global.h"
+#include <PortfolioSummary.h>
 
 /**
  * @brief Class of PortfolioModel. Extends from QAbstractTableModel. To be used in
@@ -34,7 +34,7 @@ public slots:
 protected:
     QMutex m_mutex;
     QVector<std::string> m_portfolio_item_vec;
-//    double m_total_realized_PL;
+    //    double m_total_realized_PL;
     shift::PortfolioSummary m_portfolio_summary;
     QTimer m_timer;
 };
