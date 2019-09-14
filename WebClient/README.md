@@ -20,14 +20,14 @@ Use the installer in the root folder of the SHIFT project:
 Choose a location to keep the Apache Thrift source files (for debugging purposes), e.g. a "C++" folder in your home directory, and then:
 
 ``` bash
-curl -O archive.apache.org/dist/thrift/0.11.0/thrift-0.11.0.tar.gz
-tar -zxf thrift-0.11.0.tar.gz
-cd thrift-0.11.0
+curl -O archive.apache.org/dist/thrift/0.11.0/thrift-0.12.0.tar.gz
+tar -zxf thrift-0.12.0.tar.gz
+cd thrift-0.12.0
 ./configure --prefix=/usr/local/
 make
 sudo make install
 cd ..
-rm thrift-0.11.0.tar.gz
+rm thrift-0.12.0.tar.gz
 ```
 
 ### ZeroMQ:
