@@ -550,7 +550,7 @@ void shift::FIXInitiator::fromAdmin(const FIX::Message& message, const FIX::Sess
                 m_cvLogon.notify_one();
             }
         }
-    } catch (FIX::FieldNotFound&) { // required since FIX::Text is not a mandatory field in FIX::MsgType_Logout
+    } catch (const FIX::FieldNotFound&) { // required since FIX::Text is not a mandatory field in FIX::MsgType_Logout
     }
 }
 
@@ -773,7 +773,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
 
     try {
         m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->setOrderBook(std::move(orderBook));
-    } catch (std::exception e) {
+    } catch (const std::exception&) {
         debugDump(symbol + " doesn't work");
     }
 
