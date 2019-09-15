@@ -33,7 +33,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/OrderBookEntry.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookGlobalAsk.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookGlobalBid.h
-	${PROJECT_SOURCE_DIR}/include/OrderBookLocalAsk.h
+    ${PROJECT_SOURCE_DIR}/include/OrderBookLocalAsk.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookLocalBid.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioItem.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioSummary.h
@@ -95,6 +95,12 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
 if(UNIX AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
 endif(UNIX AND NOT APPLE)
+
+# GCC (Raspbian Buster for Raspberry Pi 4)
+# -Wno-psabi is required when compiling on Raspbian
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Mojave 10.14)
 # -Wno-overloaded-virtual is required when linking QuickFIX on macOS

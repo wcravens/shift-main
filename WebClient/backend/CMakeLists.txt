@@ -65,10 +65,15 @@ if(UNIX AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif(UNIX AND NOT APPLE)
 
+# GCC (Raspbian Buster for Raspberry Pi 4)
+# -Wdeprecated-declarations is required when linking ZeroMQ on Raspbian
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
+
 # Clang (macOS Mojave 10.14)
-# -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     include_directories(/usr/local/include)
 endif(APPLE)
 
