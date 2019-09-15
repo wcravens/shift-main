@@ -20,14 +20,18 @@ Use the installer in the root folder of the SHIFT project:
 Choose a location to keep the Apache Thrift source files (for debugging purposes), e.g. a "C++" folder in your home directory, and then:
 
 ``` bash
-curl -O archive.apache.org/dist/thrift/0.12.0/thrift-0.12.0.tar.gz
-tar -zxf thrift-0.12.0.tar.gz
-cd thrift-0.12.0
-./configure --prefix=/usr/local/
+git clone https://github.com/apache/thrift.git
+cd thrift
+git checkout 0.12.0
+cd build
+
+# Ubuntu:
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+# Raspbian:
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -lboost_atomic" ..
+
 make
 sudo make install
-cd ..
-rm thrift-0.12.0.tar.gz
 ```
 
 ### ZeroMQ:
@@ -40,6 +44,7 @@ cd libzmq
 mkdir build
 cd build
 cmake ..
+make
 sudo make install
 ```
 
@@ -51,6 +56,7 @@ cd cppzmq
 mkdir build
 cd build
 cmake ..
+make
 sudo make install
 ```
 
@@ -59,9 +65,12 @@ sudo make install
 ## PHP Installation
 
 ``` bash
+# Ubuntu:
 sudo add-apt-repository ppa:ondrej/php
 sudo apt-get update
 sudo apt-get install php7.0-cli php7.0-fpm php7.0-pgsql php7.0-xml php-zmq
+# Raspbian:
+sudo apt-get install php7.1-cli php7.1-fpm php7.1-pgsql php7.1-xml php-zmq
 ```
 
 ---

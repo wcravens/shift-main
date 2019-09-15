@@ -672,14 +672,18 @@ border-bottom-color: #eee;
 <li>In the Terminal: <code>sudo apt-get install bison flex libevent-dev</code></li>
 </ul>
 <p>Choose a location to keep the Apache Thrift source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="ex">curl</span> -O archive.apache.org/dist/thrift/0.12.0/thrift-0.12.0.tar.gz</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="fu">tar</span> -zxf thrift-0.12.0.tar.gz</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="bu">cd</span> thrift-0.12.0</a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="ex">./configure</span> --prefix=/usr/local/</a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="fu">make</span></a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="fu">sudo</span> make install</a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="bu">cd</span> ..</a>
-<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="fu">rm</span> thrift-0.12.0.tar.gz</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/apache/thrift.git</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="bu">cd</span> thrift</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="fu">git</span> checkout 0.12.0</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="bu">cd</span> build</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co"># Ubuntu:</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="fu">cmake</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo ..</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="co"># Raspbian:</span></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="fu">cmake</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -lboost_atomic&quot;</span> ..</a>
+<a class="sourceLine" id="cb1-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="fu">make</span></a>
+<a class="sourceLine" id="cb1-12" data-line-number="12"><span class="fu">sudo</span> make install</a></code></pre></div>
 <h3 id="zeromq">ZeroMQ:</h3>
 <p>Choose a location to keep the ZeroMQ source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/zeromq/libzmq.git</a>
@@ -687,19 +691,24 @@ border-bottom-color: #eee;
 <a class="sourceLine" id="cb2-3" data-line-number="3"><span class="fu">mkdir</span> build</a>
 <a class="sourceLine" id="cb2-4" data-line-number="4"><span class="bu">cd</span> build</a>
 <a class="sourceLine" id="cb2-5" data-line-number="5"><span class="fu">cmake</span> ..</a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="fu">sudo</span> make install</a></code></pre></div>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="fu">make</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="fu">sudo</span> make install</a></code></pre></div>
 <p>In the same location as before (<code>cd ../..</code>), do the following to install the C++ binding for ZeroMQ:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/zeromq/cppzmq.git</a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"><span class="bu">cd</span> cppzmq</a>
 <a class="sourceLine" id="cb3-3" data-line-number="3"><span class="fu">mkdir</span> build</a>
 <a class="sourceLine" id="cb3-4" data-line-number="4"><span class="bu">cd</span> build</a>
 <a class="sourceLine" id="cb3-5" data-line-number="5"><span class="fu">cmake</span> ..</a>
-<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="fu">sudo</span> make install</a></code></pre></div>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="fu">make</span></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="fu">sudo</span> make install</a></code></pre></div>
 <hr />
 <h2 id="php-installation">PHP Installation</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">sudo</span> add-apt-repository ppa:ondrej/php</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">sudo</span> apt-get update</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="fu">sudo</span> apt-get install php7.0-cli php7.0-fpm php7.0-pgsql php7.0-xml php-zmq</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># Ubuntu:</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">sudo</span> add-apt-repository ppa:ondrej/php</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="fu">sudo</span> apt-get update</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="fu">sudo</span> apt-get install php7.0-cli php7.0-fpm php7.0-pgsql php7.0-xml php-zmq</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="co"># Raspbian:</span></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="fu">sudo</span> apt-get install php7.1-cli php7.1-fpm php7.1-pgsql php7.1-xml php-zmq</a></code></pre></div>
 <hr />
 <h2 id="nginx-installation">Nginx Installation</h2>
 <ul>
