@@ -135,22 +135,20 @@ endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 if(NOT WIN32) # UNIX
     find_package(CURL REQUIRED)
-    find_package(Threads REQUIRED) # QuickFIX requirement: -lpthread
-    find_package(LibXml2 REQUIRED) # QuickFIX requirement: -lxml2
-    find_package(ZLIB REQUIRED) # QuickFIX requirement: -lz
+    find_package(Threads REQUIRED)
     find_library(QUICKFIX quickfix)
 else(WIN32)   # Windows
     if(CMAKE_BUILD_TYPE MATCHES Debug)
         find_library(QUICKFIX quickfix
                     PATHS C:/quickfix/x64/Debug)
         set(CURL_INCLUDE_DIR "C:/curl-7.58.0/builds/libcurl-vc14-x64-debug-static-ipv6-sspi-winssl/include")
-        set(CURL_LIBRARY "C:/curl-7.58.0/builds/libcurl-vc14-x64-debug-static-ipv6-sspi-winssl/lib/libcurl_a_debug.lib")
+        set(CURL_LIBRARIES "C:/curl-7.58.0/builds/libcurl-vc14-x64-debug-static-ipv6-sspi-winssl/lib/libcurl_a_debug.lib")
     endif(CMAKE_BUILD_TYPE MATCHES Debug)
     if(CMAKE_BUILD_TYPE MATCHES Release)
         find_library(QUICKFIX quickfix
                     PATHS C:/quickfix/x64/Release)
         set(CURL_INCLUDE_DIR "C:/curl-7.58.0/builds/libcurl-vc14-x64-release-static-ipv6-sspi-winssl/include")
-        set(CURL_LIBRARY "C:/curl-7.58.0/builds/libcurl-vc14-x64-release-static-ipv6-sspi-winssl/lib/libcurl_a.lib") 
+        set(CURL_LIBRARIES "C:/curl-7.58.0/builds/libcurl-vc14-x64-release-static-ipv6-sspi-winssl/lib/libcurl_a.lib") 
     endif(CMAKE_BUILD_TYPE MATCHES Release)
 
     find_package(CURL REQUIRED)
@@ -193,13 +191,11 @@ if(NOT WIN32) # UNIX
     target_link_libraries(shift_${LIB_NAME}
                           ${CURL_LIBRARIES}
                           ${CMAKE_THREAD_LIBS_INIT}
-                          ${LIBXML2_LIBRARIES}
-                          ${ZLIB_LIBRARIES}
                           ${QUICKFIX}
                           ${LIBMISCUTILS})
 else(WIN32)   # Windows
     target_link_libraries(shift_${LIB_NAME}
-                          ${CURL_LIBRARY}
+                          ${CURL_LIBRARIES}
                           ${QUICKFIX}
                           ${LIBMISCUTILS})
 endif(NOT WIN32)

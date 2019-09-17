@@ -104,11 +104,9 @@ find_package(OpenSSL REQUIRED)
 
 find_package(PostgreSQL REQUIRED)
 
-find_package(Threads REQUIRED) # QuickFIX requirement: -lpthread
+find_package(Threads REQUIRED)
 
-find_package(LibXml2 REQUIRED) # QuickFIX requirement: -lxml2
-
-find_package(ZLIB REQUIRED) # QuickFIX requirement: -lz
+find_package(ZLIB REQUIRED)
 
 find_library(CPPREST cpprest)
 if(NOT CPPREST)
@@ -145,7 +143,6 @@ target_link_libraries(${PROJECT_NAME}
                       ${OPENSSL_LIBRARIES}
                       ${PostgreSQL_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
-                      ${LIBXML2_LIBRARIES}
                       ${ZLIB_LIBRARIES}
                       ${CPPREST}
                       ${QUICKFIX}
