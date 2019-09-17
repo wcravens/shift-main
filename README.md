@@ -168,6 +168,7 @@ If you correctly created the "hanlonpgsql4" user in the previous step, use the s
 ``` bash
 git clone https://github.com/quickfix/quickfix.git
 cd quickfix
+git checkout v1.15.1
 mkdir build
 cd build
 
