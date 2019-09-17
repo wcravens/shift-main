@@ -1,6 +1,7 @@
 /*
 Compile:
-    g++ -std=c++14 main.cpp -o TRTHRESTDownloader -lboost_system -lboost_program_options -lcrypto -lshift_miscutils -lssl -l:libcpprest.so.2.9 -lz
+    Ubuntu: g++ -std=c++14 main.cpp -o TRTHRESTDownloader -lshift_miscutils -lboost_program_options -lboost_system -lcrypto -lssl -lz -lcpprest
+    macOS: clang++ -std=c++14 main.cpp -o TRTHRESTDownloader -lshift_miscutils -lboost_chrono-mt -lboost_program_options-mt -lboost_thread-mt -lcrypto -lssl -lz -lcpprest -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib
 
 References:
     [1] "6 Requesting Time and Sales Data for RICs", from https://developers.thomsonreuters.com/sites/default/files/Thomson%20Reuters%20Tick%20History%2011.0%20REST%20API%20Use%20Cases%20Reference%20v1.0.pdf

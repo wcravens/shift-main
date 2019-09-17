@@ -17,11 +17,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 ### Build Configuration #######################################################
 
 find_package(Boost REQUIRED
-             COMPONENTS program_options thread)
+             COMPONENTS chrono program_options thread)
 
 find_package(OpenSSL REQUIRED)
-
-#find_package(Threads REQUIRED)
 
 find_package(ZLIB REQUIRED)
 
@@ -43,7 +41,6 @@ target_link_libraries(TRTHRESTDownloader
                       shift_${LIB_NAME}
                       ${Boost_LIBRARIES}
                       ${OPENSSL_LIBRARIES}
-                      #${CMAKE_THREAD_LIBS_INIT}
                       ${ZLIB_LIBRARIES}
                       ${CPPREST})
 
