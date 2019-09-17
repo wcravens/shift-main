@@ -919,9 +919,9 @@ border-bottom-color: #eee;
 <a class="sourceLine" id="cb4-4" data-line-number="4"><span class="bu">cd</span> build</a>
 <a class="sourceLine" id="cb4-5" data-line-number="5"></a>
 <a class="sourceLine" id="cb4-6" data-line-number="6"><span class="co"># Ubuntu:</span></a>
-<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="fu">cmake</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="fu">cmake</span> -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -Wno-deprecated&quot;</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..</a>
 <a class="sourceLine" id="cb4-8" data-line-number="8"><span class="co"># macOS:</span></a>
-<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="fu">cmake</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..</a>
+<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="fu">cmake</span> -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -Wno-overloaded-virtual&quot;</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..</a>
 <a class="sourceLine" id="cb4-10" data-line-number="10"></a>
 <a class="sourceLine" id="cb4-11" data-line-number="11"><span class="fu">make</span></a>
 <a class="sourceLine" id="cb4-12" data-line-number="12"><span class="fu">sudo</span> make install</a></code></pre></div>

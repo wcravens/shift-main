@@ -172,9 +172,9 @@ mkdir build
 cd build
 
 # Ubuntu:
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..
+cmake -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -Wno-deprecated" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..
 # macOS:
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
+cmake -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
 
 make
 sudo make install

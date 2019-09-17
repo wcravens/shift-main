@@ -15,17 +15,17 @@ INSTALL_PREFIX="/usr/local"
 
 # number of cores of CPU
 CORE_NUM=1
-if [ "$(uname)" == "Darwin" ]; then
-	if [ ! $(sysctl -n hw.physicalcpu) -eq 1 ]
-	then
-		CORE_NUM=$(($(sysctl -n hw.physicalcpu) - 1))
-	fi
-fi
 if [ "$(uname)" == "Linux" ]; then
 	if [ ! $(nproc) -eq 1 ]
 	then
         CORE_NUM=$(($(nproc) - 1))
     fi
+fi
+if [ "$(uname)" == "Darwin" ]; then
+	if [ ! $(sysctl -n hw.physicalcpu) -eq 1 ]
+	then
+		CORE_NUM=$(($(sysctl -n hw.physicalcpu) - 1))
+	fi
 fi
 
 # avoid rebuilding LM before installing
@@ -62,11 +62,11 @@ function usage
 
 function chownFix
 {
-    if [ "$(uname)" == "Darwin" ]; then
-        chown -R ${CURRENT_USER} ${1}
-    fi
     if [ "$(uname)" == "Linux" ]; then
         chown -R ${CURRENT_USER}:${CURRENT_USER} ${1}
+    fi
+    if [ "$(uname)" == "Darwin" ]; then
+        chown -R ${CURRENT_USER} ${1}
     fi
 }
 
@@ -217,20 +217,6 @@ function uninstallLibrary
     fi
 
     # remove installation
-    if [ "$(uname)" == "Darwin" ]; then
-        # if installation folder is not found
-        if [ ! -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib ]
-        then
-            echo
-            echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for ${1}: library not found"
-            echo
-            return
-        fi
-        # debug library
-        [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.dylib ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.dylib
-        # release library
-        [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib
-    fi
     if [ "$(uname)" == "Linux" ]; then
         # if installation folder is not found
         if [ ! -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.so ]
@@ -244,6 +230,20 @@ function uninstallLibrary
         [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.so ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.so
         # release library
         [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.so ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.so
+    fi
+    if [ "$(uname)" == "Darwin" ]; then
+        # if installation folder is not found
+        if [ ! -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib ]
+        then
+            echo
+            echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} nothing to do for ${1}: library not found"
+            echo
+            return
+        fi
+        # debug library
+        [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.dylib ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}-d.dylib
+        # release library
+        [ -f ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib ] && rm ${INSTALL_PREFIX}/lib/libshift_${LIB_NAME}.dylib
     fi
 
     # remove include directory
@@ -336,9 +336,9 @@ while [ "${1}" != "" ]; do
 done
 
 case ${OSTYPE} in
-    darwin* ) # macOS
-        ;;
     linux* )  # Linux
+        ;;
+    darwin* ) # macOS
         ;;
     *)
         echo
