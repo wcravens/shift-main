@@ -64,7 +64,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 # Release Flags
 # -O2 instead of -O3
 # -ftlo stands for Link Time Optimization (LTO)
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 # -Wno-deprecated is required when linking QuickFIX on Ubuntu
@@ -98,15 +98,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 ### Build Configuration #######################################################
 
 find_package(Boost REQUIRED
-             COMPONENTS program_options thread)
+             COMPONENTS chrono date_time program_options thread)
 
 find_package(OpenSSL REQUIRED)
 
 find_package(PostgreSQL REQUIRED)
 
-find_package(Threads REQUIRED)
+find_package(Threads REQUIRED) # QuickFIX requirement: -lpthread
 
-find_package(ZLIB REQUIRED)
+find_package(LibXml2 REQUIRED) # QuickFIX requirement: -lxml2
+
+find_package(ZLIB REQUIRED) # QuickFIX requirement: -lz
 
 find_library(CPPREST cpprest)
 if(NOT CPPREST)
@@ -143,6 +145,7 @@ target_link_libraries(${PROJECT_NAME}
                       ${OPENSSL_LIBRARIES}
                       ${PostgreSQL_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
+                      ${LIBXML2_LIBRARIES}
                       ${ZLIB_LIBRARIES}
                       ${CPPREST}
                       ${QUICKFIX}

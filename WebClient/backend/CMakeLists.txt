@@ -58,7 +58,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 # Release Flags
 # -O2 instead of -O3
 # -ftlo stands for Link Time Optimization (LTO)
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 if(UNIX AND NOT APPLE)

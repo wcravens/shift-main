@@ -88,7 +88,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 # Release Flags
 # -O2 instead of -O3
 # -ftlo stands for Link Time Optimization (LTO)
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 # -Wno-deprecated is required when linking QuickFIX on Ubuntu
@@ -135,6 +135,9 @@ endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 if(NOT WIN32) # UNIX
     find_package(CURL REQUIRED)
+    find_package(Threads REQUIRED) # QuickFIX requirement: -lpthread
+    find_package(LibXml2 REQUIRED) # QuickFIX requirement: -lxml2
+    find_package(ZLIB REQUIRED) # QuickFIX requirement: -lz
     find_library(QUICKFIX quickfix)
 else(WIN32)   # Windows
     if(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -189,6 +192,9 @@ endif(NOT WIN32)
 if(NOT WIN32) # UNIX
     target_link_libraries(shift_${LIB_NAME}
                           ${CURL_LIBRARIES}
+                          ${CMAKE_THREAD_LIBS_INIT}
+                          ${LIBXML2_LIBRARIES}
+                          ${ZLIB_LIBRARIES}
                           ${QUICKFIX}
                           ${LIBMISCUTILS})
 else(WIN32)   # Windows

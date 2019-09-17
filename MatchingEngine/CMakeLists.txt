@@ -69,7 +69,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 # Release Flags
 # -O2 instead of -O3
 # -ftlo stands for Link Time Optimization (LTO)
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 # -Wno-deprecated is required when linking QuickFIX on Ubuntu
@@ -103,7 +103,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 find_package(Boost REQUIRED
              COMPONENTS date_time program_options)
 
-find_package(Threads REQUIRED)
+find_package(Threads REQUIRED) # QuickFIX requirement: -lpthread
+
+find_package(LibXml2 REQUIRED) # QuickFIX requirement: -lxml2
+             
+find_package(ZLIB REQUIRED) # QuickFIX requirement: -lz
 
 find_library(QUICKFIX quickfix)
 if(NOT QUICKFIX)
@@ -133,6 +137,8 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
                       ${Boost_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
+                      ${LIBXML2_LIBRARIES}
+                      ${ZLIB_LIBRARIES}
                       ${QUICKFIX}
                       ${LIBMISCUTILS})
 
