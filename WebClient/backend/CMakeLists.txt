@@ -10,6 +10,10 @@ project(WebClient
 
 ### List of Files #############################################################
 
+set(CMAKE
+    ${PROJECT_SOURCE_DIR}/cmake/FindLibuuid.cmake
+)
+
 set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/MainClient.h
     ${PROJECT_SOURCE_DIR}/include/MyZMQ.h
@@ -73,7 +77,7 @@ endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Mojave 10.14)
 if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
     include_directories(/usr/local/include)
 endif(APPLE)
 
@@ -87,6 +91,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
 ### Build Configuration #######################################################
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 #######################################
 # - Find Thrift (a cross platform RPC lib/tool)
@@ -179,33 +185,21 @@ endif ()
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(THRIFT DEFAULT_MSG THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER)
 mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERSION_STRING)
-
 #######################################
 
 find_package(Boost REQUIRED
              COMPONENTS program_options)
 
-find_package(cppzmq REQUIRED)
+find_package(CURL REQUIRED)
 
 find_package(Threads REQUIRED)
+
+find_package(cppzmq REQUIRED)
 
 find_library(QUICKFIX quickfix)
 if(NOT QUICKFIX)
     message(FATAL_ERROR "QuickFIX was not found.")
 endif(NOT QUICKFIX)
-
-# Always enforce search for SHIFT LibMiscUtils
-# (necessary when using the same name for Debug and Release)
-set (LIBMISCUTILS "LIBMISCUTILS-NOTFOUND")
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-    find_library(LIBMISCUTILS shift_miscutils-d)
-endif(CMAKE_BUILD_TYPE MATCHES Debug)
-if(CMAKE_BUILD_TYPE MATCHES Release)
-    find_library(LIBMISCUTILS shift_miscutils)
-endif(CMAKE_BUILD_TYPE MATCHES Release)
-if(NOT LIBMISCUTILS)
-    message(FATAL_ERROR "SHIFT LibMiscUtils was not found.")
-endif(NOT LIBMISCUTILS)
 
 # Always enforce search for SHIFT LibCoreClient
 # (necessary when using the same name for Debug and Release)
@@ -220,6 +214,19 @@ if(NOT LIBCORECLIENT)
     message(FATAL_ERROR "SHIFT LibCoreClient was not found.")
 endif(NOT LIBCORECLIENT)
 
+# Always enforce search for SHIFT LibMiscUtils
+# (necessary when using the same name for Debug and Release)
+set (LIBMISCUTILS "LIBMISCUTILS-NOTFOUND")
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    find_library(LIBMISCUTILS shift_miscutils-d)
+endif(CMAKE_BUILD_TYPE MATCHES Debug)
+if(CMAKE_BUILD_TYPE MATCHES Release)
+    find_library(LIBMISCUTILS shift_miscutils)
+endif(CMAKE_BUILD_TYPE MATCHES Release)
+if(NOT LIBMISCUTILS)
+    message(FATAL_ERROR "SHIFT LibMiscUtils was not found.")
+endif(NOT LIBMISCUTILS)
+
 add_executable(${PROJECT_NAME}
                ${INCLUDE} ${SERVICE} ${SRC} ${OTHER})
 
@@ -230,11 +237,26 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
                       ${THRIFT_LIBRARIES}
                       ${Boost_LIBRARIES}
-                      ${ZeroMQ_LIBRARY}
+                      ${CURL_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
+                      ${ZeroMQ_LIBRARY}
                       ${QUICKFIX}
-                      ${LIBMISCUTILS}
-                      ${LIBCORECLIENT})
+                      ${LIBCORECLIENT}
+                      ${LIBMISCUTILS})
+
+if(APPLE)
+    find_library(CFLIB CoreFoundation)
+    target_link_libraries(${PROJECT_NAME} ${CFLIB})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE __APPLE__)
+else()
+    find_package(Libuuid REQUIRED)
+    if (NOT LIBUUID_FOUND)
+        message(FATAL_ERROR "You might need to run 'sudo apt-get install uuid-dev' or similar")
+    endif()
+    target_include_directories(${PROJECT_NAME} PRIVATE ${LIBUUID_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} ${LIBUUID_LIBRARY})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE __linux__)
+endif()
 
 ### Install Configuration #####################################################
 
