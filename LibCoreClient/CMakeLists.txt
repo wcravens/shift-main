@@ -187,6 +187,10 @@ else(WIN32)   # Windows
                 ${INCLUDE} ${PKGCONFIG} ${SRC} ${OTHER})
 endif(NOT WIN32)
 
+target_include_directories(shift_${LIB_NAME}
+                           PUBLIC ${CMAKE_PREFIX_PATH}/include
+                           PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
 if(NOT WIN32) # UNIX
     target_link_libraries(shift_${LIB_NAME}
                           ${CURL_LIBRARIES}
@@ -199,10 +203,6 @@ else(WIN32)   # Windows
                           ${QUICKFIX}
                           ${LIBMISCUTILS})
 endif(NOT WIN32)
-
-target_include_directories(shift_${LIB_NAME}
-                           PUBLIC ${CMAKE_PREFIX_PATH}/include
-                           PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 if(TESTING)
     enable_testing()
