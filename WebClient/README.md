@@ -22,7 +22,7 @@ Choose a location to keep the Apache Thrift source files (for debugging purposes
 ``` bash
 git clone https://github.com/apache/thrift.git
 cd thrift
-git checkout v0.12.0
+git checkout tags/v0.12.0
 cd build
 
 # Ubuntu:
