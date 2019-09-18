@@ -194,12 +194,15 @@ find_package(CURL REQUIRED)
 
 find_package(Threads REQUIRED)
 
-find_package(cppzmq REQUIRED)
-
 find_library(QUICKFIX quickfix)
 if(NOT QUICKFIX)
     message(FATAL_ERROR "QuickFIX was not found.")
 endif(NOT QUICKFIX)
+
+find_library(ZEROMQ zmq)
+if(NOT ZEROMQ)
+    message(FATAL_ERROR "ZeroMQ was not found.")
+endif(NOT ZEROMQ)
 
 # Always enforce search for SHIFT LibCoreClient
 # (necessary when using the same name for Debug and Release)
@@ -239,8 +242,8 @@ target_link_libraries(${PROJECT_NAME}
                       ${Boost_LIBRARIES}
                       ${CURL_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
-                      ${ZeroMQ_LIBRARY}
                       ${QUICKFIX}
+                      ${ZEROMQ}
                       ${LIBCORECLIENT}
                       ${LIBMISCUTILS})
 

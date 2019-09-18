@@ -674,7 +674,7 @@ border-bottom-color: #eee;
 <p>Choose a location to keep the Apache Thrift source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/apache/thrift.git</a>
 <a class="sourceLine" id="cb1-2" data-line-number="2"><span class="bu">cd</span> thrift</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="fu">git</span> checkout 0.12.0</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="fu">git</span> checkout v0.12.0</a>
 <a class="sourceLine" id="cb1-4" data-line-number="4"><span class="bu">cd</span> build</a>
 <a class="sourceLine" id="cb1-5" data-line-number="5"></a>
 <a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co"># Ubuntu:</span></a>
@@ -685,58 +685,45 @@ border-bottom-color: #eee;
 <a class="sourceLine" id="cb1-11" data-line-number="11"><span class="fu">make</span></a>
 <a class="sourceLine" id="cb1-12" data-line-number="12"><span class="fu">sudo</span> make install</a></code></pre></div>
 <h3 id="zeromq">ZeroMQ:</h3>
-<p>Choose a location to keep the ZeroMQ source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/zeromq/libzmq.git</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="bu">cd</span> libzmq</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="fu">mkdir</span> build</a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="bu">cd</span> build</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="fu">cmake</span> ..</a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="fu">make</span></a>
-<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="fu">sudo</span> make install</a></code></pre></div>
-<p>In the same location as before (<code>cd ../..</code>), do the following to install the C++ binding for ZeroMQ:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/zeromq/cppzmq.git</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="bu">cd</span> cppzmq</a>
-<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="fu">mkdir</span> build</a>
-<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="bu">cd</span> build</a>
-<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="fu">cmake</span> ..</a>
-<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="fu">make</span></a>
-<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="fu">sudo</span> make install</a></code></pre></div>
+<ul>
+<li>In the Terminal: <code>sudo apt-get install libzmq3-dev</code></li>
+</ul>
 <hr />
 <h2 id="php-installation">PHP Installation</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># Ubuntu:</span></a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">sudo</span> add-apt-repository ppa:ondrej/php</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="fu">sudo</span> apt-get update</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="fu">sudo</span> apt-get install php7.0-cli php7.0-fpm php7.0-pgsql php7.0-xml php-zmq</a>
-<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="co"># Raspbian:</span></a>
-<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="fu">sudo</span> apt-get install php7.1-cli php7.1-fpm php7.1-pgsql php7.1-xml php-zmq</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># Ubuntu:</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="fu">sudo</span> add-apt-repository ppa:ondrej/php</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="fu">sudo</span> apt-get update</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="fu">sudo</span> apt-get install php7.0-cli php7.0-fpm php7.0-pgsql php7.0-xml php-zmq</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="co"># Raspbian:</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="fu">sudo</span> apt-get install php7.1-cli php7.1-fpm php7.1-pgsql php7.1-xml php-zmq</a></code></pre></div>
 <hr />
 <h2 id="nginx-installation">Nginx Installation</h2>
 <ul>
 <li>In the Terminal: <code>sudo apt-get install nginx</code></li>
 </ul>
 <p>Add the following information to <code>/etc/nginx/common.conf</code>, substituting the path to the cloned repository in <code>SITE_ROOT</code>:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="ex">index</span> index.php index.html index.htm<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="fu">gzip</span> on<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="ex">gzip_http_version</span> 1.0<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="ex">gzip_comp_level</span> 9<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="ex">gzip_disable</span> <span class="st">&quot;MSIE [1-6].&quot;</span><span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="ex">gzip_types</span> text/css text/javascript image/jpeg image/gif image/png application/x-javascript<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-7" data-line-number="7"><span class="ex">proxy_hide_header</span> Vary<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-8" data-line-number="8"><span class="ex">location</span> ~* \.(jpg<span class="kw">|</span><span class="ex">jpeg</span><span class="kw">|</span><span class="ex">gif</span><span class="kw">|</span><span class="ex">png</span><span class="kw">|</span><span class="ex">swf</span><span class="kw">|</span><span class="ex">rar</span><span class="kw">|</span><span class="fu">zip</span><span class="kw">|</span><span class="ex">css</span><span class="kw">|</span><span class="ex">ico</span><span class="kw">|</span><span class="ex">js</span><span class="kw">|</span><span class="ex">ico</span><span class="kw">|</span><span class="ex">cert</span><span class="kw">|</span><span class="ex">xml</span><span class="kw">|</span><span class="ex">txt</span>)$ <span class="kw">{</span></a>
-<a class="sourceLine" id="cb5-9" data-line-number="9">    <span class="ex">access_log</span> off<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-10" data-line-number="10">    <span class="ex">expires</span> 30d<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-11" data-line-number="11">    <span class="bu">break</span><span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-12" data-line-number="12"><span class="kw">}</span></a>
-<a class="sourceLine" id="cb5-13" data-line-number="13"><span class="ex">location</span> ~ \.php {</a>
-<a class="sourceLine" id="cb5-14" data-line-number="14">    <span class="ex">fastcgi_pass</span> unix:/var/run/php/php7.0-fpm.sock<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-15" data-line-number="15">    <span class="ex">fastcgi_index</span> index.php<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-16" data-line-number="16">    <span class="ex">include</span> fastcgi_params<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-17" data-line-number="17">    <span class="ex">fastcgi_param</span> DB_DEFAULT_USER root<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-18" data-line-number="18">    <span class="ex">fastcgi_param</span> DB_DEFAULT_HOST 127.0.0.1<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-19" data-line-number="19">    <span class="ex">fastcgi_param</span> DB_DEFAULT_PASS 123456<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-20" data-line-number="20">    <span class="ex">fastcgi_param</span> SITE_ROOT <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span>/WebClient/frontend<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-21" data-line-number="21">    <span class="ex">fastcgi_param</span> env production<span class="kw">;</span></a>
-<a class="sourceLine" id="cb5-22" data-line-number="22">}</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="ex">index</span> index.php index.html index.htm<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="fu">gzip</span> on<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="ex">gzip_http_version</span> 1.0<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="ex">gzip_comp_level</span> 9<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="ex">gzip_disable</span> <span class="st">&quot;MSIE [1-6].&quot;</span><span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="ex">gzip_types</span> text/css text/javascript image/jpeg image/gif image/png application/x-javascript<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="ex">proxy_hide_header</span> Vary<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="ex">location</span> ~* \.(jpg<span class="kw">|</span><span class="ex">jpeg</span><span class="kw">|</span><span class="ex">gif</span><span class="kw">|</span><span class="ex">png</span><span class="kw">|</span><span class="ex">swf</span><span class="kw">|</span><span class="ex">rar</span><span class="kw">|</span><span class="fu">zip</span><span class="kw">|</span><span class="ex">css</span><span class="kw">|</span><span class="ex">ico</span><span class="kw">|</span><span class="ex">js</span><span class="kw">|</span><span class="ex">ico</span><span class="kw">|</span><span class="ex">cert</span><span class="kw">|</span><span class="ex">xml</span><span class="kw">|</span><span class="ex">txt</span>)$ <span class="kw">{</span></a>
+<a class="sourceLine" id="cb3-9" data-line-number="9">    <span class="ex">access_log</span> off<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-10" data-line-number="10">    <span class="ex">expires</span> 30d<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-11" data-line-number="11">    <span class="bu">break</span><span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-12" data-line-number="12"><span class="kw">}</span></a>
+<a class="sourceLine" id="cb3-13" data-line-number="13"><span class="ex">location</span> ~ \.php {</a>
+<a class="sourceLine" id="cb3-14" data-line-number="14">    <span class="ex">fastcgi_pass</span> unix:/var/run/php/php7.0-fpm.sock<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-15" data-line-number="15">    <span class="ex">fastcgi_index</span> index.php<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-16" data-line-number="16">    <span class="ex">include</span> fastcgi_params<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-17" data-line-number="17">    <span class="ex">fastcgi_param</span> DB_DEFAULT_USER root<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-18" data-line-number="18">    <span class="ex">fastcgi_param</span> DB_DEFAULT_HOST 127.0.0.1<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-19" data-line-number="19">    <span class="ex">fastcgi_param</span> DB_DEFAULT_PASS 123456<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-20" data-line-number="20">    <span class="ex">fastcgi_param</span> SITE_ROOT <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span>/WebClient/frontend<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-21" data-line-number="21">    <span class="ex">fastcgi_param</span> env production<span class="kw">;</span></a>
+<a class="sourceLine" id="cb3-22" data-line-number="22">}</a></code></pre></div>
 <p>Remove the default Nginx site information and create one for SHIFT:</p>
 <ul>
 <li><p>In the Terminal:</p>
@@ -744,15 +731,15 @@ border-bottom-color: #eee;
 <p><code>sudo vim /etc/nginx/sites-available/shift</code></p></li>
 </ul>
 <p>with the following content, substituting the path to the cloned repository in <code>root</code>:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="ex">server</span> {</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">    <span class="ex">server_name</span> www.myshift.com myshift.com<span class="kw">;</span></a>
-<a class="sourceLine" id="cb6-3" data-line-number="3">    <span class="ex">root</span> <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span>/WebClient/frontend/public<span class="kw">;</span></a>
-<a class="sourceLine" id="cb6-4" data-line-number="4">    <span class="ex">index</span> index.php index.html index.htm<span class="kw">;</span></a>
-<a class="sourceLine" id="cb6-5" data-line-number="5">    </a>
-<a class="sourceLine" id="cb6-6" data-line-number="6">    <span class="ex">error_log</span> /tmp/error.log<span class="kw">;</span></a>
-<a class="sourceLine" id="cb6-7" data-line-number="7">    <span class="ex">access_log</span> /var/log/nginx/myshift_com_access.log<span class="kw">;</span></a>
-<a class="sourceLine" id="cb6-8" data-line-number="8">    <span class="ex">include</span> /etc/nginx/common.conf<span class="kw">;</span></a>
-<a class="sourceLine" id="cb6-9" data-line-number="9">}</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="ex">server</span> {</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">    <span class="ex">server_name</span> www.myshift.com myshift.com<span class="kw">;</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">    <span class="ex">root</span> <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span>/WebClient/frontend/public<span class="kw">;</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">    <span class="ex">index</span> index.php index.html index.htm<span class="kw">;</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">    </a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">    <span class="ex">error_log</span> /tmp/error.log<span class="kw">;</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">    <span class="ex">access_log</span> /var/log/nginx/myshift_com_access.log<span class="kw">;</span></a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">    <span class="ex">include</span> /etc/nginx/common.conf<span class="kw">;</span></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">}</a></code></pre></div>
 <p>Create a symlink under Nginx’s <code>sites-enabled</code> folder to activate SHIFT’s site with the site information you just created:</p>
 <ul>
 <li><p>In the Terminal:</p>
@@ -761,7 +748,7 @@ border-bottom-color: #eee;
 <p><code>sudo service nginx restart</code></p></li>
 </ul>
 <p>At this point, you are supposed to see something in your browser when pointing to localhost (or 127.0.0.1). There is a known issue in Ubuntu 18.04, however, and there is a possibility nothing will show up. In this case, paste the following in the bottom of <code>/etc/nginx/fastcgi_params</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="ex">fastcgi_param</span>  PATH_TRANSLATED    <span class="va">$document_root$fastcgi_script_name</span><span class="kw">;</span></a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="ex">fastcgi_param</span>  PATH_TRANSLATED    <span class="va">$document_root$fastcgi_script_name</span><span class="kw">;</span></a></code></pre></div>
 <p>After saving the file, restart Nginx:</p>
 <ul>
 <li>In the Terminal: <code>sudo service nginx restart</code></li>

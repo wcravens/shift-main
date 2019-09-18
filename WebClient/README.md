@@ -22,7 +22,7 @@ Choose a location to keep the Apache Thrift source files (for debugging purposes
 ``` bash
 git clone https://github.com/apache/thrift.git
 cd thrift
-git checkout 0.12.0
+git checkout v0.12.0
 cd build
 
 # Ubuntu:
@@ -36,29 +36,7 @@ sudo make install
 
 ### ZeroMQ:
 
-Choose a location to keep the ZeroMQ source files (for debugging purposes), e.g. a "C++" folder in your home directory, and then:
-
-``` bash
-git clone https://github.com/zeromq/libzmq.git
-cd libzmq
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
-```
-
-In the same location as before (`cd ../..`), do the following to install the C++ binding for ZeroMQ: 
-
-``` bash
-git clone https://github.com/zeromq/cppzmq.git
-cd cppzmq
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
-```
+- In the Terminal: `sudo apt-get install libzmq3-dev`
 
 ---
 
