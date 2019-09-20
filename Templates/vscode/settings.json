@@ -1,6 +1,6 @@
 {
-    "editor.formatOnSave": true,
     "editor.renderIndentGuides": false,
+    "editor.formatOnSave": true,
     "editor.suggestSelection": "first",
     "window.restoreWindows": "none",
     "extensions.ignoreRecommendations": true,
@@ -14,6 +14,5 @@
     "cmake.configureOnOpen": true,
     "cmake.debugConfig": {
         "externalConsole": true
-    },
-    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue"
+    }
 }
