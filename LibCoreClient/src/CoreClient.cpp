@@ -92,7 +92,7 @@ void shift::CoreClient::submitOrder(const shift::Order& order)
         return;
     }
 
-    if (order.getType() != shift::Order::CANCEL_BID && order.getType() != shift::Order::CANCEL_ASK) {
+    if (order.getType() != shift::Order::Type::CANCEL_BID && order.getType() != shift::Order::Type::CANCEL_ASK) {
         std::lock_guard<std::mutex> lk(m_mutex_orders);
         m_submittedOrdersIDs.push_back(order.getID());
         m_submittedOrders[order.getID()] = order;
@@ -112,10 +112,10 @@ void shift::CoreClient::submitCancellation(shift::Order order)
         return;
     }
 
-    if ((order.getType() == shift::Order::LIMIT_BUY) || (order.getType() == shift::Order::MARKET_BUY)) {
-        order.setType(shift::Order::CANCEL_BID);
-    } else if ((order.getType() == shift::Order::LIMIT_SELL) || (order.getType() == shift::Order::MARKET_SELL)) {
-        order.setType(shift::Order::CANCEL_ASK);
+    if ((order.getType() == shift::Order::Type::LIMIT_BUY) || (order.getType() == shift::Order::Type::MARKET_BUY)) {
+        order.setType(shift::Order::Type::CANCEL_BID);
+    } else if ((order.getType() == shift::Order::Type::LIMIT_SELL) || (order.getType() == shift::Order::Type::MARKET_SELL)) {
+        order.setType(shift::Order::Type::CANCEL_ASK);
     }
 
     order.setSize(order.getSize() - order.getExecutedSize());

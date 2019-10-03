@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_CASE(CANCELBIDTEST)
     double limitBuyPrice = bestPrice.getBidPrice() - 1;
     std::cout << "limitBuyPrice: " << limitBuyPrice << std::endl;
 
-    Order limitbuy(stockName, limitBuyPrice, TESTSIZE, shift::Order::LIMIT_BUY);
+    Order limitbuy(stockName, limitBuyPrice, TESTSIZE, shift::Order::Type::LIMIT_BUY);
     testClient->submitOrder(limitbuy);
     sleep(5);
 
@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(CANCELBIDTEST)
     std::cout << "previous size should be: " << prev_size << std::endl;
 
     const std::string orderID = testClient->getWaitingList()[0].getID();
-    Order cancelBid(stockName, limitBuyPrice, TESTSIZE, shift::Order::CANCEL_BID, orderID);
+    Order cancelBid(stockName, limitBuyPrice, TESTSIZE, shift::Order::Type::CANCEL_BID, orderID);
     testClient->submitOrder(cancelBid);
     sleep(5);
 

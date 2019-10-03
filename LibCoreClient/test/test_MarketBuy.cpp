@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(MARKETBUYTEST)
     auto prev_size = testClient->getPortfolioSummary().getTotalShares();
     std::cout << "previous size should be: " << prev_size << std::endl;
 
-    Order order(stockName, 0.0, TESTSIZE, shift::Order::MARKET_BUY);
+    Order order(stockName, 0.0, TESTSIZE, shift::Order::Type::MARKET_BUY);
     testClient->submitOrder(order);
     sleep(5);
 
