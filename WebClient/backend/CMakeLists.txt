@@ -65,7 +65,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
-# -Wno-deprecated is required when linking QuickFIX on Ubuntu
 if(UNIX AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
 endif(UNIX AND NOT APPLE)
@@ -77,8 +76,6 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Mojave 10.14)
-# -Wno-deprecated-declarations is required when linking QuickFIX on macOS
-# -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
@@ -194,14 +191,7 @@ mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERS
 find_package(Boost REQUIRED
              COMPONENTS program_options)
 
-find_package(CURL REQUIRED)
-
 find_package(Threads REQUIRED)
-
-find_library(QUICKFIX quickfix)
-if(NOT QUICKFIX)
-    message(FATAL_ERROR "QuickFIX was not found.")
-endif(NOT QUICKFIX)
 
 find_library(ZEROMQ zmq)
 if(NOT ZEROMQ)
@@ -244,9 +234,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
                       ${THRIFT_LIBRARIES}
                       ${Boost_LIBRARIES}
-                      ${CURL_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
-                      ${QUICKFIX}
                       ${ZEROMQ}
                       ${LIBCORECLIENT}
                       ${LIBMISCUTILS})
