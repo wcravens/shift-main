@@ -76,8 +76,10 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Mojave 10.14)
+# -Wno-deprecated-declarations is required when linking QuickFIX on macOS
 # -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
     include_directories(/usr/local/include)
 endif(APPLE)
