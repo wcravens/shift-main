@@ -180,7 +180,7 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
     // cancel all pending client requests
     try {
         getSuperUser()->cancelAllSamplePricesRequests();
-    } catch (...) { // it is OK if there is no main client yet
+    } catch (...) { // it is OK if there is no super user yet
     } // (we force a disconnect before every connection - even the first one)
 
     for (auto& client : getAttachedClients()) {
@@ -276,7 +276,7 @@ std::vector<shift::CoreClient*> shift::FIXInitiator::getAttachedClients()
     std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
 
     for (const auto& kv : m_clientByUserID) {
-        if (kv.first != m_superUserID) { // skip MainClient/super user
+        if (kv.first != m_superUserID) { // skip super user
             clientsVector.push_back(kv.second);
         }
     }
@@ -499,8 +499,11 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
     // inform the BrokerageCenter "we are back in business":
     {
         // reregister super user in BrokerageCenter
-        if(!registerUserInBCWaitResponse(getSuperUser()))
-            std::terminate(); // precondition broken: super user shall not fail when reregistering
+        try {
+            if(!registerUserInBCWaitResponse(getSuperUser()))
+                std::terminate(); // precondition broken: super user shall not fail when reregistering
+        } catch (...) { // it is OK if there is no super user yet
+        } // (during a regular connection, that would be the case)
 
         // reregister connected web client users in BrokerageCenter
         for (const auto& client : getAttachedClients()) {
