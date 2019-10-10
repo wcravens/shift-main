@@ -36,7 +36,7 @@ FIXAcceptor::~FIXAcceptor() // override
     return &s_FIXAccInst;
 }
 
-void FIXAcceptor::connectBrokerageCenter(const std::string& configFile)
+void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool verbose)
 {
     disconnectBrokerageCenter();
 
@@ -46,7 +46,7 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile)
     if (commonDict.has("FileLogPath")) {
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
     } else {
-        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, true));
+        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose));
     }
 
     if (commonDict.has("FileStorePath")) {

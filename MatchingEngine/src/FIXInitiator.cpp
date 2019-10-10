@@ -37,7 +37,7 @@ FIXInitiator::~FIXInitiator() // override
     return &s_FIXInitInst;
 }
 
-bool FIXInitiator::connectDatafeedEngine(const std::string& configFile)
+bool FIXInitiator::connectDatafeedEngine(const std::string& configFile, bool verbose)
 {
     disconnectDatafeedEngine();
 
@@ -47,7 +47,7 @@ bool FIXInitiator::connectDatafeedEngine(const std::string& configFile)
     if (commonDict.has("FileLogPath")) {
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
     } else {
-        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, true));
+        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose));
     }
 
     if (commonDict.has("FileStorePath")) {

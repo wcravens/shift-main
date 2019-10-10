@@ -43,9 +43,9 @@ static std::atomic<bool> s_isRequestingData{ true };
 /*
  * @brief Function to request data chunks in the background.
  */
-static void s_requestDatafeedEngineData(const std::string configFullPath, const std::string requestID, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, const std::vector<std::string> symbols, int numSecondsPerDataChunk, int experimentSpeed)
+static void s_requestDatafeedEngineData(std::string configFile, bool verbose, std::string requestID, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, std::vector<std::string> symbols, int numSecondsPerDataChunk, int experimentSpeed)
 {
-    if (!FIXInitiator::getInstance()->connectDatafeedEngine(configFullPath)) {
+    if (!FIXInitiator::getInstance()->connectDatafeedEngine(configFile, verbose)) {
         // cout << "DEBUG: s_requestDatafeedEngineData cannot connect DE!" << endl;
         return;
     }
@@ -248,10 +248,10 @@ int main(int ac, char* av[])
     TimeSetting::getInstance().setStartTime();
 
     // request data chunks in the background
-    std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), ::DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
+    std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", params.isVerbose, std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), ::DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
 
     // initiate Brokerage Center connection
-    FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg");
+    FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg", params.isVerbose);
 
     // running in background
     if (params.timer.isSet) {
