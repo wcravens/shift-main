@@ -498,10 +498,14 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
     // QuickFIX will manage the reconnection, but we need to
     // inform the BrokerageCenter "we are back in business":
     {
+        // reregister super user in BrokerageCenter
+        if(!registerUserInBCWaitResponse(getSuperUser()))
+            std::terminate(); // precondition broken: super user shall not fail when reregistering
+
         // reregister connected web client users in BrokerageCenter
         for (const auto& client : getAttachedClients()) {
             if (!registerUserInBCWaitResponse(client))
-                std::terminate(); // precondition broken: attached clients(by attachClient()) shall not fail when reregistering
+                std::terminate(); // precondition broken: attached clients (by attachClient()) shall not fail when reregistering
         }
 
         // resubscribe to all previously subscribed order book data
