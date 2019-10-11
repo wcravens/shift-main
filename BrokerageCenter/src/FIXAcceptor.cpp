@@ -466,10 +466,6 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 {
     const auto& targetID = sessionID.getTargetCompID().getValue();
     cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
-
-    BCDocuments::getInstance()->unregisterTargetFromDoc(targetID); // this shall come first to timely affect other acceptor parts that are sending things aside
-    BCDocuments::getInstance()->unregisterTargetFromCandles(targetID);
-    BCDocuments::getInstance()->unregisterTargetFromOrderBooks(targetID);
 }
 
 /**
@@ -477,28 +473,38 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
  */
 void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override
 {
-    if (FIX::MsgType_Logon != message.getHeader().getField(FIX::FIELD::MsgType))
-        return;
-    /* Incoming a new connection/logon from super user to BC;
-        The complete actions: fromAdmin => onLogon => onMessage(UserRequest)
-    */
-    std::string adminName, adminPsw; // super user's info to qualify the connection
     const auto& targetID = sessionID.getTargetCompID().getValue();
 
-    FIXT11::Logon::NoMsgTypes msgTypeGroup;
-    message.getGroup(1, msgTypeGroup);
-    adminName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
-    message.getGroup(2, msgTypeGroup);
-    adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
+    if (FIX::MsgType_Logon == message.getHeader().getField(FIX::FIELD::MsgType)) {
+        /* Incoming a new connection/logon from super user to BC;
+        The complete actions: fromAdmin => onLogon => onMessage(UserRequest)
+    */
+        std::string adminName, adminPsw; // super user's info to qualify the connection
 
-    const auto pswCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT password FROM traders WHERE username = '" + adminName + "';"));
-    if (pswCol.size() && pswCol.front() == adminPsw) {
-        // Grants the connection rights to this super user.
-        cout << COLOR_PROMPT "Authentication successful for super user [" << targetID << ':' << adminName << "]." NO_COLOR << endl;
-    } else {
-        cout << COLOR_ERROR "ERROR: @fromAdmin(): Password of the super user [" << targetID << ':' << adminName << "] is inconsistent with the one recorded in database (in SHA1 format).\nPlease make sure the client-side send matched password to BC reliably." NO_COLOR << endl;
+        FIXT11::Logon::NoMsgTypes msgTypeGroup;
+        message.getGroup(1, msgTypeGroup);
+        adminName = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
+        message.getGroup(2, msgTypeGroup);
+        adminPsw = msgTypeGroup.getField(FIX::FIELD::RefMsgType);
 
-        throw FIX::RejectLogon(); // will disconnect the counterparty
+        const auto pswCol = (DBConnector::getInstance()->lockPSQL(), shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT password FROM traders WHERE username = '" + adminName + "';"));
+        if (pswCol.size() && pswCol.front() == adminPsw) {
+            // Grants the connection rights to this super user.
+            cout << COLOR_PROMPT "Authentication successful for super user [" << targetID << ':' << adminName << "]." NO_COLOR << endl;
+        } else {
+            cout << COLOR_ERROR "ERROR: @fromAdmin(): Password of the super user [" << targetID << ':' << adminName << "] is inconsistent with the one recorded in database (in SHA1 format).\nPlease make sure the client-side send matched password to BC reliably." NO_COLOR << endl;
+
+            throw FIX::RejectLogon(); // will disconnect the counterparty
+        }
+    } else if (FIX::MsgType_Logout == message.getHeader().getField(FIX::FIELD::MsgType)) {
+        /* Incoming a new disconnection/logout from super user to BC;
+            The complete actions: fromAdmin => onLogout
+           If disconnection is caused by connection error, only onLogout is called;
+            We want this here - we should not unregister targets based on connection errors
+        */
+        BCDocuments::getInstance()->unregisterTargetFromDoc(targetID); // this shall come first to timely affect other acceptor parts that are sending things aside
+        BCDocuments::getInstance()->unregisterTargetFromCandles(targetID);
+        BCDocuments::getInstance()->unregisterTargetFromOrderBooks(targetID);
     }
 }
 

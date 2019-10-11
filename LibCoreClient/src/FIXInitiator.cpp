@@ -493,34 +493,6 @@ void shift::FIXInitiator::onLogon(const FIX::SessionID& sessionID) // override
 
     m_logonSuccess = true;
     m_cvLogon.notify_one();
-
-    // if there is a problem in the connection (a disconnect),
-    // QuickFIX will manage the reconnection, but we need to
-    // inform the BrokerageCenter "we are back in business":
-    {
-        // reregister super user in BrokerageCenter
-        try {
-            if(!registerUserInBCWaitResponse(getSuperUser()))
-                std::terminate(); // precondition broken: super user shall not fail when reregistering
-        } catch (...) { // it is OK if there is no super user yet
-        } // (during a regular connection, that would be the case)
-
-        // reregister connected web client users in BrokerageCenter
-        for (const auto& client : getAttachedClients()) {
-            if (!registerUserInBCWaitResponse(client))
-                std::terminate(); // precondition broken: attached clients (by attachClient()) shall not fail when reregistering
-        }
-
-        // resubscribe to all previously subscribed order book data
-        for (const auto& symbol : getSubscribedOrderBookList()) {
-            subOrderBook(symbol);
-        }
-
-        // resubscribe to all previously subscribed candle stick data
-        for (const auto& symbol : getSubscribedCandlestickList()) {
-            subCandleData(symbol);
-        }
-    }
 }
 
 /**
@@ -1584,6 +1556,7 @@ void shift::FIXInitiator::subOrderBook(const std::string& symbol)
 {
     std::lock_guard<std::mutex> soblGuard(m_mtxSubscribedOrderBookSet);
 
+    // WARNING: the following is not a requirement anymore
     // it's ok to send repeated subscription requests:
     // a test to see if it is already included in the set here is bad because
     // it would cause resubscription attempts during reconnections to fail
@@ -1636,6 +1609,7 @@ void shift::FIXInitiator::subCandleData(const std::string& symbol)
 {
     std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
 
+    // WARNING: the following is not a requirement anymore
     // it's ok to send repeated subscription requests:
     // a test to see if it is already included in the set here is bad because
     // it would cause resubscription attempts during reconnections to fail.
