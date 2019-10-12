@@ -72,7 +72,7 @@ public:
 
     static FIXInitiator& getInstance();
 
-    void connectBrokerageCenter(const std::string& cfgFile, CoreClient* client, const std::string& password, bool verbose = false, int timeout = 1000);
+    void connectBrokerageCenter(const std::string& cfgFile, CoreClient* client, const std::string& password, bool verbose = false, int timeout = 10);
     void disconnectBrokerageCenter();
 
     // call this function to attach both ways
@@ -124,7 +124,7 @@ protected:
     R_FIXSUB double getLastPrice(const std::string& symbol);
     R_FIXSUB int getLastSize(const std::string& symbol);
     R_FIXSUB std::chrono::system_clock::time_point getLastTradeTime();
-    
+
     // order book methods
     R_FIXSUB shift::BestPrice getBestPrice(const std::string& symbol);
     R_FIXSUB std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel);
