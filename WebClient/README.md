@@ -84,6 +84,8 @@ location ~ \.php {
 }
 ```
 
+**\*** In Raspbian: `fastcgi_pass unix:/var/run/php/php7.1-fpm.sock;`.
+
 Remove the default Nginx site information and create one for SHIFT:
 
 - In the Terminal: 

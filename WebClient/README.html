@@ -724,6 +724,7 @@ border-bottom-color: #eee;
 <a class="sourceLine" id="cb3-20" data-line-number="20">    <span class="ex">fastcgi_param</span> SITE_ROOT <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span>/WebClient/frontend<span class="kw">;</span></a>
 <a class="sourceLine" id="cb3-21" data-line-number="21">    <span class="ex">fastcgi_param</span> env production<span class="kw">;</span></a>
 <a class="sourceLine" id="cb3-22" data-line-number="22">}</a></code></pre></div>
+<p><strong>*</strong> In Raspbian: <code>fastcgi_pass unix:/var/run/php/php7.1-fpm.sock;</code>.</p>
 <p>Remove the default Nginx site information and create one for SHIFT:</p>
 <ul>
 <li><p>In the Terminal:</p>
