@@ -43,17 +43,21 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
     FIX::SessionSettings settings(configFile);
     FIX::Dictionary commonDict = settings.get();
 
-    if (commonDict.has("FileLogPath")) {
+    if (commonDict.has("FileLogPath")) { // store all log events into flat files
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
-    } else {
-        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose));
+    } else { // display all log events onto the standard output
+        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose)); // incoming, outgoing, event
     }
 
-    if (commonDict.has("FileStorePath")) {
+    if (commonDict.has("FileStorePath")) { // store all outgoing messages into flat files
         m_messageStoreFactoryPtr.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath")));
-    } else {
-        m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
+    } else { // store all outgoing messages in memory
+        m_messageStoreFactoryPtr.reset(new FIX::MemoryStoreFactory());
     }
+    // else
+    // { // do not store messages
+    //     m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
+    // }
 
     m_acceptorPtr.reset(new FIX::SocketAcceptor(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
 

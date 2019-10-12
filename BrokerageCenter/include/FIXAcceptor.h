@@ -20,7 +20,7 @@
 #include <quickfix/FileLog.h>
 #include <quickfix/FileStore.h>
 #include <quickfix/MessageCracker.h>
-#include <quickfix/NullStore.h>
+// #include <quickfix/NullStore.h>
 #include <quickfix/SocketAcceptor.h>
 
 // receiving message types

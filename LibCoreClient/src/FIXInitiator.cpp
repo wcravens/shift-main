@@ -116,17 +116,21 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     FIX::Dictionary dict;
     settings.set(sessionID, std::move(dict));
 
-    if (commonDict.has("FileLogPath")) {
+    if (commonDict.has("FileLogPath")) { // store all log events into flat files
         m_pLogFactory.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath") + "/" + m_superUsername));
-    } else {
-        m_pLogFactory.reset(new FIX::ScreenLogFactory(false, false, m_verbose));
+    } else { // display all log events onto the standard output
+        m_pLogFactory.reset(new FIX::ScreenLogFactory(false, false, m_verbose)); // incoming, outgoing, event
     }
 
-    if (commonDict.has("FileStorePath")) {
+    if (commonDict.has("FileStorePath")) { // store all outgoing messages into flat files
         m_pMessageStoreFactory.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath") + "/" + m_superUsername));
-    } else {
-        m_pMessageStoreFactory.reset(new FIX::NullStoreFactory());
+    } else { // store all outgoing messages in memory
+        m_pMessageStoreFactory.reset(new FIX::MemoryStoreFactory());
     }
+    // else
+    // { // do not store messages
+    //     m_pMessageStoreFactory.reset(new FIX::NullStoreFactory());
+    // }
 
     m_pSocketInitiator.reset(new FIX::SocketInitiator(shift::FIXInitiator::getInstance(), *m_pMessageStoreFactory, settings, *m_pLogFactory));
     m_pSocketInitiator->start();
