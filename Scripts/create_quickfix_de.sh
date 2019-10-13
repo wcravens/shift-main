@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Ubuntu: sudo -u postgres ./create_quickfix_de.sh postgres
+# macOS: ./create_quickfix_de.sh $USER
+
 SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "Dropping database"
