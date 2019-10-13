@@ -118,10 +118,8 @@ function killService
     fi
 
     # delete all log & store folders for the service
-    COUNT_LOG="$( ls -1 log/${2}* 2>/dev/null | wc -l )"
-    [ ${COUNT_LOG} != 0 ] && rm -r log/${2}*
-    COUNT_STORE="$( ls -1 store/${2}* 2>/dev/null | wc -l )"
-    [ ${COUNT_STORE} != 0 ] && rm -r store/${2}*
+    [ -d log ] && find log -maxdepth 1 -iname ${1} -exec rm -r {} \;
+    [ -d store ] && find store -maxdepth 1 -iname ${1} -exec rm -r {} \;
 }
 
 function startPushServer
@@ -371,16 +369,16 @@ for i in ${MODULES[@]}
 do
     case ${i} in
         1_DE )
-            killService "DatafeedEngine" "DE"
+            killService "DatafeedEngine"
             ;;
         2_ME )
-            killService "MatchingEngine" "ME"
+            killService "MatchingEngine"
             ;;
         3_BC )
-            killService "BrokerageCenter" "BC"
+            killService "BrokerageCenter"
             ;;
         4_WC )
-            killService "WebClient" "webclient"
+            killService "WebClient"
             ;;
         5_PS )
             killPushServer
