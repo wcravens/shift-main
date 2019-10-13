@@ -57,12 +57,7 @@ void FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verb
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
 #ifdef HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLLogDatabase")) { // store all log events into database
-        m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(
-            commonDict.getString("PostgreSQLLogDatabase"),
-            "hanlonpgsql4", // TODO: encrypt
-            "XIfyqPqM446M", // TODO: encrypt
-            "127.0.0.1", // TODO: encrypt
-            5432)); // TODO: encrypt
+        m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(settings));
 #endif
     } else { // display all log events onto the standard output
         m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose)); // incoming, outgoing, event
@@ -72,12 +67,7 @@ void FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verb
         m_messageStoreFactoryPtr.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath")));
 #ifdef HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLStoreDatabase")) { // store all outgoing messages into database
-        m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(
-            commonDict.getString("PostgreSQLStoreDatabase"),
-            "hanlonpgsql4", // TODO: encrypt
-            "XIfyqPqM446M", // TODO: encrypt
-            "127.0.0.1", // TODO: encrypt
-            5432)); // TODO: encrypt
+        m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(settings));
 #endif
     } else { // store all outgoing messages in memory
         m_messageStoreFactoryPtr.reset(new FIX::MemoryStoreFactory());
