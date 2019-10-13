@@ -13,6 +13,12 @@
 // #include <quickfix/NullStore.h>
 #include <quickfix/SocketInitiator.h>
 
+#define HAVE_POSTGRESQL
+#ifdef HAVE_POSTGRESQL
+#include <quickfix/PostgreSQLLog.h>
+#include <quickfix/PostgreSQLStore.h>
+#endif
+
 // receiving message types
 #include <quickfix/fix50sp2/ExecutionReport.h>
 #include <quickfix/fix50sp2/MarketDataIncrementalRefresh.h>
