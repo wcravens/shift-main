@@ -7,6 +7,7 @@
 #include <cmath>
 #include <ctime>
 #include <iomanip>
+#include <vector>
 
 #include <shift/miscutils/Common.h>
 #include <shift/miscutils/terminal/Common.h>
@@ -55,11 +56,6 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
 /* static */ inline std::string PSQL::s_reutersDateToYYYYMMDD(const std::string& reutersDate)
 {
     return reutersDate.substr(0, 4) + reutersDate.substr(5, 2) + reutersDate.substr(8, 2);
-}
-
-/* static */ inline double PSQL::s_decimalRound(double value, int precision)
-{
-    return std::round(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -440,7 +436,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
     }
 
     double microsecs;
-    RawData rawData;
+    std::vector<RawData> rawData(PQntuples(pRes));
     std::setprecision(15);
 
     // next, save each record for each row into struct RawData and send to matching engine
@@ -448,33 +444,23 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
         char* pCh{};
         using VAL_IDX = shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::VAL_IDX;
 
-        rawData.secs = std::atol(PQgetvalue(pResTime, i, 0));
+        rawData[i].secs = std::atol(PQgetvalue(pResTime, i, 0));
         sscanf(PQgetvalue(pResTime, i, 1), "%lf", &microsecs);
-        rawData.microsecs = microsecs;
+        rawData[i].microsecs = microsecs;
 
-        rawData.symbol = PQgetvalue(pRes, i, VAL_IDX::RIC);
-        rawData.reutersDate = PQgetvalue(pRes, i, VAL_IDX::REUT_DATE);
-        rawData.reutersTime = PQgetvalue(pRes, i, VAL_IDX::REUT_TIME);
-        rawData.toq = PQgetvalue(pRes, i, VAL_IDX::TOQ);
-        rawData.exchangeID = PQgetvalue(pRes, i, VAL_IDX::EXCH_ID);
-        rawData.price = std::strtod(PQgetvalue(pRes, i, VAL_IDX::PRICE), &pCh);
-        rawData.volume = std::atoi(PQgetvalue(pRes, i, VAL_IDX::VOLUMN));
-        rawData.buyerID = PQgetvalue(pRes, i, VAL_IDX::BUYER_ID);
-        rawData.bidPrice = std::strtod(PQgetvalue(pRes, i, VAL_IDX::BID_PRICE), &pCh);
-        rawData.bidSize = std::atoi(PQgetvalue(pRes, i, VAL_IDX::BID_SIZE));
-        rawData.sellerID = PQgetvalue(pRes, i, VAL_IDX::SELLER_ID);
-        rawData.askPrice = std::strtod(PQgetvalue(pRes, i, VAL_IDX::ASK_PRICE), &pCh);
-        rawData.askSize = std::atoi(PQgetvalue(pRes, i, VAL_IDX::ASK_SIZE));
-
-        if (rawData.toq.front() == 'T') {
-            if (rawData.volume < 100) {
-                continue;
-            }
-            rawData.price = s_decimalRound(rawData.price, 2);
-            rawData.volume /= 100; // this is and *should be* an int division
-        }
-
-        FIXAcceptor::sendRawData(targetID, rawData);
+        rawData[i].symbol = PQgetvalue(pRes, i, VAL_IDX::RIC);
+        rawData[i].reutersDate = PQgetvalue(pRes, i, VAL_IDX::REUT_DATE);
+        rawData[i].reutersTime = PQgetvalue(pRes, i, VAL_IDX::REUT_TIME);
+        rawData[i].toq = PQgetvalue(pRes, i, VAL_IDX::TOQ);
+        rawData[i].exchangeID = PQgetvalue(pRes, i, VAL_IDX::EXCH_ID);
+        rawData[i].price = std::strtod(PQgetvalue(pRes, i, VAL_IDX::PRICE), &pCh);
+        rawData[i].volume = std::atoi(PQgetvalue(pRes, i, VAL_IDX::VOLUMN));
+        rawData[i].buyerID = PQgetvalue(pRes, i, VAL_IDX::BUYER_ID);
+        rawData[i].bidPrice = std::strtod(PQgetvalue(pRes, i, VAL_IDX::BID_PRICE), &pCh);
+        rawData[i].bidSize = std::atoi(PQgetvalue(pRes, i, VAL_IDX::BID_SIZE));
+        rawData[i].sellerID = PQgetvalue(pRes, i, VAL_IDX::SELLER_ID);
+        rawData[i].askPrice = std::strtod(PQgetvalue(pRes, i, VAL_IDX::ASK_PRICE), &pCh);
+        rawData[i].askSize = std::atoi(PQgetvalue(pRes, i, VAL_IDX::ASK_SIZE));
     }
 
     PQclear(pResTime);
@@ -484,6 +470,10 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
     PQclear(pRes);
     pRes = PQexec(m_pConn, "END");
     PQclear(pRes);
+
+    if (!rawData.empty()) {
+        FIXAcceptor::sendRawData(targetID, rawData);
+    }
 
     cout << std::setw(10 + 9) << table_name << std::setw(12) << std::right << " - Finished ";
 

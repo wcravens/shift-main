@@ -107,6 +107,11 @@ void FIXAcceptor::disconnectMatchingEngine()
     m_logFactoryPtr = nullptr;
 }
 
+/* static */ inline double FIXAcceptor::s_decimalRound(double value, int precision)
+{
+    return std::round(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
+}
+
 /**
  * @brief For notifying ME requested works were done.
  * @param text Indicate the meaning/type of the notice
@@ -134,52 +139,58 @@ void FIXAcceptor::disconnectMatchingEngine()
 /**
  * @brief Sends trade or quote data to ME.
  */
-/* static */ void FIXAcceptor::sendRawData(const std::string& targetID, const RawData& rawData)
+/* static */ void FIXAcceptor::sendRawData(const std::string& targetID, const std::vector<RawData>& rawData)
 {
-    FIX::Message message;
+    for (const auto& rd : rawData) {
+        if (('T' == rd.toq.front()) && (rd.volume < 100)) {
+            continue;
+        }
 
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(FIXAcceptor::s_senderID));
-    header.setField(FIX::TargetCompID(targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_Quote));
+        FIX::Message message;
 
-    // tm is always in local time and std::gmtime transforms time_t in tm disregarding timezone,
-    // since it assumes time_t is always in UTC (ours is in New York time)
-    std::time_t secs = rawData.secs + static_cast<int>(rawData.microsecs);
-    std::tm* secs_tm = std::gmtime(&secs);
+        FIX::Header& header = message.getHeader();
+        header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
+        header.setField(FIX::SenderCompID(FIXAcceptor::s_senderID));
+        header.setField(FIX::TargetCompID(targetID));
+        header.setField(FIX::MsgType(FIX::MsgType_Quote));
 
-    // a negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect --
-    // more information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
-    secs_tm->tm_isdst = -1;
-    std::time_t utcSecs = std::mktime(secs_tm);
+        // tm is always in local time and std::gmtime transforms time_t in tm disregarding timezone,
+        // since it assumes time_t is always in UTC (ours is in New York time)
+        std::time_t secs = rd.secs + static_cast<int>(rd.microsecs);
+        std::tm* secs_tm = std::gmtime(&secs);
 
-    int millisec = static_cast<int>((rawData.microsecs - static_cast<int>(rawData.microsecs)) * 1000000);
+        // a negative value of time->tm_isdst causes mktime to attempt to determine if DST was in effect --
+        // more information is available at: https://en.cppreference.com/w/cpp/chrono/c/mktime
+        secs_tm->tm_isdst = -1;
+        std::time_t utcSecs = std::mktime(secs_tm);
 
-    message.setField(FIX::QuoteID(shift::crossguid::newGuid().str()));
-    message.setField(FIX::QuoteType(rawData.toq.front() == 'Q' ? 0 : 1));
-    message.setField(FIX::Symbol(rawData.symbol));
-    message.setField(FIX::TransactTime(FIX::UtcTimeStamp(utcSecs, millisec, 6), 6));
+        int millisec = static_cast<int>((rd.microsecs - static_cast<int>(rd.microsecs)) * 1000000);
 
-    shift::fix::addFIXGroup<FIX50SP2::Quote::NoPartyIDs>(message,
-        FIXFIELD_PARTYROLE_EXECUTION_VENUE,
-        'Q' == rawData.toq.front() ? FIX::PartyID(rawData.buyerID) : FIX::PartyID(rawData.exchangeID));
+        message.setField(FIX::QuoteID(shift::crossguid::newGuid().str()));
+        message.setField(FIX::QuoteType(rd.toq.front() == 'Q' ? 0 : 1));
+        message.setField(FIX::Symbol(rd.symbol));
+        message.setField(FIX::TransactTime(FIX::UtcTimeStamp(utcSecs, millisec, 6), 6));
 
-    if ('Q' == rawData.toq.front()) {
         shift::fix::addFIXGroup<FIX50SP2::Quote::NoPartyIDs>(message,
             FIXFIELD_PARTYROLE_EXECUTION_VENUE,
-            FIX::PartyID(rawData.sellerID));
+            'Q' == rd.toq.front() ? FIX::PartyID(rd.buyerID) : FIX::PartyID(rd.exchangeID));
 
-        message.setField(FIX::BidPx(rawData.bidPrice));
-        message.setField(FIX::OfferPx(rawData.askPrice));
-        message.setField(FIX::BidSize(rawData.bidSize));
-        message.setField(FIX::OfferSize(rawData.askSize));
-    } else if ('T' == rawData.toq.front()) {
-        message.setField(FIX::BidPx(rawData.price));
-        message.setField(FIX::BidSize(rawData.volume));
+        if ('Q' == rd.toq.front()) {
+            shift::fix::addFIXGroup<FIX50SP2::Quote::NoPartyIDs>(message,
+                FIXFIELD_PARTYROLE_EXECUTION_VENUE,
+                FIX::PartyID(rd.sellerID));
+
+            message.setField(FIX::BidPx(rd.bidPrice));
+            message.setField(FIX::OfferPx(rd.askPrice));
+            message.setField(FIX::BidSize(rd.bidSize));
+            message.setField(FIX::OfferSize(rd.askSize));
+        } else { // if ('T' == rd.toq.front())
+            message.setField(FIX::BidPx(FIXAcceptor::s_decimalRound(rd.price, 2)));
+            message.setField(FIX::BidSize(rd.volume / 100)); // this is and *should be* an int division
+        }
+
+        FIX::Session::sendToTarget(message);
     }
-
-    FIX::Session::sendToTarget(message);
 }
 
 void FIXAcceptor::onCreate(const FIX::SessionID& sessionID) // override

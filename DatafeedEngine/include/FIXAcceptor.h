@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 // acceptor
 #include <quickfix/Application.h>
@@ -49,8 +50,10 @@ public:
     void connectMatchingEngine(const std::string& configFile, bool verbose = false);
     void disconnectMatchingEngine();
 
+    static double s_decimalRound(double value, int precision);
+
     static void sendNotice(const std::string& targetID, const std::string& requestID, const std::string& text);
-    static void sendRawData(const std::string& targetID, const RawData& rawData);
+    static void sendRawData(const std::string& targetID, const std::vector<RawData>& rawData);
 
 private:
     FIXAcceptor();
