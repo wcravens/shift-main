@@ -45,7 +45,7 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
 
     if (commonDict.has("FileLogPath")) { // store all log events into flat files
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
-#ifdef HAVE_POSTGRESQL
+#if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLLogDatabase")) { // store all log events into database
         m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(settings));
 #endif
@@ -55,7 +55,7 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
 
     if (commonDict.has("FileStorePath")) { // store all outgoing messages into flat files
         m_messageStoreFactoryPtr.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath")));
-#ifdef HAVE_POSTGRESQL
+#if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLStoreDatabase")) { // store all outgoing messages into database
         m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(settings));
 #endif

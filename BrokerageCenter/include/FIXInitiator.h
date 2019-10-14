@@ -13,8 +13,8 @@
 // #include <quickfix/NullStore.h>
 #include <quickfix/SocketInitiator.h>
 
-#define HAVE_POSTGRESQL
-#ifdef HAVE_POSTGRESQL
+#define HAVE_POSTGRESQL true
+#if HAVE_POSTGRESQL
 #include <quickfix/PostgreSQLLog.h>
 #include <quickfix/PostgreSQLStore.h>
 #endif
