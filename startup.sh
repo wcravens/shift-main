@@ -3,8 +3,8 @@
 # default loading time parameter for each service
 declare -a LOADING_TIME
 LOADING_TIME[1]=1   # DatafeedEngine
-LOADING_TIME[2]=5   # MatchingEngine
-LOADING_TIME[3]=5   # BrokerageCenter
+LOADING_TIME[2]=6   # MatchingEngine
+LOADING_TIME[3]=6   # BrokerageCenter
 LOADING_TIME[4]=1   # WebClient backend  (WebClient)
 LOADING_TIME[5]=1   # WebClient frontend (pushServer)
 
