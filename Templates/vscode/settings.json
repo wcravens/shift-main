@@ -4,6 +4,7 @@
     "editor.suggestSelection": "first",
     "window.restoreWindows": "none",
     "extensions.ignoreRecommendations": true,
+    "terminal.integrated.inheritEnv": false,
     "telemetry.enableCrashReporter": false,
     "telemetry.enableTelemetry": false,
     "C_Cpp.clang_format_fallbackStyle": "WebKit",
