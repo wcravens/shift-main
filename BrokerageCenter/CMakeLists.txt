@@ -87,11 +87,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 # -Wno-deprecated is required when linking QuickFIX on Ubuntu
 if(UNIX AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
+    include_directories(/usr/include/postgresql)
 endif(UNIX AND NOT APPLE)
 
 # GCC (Raspbian Buster for Raspberry Pi 4)
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    include_directories(/usr/include/postgresql)
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Mojave 10.14)
