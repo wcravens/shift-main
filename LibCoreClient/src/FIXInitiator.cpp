@@ -139,11 +139,11 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
     {
         std::unique_lock<std::mutex> lsUniqueLock(m_mtxLogon);
         auto t1 = std::chrono::steady_clock::now();
-        // gets notify from fromAdmin() or onLogon(), or timeout if backend cannot resolve(e.g. no such user in DB)
+        // gets notify from fromAdmin() or onLogon(), or timeout if backend cannot resolve (e.g. no such user in DB)
         m_cvLogon.wait_for(lsUniqueLock, timeout * 1s);
         auto t2 = std::chrono::steady_clock::now();
 
-        wasNotified = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < timeout;
+        wasNotified = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() < timeout;
     }
 
     if (m_logonSuccess) {
