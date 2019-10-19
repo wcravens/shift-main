@@ -20,10 +20,10 @@ using namespace std::chrono_literals;
     "help"
 #define CSTR_CONFIG \
     "config"
-#define CSTR_VERBOSE \
-    "verbose"
 #define CSTR_KEY \
     "crypto key"
+#define CSTR_VERBOSE \
+    "verbose"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -50,8 +50,8 @@ int main(int ac, char* av[])
     desc.add_options() // <--- every line-end from here needs a comment mark so that to prevent auto formating into single line
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
-        (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         (CSTR_KEY ",k", po::value<std::string>(), "specify a key for database credential decryption") //
+        (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         ; // add_options
 
     po::variables_map vm;
@@ -73,6 +73,11 @@ int main(int ac, char* av[])
         return 0;
     }
 
+    if (vm.count(CSTR_VERBOSE)) {
+        params.isVerbose = true;
+    }
+    voh_t voh(cout, params.isVerbose);
+
     if (vm.count(CSTR_CONFIG)) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
@@ -90,12 +95,6 @@ int main(int ac, char* av[])
         cout << COLOR << "'crypto key' was not set. Using default key: " << params.cryptoKey << NO_COLOR << '\n'
              << endl;
     }
-
-    if (vm.count(CSTR_VERBOSE)) {
-        params.isVerbose = true;
-    }
-
-    voh_t voh(cout, params.isVerbose);
 
     MainClient* pMClient = new MainClient("webclient");
 
