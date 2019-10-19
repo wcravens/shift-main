@@ -2,6 +2,9 @@
 #include "PSQL.h"
 #include "TRTHAPI.h"
 
+#include <pwd.h>
+
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <shift/miscutils/crypto/Decryptor.h>
@@ -131,6 +134,18 @@ int main(int ac, char* av[])
     TRTHAPI::createInstance(params.cryptoKey, params.configDir)->start();
 
     FIXAcceptor::getInstance()->connectMatchingEngine(params.configDir + "acceptor.cfg", params.isVerbose);
+
+    // create 'done' file in ~/.shift/DatafeedEngine to signalize shell that service is done loading
+    // (directory is also created if it does not exist)
+    const char* homeDir;
+    if ((homeDir = getenv("HOME")) == nullptr) {
+        homeDir = getpwuid(getuid())->pw_dir;
+    }
+    std::string servicePath{ homeDir };
+    servicePath += "/.shift/DatafeedEngine";
+    boost::filesystem::create_directories(boost::filesystem::path{ servicePath });
+    std::ofstream doneSignal{ servicePath + "/done" };
+    doneSignal.close();
 
     // running in background
     if (params.timer.isSet) {

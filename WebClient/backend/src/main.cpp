@@ -3,6 +3,9 @@
 
 #include <thread>
 
+#include <pwd.h>
+
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <shift/coreclient/FIXInitiator.h>
@@ -125,6 +128,18 @@ int main(int ac, char* av[])
 
     apache::thrift::server::TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
     std::thread tThrift(&apache::thrift::server::TSimpleServer::serve, &server);
+
+    // create 'done' file in ~/.shift/WebClient to signalize shell that service is done loading
+    // (directory is also created if it does not exist)
+    const char* homeDir;
+    if ((homeDir = getenv("HOME")) == nullptr) {
+        homeDir = getpwuid(getuid())->pw_dir;
+    }
+    std::string servicePath{ homeDir };
+    servicePath += "/.shift/WebClient";
+    boost::filesystem::create_directories(boost::filesystem::path{ servicePath });
+    std::ofstream doneSignal{ servicePath + "/done" };
+    doneSignal.close();
 
     // join all threads before exit
     server.stop();

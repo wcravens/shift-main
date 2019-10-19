@@ -105,7 +105,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 ### Build Configuration #######################################################
 
 find_package(Boost REQUIRED
-             COMPONENTS date_time program_options)
+             COMPONENTS date_time filesystem program_options)
 
 find_package(Threads REQUIRED)
 

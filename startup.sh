@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# default loading time parameter for each service
-declare -a LOADING_TIME
-LOADING_TIME[1]=1   # DatafeedEngine
-LOADING_TIME[2]=6   # MatchingEngine
-LOADING_TIME[3]=6   # BrokerageCenter
-LOADING_TIME[4]=1   # WebClient backend  (WebClient)
-LOADING_TIME[5]=1   # WebClient frontend (pushServer)
-
 # default timeout parameter for services
 TIMEOUT=395
 
@@ -55,7 +47,7 @@ function usage
 
 function startService
 {
-# default installation path prefix
+    # default installation path prefix
     INSTALL_PREFIX="/usr/local"
 
     # if installation did not use default installation path
@@ -72,17 +64,21 @@ function startService
     echo -ne "Starting ${1}...\r"
     if [ ${LOG_FLAG} -ne 0 ]
     then
-        nohup ${INSTALL_PREFIX}/bin/${1} -v ${3} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
+        nohup ${INSTALL_PREFIX}/bin/${1} -v ${2} </dev/null >~/.shift/${1}/$( date +%s )-execution.log 2>&1 &
     else
-        nohup ${INSTALL_PREFIX}/bin/${1} ${3} </dev/null >/dev/null 2>&1 &
+        nohup ${INSTALL_PREFIX}/bin/${1} ${2} </dev/null >/dev/null 2>&1 &
     fi
 
     # loading time
-    for (( i=${2} ; i>=1 ; i-- ))
+    i=0
+    spin="-\|/"
+    while [ ! -f ~/.shift/${1}/done ]
     do
-        echo -ne "Starting ${1}... ${i}\033[0K\r"
-        sleep 1
+        i=$(( (i + 1) % 4 ))
+        echo -ne "Starting ${1}... ${spin:$i:1} \033[0K\r"
+        sleep .25
     done
+    rm ~/.shift/${1}/done
     echo -n "Starting ${1}... done."
     echo -e ${NO_COLOR}
 }
@@ -143,12 +139,7 @@ function startPushServer
         nohup /usr/bin/php pushServer.php </dev/null >/dev/null 2>&1 &
     fi
 
-    # loading time
-    for (( i=${1} ; i>=1 ; i-- ))
-    do
-        echo -ne "Starting pushServer... ${i}\033[0K\r"
-        sleep 1
-    done
+    # no loading time
     echo -n "Starting pushServer... done."
     echo -e ${NO_COLOR}
 
@@ -406,26 +397,26 @@ then
         case ${i} in
             1_DE )
                 OPTIONS="-t ${TIMEOUT}"
-                startService "DatafeedEngine" ${LOADING_TIME[1]} "${OPTIONS}"
+                startService "DatafeedEngine" "${OPTIONS}"
                 ;;
             2_ME )
                 OPTIONS="-t ${TIMEOUT}"
                 [ ${SIMULATION_DATE} ] && OPTIONS="${OPTIONS} -d ${SIMULATION_DATE}"
                 [ ${SIMULATION_START_TIME} ] && OPTIONS="${OPTIONS} -b ${SIMULATION_START_TIME}"
                 [ ${SIMULATION_END_TIME} ] && OPTIONS="${OPTIONS} -e ${SIMULATION_END_TIME}"
-                startService "MatchingEngine" ${LOADING_TIME[2]} "${OPTIONS}"
+                startService "MatchingEngine" "${OPTIONS}"
                 ;;
             3_BC )
                 OPTIONS="-t ${TIMEOUT}"
                 [ ${RESET_FLAG} -ne 0 ] && OPTIONS="${OPTIONS} -r"
                 [ ${PFDBREADONLY_FLAG} -ne 0 ] && OPTIONS="${OPTIONS} -o"
-                startService "BrokerageCenter" ${LOADING_TIME[3]} "${OPTIONS}"
+                startService "BrokerageCenter" "${OPTIONS}"
                 ;;
             4_WC )
-                startService "WebClient" ${LOADING_TIME[4]}
+                startService "WebClient"
                 ;;
             5_PS )
-                startPushServer ${LOADING_TIME[5]}
+                startPushServer
                 ;;
             * )
                 break

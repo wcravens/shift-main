@@ -102,7 +102,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 ### Build Configuration #######################################################
 
 find_package(Boost REQUIRED
-             COMPONENTS chrono date_time program_options thread)
+             COMPONENTS chrono date_time filesystem program_options thread)
 
 find_package(OpenSSL REQUIRED)
 

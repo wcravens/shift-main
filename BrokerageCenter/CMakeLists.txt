@@ -117,7 +117,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 ### Build Configuration #######################################################
 
 find_package(Boost REQUIRED
-             COMPONENTS program_options)
+             COMPONENTS filesystem program_options)
 
 find_package(PostgreSQL REQUIRED)
 

@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <atomic>
 
+#include <pwd.h>
+
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <shift/miscutils/crypto/Encryptor.h>
@@ -279,6 +282,18 @@ int main(int ac, char* av[])
 
     // create a broadcaster to broadcast all order books
     std::thread broadcaster(&::s_broadcastOrderBooks);
+
+    // create 'done' file in ~/.shift/BrokerageCenter to signalize shell that service is done loading
+    // (directory is also created if it does not exist)
+    const char* homeDir;
+    if ((homeDir = getenv("HOME")) == nullptr) {
+        homeDir = getpwuid(getuid())->pw_dir;
+    }
+    std::string servicePath{ homeDir };
+    servicePath += "/.shift/BrokerageCenter";
+    boost::filesystem::create_directories(boost::filesystem::path{ servicePath });
+    std::ofstream doneSignal{ servicePath + "/done" };
+    doneSignal.close();
 
     // running in background
     if (params.timer.isSet) {

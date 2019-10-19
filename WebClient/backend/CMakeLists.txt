@@ -189,7 +189,7 @@ mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERS
 #######################################
 
 find_package(Boost REQUIRED
-             COMPONENTS program_options)
+             COMPONENTS filesystem program_options)
 
 find_package(Threads REQUIRED)
 

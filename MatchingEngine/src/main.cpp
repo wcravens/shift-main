@@ -8,6 +8,9 @@
 #include <atomic>
 #include <future>
 
+#include <pwd.h>
+
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <shift/miscutils/terminal/Common.h>
@@ -252,6 +255,18 @@ int main(int ac, char* av[])
 
     // initiate Brokerage Center connection
     FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg", params.isVerbose);
+
+    // create 'done' file in ~/.shift/MatchingEngine to signalize shell that service is done loading
+    // (directory is also created if it does not exist)
+    const char* homeDir;
+    if ((homeDir = getenv("HOME")) == nullptr) {
+        homeDir = getpwuid(getuid())->pw_dir;
+    }
+    std::string servicePath{ homeDir };
+    servicePath += "/.shift/MatchingEngine";
+    boost::filesystem::create_directories(boost::filesystem::path{ servicePath });
+    std::ofstream doneSignal{ servicePath + "/done" };
+    doneSignal.close();
 
     // running in background
     if (params.timer.isSet) {
