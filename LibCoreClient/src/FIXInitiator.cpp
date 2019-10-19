@@ -93,7 +93,7 @@ shift::FIXInitiator& shift::FIXInitiator::getInstance()
     return fixInitiator;
 }
 
-void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, CoreClient* client, const std::string& password, bool verbose, int timeout)
+void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, CoreClient* client, const std::string& password, bool verbose, int timeout)
 {
     disconnectBrokerageCenter();
 
@@ -107,7 +107,7 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& cfgFile, Cor
 
     std::string senderCompID = shift::toUpper(m_superUsername);
 
-    FIX::SessionSettings settings(cfgFile);
+    FIX::SessionSettings settings(configFile);
     const FIX::Dictionary& commonDict = settings.get();
     FIX::SessionID sessionID(commonDict.getString("BeginString"),
         senderCompID,

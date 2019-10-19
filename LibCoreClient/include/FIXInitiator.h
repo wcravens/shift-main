@@ -72,7 +72,7 @@ public:
 
     static FIXInitiator& getInstance();
 
-    void connectBrokerageCenter(const std::string& cfgFile, CoreClient* client, const std::string& password, bool verbose = false, int timeout = 10);
+    void connectBrokerageCenter(const std::string& configFile, CoreClient* client, const std::string& password, bool verbose = false, int timeout = 10);
     void disconnectBrokerageCenter();
 
     // call this function to attach both ways
