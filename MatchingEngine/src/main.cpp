@@ -23,18 +23,22 @@ using namespace std::chrono_literals;
     "help"
 #define CSTR_CONFIG \
     "config"
-#define CSTR_VERBOSE \
-    "verbose"
+#define CSTR_KEY \
+    "key"
+#define CSTR_DBLOGIN_TXT \
+    "dbLogin.txt"
 #define CSTR_DATE \
     "date"
 #define CSTR_STARTTIME \
     "starttime"
 #define CSTR_ENDTIME \
     "endtime"
-#define CSTR_MANUAL \
-    "manual"
 #define CSTR_TIMEOUT \
     "timeout"
+#define CSTR_VERBOSE \
+    "verbose"
+#define CSTR_MANUAL \
+    "manual"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -46,9 +50,9 @@ static std::atomic<bool> s_isRequestingData{ true };
 /*
  * @brief Function to request data chunks in the background.
  */
-static void s_requestDatafeedEngineData(std::string configFile, bool verbose, std::string requestID, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, std::vector<std::string> symbols, int numSecondsPerDataChunk, int experimentSpeed)
+static void s_requestDatafeedEngineData(std::string configFile, bool verbose, std::string cryptoKey, std::string dbConfigFile, std::string requestID, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, std::vector<std::string> symbols, int numSecondsPerDataChunk, int experimentSpeed)
 {
-    if (!FIXInitiator::getInstance()->connectDatafeedEngine(configFile, verbose)) {
+    if (!FIXInitiator::getInstance()->connectDatafeedEngine(configFile, verbose, cryptoKey, dbConfigFile)) {
         // cout << "DEBUG: s_requestDatafeedEngineData cannot connect DE!" << endl;
         return;
     }
@@ -94,39 +98,42 @@ int main(int ac, char* av[])
      */
     struct {
         std::string configDir;
-        bool isVerbose;
+        std::string cryptoKey;
         std::string simulationDate;
         std::string simulationStartTime;
         std::string simulationEndTime;
-        bool isManualInput;
         struct { // timeout settings
             using min_t = std::chrono::minutes::rep;
             bool isSet;
             min_t minutes;
         } timer;
+        bool isVerbose;
+        bool isManualInput;
     } params = {
         "/usr/local/share/shift/MatchingEngine/", // default installation folder for configuration
-        false,
+        "SHIFT123", // built-in initial crypto key used for encrypting dbLogin.txt
         "",
         "",
         "",
-        false,
         {
             false,
             0,
         },
+        false,
+        false,
     };
 
     po::options_description desc("\nUSAGE: ./MatchingEngine [options] <args>\n\n\tThis is the MatchingEngine.\n\tThe server connects with DatafeedEngine and BrokerageCenter instances and runs in background.\n\nOPTIONS");
     desc.add_options() // <--- every line-end from here needs a comment mark so that to prevent auto formating into single line
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
-        (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
+        (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
         (CSTR_DATE ",d", po::value<std::string>(), "simulation date") //
         (CSTR_STARTTIME ",b", po::value<std::string>(), "simulation start time (default: 09:30:00)") //
         (CSTR_ENDTIME ",e", po::value<std::string>(), "simulation end time (default 16:00:00)") //
-        (CSTR_MANUAL ",m", "set manual input of all parameters") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
+        (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
+        (CSTR_MANUAL ",m", "set manual input of all parameters") //
         ; // add_options
 
     po::variables_map vm;
@@ -148,6 +155,11 @@ int main(int ac, char* av[])
         return 0;
     }
 
+    if (vm.count(CSTR_VERBOSE)) {
+        params.isVerbose = true;
+    }
+    voh_t voh(cout, params.isVerbose);
+
     if (vm.count(CSTR_CONFIG)) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
@@ -157,11 +169,12 @@ int main(int ac, char* av[])
              << endl;
     }
 
-    if (vm.count(CSTR_VERBOSE)) {
-        params.isVerbose = true;
+    if (vm.count(CSTR_KEY)) {
+        params.cryptoKey = vm[CSTR_KEY].as<std::string>();
+    } else {
+        cout << COLOR "The built-in initial key 'SHIFT123' is used for reading encrypted login files." NO_COLOR << '\n'
+             << endl;
     }
-
-    voh_t voh(cout, params.isVerbose);
 
     if (vm.count(CSTR_DATE)) {
         params.simulationDate = vm[CSTR_DATE].as<std::string>();
@@ -175,10 +188,6 @@ int main(int ac, char* av[])
         params.simulationEndTime = vm[CSTR_ENDTIME].as<std::string>();
     }
 
-    if (vm.count(CSTR_MANUAL)) {
-        params.isManualInput = true;
-    }
-
     if (vm.count(CSTR_TIMEOUT)) {
         params.timer.minutes = vm[CSTR_TIMEOUT].as<decltype(params.timer)::min_t>();
         if (params.timer.minutes > 0)
@@ -187,6 +196,10 @@ int main(int ac, char* av[])
             cout << COLOR "Note: The timeout option is ignored because of the given value." NO_COLOR << '\n'
                  << endl;
         }
+    }
+
+    if (vm.count(CSTR_MANUAL)) {
+        params.isManualInput = true;
     }
 
     std::string configFile = params.configDir + "config.txt";
@@ -251,10 +264,10 @@ int main(int ac, char* av[])
     TimeSetting::getInstance().setStartTime();
 
     // request data chunks in the background
-    std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", params.isVerbose, std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), ::DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
+    std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT, std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), ::DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
 
     // initiate Brokerage Center connection
-    FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg", params.isVerbose);
+    FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // create 'done' file in ~/.shift/MatchingEngine to signalize shell that service is done loading
     // (directory is also created if it does not exist)

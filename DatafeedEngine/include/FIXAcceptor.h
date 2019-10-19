@@ -47,7 +47,7 @@ public:
 
     static FIXAcceptor* getInstance();
 
-    void connectMatchingEngine(const std::string& configFile, bool verbose = false);
+    void connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectMatchingEngine();
 
     static double s_decimalRound(double value, int precision);

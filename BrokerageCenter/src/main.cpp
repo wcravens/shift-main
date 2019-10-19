@@ -25,12 +25,14 @@
     "key"
 #define CSTR_DBLOGIN_TXT \
     "dbLogin.txt"
+#define CSTR_RESET \
+    "reset"
+#define CSTR_PFDBREADONLY \
+    "readonlyportfolio"
 #define CSTR_TIMEOUT \
     "timeout"
 #define CSTR_VERBOSE \
     "verbose"
-#define CSTR_RESET \
-    "reset"
 #define CSTR_USERNAME \
     "username"
 #define CSTR_PASSWORD \
@@ -39,8 +41,6 @@
     "info"
 #define CSTR_SUPER \
     "super"
-#define CSTR_PFDBREADONLY \
-    "readonlyportfolio"
 #define CSTR_CHANGE_PSW \
     "changepassword"
 
@@ -101,14 +101,14 @@ int main(int ac, char* av[])
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
         (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
+        (CSTR_RESET ",r", "reset client portfolios and trading records") //
+        (CSTR_PFDBREADONLY ",o", "is portfolio data in DB read-only") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
-        (CSTR_RESET ",r", "reset client portfolios and trading records") //
         (CSTR_USERNAME ",u", po::value<std::string>(), "name of the new user") //
         (CSTR_PASSWORD ",p", po::value<std::string>(), "password of the new user") //
         (CSTR_INFO ",i", po::value<std::vector<std::string>>()->multitoken(), "<first name>  <last name>  <email>") //
         (CSTR_SUPER ",s", "is super user, requires -u present") //
-        (CSTR_PFDBREADONLY ",o", "is portfolio data in DB read-only") //
         (CSTR_CHANGE_PSW, "flag for changing password, also requires -u and -p provided") //
         ; // add_options
 
@@ -134,7 +134,6 @@ int main(int ac, char* av[])
     if (vm.count(CSTR_VERBOSE)) {
         params.isVerbose = true;
     }
-
     voh_t voh(cout, params.isVerbose);
 
     if (vm.count(CSTR_CONFIG)) {
@@ -271,14 +270,14 @@ int main(int ac, char* av[])
     }
 
     // try to connect to Matching Engine
-    FIXInitiator::getInstance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose);
+    FIXInitiator::getInstance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // wait for complete security list
     while (!BCDocuments::s_isSecurityListReady)
         std::this_thread::sleep_for(500ms);
 
     // try to connect to clients
-    FIXAcceptor::getInstance()->connectClients(params.configDir + "acceptor.cfg", params.isVerbose);
+    FIXAcceptor::getInstance()->connectClients(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // create a broadcaster to broadcast all order books
     std::thread broadcaster(&::s_broadcastOrderBooks);

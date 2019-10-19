@@ -89,6 +89,11 @@ int main(int ac, char* av[])
         return 0;
     }
 
+    if (vm.count(CSTR_VERBOSE)) {
+        params.isVerbose = true;
+    }
+    voh_t voh(cout, params.isVerbose);
+
     if (vm.count(CSTR_CONFIG)) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
@@ -115,13 +120,7 @@ int main(int ac, char* av[])
         }
     }
 
-    if (vm.count(CSTR_VERBOSE)) {
-        params.isVerbose = true;
-    }
-
     TRTHAPI::s_bTRTHLoginJsonExists = std::ifstream{ params.configDir + CSTR_TRTHLOGIN_JSN }.good(); // file exists ?
-
-    voh_t voh(cout, params.isVerbose);
 
     // database init
     auto loginPSQL = shift::crypto::readEncryptedConfigFile(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
@@ -133,7 +132,7 @@ int main(int ac, char* av[])
          << endl;
     TRTHAPI::createInstance(params.cryptoKey, params.configDir)->start();
 
-    FIXAcceptor::getInstance()->connectMatchingEngine(params.configDir + "acceptor.cfg", params.isVerbose);
+    FIXAcceptor::getInstance()->connectMatchingEngine(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // create 'done' file in ~/.shift/DatafeedEngine to signalize shell that service is done loading
     // (directory is also created if it does not exist)

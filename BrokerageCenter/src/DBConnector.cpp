@@ -54,7 +54,7 @@ bool DBConnector::connectDB()
 {
     disconnectDB();
 
-    std::string info = "hostaddr=" + m_loginInfo["DBHostaddr"] + " port=" + m_loginInfo["DBPort"] + " dbname=" + m_loginInfo["DBname"] + " user=" + m_loginInfo["DBUser"] + " password=" + m_loginInfo["DBPassword"];
+    std::string info = "hostaddr=" + m_loginInfo["DBHost"] + " port=" + m_loginInfo["DBPort"] + " dbname=" + m_loginInfo["DBName"] + " user=" + m_loginInfo["DBUser"] + " password=" + m_loginInfo["DBPassword"];
     m_pConn = PQconnectdb(info.c_str());
     if (PQstatus(m_pConn) != CONNECTION_OK) {
         disconnectDB();

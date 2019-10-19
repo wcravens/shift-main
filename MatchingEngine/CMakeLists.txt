@@ -17,6 +17,7 @@ IF(EXISTS ${PROJECT_SOURCE_DIR}/config)
     set(CONFIG
         ${PROJECT_SOURCE_DIR}/config/acceptor.cfg
         ${PROJECT_SOURCE_DIR}/config/config.txt
+        ${PROJECT_SOURCE_DIR}/config/dbLogin.txt
         ${PROJECT_SOURCE_DIR}/config/initiator.cfg
     )
 endif(EXISTS ${PROJECT_SOURCE_DIR}/config)
@@ -24,6 +25,7 @@ endif(EXISTS ${PROJECT_SOURCE_DIR}/config)
 set(CONFIGDEFAULT
     ${PROJECT_SOURCE_DIR}/config.default/acceptor.cfg
     ${PROJECT_SOURCE_DIR}/config.default/config.txt
+    ${PROJECT_SOURCE_DIR}/config.default/dbLogin.txt
     ${PROJECT_SOURCE_DIR}/config.default/initiator.cfg
 )
 

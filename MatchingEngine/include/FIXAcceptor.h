@@ -42,7 +42,7 @@ public:
 
     static FIXAcceptor* getInstance();
 
-    void connectBrokerageCenter(const std::string& configFile, bool verbose);
+    void connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectBrokerageCenter();
 
     void sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook);

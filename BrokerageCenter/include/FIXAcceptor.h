@@ -53,7 +53,7 @@ public:
 
     static FIXAcceptor* getInstance();
 
-    void connectClients(const std::string& configFile, bool verbose = false);
+    void connectClients(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectClients();
 
     void sendLastPrice2All(const Transaction& transac);

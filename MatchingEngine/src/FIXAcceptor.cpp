@@ -9,6 +9,7 @@
 #include <map>
 
 #include <shift/miscutils/crossguid/Guid.h>
+#include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/fix/HelperFunctions.h>
 #include <shift/miscutils/terminal/Common.h>
 
@@ -36,7 +37,7 @@ FIXAcceptor::~FIXAcceptor() // override
     return &s_FIXAccInst;
 }
 
-void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool verbose)
+void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
 {
     disconnectBrokerageCenter();
 
@@ -47,6 +48,12 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLLogDatabase")) { // store all log events into database
+        auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
+        commonDict.setString("PostgreSQLLogUser", loginInfo["DBUser"]);
+        commonDict.setString("PostgreSQLLogPassword", loginInfo["DBPassword"]);
+        commonDict.setString("PostgreSQLLogHost", loginInfo["DBHost"]);
+        commonDict.setString("PostgreSQLLogPort", loginInfo["DBPort"]);
+        settings.set(commonDict);
         m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(settings));
 #endif
     } else { // display all log events onto the standard output
@@ -57,6 +64,12 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
         m_messageStoreFactoryPtr.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath")));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLStoreDatabase")) { // store all outgoing messages into database
+        auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
+        commonDict.setString("PostgreSQLStoreUser", loginInfo["DBUser"]);
+        commonDict.setString("PostgreSQLStorePassword", loginInfo["DBPassword"]);
+        commonDict.setString("PostgreSQLStoreHost", loginInfo["DBHost"]);
+        commonDict.setString("PostgreSQLStorePort", loginInfo["DBPort"]);
+        settings.set(commonDict);
         m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(settings));
 #endif
     } else { // store all outgoing messages in memory

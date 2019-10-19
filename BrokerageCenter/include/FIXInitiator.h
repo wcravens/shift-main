@@ -38,7 +38,7 @@ public:
 
     static FIXInitiator* getInstance();
 
-    void connectMatchingEngine(const std::string& configFile, bool verbose = false);
+    void connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectMatchingEngine();
 
     void sendOrder(const Order& order); // send order to ME
