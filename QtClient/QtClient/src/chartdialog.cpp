@@ -231,7 +231,7 @@ void ChartDialog::setTimePeriod(const int& index)
             double last_low = m_raw_samples[m_current_symbol][0].m_low;
             double last_close = m_raw_samples[m_current_symbol][0].m_close;
 
-            for (size_t i = 1; i < m_raw_samples[m_current_symbol].size(); i++) {
+            for (size_t i = 1; i < m_raw_samples[m_current_symbol].size(); ++i) {
                 CandleDataSample sample = m_raw_samples[m_current_symbol][i];
                 if (sample.m_timestamp - last_timestamp < interval) {
                     last_high = qMax(last_high, sample.m_high);
@@ -343,7 +343,7 @@ void ChartDialog::updateIntervalSelection(const long long& interval)
 {
     int i;
     // find the index of the new interval in the combo box
-    for (i = 0; i < m_interval_options.size(); i++) {
+    for (i = 0; i < m_interval_options.size(); ++i) {
         if (m_interval_options[i] == interval)
             break;
     }
@@ -382,7 +382,7 @@ void ChartDialog::setZoomLevel(const int& index)
 void ChartDialog::updateZoomSelection(const long long& interval)
 {
     int i;
-    for (i = 0; i < m_zoom_options.size(); i++) {
+    for (i = 0; i < m_zoom_options.size(); ++i) {
         if (m_zoom_options[i] == interval)
             break;
     }

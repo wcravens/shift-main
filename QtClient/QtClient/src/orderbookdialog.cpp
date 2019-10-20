@@ -27,13 +27,13 @@ OrderBookDialog::OrderBookDialog(QWidget* parent)
     ui->ArrowLabel->hide();
     ui->AcknowlageLabel->hide();
     ui->USD->hide();
-    for (int i = 0; i < m_global_bid_data.columnCount(QModelIndex()); i++)
+    for (int i = 0; i < m_global_bid_data.columnCount(QModelIndex()); ++i)
         ui->GlobalBidTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
-    for (int i = 0; i < m_global_ask_data.columnCount(QModelIndex()); i++)
+    for (int i = 0; i < m_global_ask_data.columnCount(QModelIndex()); ++i)
         ui->GlobalAskTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
-    for (int i = 0; i < m_local_bid_data.columnCount(QModelIndex()); i++)
+    for (int i = 0; i < m_local_bid_data.columnCount(QModelIndex()); ++i)
         ui->LocalBidTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
-    for (int i = 0; i < m_local_ask_data.columnCount(QModelIndex()); i++)
+    for (int i = 0; i < m_local_ask_data.columnCount(QModelIndex()); ++i)
         ui->LocalAskTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
 
     m_filter_model->setSourceModel(m_stock_list_model);

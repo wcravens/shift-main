@@ -26,7 +26,7 @@ void QtCoreClient::adaptStocklist()
     std::vector<std::string> stocklist = getStockList();
     m_stocklist.clear();
 
-    for (int i = 0; i < stocklist.size(); i++) {
+    for (int i = 0; i < stocklist.size(); ++i) {
         m_stocklist += QString::fromStdString(stocklist[i]);
     }
 

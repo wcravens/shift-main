@@ -132,7 +132,7 @@ bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
     message.setField(FIX::SecurityListRefID(boost::posix_time::to_iso_string(endTime)));
     message.setField(FIX::SecurityListDesc(std::to_string(numSecondsPerDataChunk)));
 
-    for (size_t i = 0; i < symbols.size(); i++) {
+    for (size_t i = 0; i < symbols.size(); ++i) {
         shift::fix::addFIXGroup<FIX50SP2::SecurityList::NoRelatedSym>(message,
             FIX::Symbol(symbols[i]));
     }

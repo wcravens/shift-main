@@ -151,7 +151,7 @@ void CandlestickData::process()
         // elapsed at least one candlestick ?:
         if (numGappedSticks >= 1) {
             // send data of every "stalled" preceeding candlesticks, except last one:
-            for (unsigned int cnt = 0; cnt < numGappedSticks - 1; cnt++) {
+            for (unsigned int cnt = 0; cnt < numGappedSticks - 1; ++cnt) {
                 CandlestickDataPoint cdPoint(m_symbol, m_lastClosePrice, m_lastClosePrice, m_lastClosePrice, m_lastClosePrice, m_lastOpenTime);
 
                 sendPoint(cdPoint);

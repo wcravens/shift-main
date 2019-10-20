@@ -191,13 +191,13 @@ static void transform(uint32_t digest[], uint32_t block[BLOCK_INTS], uint64_t& t
     digest[4] += e;
 
     /* Count the number of transformations */
-    transforms++;
+    ++transforms;
 }
 
 static void buffer_to_block(const std::string& buffer, uint32_t block[BLOCK_INTS])
 {
     /* Convert the std::string (byte buffer) to a uint32_t array (MSB) */
-    for (size_t i = 0; i < BLOCK_INTS; i++) {
+    for (size_t i = 0; i < BLOCK_INTS; ++i) {
         block[i] = (buffer[4 * i + 3] & 0xff)
             | (buffer[4 * i + 2] & 0xff) << 8
             | (buffer[4 * i + 1] & 0xff) << 16
@@ -253,7 +253,7 @@ std::string SHA1::final()
 
     if (orig_size > BLOCK_BYTES - 8) {
         transform(digest, block, transforms);
-        for (size_t i = 0; i < BLOCK_INTS - 2; i++) {
+        for (size_t i = 0; i < BLOCK_INTS - 2; ++i) {
             block[i] = 0;
         }
     }
@@ -265,7 +265,7 @@ std::string SHA1::final()
 
     /* Hex std::string */
     std::ostringstream result;
-    for (size_t i = 0; i < sizeof(digest) / sizeof(digest[0]); i++) {
+    for (size_t i = 0; i < sizeof(digest) / sizeof(digest[0]); ++i) {
         result << std::hex << std::setfill('0') << std::setw(8);
         result << digest[i];
     }

@@ -398,12 +398,12 @@ void FIXAcceptor::sendWaitingList(const std::string& userID, const std::unordere
     message.setField(FIX::BidType(1)); // FIX Required
     message.setField(FIX::TotNoOrders(orders.size())); // FIX Required
 
-    int i = 1;
+    int i = 0;
     for (const auto& kv : orders) {
         auto& order = kv.second;
         shift::fix::addFIXGroup<FIX50SP2::NewOrderList::NoOrders>(message,
             FIX::ClOrdID(order.getID()),
-            FIX::ListSeqNo(i++),
+            FIX::ListSeqNo(++i),
             FIX::Symbol(order.getSymbol()),
             FIX::Side(order.getType()),
             FIX::OrdType(order.getType()),

@@ -128,7 +128,7 @@ void PortfolioModel::updatePortfolioItem(std::string symbol)
 {
     // find symbol
     int index = -1;
-    for (int i = 0; i < m_portfolio_item_vec.size(); i++) {
+    for (int i = 0; i < m_portfolio_item_vec.size(); ++i) {
         if (m_portfolio_item_vec[i] == symbol) {
             index = i;
             break;

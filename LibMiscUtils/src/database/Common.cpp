@@ -63,7 +63,7 @@ namespace database {
 
         if (doQuery(pConn, query, COLOR_ERROR "ERROR: Get rows of field[" + std::to_string(fieldIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
             int rows = PQntuples(pRes);
-            for (int row = 0; row < rows; row++) {
+            for (int row = 0; row < rows; ++row) {
                 vs.push_back(PQgetvalue(pRes, row, fieldIndex));
             }
         }
@@ -79,7 +79,7 @@ namespace database {
 
         if (doQuery(pConn, query, COLOR_ERROR "ERROR: Get fields of row[" + std::to_string(rowIndex) + "] failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)
             && 0 <= rowIndex && rowIndex < PQntuples(pRes)) {
-            for (int field = 0; field < numFields; field++) // i.e. column-wise
+            for (int field = 0; field < numFields; ++field) // i.e. column-wise
                 vs.push_back(PQgetvalue(pRes, rowIndex, field));
         }
 

@@ -178,7 +178,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
     FIX::Symbol symbol;
 
     auto* docs = BCDocuments::getInstance();
-    for (int i = 1; i <= numOfGroups.getValue(); i++) {
+    for (int i = 1; i <= numOfGroups.getValue(); ++i) {
         message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
         relatedSymGroup.getField(symbol);
 
@@ -254,7 +254,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
 
     message.getField(*pSymbol);
 
-    for (int i = 1; i <= numOfEntries.getValue(); i++) {
+    for (int i = 1; i <= numOfEntries.getValue(); ++i) {
         message.getGroup(static_cast<unsigned int>(i), *pEntryGroup);
 
         pEntryGroup->getField(*pBookType);

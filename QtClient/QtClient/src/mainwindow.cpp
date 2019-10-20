@@ -25,13 +25,13 @@ MainWindow::MainWindow(QWidget* parent)
     ui->actionCandlestick_Chart->setEnabled(false);
 
     // set table column width
-    for (int i = 0; i < m_overview_model.columnCount(QModelIndex()); i++) {
+    for (int i = 0; i < m_overview_model.columnCount(QModelIndex()); ++i) {
         ui->OverviewTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
     }
-    for (int i = 0; i < m_portfolio_model.columnCount(QModelIndex()); i++) {
+    for (int i = 0; i < m_portfolio_model.columnCount(QModelIndex()); ++i) {
         ui->PortfolioTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
     }
-    for (int i = 0; i < m_waiting_list_model.columnCount(QModelIndex()); i++) {
+    for (int i = 0; i < m_waiting_list_model.columnCount(QModelIndex()); ++i) {
         ui->WaitingListTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
     }
 

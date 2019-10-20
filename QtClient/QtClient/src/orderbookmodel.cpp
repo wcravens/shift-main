@@ -82,7 +82,7 @@ bool OrderBookModel::removeRows(int position, int rows, const QModelIndex& index
     Q_UNUSED(index);
     beginRemoveRows(QModelIndex(), position, position + rows - 1);
 
-    for (int i = 0; i < rows; i++) {
+    for (int i = 0; i < rows; ++i) {
         m_order_books.removeAt(position);
     }
 
@@ -99,7 +99,7 @@ void OrderBookModel::updateData(std::vector<shift::OrderBookEntry> entries)
     resetInternalData();
     if (!entries.empty()) {
         beginInsertRows(QModelIndex(), 0, entries.size() - 1);
-        for (int i = 0; i < entries.size(); i++) {
+        for (int i = 0; i < entries.size(); ++i) {
             OrderBookItem item = OrderBookItem(QString::number(entries[i].getPrice(), 'f', 2), entries[i].getSize(), QString::fromStdString(entries[i].getDestination()));
             m_order_books.push_back(item);
         }

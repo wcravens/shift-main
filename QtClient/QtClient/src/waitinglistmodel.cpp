@@ -80,7 +80,7 @@ bool WaitingListModel::removeRows(const int& begin, const int& rows, const QMode
     Q_UNUSED(index);
     beginRemoveRows(QModelIndex(), begin, begin + rows - 1);
 
-    for (int i = 0; i < rows; i++) {
+    for (int i = 0; i < rows; ++i) {
         m_waiting_list_item.removeAt(begin);
     }
 

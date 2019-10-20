@@ -738,7 +738,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
     std::list<shift::OrderBookEntry> orderBook;
 
-    for (int i = 1; i <= numOfEntries.getValue(); i++) {
+    for (int i = 1; i <= numOfEntries.getValue(); ++i) {
         message.getGroup(static_cast<unsigned int>(i), *pEntryGroup);
 
         pEntryGroup->getField(*pBookType);
@@ -1307,7 +1307,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
 
     std::vector<shift::Order> waitingList;
 
-    for (int i = 1; i <= *pN; i++) {
+    for (int i = 1; i <= *pN; ++i) {
         message.getGroup(static_cast<unsigned int>(i), *pQuoteSetGroup);
 
         pQuoteSetGroup->getField(*pOrderID);

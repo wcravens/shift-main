@@ -136,7 +136,7 @@ void RequestsProcessorPerTarget::processRequests()
     std::vector<size_t> requestedSymbolsIndexes; // to postpone the TRTH requests to a later standalone loop so that the messages of DB query results and of TRTH downloads will not interleave in the terminal
     std::string tableName;
 
-    for (size_t idx{}; idx < symbols.size(); idx++) {
+    for (size_t idx = 0; idx < symbols.size(); ++idx) {
         ::cvtRICToDEInternalRepresentation(&symbols[idx]);
 
         auto flag = db.checkTableOfTradeAndQuoteRecordsExist(symbols[idx], marketReq.getDate(), &tableName);

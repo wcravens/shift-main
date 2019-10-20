@@ -318,7 +318,7 @@ int main(int ac, char* av[])
         dataRequester.join(); // wait for termination
 
     StockMarketList::s_isTimeout = true;
-    for (int i = 0; i < numOfStockMarkets; i++) {
+    for (int i = 0; i < numOfStockMarkets; ++i) {
         stockMarketThreadList[i].join();
     }
 

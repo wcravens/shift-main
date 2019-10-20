@@ -41,7 +41,7 @@ std::ofstream& openCryptOutputStream(std::ofstream& outf, const boost::program_o
         const size_t sz = 10 + 26; // '0'-'9', 'A'-'Z'
         std::uniform_int_distribution<decltype(sz)> dis(0, sz - 1);
 
-        for (int c = 0; c < 10; c++) {
+        for (int c = 0; c < 10; ++c) {
             auto i = dis(gen);
             name.push_back(i < 10 ? '0' + i : 'A' + (i - 10));
         }

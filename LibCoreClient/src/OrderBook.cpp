@@ -143,7 +143,8 @@ void shift::OrderBook::resetOrderBook()
  */
 void shift::OrderBook::displayOrderBook()
 {
-    std::cout << std::endl << static_cast<char>(m_type) << ':' << std::endl;
+    std::cout << std::endl
+              << static_cast<char>(m_type) << ':' << std::endl;
 
     for (auto it = m_entries.begin(); it != m_entries.end(); ++it) {
         std::cout << it->getPrice() << '\t' << it->getSize() << '\t' << it->getDestination() << std::endl;
@@ -160,7 +161,7 @@ void shift::OrderBook::displayOrderBook()
  */
 std::list<shift::OrderBookEntry>::iterator shift::OrderBook::findEntry(double price, const std::string& destination)
 {
-    for (auto it = m_entries.begin(); it != m_entries.end(); it++) {
+    for (auto it = m_entries.begin(); it != m_entries.end(); ++it) {
         if (it->getPrice() != price) {
             break;
         }

@@ -350,7 +350,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
             // finish assembling one value
             pqQuery += "),";
 
-            nVals++;
+            ++nVals;
         } // while(getline)
 
         if (!hasAnyData) {
@@ -440,7 +440,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
     std::setprecision(15);
 
     // next, save each record for each row into struct RawData and send to matching engine
-    for (int i = 0, nt = PQntuples(pRes); i < nt; i++) {
+    for (int i = 0, nt = PQntuples(pRes); i < nt; ++i) {
         char* pCh{};
         using VAL_IDX = shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::VAL_IDX;
 

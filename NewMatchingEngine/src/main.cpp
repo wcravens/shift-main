@@ -15,7 +15,7 @@ int main(int ac, char* av[])
     /* Order Class Test */
     // std::vector<std::unique_ptr<Order>> order_list;
 
-    // for (int i = 0; i < 50; i++) {
+    // for (int i = 0; i < 50; ++i) {
     //     std::unique_ptr<Order> limit(new LimitOrder(false, "orderID", "brokerID", "traderID", "destination",
     //         std::unique_ptr<Instrument>(new CommonStock("AAPL")), Order::SIDE::BUY, i, boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time()), i));
 

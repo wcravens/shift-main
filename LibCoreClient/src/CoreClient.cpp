@@ -96,7 +96,7 @@ void shift::CoreClient::submitOrder(const shift::Order& order)
         std::lock_guard<std::mutex> lk(m_mutex_orders);
         m_submittedOrdersIDs.push_back(order.getID());
         m_submittedOrders[order.getID()] = order;
-        m_submittedOrdersSize++;
+        ++m_submittedOrdersSize;
     }
 
     return m_fixInitiator->submitOrder(order, getUserID());
@@ -701,7 +701,7 @@ void shift::CoreClient::storeWaitingList(std::vector<shift::Order>&& waitingList
 
 void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)
 {
-    unsigned int ready = 0;
+    size_t ready = 0;
     BestPrice bp;
     std::unordered_map<std::string, double> lastPrice;
     std::unordered_map<std::string, double> bestBid;
@@ -713,7 +713,7 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
         for (const std::string& sym : symbols) {
             lastPrice[sym] = getLastPrice(sym);
             if (lastPrice[sym] > 0.0) {
-                ready++;
+                ++ready;
             }
         }
         std::this_thread::sleep_for(samplingFrequency * 1s);

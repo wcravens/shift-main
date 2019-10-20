@@ -162,7 +162,7 @@ QVariant OverviewModel::headerData(int section, Qt::Orientation orientation, int
 int OverviewModel::findRowIndex(QString symbol)
 {
     // return -1 if cannot find the symbol
-    for (int i = 0; i < m_new_overview.size(); i++) {
+    for (int i = 0; i < m_new_overview.size(); ++i) {
         if (m_new_overview[i].m_symbol == symbol) {
             return i;
         }
@@ -177,7 +177,7 @@ void OverviewModel::receiveStocklistReady()
 {
     QStringList stocklist = Global::qt_core_client.getStocklist();
     beginInsertRows(QModelIndex(), 0, stocklist.size() - 1);
-    for (int i = 0; i < stocklist.size(); i++) {
+    for (int i = 0; i < stocklist.size(); ++i) {
         OverviewModelItem item(stocklist[i], QPair<QString, int>("0", 2), 0, QPair<QString, int>("0", 2), QPair<QString, int>("0", 2), 0);
         m_new_overview.push_back(item);
     }
@@ -196,7 +196,7 @@ void OverviewModel::refresh()
 
     resetInternalData();
     beginInsertRows(QModelIndex(), 0, stocklist.size() - 1);
-    for (int i = 0; i < stocklist.size(); i++) {
+    for (int i = 0; i < stocklist.size(); ++i) {
         QString symbol = stocklist[i];
 
         double last = QString::number(Global::qt_core_client.getLastPrice(symbol.toStdString()), 'f', 2).toDouble();

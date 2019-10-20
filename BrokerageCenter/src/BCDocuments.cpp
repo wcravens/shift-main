@@ -261,7 +261,7 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
         rmPtr.reset(new RiskManagement(userID, std::stod(summary[0]), std::stod(summary[1]), std::stod(summary[2]), std::stod(summary[3]), std::stoi(summary[4])));
 
     // populate portfolio items
-    for (int row = 0; true; row++) {
+    for (int row = 0; true; ++row) {
         const auto& item = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
             "SELECT symbol, borrowed_balance, pl, long_price, short_price, long_shares, short_shares\n"
             "FROM portfolio_items\n"
