@@ -47,6 +47,13 @@ function usage
 
 function startService
 {
+    # if this script is interrupted while services are starting,
+    # some cleanup might be necessary
+    if [ -f ~/.shift/${1}/done ]
+    then
+        rm ~/.shift/${1}/done
+    fi
+
     # default installation path prefix
     INSTALL_PREFIX="/usr/local"
 
