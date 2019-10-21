@@ -69,6 +69,7 @@ function startService
         nohup ${INSTALL_PREFIX}/bin/${1} ${2} </dev/null >/dev/null 2>&1 &
     fi
 
+    sleep 1
     # loading time
     i=0
     spin="-\|/"
@@ -139,6 +140,7 @@ function startPushServer
         nohup /usr/bin/php pushServer.php </dev/null >/dev/null 2>&1 &
     fi
 
+    sleep 1
     # no loading time
     echo -n "Starting pushServer... done."
     echo -e ${NO_COLOR}
