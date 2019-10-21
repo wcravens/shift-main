@@ -109,7 +109,6 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
     FIX::Dictionary commonDict = settings.get();
 
     FIX::SessionID sessionID(commonDict.getString("BeginString"), shift::toUpper(m_superUsername), commonDict.getString("TargetCompID"));
-
     FIX::Dictionary dict;
     settings.set(sessionID, std::move(dict));
 
@@ -148,9 +147,16 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
         // gets notify when security list is ready
         m_cvStockList.wait_for(slUniqueLock, timeout * 1s);
 
-        if (!attachClient(client)) {
+        if (!attachClient(client)) { // attach super user and register in BrokerageCenter
             m_connected = false;
             return;
+        } else { // register already attached client users in BrokerageCenter
+            for (const auto& c : getAttachedClients()) {
+                if (!registerUserInBCWaitResponse(c)) {
+                    cout << COLOR_ERROR << "Failed to register client [" << c->getUsername() << "] in Brokerage Center." NO_COLOR << endl;
+                    std::terminate(); // precondition broken: attached clients (by attachClient()) cannot fail registering
+                }
+            }
         }
 
         m_superUserID = client->getUserID();
@@ -220,17 +226,17 @@ void shift::FIXInitiator::disconnectBrokerageCenter()
     }
 }
 
-/**
- * @section WARNING
- * Don't call this function directly.
- */
 bool shift::FIXInitiator::attachClient(shift::CoreClient* client, const std::string& password)
 {
     // TODO: add auth in BC; use password to auth
 
-    if (!client || !registerUserInBCWaitResponse(client)) {
-        cout << COLOR_ERROR << "Attach to FIXInitiator failed for client [" << client->getUsername() << "]." NO_COLOR << endl;
+    if (!client) {
         return false;
+    }
+
+    if (!registerUserInBCWaitResponse(client)) {
+        cout << COLOR_ERROR << "Failed to register client [" << client->getUsername() << "] in Brokerage Center." NO_COLOR << endl;
+        cout << COLOR_ERROR << "Registering will be reattempted upon successful connection." NO_COLOR << endl;
     }
 
     {
