@@ -105,13 +105,10 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
 
     m_verbose = verbose;
 
-    std::string senderCompID = shift::toUpper(m_superUsername);
-
     FIX::SessionSettings settings(configFile);
-    const FIX::Dictionary& commonDict = settings.get();
-    FIX::SessionID sessionID(commonDict.getString("BeginString"),
-        senderCompID,
-        commonDict.getString("TargetCompID"));
+    FIX::Dictionary commonDict = settings.get();
+
+    FIX::SessionID sessionID(commonDict.getString("BeginString"), shift::toUpper(m_superUsername), commonDict.getString("TargetCompID"));
 
     FIX::Dictionary dict;
     settings.set(sessionID, std::move(dict));
