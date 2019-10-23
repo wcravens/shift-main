@@ -183,6 +183,7 @@ int main(int ac, char* av[])
         cout.clear();
         cout << "\nExecution finished. \nPlease press enter to close window: " << flush;
         std::getchar();
+        cout << endl;
     }
 
     return 0;
