@@ -35,6 +35,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/OrderBookGlobalBid.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookLocalAsk.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookLocalBid.h
+    ${PROJECT_SOURCE_DIR}/include/Parameters.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioItem.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioSummary.h
 )

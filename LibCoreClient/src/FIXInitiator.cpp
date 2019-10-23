@@ -6,6 +6,7 @@
 #include "OrderBookGlobalBid.h"
 #include "OrderBookLocalAsk.h"
 #include "OrderBookLocalBid.h"
+#include "Parameters.h"
 
 #include <atomic>
 #include <cassert>
@@ -15,6 +16,9 @@
 #include <thread>
 
 #include <curl/curl.h>
+
+#include <quickfix/FieldConvertors.h>
+#include <quickfix/FieldTypes.h>
 
 #ifdef _WIN32
 #include <Common.h>
@@ -107,6 +111,16 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
 
     FIX::SessionSettings settings(configFile);
     FIX::Dictionary commonDict = settings.get();
+
+    // See BrokerageCenter::FIXAcceptor::connectClients() for detailed explanation
+    auto startTime = FIX::UtcTimeStamp();
+    auto endTime = startTime;
+    endTime += FIX_SESSION_DURATION;
+    std::string startTimeStr = FIX::UtcTimeStampConvertor::convert(startTime);
+    std::string endTimeStr = FIX::UtcTimeStampConvertor::convert(endTime);
+    commonDict.setString("StartTime", startTimeStr.substr(startTimeStr.size() - 8));
+    commonDict.setString("EndTime", endTimeStr.substr(endTimeStr.size() - 8));
+    settings.set(commonDict);
 
     FIX::SessionID sessionID(commonDict.getString("BeginString"), shift::toUpper(m_superUsername), commonDict.getString("TargetCompID"));
     FIX::Dictionary dict;

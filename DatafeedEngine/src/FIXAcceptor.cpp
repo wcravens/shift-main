@@ -1,6 +1,7 @@
 #include "FIXAcceptor.h"
 
 #include "PSQL.h"
+#include "Parameters.h"
 #include "RawData.h"
 #include "RequestsProcessorPerTarget.h"
 
@@ -8,6 +9,9 @@
 #include <cassert>
 #include <iomanip>
 #include <sstream>
+
+#include <quickfix/FieldConvertors.h>
+#include <quickfix/FieldTypes.h>
 
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/crypto/Decryptor.h>
@@ -53,6 +57,16 @@ void FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verb
 
     FIX::SessionSettings settings(configFile);
     FIX::Dictionary commonDict = settings.get();
+
+    // See BrokerageCenter::FIXAcceptor::connectClients() for detailed explanation
+    auto startTime = FIX::UtcTimeStamp();
+    auto endTime = startTime;
+    endTime += FIX_SESSION_DURATION;
+    std::string startTimeStr = FIX::UtcTimeStampConvertor::convert(startTime);
+    std::string endTimeStr = FIX::UtcTimeStampConvertor::convert(endTime);
+    commonDict.setString("StartTime", startTimeStr.substr(startTimeStr.size() - 8));
+    commonDict.setString("EndTime", endTimeStr.substr(endTimeStr.size() - 8));
+    settings.set(commonDict);
 
     if (commonDict.has("FileLogPath")) { // store all log events into flat files
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));

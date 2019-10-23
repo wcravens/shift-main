@@ -1,12 +1,16 @@
 #include "FIXAcceptor.h"
 
 #include "Order.h"
+#include "Parameters.h"
 #include "StockMarket.h"
 #include "TimeSetting.h"
 
 #include <atomic>
 #include <cassert>
 #include <map>
+
+#include <quickfix/FieldConvertors.h>
+#include <quickfix/FieldTypes.h>
 
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/crypto/Decryptor.h>
@@ -43,6 +47,16 @@ void FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
 
     FIX::SessionSettings settings(configFile);
     FIX::Dictionary commonDict = settings.get();
+
+    // See BrokerageCenter::FIXAcceptor::connectClients() for detailed explanation
+    auto startTime = FIX::UtcTimeStamp();
+    auto endTime = startTime;
+    endTime += FIX_SESSION_DURATION;
+    std::string startTimeStr = FIX::UtcTimeStampConvertor::convert(startTime);
+    std::string endTimeStr = FIX::UtcTimeStampConvertor::convert(endTime);
+    commonDict.setString("StartTime", startTimeStr.substr(startTimeStr.size() - 8));
+    commonDict.setString("EndTime", endTimeStr.substr(endTimeStr.size() - 8));
+    settings.set(commonDict);
 
     if (commonDict.has("FileLogPath")) { // store all log events into flat files
         m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));

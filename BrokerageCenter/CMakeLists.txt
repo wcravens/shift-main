@@ -39,13 +39,13 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/Order.h
     ${PROJECT_SOURCE_DIR}/include/OrderBook.h
     ${PROJECT_SOURCE_DIR}/include/OrderBookEntry.h
+    ${PROJECT_SOURCE_DIR}/include/Parameters.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioItem.h
     ${PROJECT_SOURCE_DIR}/include/PortfolioSummary.h
     ${PROJECT_SOURCE_DIR}/include/RiskManagement.h
     ${PROJECT_SOURCE_DIR}/include/TokenPool.h
     ${PROJECT_SOURCE_DIR}/include/TradingRecord.h
     ${PROJECT_SOURCE_DIR}/include/Transaction.h
-    ${PROJECT_SOURCE_DIR}/include/Parameters.h
     )
 
 set(SRC

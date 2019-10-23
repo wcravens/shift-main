@@ -2,9 +2,13 @@
 
 #include "BCDocuments.h"
 #include "DBConnector.h"
+#include "Parameters.h"
 
 #include <atomic>
 #include <cassert>
+
+#include <quickfix/FieldConvertors.h>
+#include <quickfix/FieldTypes.h>
 
 #include <shift/miscutils/Common.h>
 #include <shift/miscutils/crossguid/Guid.h>
@@ -51,6 +55,23 @@ void FIXAcceptor::connectClients(const std::string& configFile, bool verbose, co
 
     FIX::SessionSettings settings(configFile);
     FIX::Dictionary commonDict = settings.get();
+
+    // Default QuickFIX values for StartTime and EndTime are "00:00:00".
+    // This means sessions will reset at midnight UTC time
+    // (all sessions will be disconnected and sequence numbers reset),
+    // which is not interesting for a simulator that can run at any time.
+    // It is also important to set StartTime != EndTime, so that there is
+    // a sequence number reset every time a new simulation session starts.
+    // We set StartTime to the current time, and EndTime to some hours from
+    // now (giving enough time for an usual 6.5-hour trading session).
+    auto startTime = FIX::UtcTimeStamp(); // current UTC time
+    auto endTime = startTime; // + is not overloaded, so we must use += to add seconds
+    endTime += FIX_SESSION_DURATION; // FIX_SESSION_DURATION seconds from now
+    std::string startTimeStr = FIX::UtcTimeStampConvertor::convert(startTime); // YYYYMMDD-HH:MM:SS
+    std::string endTimeStr = FIX::UtcTimeStampConvertor::convert(endTime);
+    commonDict.setString("StartTime", startTimeStr.substr(startTimeStr.size() - 8)); // HH:MM:SS
+    commonDict.setString("EndTime", endTimeStr.substr(endTimeStr.size() - 8));
+    settings.set(commonDict);
 
     for (const auto& tarID : targetIDs) {
         FIX::SessionID sid(commonDict.getString("BeginString"), commonDict.getString("SenderCompID") // e.g. BROKERAGECENTER

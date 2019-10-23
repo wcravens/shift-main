@@ -32,6 +32,7 @@ set(CONFIGDEFAULT
 set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
     ${PROJECT_SOURCE_DIR}/include/MarketDataRequest.h
+    ${PROJECT_SOURCE_DIR}/include/Parameters.h
     ${PROJECT_SOURCE_DIR}/include/PSQL.h
     ${PROJECT_SOURCE_DIR}/include/RawData.h
     ${PROJECT_SOURCE_DIR}/include/RequestsProcessorPerTarget.h
