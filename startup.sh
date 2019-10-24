@@ -45,6 +45,16 @@ function usage
     echo -e ${NO_COLOR}
 }
 
+function loadSpin
+{
+    spin="-\|/-"
+    for (( i=0 ; i<5 ; i++ ))
+    do
+        echo -ne "Starting ${1}... ${spin:$i:1} \033[0K\r"
+        sleep .2
+    done
+}
+
 function startService
 {
     # if this script is interrupted while services are starting,
@@ -76,17 +86,13 @@ function startService
         nohup ${INSTALL_PREFIX}/bin/${1} ${2} </dev/null >/dev/null 2>&1 &
     fi
 
-    sleep 1
     # loading time
-    i=0
-    spin="-\|/"
     while [ ! -f ~/.shift/${1}/done ]
     do
-        i=$(( (i + 1) % 4 ))
-        echo -ne "Starting ${1}... ${spin:$i:1} \033[0K\r"
-        sleep .25
+        loadSpin ${1}
     done
     rm ~/.shift/${1}/done
+    loadSpin ${1} # wait 1 more second just to be safe
     echo -n "Starting ${1}... done."
     echo -e ${NO_COLOR}
 }
@@ -147,8 +153,8 @@ function startPushServer
         nohup /usr/bin/php pushServer.php </dev/null >/dev/null 2>&1 &
     fi
 
-    sleep 1
-    # no loading time
+    # loading time
+    loadSpin "pushServer" # wait 1 second just to be safe
     echo -n "Starting pushServer... done."
     echo -e ${NO_COLOR}
 
