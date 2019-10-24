@@ -99,7 +99,14 @@ int main(int ac, char* av[])
     MainClient* pMClient = new MainClient("webclient");
 
     pMClient->setVerbose(params.isVerbose);
-    shift::FIXInitiator::getInstance().connectBrokerageCenter(params.configDir + "initiator.cfg", pMClient, "password", params.isVerbose, 1000);
+    try {
+        shift::FIXInitiator::getInstance().connectBrokerageCenter(params.configDir + "initiator.cfg", pMClient, "password", params.isVerbose);
+    } catch (const std::exception& e) {
+        std::cout << std::endl;
+        std::cout << "Something went wrong: " << e.what() << std::endl;
+        std::cout << std::endl;
+        return 1;
+    }
 
     // get all company names and send it to front - start
     pMClient->requestCompanyNames();
