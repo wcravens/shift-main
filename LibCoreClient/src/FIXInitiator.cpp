@@ -164,17 +164,19 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
         if (!attachClient(client)) { // attach super user and register in BrokerageCenter
             m_connected = false;
             return;
-        } else { // register already attached client users in BrokerageCenter
-            for (const auto& c : getAttachedClients()) {
-                if (!registerUserInBCWaitResponse(c)) {
-                    cout << COLOR_ERROR << "Failed to register client [" << c->getUsername() << "] in Brokerage Center." NO_COLOR << endl;
-                    std::terminate(); // precondition broken: attached clients (by attachClient()) cannot fail registering
-                }
-            }
         }
 
         m_superUserID = client->getUserID();
-        m_connected = m_logonSuccess.load();
+
+        // register already attached client users in BrokerageCenter
+        for (const auto& c : getAttachedClients()) {
+            if (!registerUserInBCWaitResponse(c)) {
+                cout << COLOR_ERROR << "Failed to register client [" << c->getUsername() << "] in Brokerage Center." NO_COLOR << endl;
+                std::terminate(); // precondition broken: attached clients (by attachClient()) cannot fail registering
+            }
+        }
+
+        m_connected = true;
     } else {
         disconnectBrokerageCenter();
 
