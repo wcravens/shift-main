@@ -4,8 +4,12 @@
 #include "UserClient.h"
 
 #include <fstream>
+#include <thread>
+
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
+
+using namespace std::chrono_literals;
 
 MainClient::MainClient(const std::string& username)
     : CoreClient{ username }
@@ -18,7 +22,7 @@ void MainClient::debugDump(const std::string& message)
     cout << message << endl;
 }
 
-void MainClient::receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) //override
+void MainClient::receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) // override
 {
     std::ostringstream out;
     out << "{ \"category\": \"candleData_" << symbol << "\", \"data\":{ "
@@ -166,14 +170,14 @@ void MainClient::sendLastPriceToFront()
 void MainClient::checkEverySecond()
 {
     while (1) {
-        sendAllPortfoliosToFront();
-        // in 10^-6 seconds
-        usleep(166666);
-        sendOrderBookToFront();
-        usleep(166666);
         sendLastPriceToFront();
         sendOverviewInfoToFront();
-        usleep(166666);
+        // std::this_thread::sleep_for(0.15s);
+        sendOrderBookToFront();
+        // std::this_thread::sleep_for(0.15s);
+        sendAllPortfoliosToFront();
+        // std::this_thread::sleep_for(0.15s);
+        std::this_thread::sleep_for(0.5s);
     }
 }
 
