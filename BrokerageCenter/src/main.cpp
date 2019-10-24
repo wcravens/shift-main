@@ -8,6 +8,8 @@
 
 #include <pwd.h>
 
+#include <sys/resource.h>
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
@@ -67,6 +69,19 @@ int main(int ac, char* av[])
 {
     char tz[] = "TZ=America/New_York"; // set time zone to New York
     putenv(tz);
+
+    /**
+     * @brief In UNIX, open sockets are handled with file descriptors.
+     * When storing FIX messages AND handling too many client connections,
+     * we need to request an increase in the open files allowance for this process:
+     * - soft limit = current limit of open files (1024 in Ubuntu 18.04)
+     * - hard limit = maximum number of open files a process may request
+     */
+    struct rlimit rlim;
+    if (getrlimit(RLIMIT_NOFILE, &rlim) == 0) {
+        rlim.rlim_cur = rlim.rlim_max; // soft limit = hard limit
+        setrlimit(RLIMIT_NOFILE, &rlim);
+    }
 
     /**
      * @brief Centralizes and classifies all necessary parameters and
