@@ -38,24 +38,24 @@ MyZMQ::~MyZMQ()
 
 /**
  * @brief Method to get the singleton instance of MyZMQ.
- * @return Reference of current MyZMQ instance.
+ * @return Pointer to current MyZMQ instance.
  */
-MyZMQ& MyZMQ::getInstance()
+/*static*/ MyZMQ* MyZMQ::getInstance()
 {
     static MyZMQ instance;
-    return instance;
+    return &instance;
 }
 
 /**
  * @brief Method to send data to the frontend.
- * @param msg The message to send.
+ * @param message The message to send.
  */
-void MyZMQ::send(std::string msg)
+void MyZMQ::send(const std::string& message)
 {
     std::lock_guard<std::mutex> lock(m_mutex_pushpull);
     try {
-        zmq::message_t jsondata(msg.length());
-        std::memcpy(jsondata.data(), msg.c_str(), msg.length());
+        zmq::message_t jsondata(message.length());
+        std::memcpy(jsondata.data(), message.c_str(), message.length());
         m_otherall_socket.send(jsondata);
     } catch (const std::exception& e) {
         cout << e.what() << endl;

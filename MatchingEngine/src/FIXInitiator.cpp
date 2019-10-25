@@ -102,10 +102,10 @@ bool FIXInitiator::connectDatafeedEngine(const std::string& configFile, bool ver
 
     try {
         m_initiatorPtr->start();
-    } catch (const FIX::RuntimeError& e) {
+    } catch (const FIX::ConfigError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
         return false;
-    } catch (const FIX::ConfigError& e) {
+    } catch (const FIX::RuntimeError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
         return false;
     }

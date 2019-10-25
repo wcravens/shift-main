@@ -38,11 +38,9 @@ class FIXAcceptor
 public:
     static std::string s_senderID;
 
-    ~FIXAcceptor() override;
-
     static FIXAcceptor* getInstance();
 
-    void connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
+    bool connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectBrokerageCenter();
 
     void sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook);
@@ -51,6 +49,10 @@ public:
 
 private:
     FIXAcceptor() = default;
+    ~FIXAcceptor() override;
+
+    FIXAcceptor(const FIXAcceptor&) = delete;
+    void operator=(const FIXAcceptor&) = delete;
 
     void sendSecurityList(const std::string& targetID);
     void sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation);

@@ -10,17 +10,17 @@
  */
 class MyZMQ {
 public:
-    static MyZMQ& getInstance();
+    static MyZMQ* getInstance();
 
-    MyZMQ(MyZMQ const&) = delete;
-    void operator=(MyZMQ const&) = delete;
-
-    void send(std::string str);
+    void send(const std::string& message);
     void receiveReq();
 
 private:
     MyZMQ();
     ~MyZMQ();
+
+    MyZMQ(const MyZMQ&) = delete;
+    void operator=(const MyZMQ&) = delete;
 
     zmq::context_t m_context;
     zmq::socket_t m_otherall_socket;

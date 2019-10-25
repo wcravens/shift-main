@@ -41,8 +41,6 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
-    ~FIXInitiator() override;
-
     static FIXInitiator* getInstance();
 
     bool connectDatafeedEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
@@ -55,6 +53,10 @@ public:
 
 private:
     FIXInitiator() = default;
+    ~FIXInitiator() override;
+
+    FIXInitiator(const FIXInitiator&) = delete;
+    void operator=(const FIXInitiator&) = delete;
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

@@ -35,7 +35,7 @@ FIXInitiator::~FIXInitiator() // override
     return &s_FIXInitInst;
 }
 
-void FIXInitiator::connectMatchingEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
+bool FIXInitiator::connectMatchingEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
 {
     disconnectMatchingEngine();
 
@@ -95,9 +95,15 @@ void FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
 
     try {
         m_initiatorPtr->start();
+    } catch (const FIX::ConfigError& e) {
+        cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
+        return false;
     } catch (const FIX::RuntimeError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
+        return false;
     }
+
+    return true;
 }
 
 void FIXInitiator::disconnectMatchingEngine()

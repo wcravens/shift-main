@@ -49,11 +49,9 @@ class FIXAcceptor : public FIX::Application,
 public:
     static std::string s_senderID;
 
-    ~FIXAcceptor() override;
-
     static FIXAcceptor* getInstance();
 
-    void connectClients(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
+    bool connectClients(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectClients();
 
     void sendLastPrice2All(const Transaction& transac);
@@ -68,6 +66,10 @@ public:
 
 private:
     FIXAcceptor() = default;
+    ~FIXAcceptor() override;
+
+    FIXAcceptor(const FIXAcceptor&) = delete;
+    void operator=(const FIXAcceptor&) = delete;
 
     void sendSecurityList(const std::string& targetID, const std::unordered_set<std::string>& symbols);
     void sendUserIDResponse(const std::string& targetID, const std::string& userReqID, const std::string& username, const std::string& userID);

@@ -34,17 +34,19 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
-    ~FIXInitiator() override;
-
     static FIXInitiator* getInstance();
 
-    void connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
+    bool connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectMatchingEngine();
 
     void sendOrder(const Order& order); // send order to ME
 
 private:
     FIXInitiator() = default;
+    ~FIXInitiator() override;
+
+    FIXInitiator(const FIXInitiator&) = delete;
+    void operator=(const FIXInitiator&) = delete;
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

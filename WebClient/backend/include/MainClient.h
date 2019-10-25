@@ -12,18 +12,23 @@ public:
     MainClient(const std::string& username);
 
     void sendDBLoginToFront(const std::string& cryptoKey, const std::string& fileName);
-    void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) override;
+
     void sendAllPortfoliosToFront();
     void sendAllSubmittedOrders();
     void sendAllWaitingList();
+    void sendLastPriceToFront();
+    void sendOverviewInfoToFront();
     void sendOrderBookToFront();
     void sendStockListToFront();
     void sendCompanyNamesToFront();
-    void receiveRequestFromPHP();
-    void sendOverviewInfoToFront();
-    void sendLastPriceToFront();
-    void checkEverySecond();
+
     void sendOnce(const std::string& category);
+
+    void receiveRequestFromPHP();
+    void checkEverySecond();
+
+protected:
+    void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) override;
 
 private:
     void debugDump(const std::string& message);

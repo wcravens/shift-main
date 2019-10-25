@@ -43,7 +43,7 @@ FIXAcceptor::~FIXAcceptor() // override
     return &s_FIXAccInst;
 }
 
-void FIXAcceptor::connectClients(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
+bool FIXAcceptor::connectClients(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
 {
     disconnectClients();
 
@@ -126,9 +126,15 @@ void FIXAcceptor::connectClients(const std::string& configFile, bool verbose, co
 
     try {
         m_acceptorPtr->start();
+    } catch (const FIX::ConfigError& e) {
+        cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
+        return false;
     } catch (const FIX::RuntimeError& e) {
         cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
+        return false;
     }
+
+    return true;
 }
 
 void FIXAcceptor::disconnectClients()

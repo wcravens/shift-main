@@ -43,11 +43,9 @@ class FIXAcceptor : public FIX::Application,
 public:
     static std::string s_senderID;
 
-    ~FIXAcceptor() override;
-
     static FIXAcceptor* getInstance();
 
-    void connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
+    bool connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectMatchingEngine();
 
     static double s_decimalRound(double value, int precision);
@@ -57,6 +55,10 @@ public:
 
 private:
     FIXAcceptor();
+    ~FIXAcceptor() override;
+
+    FIXAcceptor(const FIXAcceptor&) = delete;
+    void operator=(const FIXAcceptor&) = delete;
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

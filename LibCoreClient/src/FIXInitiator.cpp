@@ -97,7 +97,7 @@ shift::FIXInitiator& shift::FIXInitiator::getInstance()
     return fixInitiator;
 }
 
-void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, CoreClient* client, const std::string& password, bool verbose, int timeout)
+bool shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, CoreClient* client, const std::string& password, bool verbose, int timeout)
 {
     disconnectBrokerageCenter();
 
@@ -143,7 +143,18 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
     // }
 
     m_pSocketInitiator.reset(new FIX::SocketInitiator(shift::FIXInitiator::getInstance(), *m_pMessageStoreFactory, settings, *m_pLogFactory));
-    m_pSocketInitiator->start();
+
+    try {
+        m_pSocketInitiator->start();
+    } catch (const FIX::ConfigError& e) {
+        cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
+        m_connected = false;
+        return false;
+    } catch (const FIX::RuntimeError& e) {
+        cout << COLOR_ERROR << e.what() << NO_COLOR << endl;
+        m_connected = false;
+        return false;
+    }
 
     bool wasNotified = false;
     {
@@ -161,12 +172,12 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
         // gets notify when security list is ready
         m_cvStockList.wait_for(slUniqueLock, timeout * 1s);
 
-        if (!attachClient(client)) { // attach super user and register in BrokerageCenter
+        if (attachClient(client)) { // attach super user and register in BrokerageCenter
+            m_superUserID = client->getUserID();
+        } else {
             m_connected = false;
-            return;
+            return false;
         }
-
-        m_superUserID = client->getUserID();
 
         // register already attached client users in BrokerageCenter
         for (const auto& c : getAttachedClients()) {
@@ -175,8 +186,6 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
                 std::terminate(); // precondition broken: attached clients (by attachClient()) cannot fail registering
             }
         }
-
-        m_connected = true;
     } else {
         disconnectBrokerageCenter();
 
@@ -186,6 +195,9 @@ void shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
             throw shift::ConnectionTimeoutError();
         }
     }
+
+    m_connected = true;
+    return true;
 }
 
 void shift::FIXInitiator::disconnectBrokerageCenter()

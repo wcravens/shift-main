@@ -11,50 +11,75 @@ UserClient::UserClient(const std::string& username)
 {
 }
 
-inline void UserClient::debugDump(const std::string& message)
+/**
+ * @brief To send the user's portfolio to front.
+ */
+void UserClient::sendPortfolioToFront()
 {
-    cout << "***From UserClient***" << endl;
-    cout << message << endl;
-}
+    std::string username = getUsername();
 
-inline double UserClient::decimalRound(double value, int precision)
-{
-    return std::round(value * std::pow(10, precision)) / std::pow(10, precision);
-}
-
-void UserClient::receiveWaitingList()
-{
-    auto waitingList = getWaitingList();
+    auto portfolioSummary = getPortfolioSummary();
+    double portfolioUnrealizedPL = 0.0;
+    double totalPL = 0.0;
     std::string res = "";
 
-    for (const auto& order : waitingList) {
-        std::ostringstream out;
-        out << "{ "
-            << "\"orderType\": "
-            << "\"" << order.getTypeString() << "\","
-            << "\"symbol\": "
-            << "\"" << order.getSymbol() << "\","
-            << "\"size\": "
-            << "\"" << (order.getSize() - order.getExecutedSize()) << "\","
-            << "\"price\": "
-            << "\"" << order.getPrice() << "\","
-            << "\"orderId\": "
-            << "\"" << order.getID() << "\","
-            << "\"status\":"
-            << "\"" << order.getStatusString() << "\""
-            << "}";
-        if (res == "") {
-            res += out.str();
-        } else {
-            res += "," + out.str();
+    if (portfolioSummary.isOpenBPReady()) {
+        auto portfolioItems = getPortfolioItems();
+        for (auto it = portfolioItems.begin(); it != portfolioItems.end(); ++it) {
+            std::string symbol = it->second.getSymbol();
+            int currentShares = it->second.getShares();
+
+            debugDump(username + " " + symbol + " " + std::to_string(currentShares));
+
+            double tradedPrice = it->second.getPrice();
+            bool buy = (currentShares < 0);
+            double closePrice = (currentShares == 0) ? 0.0 : getClosePrice(symbol, buy, currentShares / 100);
+            double unrealizedPL = (closePrice - tradedPrice) * currentShares;
+            portfolioUnrealizedPL += unrealizedPL;
+            auto pl = decimalRound(it->second.getRealizedPL() + unrealizedPL, 2);
+
+            std::ostringstream out;
+            out << "{ "
+                << "\"symbol\": "
+                << "\"" << symbol << "\","
+                << "\"shares\": "
+                << "\"" << currentShares << "\","
+                << "\"price\": "
+                << "\"" << tradedPrice << "\","
+                << "\"closePrice\": "
+                << "\"" << closePrice << "\","
+                << "\"unrealizedPL\": "
+                << "\"" << unrealizedPL << "\","
+                << "\"pl\": "
+                << "\"" << pl << "\""
+                << "}";
+            if (res == "") {
+                res += out.str();
+            } else {
+                res += "," + out.str();
+            }
         }
+        std::ostringstream out;
+        out << "{ \"category\": \"portfolio_" << username << "\", \"data\":[" << res << "]}";
+        MyZMQ::getInstance()->send(out.str());
     }
 
+    totalPL = decimalRound(portfolioSummary.getTotalRealizedPL() + portfolioUnrealizedPL, 2);
+
     std::ostringstream out;
-    out << "{ \"category\": \"waitingList_" << getUsername() << "\", \"data\":[" << res << "]}";
-    std::string s = out.str();
-    debugDump(s);
-    MyZMQ::getInstance().send(s);
+    out << std::fixed << "{\"category\": \"portfolioSummary_" << username << "\", \"data\":{ "
+        << "\"totalBP\": "
+        << "\"" << portfolioSummary.getTotalBP() << "\","
+        << "\"totalShares\": "
+        << "\"" << portfolioSummary.getTotalShares() << "\","
+        << "\"portfolioUnrealizedPL\": "
+        << "\"" << portfolioUnrealizedPL << "\","
+        << "\"totalPL\": "
+        << "\"" << totalPL << "\","
+        << "\"earnings\": "
+        << "\"" << totalPL / portfolioSummary.getOpenBP() << "\""
+        << "} }";
+    MyZMQ::getInstance()->send(out.str());
 }
 
 void UserClient::sendSubmittedOrders()
@@ -108,76 +133,51 @@ void UserClient::sendSubmittedOrders()
     out << "{ \"category\": \"submittedOrders_" << getUsername() << "\", \"data\":[" << res << "]}";
     std::string s = out.str();
     debugDump(s);
-    MyZMQ::getInstance().send(s);
+    MyZMQ::getInstance()->send(s);
 }
 
-/**
- * @brief To send the user's portfolio to front.
- */
-void UserClient::sendPortfolioToFront()
+void UserClient::receiveWaitingList()
 {
-    std::string username = getUsername();
-
-    auto portfolioSummary = getPortfolioSummary();
-    double portfolioUnrealizedPL = 0.0;
-    double totalPL = 0.0;
+    auto waitingList = getWaitingList();
     std::string res = "";
 
-    if (portfolioSummary.isOpenBPReady()) {
-        auto portfolioItems = getPortfolioItems();
-        for (auto it = portfolioItems.begin(); it != portfolioItems.end(); ++it) {
-            std::string symbol = it->second.getSymbol();
-            int currentShares = it->second.getShares();
-
-            debugDump(username + " " + symbol + " " + std::to_string(currentShares));
-
-            double tradedPrice = it->second.getPrice();
-            bool buy = (currentShares < 0);
-            double closePrice = (currentShares == 0) ? 0.0 : getClosePrice(symbol, buy, currentShares / 100);
-            double unrealizedPL = (closePrice - tradedPrice) * currentShares;
-            portfolioUnrealizedPL += unrealizedPL;
-            auto pl = decimalRound(it->second.getRealizedPL() + unrealizedPL, 2);
-
-            std::ostringstream out;
-            out << "{ "
-                << "\"symbol\": "
-                << "\"" << symbol << "\","
-                << "\"shares\": "
-                << "\"" << currentShares << "\","
-                << "\"price\": "
-                << "\"" << tradedPrice << "\","
-                << "\"closePrice\": "
-                << "\"" << closePrice << "\","
-                << "\"unrealizedPL\": "
-                << "\"" << unrealizedPL << "\","
-                << "\"pl\": "
-                << "\"" << pl << "\""
-                << "}";
-            if (res == "") {
-                res += out.str();
-            } else {
-                res += "," + out.str();
-            }
-        }
+    for (const auto& order : waitingList) {
         std::ostringstream out;
-        out << "{ \"category\": \"portfolio_" << username << "\", \"data\":[" << res << "]}";
-        MyZMQ::getInstance().send(out.str());
+        out << "{ "
+            << "\"orderType\": "
+            << "\"" << order.getTypeString() << "\","
+            << "\"symbol\": "
+            << "\"" << order.getSymbol() << "\","
+            << "\"size\": "
+            << "\"" << (order.getSize() - order.getExecutedSize()) << "\","
+            << "\"price\": "
+            << "\"" << order.getPrice() << "\","
+            << "\"orderId\": "
+            << "\"" << order.getID() << "\","
+            << "\"status\":"
+            << "\"" << order.getStatusString() << "\""
+            << "}";
+        if (res == "") {
+            res += out.str();
+        } else {
+            res += "," + out.str();
+        }
     }
 
-    totalPL = decimalRound(portfolioSummary.getTotalRealizedPL() + portfolioUnrealizedPL, 2);
-
     std::ostringstream out;
-    out << std::fixed << "{\"category\": \"portfolioSummary_" << username << "\", \"data\":{ "
-        << "\"totalBP\": "
-        << "\"" << portfolioSummary.getTotalBP() << "\","
-        << "\"totalShares\": "
-        << "\"" << portfolioSummary.getTotalShares() << "\","
-        << "\"portfolioUnrealizedPL\": "
-        << "\"" << portfolioUnrealizedPL << "\","
-        << "\"totalPL\": "
-        << "\"" << totalPL << "\","
-        << "\"earnings\": "
-        << "\"" << totalPL / portfolioSummary.getOpenBP() << "\""
-        << "} }";
-    MyZMQ::getInstance().send(out.str());
+    out << "{ \"category\": \"waitingList_" << getUsername() << "\", \"data\":[" << res << "]}";
+    std::string s = out.str();
+    debugDump(s);
+    MyZMQ::getInstance()->send(s);
+}
+
+inline double UserClient::decimalRound(double value, int precision)
+{
+    return std::round(value * std::pow(10, precision)) / std::pow(10, precision);
+}
+
+inline void UserClient::debugDump(const std::string& message)
+{
+    cout << "***From UserClient***" << endl;
+    cout << message << endl;
 }
