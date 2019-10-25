@@ -169,7 +169,7 @@ If you correctly created the "hanlonpgsql4" user in the previous step, use the s
 
 ### Ubuntu & macOS:
 
-- Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a "C++" folder in your home directory, and then:
+- Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a "C++" folder in your home directory, and then **\***:
 
 ``` bash
 git clone https://github.com/quickfix/quickfix.git
@@ -179,13 +179,17 @@ mkdir build
 cd build
 
 # Ubuntu:
-cmake -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -Wno-deprecated" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_POSTGRESQL=ON -DHAVE_SSL=ON ..
+cmake -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -Wno-deprecated" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..
 # macOS:
-cmake -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_POSTGRESQL=ON -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
+cmake -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
 
 make
 sudo make install
 ```
+
+**\*** For server configurations that require more than 150 concurrent client connections, please use the custom QuickFIX version available in https://github.com/hanlonlab/quickfix.git (with no tags).
+
+**\*** To use the experimental QuickFIX-PostgreSQL integration code, please add the option `-DHAVE_POSTGRESQL=ON` when building QuickFIX.
 
 - Further Documentation: <http://www.quickfixengine.org/quickfix/doc/html/> 
 
