@@ -428,7 +428,8 @@ then
                 startService "BrokerageCenter" "${OPTIONS}"
                 ;;
             4_WC )
-                startService "WebClient"
+                OPTIONS="-t ${TIMEOUT}"
+                startService "WebClient" "${OPTIONS}"
                 ;;
             5_PS )
                 startPushServer

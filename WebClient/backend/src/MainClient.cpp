@@ -11,15 +11,11 @@
 
 using namespace std::chrono_literals;
 
+/* static */ std::atomic<bool> MainClient::s_isTimeout{ false };
+
 MainClient::MainClient(const std::string& username)
     : CoreClient{ username }
 {
-}
-
-void MainClient::debugDump(const std::string& message)
-{
-    cout << "***From MainClient***" << endl;
-    cout << message << endl;
 }
 
 void MainClient::receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) // override
@@ -117,8 +113,7 @@ void MainClient::sendOrderBookToFront()
 
 void MainClient::receiveRequestFromPHP() // only called by Main Client (Main CLient works like instance of FIXInitiator)
 {
-    // TODO: really bad, modify later
-    while (1) {
+    while (!s_isTimeout) {
         MyZMQ::getInstance().receiveReq();
     }
 }
@@ -169,15 +164,14 @@ void MainClient::sendLastPriceToFront()
 
 void MainClient::checkEverySecond()
 {
-    while (1) {
+    while (!s_isTimeout) {
         sendLastPriceToFront();
         sendOverviewInfoToFront();
-        // std::this_thread::sleep_for(0.15s);
+        std::this_thread::sleep_for(0.15s);
         sendOrderBookToFront();
-        // std::this_thread::sleep_for(0.15s);
+        std::this_thread::sleep_for(0.15s);
         sendAllPortfoliosToFront();
-        // std::this_thread::sleep_for(0.15s);
-        std::this_thread::sleep_for(0.5s);
+        std::this_thread::sleep_for(0.15s);
     }
 }
 
@@ -263,4 +257,10 @@ void MainClient::sendDBLoginToFront(const std::string& cryptoKey, const std::str
         << "} }";
 
     MyZMQ::getInstance().send(out.str());
+}
+
+void MainClient::debugDump(const std::string& message)
+{
+    cout << "***From MainClient***" << endl;
+    cout << message << endl;
 }
