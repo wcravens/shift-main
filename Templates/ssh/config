@@ -20,10 +20,10 @@ Host 29
   User shiftpub
   HostName 155.246.104.29
 
-# 121-DE-ME-BC-WC (Release)
-Host 121
+# 25-DE-ME-BC-WC (Release)
+Host 25
   User shiftpub
-  HostName 155.246.104.121
+  HostName 155.246.104.25
 
 # 32-DE-ME-BC-WC (Research)
 Host 32

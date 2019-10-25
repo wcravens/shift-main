@@ -3,7 +3,7 @@ Web Demo        155.246.104.55      16 / 16         100GB       Ubuntu 18.04    
 Qt Demo         155.246.104.31      16 / 16         100GB       Ubuntu 18.04    FSCSHIFT03          1
 Testing         155.246.104.93      16 / 16         100GB       Ubuntu 18.04    FSCSHIFT02          1
 Release         155.246.104.29      16 / 16         100GB       Ubuntu 18.04    FSCSHIFT06          1
-                155.246.104.121     16 / 16         200GB       Ubuntu 18.04    FSCRESEARCHVM29     1
+                155.246.104.25      16 / 16         200GB       Ubuntu 18.04    FSCRESEARCHVM29     1
 Research        155.246.104.32      16 / 32         100GB       Ubuntu 18.04    FSCSHIFT04          1
                 155.246.104.45      16 / 32         100GB       Ubuntu 18.04    FSCSHIFT01          1
                 155.246.104.60      16 / 32         100GB       Ubuntu 18.04    FSCSHIFT07          1
