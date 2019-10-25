@@ -23,7 +23,7 @@
 // #include <quickfix/NullStore.h>
 #include <quickfix/SocketAcceptor.h>
 
-#define HAVE_POSTGRESQL true
+#define HAVE_POSTGRESQL false
 #if HAVE_POSTGRESQL
 #include <quickfix/PostgreSQLLog.h>
 #include <quickfix/PostgreSQLStore.h>
