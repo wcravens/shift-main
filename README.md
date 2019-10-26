@@ -189,7 +189,7 @@ make
 sudo make install
 ```
 
-**\*** For server configurations that require more than 150 concurrent client connections, please use the custom QuickFIX version available in <https://github.com/hanlonlab/quickfix.git> (with no tags).
+**\*** For server configurations that require more than 150 concurrent client connections, or when compiling on ARM, please use the custom QuickFIX version available in <https://github.com/hanlonlab/quickfix.git> (with no tags).
 
 **\*** To use the experimental QuickFIX-PostgreSQL integration code, please add the option `-DHAVE_POSTGRESQL=ON` when building QuickFIX.
 
