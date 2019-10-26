@@ -98,9 +98,11 @@ if(UNIX AND NOT APPLE)
 endif(UNIX AND NOT APPLE)
 
 # GCC (Raspbian Buster for Raspberry Pi 4)
+# Ubuntu rules apply here as well
 # -Wno-psabi is required when compiling on Raspbian
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_BOOST_ATOMIC_COUNT")
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Mojave 10.14)
