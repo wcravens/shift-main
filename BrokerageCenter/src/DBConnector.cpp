@@ -90,6 +90,7 @@ bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, Exec
 static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
 {
     std::ostringstream os;
+
     time_t t = ts.getTimeT();
     if (localTime) {
         os << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
@@ -97,7 +98,8 @@ static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
         os << std::put_time(std::gmtime(&t), "%Y-%m-%d %H:%M:%S");
     }
     os << '.';
-    os << ts.getFraction(6);
+    os << std::string(6 - std::to_string(ts.getFraction(6)).length(), '0') + std::to_string(ts.getFraction(6)); // microseconds with "0" padding
+
     return os.str();
 }
 
