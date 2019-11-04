@@ -97,8 +97,11 @@ static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
     } else {
         os << std::put_time(std::gmtime(&t), "%Y-%m-%d %H:%M:%S");
     }
+
     os << '.';
-    os << std::string(6 - std::to_string(ts.getFraction(6)).length(), '0') + std::to_string(ts.getFraction(6)); // microseconds with "0" padding
+
+    std::string fraction = std::to_string(ts.getFraction(6));
+    os << std::string(6 - fraction.length(), '0') + fraction; // microseconds with "0" padding
 
     return os.str();
 }
