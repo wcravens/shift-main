@@ -72,5 +72,25 @@ namespace statistics {
         return covariance(xdata, ydata) / (stddev(xdata) * stddev(ydata));
     }
 
+    template <typename _Returns>
+    double realizedVariance(const _Returns& data)
+    {
+        if (data.begin() == data.end()) {
+            return 0.0;
+        }
+
+        return std::inner_product(data.begin(), data.end(), data.begin(), 0.0);
+    }
+
+    template <typename _Returns>
+    double realizedVolatility(const _Returns& data)
+    {
+        if (data.begin() == data.end()) {
+            return 0.0;
+        }
+
+        return std::sqrt(realizedVariance(data));
+    }
+
 } // statistics
 } // shift
