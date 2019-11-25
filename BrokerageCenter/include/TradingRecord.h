@@ -2,9 +2,9 @@
 
 #include "Order.h"
 
-#include "quickfix/FieldTypes.h"
-
 #include <string>
+
+#include <quickfix/FieldTypes.h>
 
 /**
  * @brief Data structure for carrying Trading Record data between database and FIX components.

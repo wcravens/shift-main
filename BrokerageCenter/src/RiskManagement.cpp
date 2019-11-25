@@ -1,10 +1,9 @@
 #include "RiskManagement.h"
 
 #include "BCDocuments.h"
+#include "DBConnector.h"
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
-
-#include "DBConnector.h"
 
 #include <cmath>
 

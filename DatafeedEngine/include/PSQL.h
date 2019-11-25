@@ -1,16 +1,17 @@
 #pragma once
 
-#include <quickfix/Application.h>
-
 #include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <shift/miscutils/database/Common.h>
+#include <libpq-fe.h>
 
-#include <postgresql/libpq-fe.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
+#include <quickfix/Application.h>
+
+#include <shift/miscutils/database/Common.h>
 
 void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse = false /*otherwise, from internal to RIC*/);
 

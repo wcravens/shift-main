@@ -12,6 +12,8 @@ References:
 
 #include <iomanip>
 
+#include <zlib.h>
+
 #include <boost/program_options.hpp>
 
 #include <cpprest/containerstream.h> // async streams backed by STL containers
@@ -24,8 +26,6 @@ References:
 #include <cpprest/rawptrstream.h> // async streams backed by raw pointer to memory
 #include <cpprest/uri.h> // URI library
 #include <cpprest/ws_client.h> // WebSocket client
-
-#include <zlib.h>
 
 using namespace std::chrono_literals;
 

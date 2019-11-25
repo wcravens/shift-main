@@ -2,9 +2,9 @@
 
 #include "Order.h"
 
-#include <quickfix/FieldTypes.h>
-
 #include <string>
+
+#include <quickfix/FieldTypes.h>
 
 struct ExecutionReport {
     std::string symbol;

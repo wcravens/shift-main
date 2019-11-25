@@ -1,11 +1,11 @@
 #pragma once
 
+#include <chrono>
+#include <string>
+
 #include <quickfix/FieldTypes.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-
-#include <chrono>
-#include <string>
 
 class TimeSetting {
 

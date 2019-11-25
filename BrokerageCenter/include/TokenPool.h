@@ -1,8 +1,8 @@
 #pragma once
 
-#include "shift/miscutils/crossguid/Guid.h"
-
 #include <set>
+
+#include <shift/miscutils/crossguid/Guid.h>
 
 template <typename Uuid>
 class TokenPool {

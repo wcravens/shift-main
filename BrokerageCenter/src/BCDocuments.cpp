@@ -1,11 +1,12 @@
 #include "BCDocuments.h"
-#include "DBConnector.h"
 
-#include <shift/miscutils/Common.h>
-#include <shift/miscutils/database/Common.h>
+#include "DBConnector.h"
 
 #include <algorithm>
 #include <cassert>
+
+#include <shift/miscutils/Common.h>
+#include <shift/miscutils/database/Common.h>
 
 using namespace std::chrono_literals;
 

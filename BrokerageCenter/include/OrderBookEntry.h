@@ -1,8 +1,8 @@
 #pragma once
 
-#include <quickfix/FieldTypes.h>
-
 #include <string>
+
+#include <quickfix/FieldTypes.h>
 
 /**
  * @brief Class that maintains an instance of list of orders, and provides options-contract related controls.

@@ -56,14 +56,6 @@ Additional instructions for each platform may be included at the end of each sec
 
 **\*** This macOS formula installs both PostgreSQL and its libraries.
 
-### macOS:
-
-- In the Terminal:
-
-``` bash
-ln -s /usr/local/opt/postgresql/include /usr/local/include/postgresql
-```
-
 ---
 
 ## Required Tools

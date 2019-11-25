@@ -2,6 +2,8 @@
 
 #include "PSQL.h"
 
+#include <zlib.h>
+
 #include <cpprest/containerstream.h> // async streams backed by STL containers
 #include <cpprest/filestream.h>
 #include <cpprest/http_client.h>
@@ -17,8 +19,6 @@
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/terminal/Common.h>
 #include <shift/miscutils/terminal/Functions.h>
-
-#include <zlib.h>
 
 using namespace std::chrono_literals;
 

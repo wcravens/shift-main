@@ -1,8 +1,8 @@
 #pragma once
 
-#include "quickfix/FieldTypes.h"
-
 #include <string>
+
+#include <quickfix/FieldTypes.h>
 
 /**
  * @brief Data structure for carrying Trade or Quote data between database and FIX components.

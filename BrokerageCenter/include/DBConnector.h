@@ -1,13 +1,13 @@
 #pragma once
 
+#include "TradingRecord.h"
+
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "TradingRecord.h"
-
-#include <postgresql/libpq-fe.h>
+#include <libpq-fe.h>
 
 class DBConnector {
 public:

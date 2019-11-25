@@ -2,11 +2,12 @@
 
 #include "BCDocuments.h"
 
+#include <sstream>
+
 #include <shift/miscutils/crossguid/Guid.h>
 #include <shift/miscutils/crypto/Decryptor.h>
 #include <shift/miscutils/database/Common.h>
 #include <shift/miscutils/terminal/Common.h>
-#include <sstream>
 
 //----------------------------------------------------------------------------------------------------------------
 

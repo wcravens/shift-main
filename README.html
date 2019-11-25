@@ -738,11 +738,6 @@ border-bottom-color: #eee;
 </tbody>
 </table>
 <p><strong>*</strong> This macOS formula installs both PostgreSQL and its libraries.</p>
-<h3 id="macos-2">macOS:</h3>
-<ul>
-<li>In the Terminal:</li>
-</ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">ln</span> -s /usr/local/opt/postgresql/include /usr/local/include/postgresql</a></code></pre></div>
 <hr />
 <h2 id="required-tools">Required Tools</h2>
 <table>
@@ -861,19 +856,19 @@ border-bottom-color: #eee;
 <ul>
 <li>In the Terminal:</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">sudo</span> service postgresql start</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="fu">sudo</span> -u postgres psql -d postgres</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="ex">CREATE</span> EXTENSION adminpack<span class="kw">;</span> <span class="ex">/*</span> complete postgresql-contrib installation */</a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="ex">CREATE</span> ROLE <span class="st">&quot;&lt;user&gt;&quot;</span> WITH NOSUPERUSER CREATEDB INHERIT LOGIN ENCRYPTED PASSWORD <span class="st">'&lt;password&gt;'</span><span class="kw">;</span></a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">\<span class="ex">q</span></a></code></pre></div>
-<h3 id="macos-3">macOS:</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">sudo</span> service postgresql start</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="fu">sudo</span> -u postgres psql -d postgres</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="ex">CREATE</span> EXTENSION adminpack<span class="kw">;</span> <span class="ex">/*</span> complete postgresql-contrib installation */</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="ex">CREATE</span> ROLE <span class="st">&quot;&lt;user&gt;&quot;</span> WITH NOSUPERUSER CREATEDB INHERIT LOGIN ENCRYPTED PASSWORD <span class="st">'&lt;password&gt;'</span><span class="kw">;</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">\<span class="ex">q</span></a></code></pre></div>
+<h3 id="macos-2">macOS:</h3>
 <ul>
 <li>In the Terminal:</li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="ex">brew</span> services start postgresql</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="ex">psql</span> -d postgres</a>
-<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="ex">CREATE</span> ROLE <span class="st">&quot;&lt;user&gt;&quot;</span> WITH NOSUPERUSER CREATEDB INHERIT LOGIN ENCRYPTED PASSWORD <span class="st">'&lt;password&gt;'</span><span class="kw">;</span></a>
-<a class="sourceLine" id="cb3-4" data-line-number="4">\<span class="ex">q</span></a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="ex">brew</span> services start postgresql</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="ex">psql</span> -d postgres</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="ex">CREATE</span> ROLE <span class="st">&quot;&lt;user&gt;&quot;</span> WITH NOSUPERUSER CREATEDB INHERIT LOGIN ENCRYPTED PASSWORD <span class="st">'&lt;password&gt;'</span><span class="kw">;</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">\<span class="ex">q</span></a></code></pre></div>
 <hr />
 <h2 id="postgresql-database-instances-creation">PostgreSQL Database Instances Creation</h2>
 <p>These are the database instances that are required per project:</p>
@@ -906,7 +901,7 @@ border-bottom-color: #eee;
 <ul>
 <li>In the Terminal: <code>sudo -u postgres psql -d postgres -f &lt;script_name&gt;.sql</code></li>
 </ul>
-<h3 id="macos-4">macOS:</h3>
+<h3 id="macos-3">macOS:</h3>
 <ul>
 <li>In the Terminal: <code>psql -d postgres -f &lt;script_name&gt;.sql</code></li>
 </ul>
@@ -916,21 +911,21 @@ border-bottom-color: #eee;
 <ul>
 <li>Choose a location to keep the QuickFIX source files (for debugging purposes), e.g. a “C++” folder in your home directory, and then <strong>*</strong>:</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/quickfix/quickfix.git</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="bu">cd</span> quickfix</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="fu">git</span> checkout tags/v1.15.1</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="fu">mkdir</span> build</a>
-<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="bu">cd</span> build</a>
-<a class="sourceLine" id="cb4-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="co"># Ubuntu:</span></a>
-<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="fu">cmake</span> -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -Wno-deprecated&quot;</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..</a>
-<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="co"># Raspbian:</span></a>
-<a class="sourceLine" id="cb4-10" data-line-number="10"><span class="fu">cmake</span> -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -Wno-deprecated -DENABLE_BOOST_ATOMIC_COUNT&quot;</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..</a>
-<a class="sourceLine" id="cb4-11" data-line-number="11"><span class="co"># macOS:</span></a>
-<a class="sourceLine" id="cb4-12" data-line-number="12"><span class="fu">cmake</span> -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -Wno-overloaded-virtual&quot;</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..</a>
-<a class="sourceLine" id="cb4-13" data-line-number="13"></a>
-<a class="sourceLine" id="cb4-14" data-line-number="14"><span class="fu">make</span></a>
-<a class="sourceLine" id="cb4-15" data-line-number="15"><span class="fu">sudo</span> make install</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="fu">git</span> clone https://github.com/quickfix/quickfix.git</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="bu">cd</span> quickfix</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="fu">git</span> checkout tags/v1.15.1</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="fu">mkdir</span> build</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="bu">cd</span> build</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="co"># Ubuntu:</span></a>
+<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="fu">cmake</span> -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -Wno-deprecated&quot;</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..</a>
+<a class="sourceLine" id="cb3-9" data-line-number="9"><span class="co"># Raspbian:</span></a>
+<a class="sourceLine" id="cb3-10" data-line-number="10"><span class="fu">cmake</span> -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -Wno-deprecated -DENABLE_BOOST_ATOMIC_COUNT&quot;</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON ..</a>
+<a class="sourceLine" id="cb3-11" data-line-number="11"><span class="co"># macOS:</span></a>
+<a class="sourceLine" id="cb3-12" data-line-number="12"><span class="fu">cmake</span> -DCMAKE_CXX_FLAGS=<span class="st">&quot;</span><span class="va">${CMAKE_CXX_FLAGS}</span><span class="st"> -Wno-overloaded-virtual&quot;</span> -DCMAKE_BUILD_TYPE=RelWithDebInfo -DHAVE_SSL=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..</a>
+<a class="sourceLine" id="cb3-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb3-14" data-line-number="14"><span class="fu">make</span></a>
+<a class="sourceLine" id="cb3-15" data-line-number="15"><span class="fu">sudo</span> make install</a></code></pre></div>
 <p><strong>*</strong> For server configurations that require more than 150 concurrent client connections, or when compiling on ARM, please use the custom QuickFIX version available in <a href="https://github.com/hanlonlab/quickfix.git" class="uri">https://github.com/hanlonlab/quickfix.git</a> (with no tags).</p>
 <p><strong>*</strong> To use the experimental QuickFIX-PostgreSQL integration code, please add the option <code>-DHAVE_POSTGRESQL=ON</code> when building QuickFIX.</p>
 <ul>

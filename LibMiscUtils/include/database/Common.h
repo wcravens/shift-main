@@ -1,13 +1,12 @@
 #pragma once
 
-#include "Tables.h"
-
 #include "../terminal/Common.h"
-
-#include <postgresql/libpq-fe.h>
+#include "Tables.h"
 
 #include <string>
 #include <vector>
+
+#include <libpq-fe.h>
 
 namespace shift {
 namespace database {

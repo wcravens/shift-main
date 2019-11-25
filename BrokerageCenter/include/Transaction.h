@@ -1,8 +1,8 @@
 #pragma once
 
-#include <quickfix/FieldTypes.h>
-
 #include <string>
+
+#include <quickfix/FieldTypes.h>
 
 struct Transaction {
     std::string symbol;

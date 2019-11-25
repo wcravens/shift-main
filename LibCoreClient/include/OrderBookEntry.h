@@ -1,11 +1,12 @@
 #pragma once
 
-#include <quickfix/FieldTypes.h>
-
 #include "CoreClient_EXPORTS.h"
+
 #include <chrono>
 #include <ctime>
 #include <string>
+
+#include <quickfix/FieldTypes.h>
 
 namespace shift {
 

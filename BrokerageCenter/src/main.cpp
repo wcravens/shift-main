@@ -8,8 +8,6 @@
 
 #include <pwd.h>
 
-#include <sys/resource.h>
-
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
@@ -17,6 +15,8 @@
 #include <shift/miscutils/database/Common.h>
 #include <shift/miscutils/terminal/Common.h>
 #include <shift/miscutils/terminal/Options.h>
+
+#include <sys/resource.h>
 
 /* PROGRAM OPTIONS */
 #define CSTR_HELP \

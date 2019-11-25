@@ -1,7 +1,5 @@
 #pragma once
 
-#include <quickfix/FieldTypes.h>
-
 #include <string>
 
 struct OrderConfirmation {
