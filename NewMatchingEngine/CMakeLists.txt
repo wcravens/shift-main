@@ -79,7 +79,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
     include_directories(/usr/include/postgresql)
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
-# Clang (macOS Mojave 10.14)
+# Clang (macOS Catalina 10.15)
 # -Wno-deprecated-declarations is required when linking QuickFIX on macOS
 # -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
