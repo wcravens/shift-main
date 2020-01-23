@@ -5,20 +5,25 @@ Host 55
   User shiftpub
   HostName 155.246.104.55
 
-# 31-DE-ME-BC-WC (Qt Demo)
-Host 31
-  User shiftpub
-  HostName 155.246.104.31
-
 # 93-DE-ME-BC-WC (Testing)
 Host 93
   User shiftpub
   HostName 155.246.104.93
 
+# 31-DE-ME-BC-WC (Offline)
+Host 31
+  User shiftpub
+  HostName 155.246.104.31
+
 # 29-DE-ME-BC-WC (Release)
 Host 29
   User shiftpub
   HostName 155.246.104.29
+
+# 26-DE-ME-BC-WC (Release)
+Host 29
+  User shiftpub
+  HostName 155.246.104.26
 
 # 25-DE-ME-BC-WC (Release)
 Host 25
