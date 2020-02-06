@@ -2,9 +2,9 @@
 
 #include <cmath>
 
-/* static */ inline double shift::Order::s_decimalRound(double value, int precision)
+/* static */ inline double shift::Order::s_roundNearest(double value, double nearest)
 {
-    return std::round(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
+    return std::round(value / nearest) * nearest;
 }
 
 shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size, double price, const std::string& id)
@@ -26,7 +26,7 @@ shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size
             m_type = shift::Order::Type::MARKET_SELL;
         }
     } else {
-        m_price = s_decimalRound(m_price, 2);
+        m_price = s_roundNearest(m_price, 0.01);
     }
 
     if (m_id.empty()) {
@@ -154,7 +154,7 @@ void shift::Order::setExecutedSize(int executedSize)
 
 void shift::Order::setPrice(double price)
 {
-    m_price = s_decimalRound(price, 2);
+    m_price = s_roundNearest(price, 0.01);
 }
 
 void shift::Order::setExecutedPrice(double executedPrice)

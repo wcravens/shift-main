@@ -48,7 +48,7 @@ public:
     bool connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
     void disconnectMatchingEngine();
 
-    static double s_decimalRound(double value, int precision);
+    static double s_roundNearest(double value, double nearest);
 
     static void sendNotice(const std::string& targetID, const std::string& requestID, const std::string& text);
     static void sendRawData(const std::string& targetID, const std::vector<RawData>& rawData);

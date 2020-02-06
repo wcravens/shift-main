@@ -140,9 +140,9 @@ void FIXAcceptor::disconnectMatchingEngine()
     m_logFactoryPtr = nullptr;
 }
 
-/* static */ inline double FIXAcceptor::s_decimalRound(double value, int precision)
+/* static */ inline double FIXAcceptor::s_roundNearest(double value, double nearest)
 {
-    return std::round(value * std::pow(10.0, precision)) / std::pow(10.0, precision);
+    return std::round(value / nearest) * nearest;
 }
 
 /**
@@ -218,7 +218,7 @@ void FIXAcceptor::disconnectMatchingEngine()
             message.setField(FIX::BidSize(rd.bidSize));
             message.setField(FIX::OfferSize(rd.askSize));
         } else { // if ('T' == rd.toq.front())
-            message.setField(FIX::BidPx(FIXAcceptor::s_decimalRound(rd.price, 2)));
+            message.setField(FIX::BidPx(FIXAcceptor::s_roundNearest(rd.price, 0.01)));
             message.setField(FIX::BidSize(rd.volume / 100)); // this is and *should be* an int division
         }
 
