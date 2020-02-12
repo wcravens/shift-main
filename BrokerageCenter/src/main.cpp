@@ -74,12 +74,17 @@ int main(int ac, char* av[])
      * @brief In UNIX, open sockets are handled with file descriptors.
      * When storing FIX messages AND handling too many client connections,
      * we need to request an increase in the open files allowance for this process:
-     * - soft limit = current limit of open files (1024 in Ubuntu 18.04)
+     * - soft limit = current limit of open files
+     *   (1024 in Ubuntu 18.04; 256 in macOS 10.16)
      * - hard limit = maximum number of open files a process may request
+     *   (4096 in Ubuntu 18.04; unlimited in macOS 10.16)
      */
     struct rlimit rlim;
     if (getrlimit(RLIMIT_NOFILE, &rlim) == 0) {
-        rlim.rlim_cur = rlim.rlim_max; // soft limit = hard limit
+        rlim.rlim_cur = 4096; // soft limit = 4096
+        if (rlim.rlim_cur > rlim.rlim_max) {
+            rlim.rlim_cur = rlim.rlim_max; // soft limit = hard limit
+        }
         setrlimit(RLIMIT_NOFILE, &rlim);
     }
 
