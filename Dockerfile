@@ -11,9 +11,8 @@ RUN apt-get install -y \
         libboost-all-dev \
         libcpprest-dev
 
-RUN git clone https://github.com/quickfix/quickfix.git
+RUN git clone https://github.com/hanlonlab/quickfix.git
 WORKDIR quickfix
-RUN git checkout tags/v1.15.1
 RUN mkdir build
 WORKDIR build
 RUN cmake \
@@ -58,8 +57,6 @@ COPY . /shift/shift-main/
 WORKDIR /shift/shift-main
 RUN find . -type f -name CMakeCache.txt | xargs rm -f
 
-RUN ./Scripts/copy_config.sh
-RUN ldconfig
 RUN ./install.sh -f
 
 # TODO - replace me with a "real" run command
