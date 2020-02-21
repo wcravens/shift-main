@@ -21,7 +21,7 @@ Host 29
   HostName 155.246.104.29
 
 # 26-DE-ME-BC-WC (Release)
-Host 29
+Host 26
   User shiftpub
   HostName 155.246.104.26
 
