@@ -3,6 +3,9 @@
 
 # SHIFT Developer Guide
 
+## System Diagram
+![System Diagram](Shift-System-Diagram.png)
+
 ## System Requirements
 
 To run a full simulation day (6h30) of 30 stocks in the default settings, 22GB of extra space is required.
