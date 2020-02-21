@@ -4,7 +4,7 @@
 # SHIFT Developer Guide
 
 ## System Diagram
-![System Diagram](Shift-System-Diagram.png)
+![System Diagram](SHIFT-System-Diagram.png)
 
 ## System Requirements
 
