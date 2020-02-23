@@ -103,7 +103,7 @@ function installServer
 
     # build & install
     cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX}
-    if ( ! cmake --build ${1}/build --target install -- -j${CORE_NUM} )
+    if ( ! cmake --build ${1}/build --target install -j${CORE_NUM} )
     then
         echo
         echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} failed to install ${1}: configuration files are probably missing (please see usage with -h or --help)"
@@ -178,7 +178,7 @@ function installLibrary
 
     # build & install debug version of the library
     cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX} ${2}
-    if ( ! cmake --build ${1}/build --target install -- -j${CORE_NUM} )
+    if ( ! cmake --build ${1}/build --target install -j${CORE_NUM} )
     then
         echo
         echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} failed to install ${1}"
@@ -188,7 +188,7 @@ function installLibrary
 
     # build & install release version of the library
     cmake -H${1} -B${1}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX} -DCMAKE_PREFIX_PATH:PATH=${INSTALL_PREFIX} ${2}
-    if ( ! cmake --build ${1}/build --target install -- -j${CORE_NUM} )
+    if ( ! cmake --build ${1}/build --target install -j${CORE_NUM} )
     then
         echo
         echo -e "shift: ${COLOR_ERROR}error:${NO_COLOR} failed to install ${1}"
