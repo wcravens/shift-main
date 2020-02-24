@@ -1,0 +1,8 @@
+FROM postgres:latest
+
+COPY ./Scripts/db_setup.sh /docker-entrypoint-initdb.d/.
+RUN mkdir /docker-entrypoint-initdb.d/runsql
+RUN mkdir /docker-entrypoint-initdb.d/runsh
+
+COPY ./Scripts/*.sql /docker-entrypoint-initdb.d/runsql/
+COPY ./Scripts/user_entries.sh /docker-entrypoint-initdb.d/runsh

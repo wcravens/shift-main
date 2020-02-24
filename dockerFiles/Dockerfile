@@ -59,5 +59,7 @@ RUN find . -type f -name CMakeCache.txt | xargs rm -f
 
 RUN ./install.sh -f
 
+RUN ldconfig
+
 # TODO - replace me with a "real" run command
 CMD ["bash"]
