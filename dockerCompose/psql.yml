@@ -1,0 +1,14 @@
+version: '3.1'
+
+services:
+        shiftdb:
+                image: postgres:shift
+                container_name: shift_postgres
+                environment:
+                        POSTGRES_DB: postgres
+                        POSTGRES_USER: postgres
+                        POSTGRES_PASSWORD: postgres
+                volumes:
+                        - ~/.shift/psqlData:/var/lib/postgresql/data
+                ports:
+                        - 5432:5432 
