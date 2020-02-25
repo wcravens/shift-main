@@ -13,6 +13,10 @@ docker-compose -f dockerCompose/shift.yml up -d
 ```
 
 ## postgres:shift
+
+Be sure to change the environment variables `BC_USER` and `BC_PASS`!
+Together, these values set up the user for the Brokerage Center module.
+
 ```
 docker-compose -f dockerCompose/psql.yml up -d
 ```

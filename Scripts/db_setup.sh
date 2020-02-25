@@ -11,9 +11,10 @@ else
     SH_SOURCE="/docker-entrypoint-initdb.d/runsh/"
 fi
 
-psql -d postgres -v username="\"hanlonpgsql4\"" -v password="'XIfyqPqM446M'" -f "${SQL_SOURCE}db_setup.sql";
+psql -d postgres -v username="\"${BC_USER}\"" -v password="'${BC_PASS}'" -f "${SQL_SOURCE}db_setup.sql";
 
 psql -d postgres -f "${SQL_SOURCE}de_instances.sql";
 psql -d postgres -f "${SQL_SOURCE}bc_instances.sql";
 
+echo "~~${BC_USER} SETUP ESTABLISHED~~"
 #sh "${SH_SOURCE}user_entries.sh"
