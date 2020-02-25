@@ -4,12 +4,12 @@ services:
         shiftdb:
                 image: postgres:shift
                 container_name: shift_postgres
+                env_file:
+                        - .env
                 environment:
                         - POSTGRES_DB=postgres
                         - POSTGRES_USER=postgres
                         - POSTGRES_PASSWORD=postgres
-                        - BC_USER=hanlonpgsql4
-                        - BC_PASS=changeme
                 volumes:
                         - ~/.shift/psqlData:/var/lib/postgresql/data
                 ports:
