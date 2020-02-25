@@ -6,10 +6,16 @@
 #   any positive integer value is accepted, but no more than 5 is recommended.
 # Any line beginning with # will be ignored.
 
+# SPDR S&P 500 ETF Trust
 stock=SPY
+# SPDR Dow Jones Industrial Average ETF Trust
 stock=DIA
+# ProShares VIX Short-Term Futures ETF
+stock=VIXY.K
+# ProShares VIX Mid-Term Futures ETF
+stock=VIXM.K
 
-# Dow Jones Industrial Average (last update: 2018-06-26):
+# Dow Jones Industrial Average (last update: 2019-04-02):
 stock=MMM
 stock=AXP
 stock=AAPL.O
@@ -18,6 +24,7 @@ stock=CAT
 stock=CVX
 stock=CSCO.O
 stock=KO
+# stock=DOW
 stock=XOM
 stock=GS
 stock=HD
