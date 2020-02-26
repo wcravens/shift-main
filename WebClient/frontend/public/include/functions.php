@@ -4,9 +4,21 @@
 */
 
 // return the local ip of nginx server
+define('__VENDOR_ROOT__', getenv('SITE_ROOT').'/vendor/');
+require_once(__VENDOR_ROOT__.'autoload.php');
+
+$dotEnv = Dotenv\Dotenv::createImmutable(getenv(SITE_ROOT).'/environment');
+$dotEnv->load();
+
 function getLocalIp()
 {
-    return $_SERVER['SERVER_ADDR'];
+	$envIP = $_ENV['WSADDR'];
+	if ($envIP == ""){
+		$envIP = $_SERVER['SERVER_ADDR'];
+	}
+	return $envIP;
+	//return $_SERVER['SERVER_ADDR'];
+
 }
 
 // geneurate a uuid (currently used for identify order history, waiting list)
