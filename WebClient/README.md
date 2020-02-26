@@ -2,6 +2,11 @@
 [pandoc]: # "pandoc README.md -c ../Templates/github.css -o README.html -s --self-contained"
 
 # SHIFT WebClient Guide
+ The SHiFT WebClient comprises of two components:
+1. WebClient
+2. pushServer
+
+In order for the Webclient to run, it is necessary that the BrokerageCenter, MatchingEngine and the pushServer service are all running.
 
 ## Required Libraries
 
@@ -160,6 +165,19 @@ For additional options:
 
 ---
 
+## Running the pushServer
+
+The second component of the SHiFT Frontend interface is the pushServer service. The service can be found in: `WebClient/frontend/service/transfer`
+
+To run the service, you may run it one of two ways:
+
+1. php WebClient/frontend/service/transfer/pushServer.php
+2. From the root directory's `startup.sh` script: `startup.sh -m PS`
+
+Note that the WebClient must be run along with the pushServer!
+
+---
+
 ## Fixing the Shared Library Cache
 
 When running the WebClient for the first time, it is possible the system will not find our shared libraries. To fix such problem:
@@ -167,3 +185,15 @@ When running the WebClient for the first time, it is possible the system will no
 - In the Terminal: `sudo ldconfig`
 
 ---
+
+
+## Environment Variables
+
+The Webclient uses the phpdotenv module to manage environment variables. [https://github.com/vlucas/phpdotenv](https://github.com/vlucas/phpdotenv)
+
+All environment variables are pulled from the `frontend/environment/.env` file, and their purposes are as follows:
+
+| Variable | Type | Purpose | Example |
+|--|--|--|--|
+| WSADDR | Hostname/IP | Sets what the web sockets listen to in the script files| ws://localhost:8080
+
