@@ -12,8 +12,6 @@ stock=SPY
 stock=DIA
 # ProShares VIX Short-Term Futures ETF
 stock=VIXY.K
-# ProShares VIX Mid-Term Futures ETF
-stock=VIXM.K
 
 # Dow Jones Industrial Average (last update: 2019-04-02):
 stock=MMM
