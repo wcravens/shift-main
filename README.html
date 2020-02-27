@@ -1063,5 +1063,45 @@ border-bottom-color: #eee;
 <li>In the Terminal: <code>sudo ldconfig</code></li>
 </ul>
 <hr />
+<h2 id="using-libmiscutils-filecryptor">Using LibMiscUtils FileCryptor</h2>
+<p>Configuration files are encrypted. To update config files, updating the format and configuration values, will require utilizing the FileCryptor tool, included in LibMiscUtils.</p>
+<p>To build:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="bu">cd</span> LibMiscUtils</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">mkdir</span> build</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="bu">cd</span> build</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="fu">cmake</span> .. -DADDONS=on</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="fu">make</span></a></code></pre></div>
+<p>Afterwards, the FileCryptor tool should be available in LibMiscUtils/build/Debug.</p>
+<p>To encrypt:</p>
+<ul>
+<li><code>FileCryptor -e TARGETFILE -o OUTPUTFILE</code></li>
+</ul>
+<p>To decrypt - <code>FileCryptor -d TARGETFILE -o OUTPUTFILE</code></p>
+<hr />
+<h2 id="configuration-format">Configuration Format</h2>
+<p>Below are examples of how the three main module configuration files look like:</p>
+<ul>
+<li>DatafeedEngine:</li>
+</ul>
+<pre><code>DBName=shift_datafeedengine
+DBHost=127.0.0.1
+DBUser=hanlonpgsql4
+DBPassword=
+DBPort=</code></pre>
+<ul>
+<li>MatchingEngine:</li>
+</ul>
+<pre><code>DBUser=hanlonpgsql4
+DBPassword=
+DBHost=127.0.0.1
+DBPort=</code></pre>
+<ul>
+<li>BrokerageCenter:</li>
+</ul>
+<pre><code>DBName=shift_brokeragecenter
+DBUser=hanlonpgsql4
+DBPassword=
+DBHost=127.0.0.1
+DBPort=</code></pre>
 </body>
 </html>

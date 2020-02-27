@@ -279,18 +279,19 @@ When running our servers for the first time in Ubuntu, it is possible the system
 
 ## Using LibMiscUtils FileCryptor
 
-Configuration files are encrypted. To update config files, updating the format and configuration values will require utilizing the FileCryptor tool, included in LibMiscUtils.
+Configuration files are encrypted. To update config files, updating the format and configuration values, will require utilizing the FileCryptor tool, included in LibMiscUtils.
 
 To build:
 
-```
-cd LibMiscUtils;
-mkdir build;
-cd build;
+``` bash
+cd LibMiscUtils
+mkdir build
+cd build
 cmake .. -DADDONS=on
+make
 ``` 
 
-Afterwards, the FileCryptor tool should be available in LibMiscUtils/build/Debug
+Afterwards, the FileCryptor tool should be available in LibMiscUtils/build/Debug.
 
 To encrypt:
 
@@ -302,7 +303,9 @@ To decrypt
 ---
 
 ## Configuration Format
+
 Below are examples of how the three main module configuration files look like:
+
 - DatafeedEngine:
 ```
 DBName=shift_datafeedengine

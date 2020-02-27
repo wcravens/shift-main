@@ -660,6 +660,12 @@ border-bottom-color: #eee;
 </head>
 <body>
 <h1 id="shift-webclient-guide">SHIFT WebClient Guide</h1>
+<p>The SHIFT WebClient comprises of two components:</p>
+<ol type="1">
+<li>WebClient</li>
+<li>pushServer</li>
+</ol>
+<p>In order for the Webclient to run, it is necessary that the MatchingEngine, BrokerageCenter and the pushServer services are all running.</p>
 <h2 id="required-libraries">Required Libraries</h2>
 <p><strong>Please refer to the other required libraries in the SHIFT Developer Guide.</strong></p>
 <h3 id="shift-miscellaneous-utils-core-client">SHIFT Miscellaneous Utils &amp; Core Client</h3>
@@ -762,9 +768,38 @@ border-bottom-color: #eee;
 <li>In the Terminal: <code>sudo mv composer.phar /usr/local/bin/composer</code></li>
 </ul>
 <hr />
+<h2 id="php.env-environment-variables">php.env Environment Variables</h2>
+<p>The WebClient uses the phpdotenv module to manage environment variables (<a href="https://github.com/vlucas/phpdotenv" class="uri">https://github.com/vlucas/phpdotenv</a>).</p>
+<p>The file containing php environment values is the <code>config/php.env</code> file. During installation, this file will be moved to <code>/usr/local/share/shift/WebClient/php.env</code>.</p>
+<p>All php environment variables are pulled from the <code>/usr/local/share/shift/WebClient/php.env</code> file, and their purposes are as follows:</p>
+<table>
+<colgroup>
+<col style="width: 10%"></col>
+<col style="width: 13%"></col>
+<col style="width: 56%"></col>
+<col style="width: 20%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Type</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>WSADDR</td>
+<td>Hostname/IP</td>
+<td>Sets what the web sockets listen to in the script files</td>
+<td>ws://localhost:8080</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="shift-webclient-installation">SHIFT WebClient Installation</h2>
 <p><strong>Before installing the SHIFT WebClient, you should create proper configuration files.</strong></p>
-<p>The default configuration files (pointing to localhost) can be copiedby using the <code>copy_config.sh</code> script contained in the <code>Scripts</code> folder or by using the <code>-f</code> parameter in the installer.</p>
+<p>The default configuration files (pointing to localhost) can be copied by using the <code>copy_config.sh</code> script contained in the <code>Scripts</code> folder or by using the <code>-f</code> parameter in the installer.</p>
 <p>To install the WebClient:</p>
 <ul>
 <li>In the Terminal: <code>sudo ./install.sh</code></li>
