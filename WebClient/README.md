@@ -2,6 +2,12 @@
 [pandoc]: # "pandoc README.md -c ../Templates/github.css -o README.html -s --self-contained"
 
 # SHIFT WebClient Guide
+The SHiFT WebClient comprises of two components:
+
+1. WebClient
+2. pushServer
+
+In order for the Webclient to run, it is necessary that the BrokerageCenter, MatchingEngine and the pushServer service are all running.
 
 ## Required Libraries
 
@@ -142,8 +148,21 @@ Follow the instructions in <https://getcomposer.org/download/>, and move the com
 
 ## SHIFT WebClient Installation
 
-**Before installing the SHIFT WebClient, you should create proper configuration files.**
+**Before installing the SHIFT WebClient, you should create proper configuration files with Scripts/copy_config.sh.**
 
+## php.env Environment Variables
+
+The WebClient uses the phpdotenv module to manage environment variables. [https://github.com/vlucas/phpdotenv](https://github.com/vlucas/phpdotenv)
+
+The file that is read for php environment values is the `config.default/php.env` file.
+
+All php environment variables are pulled from the `/usr/local/share/shift/WebClient/php.env` file, and their purposes are as follows:
+
+| Variable | Type | Purpose | Example |
+|--|--|--|--|
+| WSADDR | Hostname/IP | Sets what the web sockets listen to in the script files| ws://localhost:8080
+
+The default configuration files (pointing to localhost) can be copiedby using the `copy_config.sh` script contained in the `Scripts` folder or by using the `-f` parameter in the installer.
 The default configuration files (pointing to localhost) can be copiedby using the `copy_config.sh` script contained in the `Scripts` folder or by using the `-f` parameter in the installer. 
 
 To install the WebClient:

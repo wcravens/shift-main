@@ -16,7 +16,7 @@ $page = 'overview';
 
         <script type="text/javascript">
             var php_stockList_json = JSON.parse('<?php echo json_encode($stockList);?>');
-            var php_server_ip= "<?php echo $server_ip;?>";
+            var php_server_ip = "<?php echo $server_ip;?>";
         </script>
         <?php
             echo '<script src="/scripts/verifications.js?version='.$SHIFT_version.'"></script>';

@@ -276,3 +276,55 @@ When running our servers for the first time in Ubuntu, it is possible the system
 - In the Terminal: `sudo ldconfig`
 
 ---
+
+## Using LibMiscUtils FileCryptor
+
+Configuration files are encrypted. To update config files, updating the format and configuration values will require utilizing the FileCryptor tool, included in LibMiscUtils.
+
+To build:
+
+```
+cd LibMiscUtils;
+mkdir build;
+cd build;
+cmake .. -DADDONS=on
+``` 
+
+Afterwards, the FileCryptor tool should be available in LibMiscUtils/build/Debug
+
+To encrypt:
+
+- `FileCryptor -e TARGETFILE -o OUTPUTFILE`
+
+To decrypt
+- `FileCryptor -d TARGETFILE -o OUTPUTFILE`
+
+---
+
+## Configuration Format
+Below are examples of how the three main module configuration files look like:
+- DatafeedEngine:
+```
+DBName=shift_datafeedengine
+DBHost=127.0.0.1
+DBUser=hanlonpgsql4
+DBPassword=
+DBPort=
+```
+
+- MatchingEngine:
+```
+DBUser=hanlonpgsql4
+DBPassword=
+DBHost=127.0.0.1
+DBPort=
+```
+
+- BrokerageCenter:
+```
+DBName=shift_brokeragecenter
+DBUser=hanlonpgsql4
+DBPassword=
+DBHost=127.0.0.1
+DBPort=
+```
