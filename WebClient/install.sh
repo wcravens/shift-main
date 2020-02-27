@@ -102,7 +102,7 @@ function installWebClient
     # frontend composer
     [ -d frontend/vendor ] && rm -r frontend/vendor
     composer install --quiet --working-dir=frontend
-    composer require --working-dir=frontend vlucas/phpdotenv
+    composer require --quiet --working-dir=frontend vlucas/phpdotenv
     chown -R ${CURRENT_USER}:${CURRENT_USER} frontend/vendor
     chown -R ${CURRENT_USER}:${CURRENT_USER} ~/.composer
 
