@@ -7,7 +7,7 @@
 define('__VENDOR_ROOT__', getenv('SITE_ROOT').'/vendor/');
 require_once(__VENDOR_ROOT__.'autoload.php');
 
-$dotEnv = Dotenv\Dotenv::createImmutable(getenv(SITE_ROOT).'/environment');
+$dotEnv = Dotenv\Dotenv::createImmutable('/usr/local/share/shift/WebClient/', 'php.env');
 $dotEnv->load();
 
 function getLocalIp()
