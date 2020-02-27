@@ -10,7 +10,7 @@ The docker files are meant to be utilized with the configurations provided in th
 
 ## Building shift-base
 ```
-docker build -f dockerFiles/Dockerfile . --tag shift-base
+docker build -f Docker/dockerFiles/Dockerfile . --tag shift-base
 ```
 
 ## Building postgres:shift
@@ -22,7 +22,7 @@ The build file for postgresql:shift heavily depends on several scripts from the 
 4. db_setup.sql - Initializes some DB settings
 5. docker_db_setup.sh - To launch the default users for demo purposes
 ```
-docker build -f dockerFiles/DockerPsql . --tag postgresql:shift
+docker build -f Docker/dockerFiles/DockerPsql . --tag postgresql:shift
 ```
 
 ### Setting up postgres:shift

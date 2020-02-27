@@ -15,13 +15,13 @@ These values are utilized in both compose files.
 
 ## shift.yml
 ```
-docker-compose -f dockerCompose/shift.yml up -d
+docker-compose -f Docker/dockerCompose/shift.yml up -d
 ```
 
 ## psql.yml
 
 ```
-docker-compose -f dockerCompose/psql.yml up -d
+docker-compose -f Docker/dockerCompose/psql.yml up -d
 ```
 
 ## User setup
