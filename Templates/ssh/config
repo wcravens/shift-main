@@ -5,7 +5,7 @@ Host 55
   User shiftpub
   HostName 155.246.104.55
 
-# 93-DE-ME-BC-WC (Testing)
+# 93-DE-ME-BC-WC (Offline)
 Host 93
   User shiftpub
   HostName 155.246.104.93
@@ -15,20 +15,20 @@ Host 31
   User shiftpub
   HostName 155.246.104.31
 
-# 29-DE-ME-BC-WC (Release)
+# 25-DE-ME-BC-WC (Competition)
+Host 25
+  User shiftpub
+  HostName 155.246.104.25
+
+# 29-DE-ME-BC-WC (Lecture)
 Host 29
   User shiftpub
   HostName 155.246.104.29
 
-# 26-DE-ME-BC-WC (Release)
+# 26-DE-ME-BC-WC (Lecture)
 Host 26
   User shiftpub
   HostName 155.246.104.26
-
-# 25-DE-ME-BC-WC (Release)
-Host 25
-  User shiftpub
-  HostName 155.246.104.25
 
 # 32-DE-ME-BC-WC (Research)
 Host 32
@@ -44,3 +44,13 @@ Host 45
 Host 60
   User shiftpub
   HostName 155.246.104.60
+
+# 28-DE-ME-BC-WC (Research)
+Host 28
+  User shiftpub
+  HostName 155.246.104.28
+
+# 46-DE-ME-BC-WC (Research)
+Host 46
+  User shiftpub
+  HostName 155.246.104.46
