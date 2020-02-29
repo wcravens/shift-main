@@ -6,12 +6,8 @@
  */
 #include "shift_service_constants.h"
 
-
-
 const shift_serviceConstants g_shift_service_constants;
 
-shift_serviceConstants::shift_serviceConstants() {
+shift_serviceConstants::shift_serviceConstants()
+{
 }
-
-
-

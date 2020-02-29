@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     hcconf.set_timeout(10min);
 
     web::json::value cred;
-    utility::ifstream_t infCred{ strJsonDir + "cred.json" };
+    utility::ifstream_t infCred { strJsonDir + "cred.json" };
     if (!infCred.good()) {
         cout << COLOR_ERROR "ERROR: "
              << "Cannot successfully access cred.json!" << NO_COLOR << endl;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
         return 2;
     }
 
-    shift::crypto::Decryptor dec{ cryptoKey };
+    shift::crypto::Decryptor dec { cryptoKey };
     infCred >> dec >> cred;
     infCred.close();
 

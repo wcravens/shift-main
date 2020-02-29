@@ -7,7 +7,7 @@
 #include <shift/miscutils/terminal/Common.h>
 
 UserClient::UserClient(const std::string& username)
-    : CoreClient{ username }
+    : CoreClient { username }
 {
 }
 

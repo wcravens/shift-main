@@ -10,9 +10,9 @@
  * @brief Constructor for a MyZMQ instance.
  */
 MyZMQ::MyZMQ()
-    : m_context{ 1 }
-    , m_otherall_socket{ m_context, ZMQ_PUSH }
-    , m_responder{ m_context, ZMQ_REP }
+    : m_context { 1 }
+    , m_otherall_socket { m_context, ZMQ_PUSH }
+    , m_responder { m_context, ZMQ_REP }
 {
     // http://api.zeromq.org/3-2:zmq-setsockopt
     // ZMQ_LINGER: Set linger period for socket shutdown

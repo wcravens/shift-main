@@ -1210,7 +1210,7 @@ void StockMarket::insertLocalAsk(Order newAsk)
     }
 }
 
-/* static */ std::atomic<bool> StockMarketList::s_isTimeout{ false };
+/* static */ std::atomic<bool> StockMarketList::s_isTimeout { false };
 
 /* static */ StockMarketList::stock_market_list_t& StockMarketList::getInstance()
 {

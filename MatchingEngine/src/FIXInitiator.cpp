@@ -273,7 +273,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
     FIX50SP2::News::NoLinesOfText* pTextGroup;
     FIX::Text* pText;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -360,7 +360,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     FIX::PartyID* pBuyerID;
     FIX::PartyID* pSellerID;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -405,7 +405,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
 
     long mili = TimeSetting::getInstance().pastMilli(pTransactTime->getValue());
 
-    Order order{ pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()), Order::Type::TRTH_TRADE, pBuyerID->getValue(), pTransactTime->getValue() };
+    Order order { pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()), Order::Type::TRTH_TRADE, pBuyerID->getValue(), pTransactTime->getValue() };
     order.setMilli(mili);
 
     if (ordType == 0) { // quote
@@ -417,7 +417,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         message.getGroup(2, *pIDGroup);
         pIDGroup->getField(*pSellerID);
 
-        Order order2{ pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), Order::Type::TRTH_ASK, pSellerID->getValue(), pTransactTime->getValue() };
+        Order order2 { pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), Order::Type::TRTH_ASK, pSellerID->getValue(), pTransactTime->getValue() };
         order2.setMilli(mili);
 
         stockMarketIt->second.bufNewGlobalOrder(std::move(order2));

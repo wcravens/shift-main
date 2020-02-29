@@ -4,19 +4,19 @@
 #include <sstream>
 
 shift::clock::Timestamp::Timestamp()
-    : m_sec{ time(nullptr) }
-    , m_usec{ 0 }
+    : m_sec { time(nullptr) }
+    , m_usec { 0 }
 {
 }
 
 shift::clock::Timestamp::Timestamp(const std::time_t& sec, int usec)
-    : m_sec{ sec }
-    , m_usec{ usec }
+    : m_sec { sec }
+    , m_usec { usec }
 {
 }
 
 shift::clock::Timestamp::Timestamp(const std::string& dateTime, const std::string& format)
-    : m_usec{ 0 }
+    : m_usec { 0 }
 {
     struct std::tm tm = { 0 };
     tm.tm_isdst = -1; // required for correct initialization

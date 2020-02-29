@@ -35,10 +35,10 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
         *   In this way it tends to more quickly detect the difference in each comparison.
         *  std::lexicographical_compare() lexicographically checks whether the 1st string is conceptually "less than" the 2nd one. */
         || std::lexicographical_compare(
-               currReutersTime.rbegin(), currReutersTime.rend(),
-               pLastRTime->rbegin(), pLastRTime->rend(),
-               // comparator: Conceptually(i.e. not arithmetically) "Less than"; a "Equivalent to" b == !(a "Less than" b) && !(b "Less than" a).
-               [](const std::string::value_type& lhs, const std::string::value_type& rhs) { return lhs != rhs; }) // currReutersTime "<" lastRTime ?
+            currReutersTime.rbegin(), currReutersTime.rend(),
+            pLastRTime->rbegin(), pLastRTime->rend(),
+            // comparator: Conceptually(i.e. not arithmetically) "Less than"; a "Equivalent to" b == !(a "Less than" b) && !(b "Less than" a).
+            [](const std::string::value_type& lhs, const std::string::value_type& rhs) { return lhs != rhs; }) // currReutersTime "<" lastRTime ?
     ) {
         *pLastRTime = currReutersTime;
         *pLastRTimeOrder = 1;
@@ -94,7 +94,7 @@ bool PSQL::connectDB()
 {
     std::string info = "hostaddr=" + m_loginInfo["DBHost"] + " port=" + m_loginInfo["DBPort"] + " dbname=" + m_loginInfo["DBName"] + " user=" + m_loginInfo["DBUser"] + " password=" + m_loginInfo["DBPassword"];
     const char* c = info.c_str();
-    auto lock{ lockPSQL() };
+    auto lock { lockPSQL() };
 
     m_pConn = PQconnectdb(c);
     if (PQstatus(m_pConn) != CONNECTION_OK) {
@@ -119,7 +119,7 @@ bool PSQL::isConnected() const
  */
 void PSQL::disconnectDB()
 {
-    auto lock{ lockPSQL() };
+    auto lock { lockPSQL() };
     if (nullptr == m_pConn)
         return;
 
@@ -150,7 +150,7 @@ bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusT
  */
 shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName)
 {
-    auto lock{ lockPSQL() };
+    auto lock { lockPSQL() };
     using TABLE_STATUS = shift::database::TABLE_STATUS;
 
     auto tableName = PSQL::s_createTableName(ric, s_reutersDateToYYYYMMDD(reutersDate));
@@ -190,7 +190,7 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
  */
 bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
 {
-    auto lock{ lockPSQL() };
+    auto lock { lockPSQL() };
     return doQuery("CREATE TABLE " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
 }
 
@@ -205,7 +205,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
 
     // to keep track ordering of reuters time so as to enable us create primary key (PK=(reuters_time, reuters_time_order))
     std::string lastRTime("N/A"); // **NOTE** : we assume that reuters time are always in increasing order in the CSV, otherwise the ordering algorithm here does NOT work!
-    int lastRTimeOrder{ 1 }; // initial value is always 1
+    int lastRTimeOrder { 1 }; // initial value is always 1
     bool hasAnyData = false;
 
     // skip csv's headline
@@ -363,7 +363,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
 
         pqQuery.back() = ';';
 
-        auto lock{ lockPSQL() };
+        auto lock { lockPSQL() };
         if (!doQuery(pqQuery, COLOR_ERROR "ERROR: Insert into [ " + tableName + " ] failed.\n" NO_COLOR)) {
             std::ofstream of("./PSQL_INSERT_ERROR_DUMP.txt");
             if (of.good())
@@ -389,7 +389,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
     const std::string stime = boost::posix_time::to_iso_extended_string(startTime).substr(11, 8);
     const std::string etime = boost::posix_time::to_iso_extended_string(endTime).substr(11, 8);
     const std::string table_name = s_createTableName(symbol, boost::posix_time::to_iso_string(startTime).substr(0, 8)); /*YYYYMMDD*/
-    auto lock{ lockPSQL() };
+    auto lock { lockPSQL() };
 
     if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
         return false;
@@ -441,7 +441,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 
     // next, save each record for each row into struct RawData and send to matching engine
     for (int i = 0, nt = PQntuples(pRes); i < nt; ++i) {
-        char* pCh{};
+        char* pCh {};
         using VAL_IDX = shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::VAL_IDX;
 
         rawData[i].secs = std::atol(PQgetvalue(pResTime, i, 0));

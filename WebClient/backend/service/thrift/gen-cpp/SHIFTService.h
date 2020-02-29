@@ -7,520 +7,548 @@
 #ifndef SHIFTService_H
 #define SHIFTService_H
 
+#include "shift_service_types.h"
 #include <thrift/TDispatchProcessor.h>
 #include <thrift/async/TConcurrentClientSyncInfo.h>
-#include "shift_service_types.h"
-
-
 
 #ifdef _MSC_VER
-  #pragma warning( push )
-  #pragma warning (disable : 4250 ) //inheriting methods via dominance 
+#pragma warning(push)
+#pragma warning(disable : 4250) //inheriting methods via dominance
 #endif
 
 class SHIFTServiceIf {
- public:
-  virtual ~SHIFTServiceIf() {}
-  virtual void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) = 0;
-  virtual void webClientSendUsername(const std::string& username) = 0;
-  virtual void webUserLogin(const std::string& username) = 0;
+public:
+    virtual ~SHIFTServiceIf() {}
+    virtual void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) = 0;
+    virtual void webClientSendUsername(const std::string& username) = 0;
+    virtual void webUserLogin(const std::string& username) = 0;
 };
 
 class SHIFTServiceIfFactory {
- public:
-  typedef SHIFTServiceIf Handler;
+public:
+    typedef SHIFTServiceIf Handler;
 
-  virtual ~SHIFTServiceIfFactory() {}
+    virtual ~SHIFTServiceIfFactory() {}
 
-  virtual SHIFTServiceIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) = 0;
-  virtual void releaseHandler(SHIFTServiceIf* /* handler */) = 0;
+    virtual SHIFTServiceIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) = 0;
+    virtual void releaseHandler(SHIFTServiceIf* /* handler */) = 0;
 };
 
 class SHIFTServiceIfSingletonFactory : virtual public SHIFTServiceIfFactory {
- public:
-  SHIFTServiceIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf>& iface) : iface_(iface) {}
-  virtual ~SHIFTServiceIfSingletonFactory() {}
+public:
+    SHIFTServiceIfSingletonFactory(const ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf>& iface)
+        : iface_(iface)
+    {
+    }
+    virtual ~SHIFTServiceIfSingletonFactory() {}
 
-  virtual SHIFTServiceIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
-    return iface_.get();
-  }
-  virtual void releaseHandler(SHIFTServiceIf* /* handler */) {}
+    virtual SHIFTServiceIf* getHandler(const ::apache::thrift::TConnectionInfo&)
+    {
+        return iface_.get();
+    }
+    virtual void releaseHandler(SHIFTServiceIf* /* handler */) {}
 
- protected:
-  ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface_;
+protected:
+    ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface_;
 };
 
 class SHIFTServiceNull : virtual public SHIFTServiceIf {
- public:
-  virtual ~SHIFTServiceNull() {}
-  void submitOrder(const std::string& /* username */, const std::string& /* orderType */, const std::string& /* orderSymbol */, const int32_t /* orderSize */, const double /* orderPrice */, const std::string& /* orderID */) {
-    return;
-  }
-  void webClientSendUsername(const std::string& /* username */) {
-    return;
-  }
-  void webUserLogin(const std::string& /* username */) {
-    return;
-  }
+public:
+    virtual ~SHIFTServiceNull() {}
+    void submitOrder(const std::string& /* username */, const std::string& /* orderType */, const std::string& /* orderSymbol */, const int32_t /* orderSize */, const double /* orderPrice */, const std::string& /* orderID */)
+    {
+        return;
+    }
+    void webClientSendUsername(const std::string& /* username */)
+    {
+        return;
+    }
+    void webUserLogin(const std::string& /* username */)
+    {
+        return;
+    }
 };
 
 typedef struct _SHIFTService_submitOrder_args__isset {
-  _SHIFTService_submitOrder_args__isset() : username(false), orderType(false), orderSymbol(false), orderSize(false), orderPrice(false), orderID(false) {}
-  bool username :1;
-  bool orderType :1;
-  bool orderSymbol :1;
-  bool orderSize :1;
-  bool orderPrice :1;
-  bool orderID :1;
+    _SHIFTService_submitOrder_args__isset()
+        : username(false)
+        , orderType(false)
+        , orderSymbol(false)
+        , orderSize(false)
+        , orderPrice(false)
+        , orderID(false)
+    {
+    }
+    bool username : 1;
+    bool orderType : 1;
+    bool orderSymbol : 1;
+    bool orderSize : 1;
+    bool orderPrice : 1;
+    bool orderID : 1;
 } _SHIFTService_submitOrder_args__isset;
 
 class SHIFTService_submitOrder_args {
- public:
+public:
+    SHIFTService_submitOrder_args(const SHIFTService_submitOrder_args&);
+    SHIFTService_submitOrder_args& operator=(const SHIFTService_submitOrder_args&);
+    SHIFTService_submitOrder_args()
+        : username()
+        , orderType()
+        , orderSymbol()
+        , orderSize(0)
+        , orderPrice(0)
+        , orderID()
+    {
+    }
 
-  SHIFTService_submitOrder_args(const SHIFTService_submitOrder_args&);
-  SHIFTService_submitOrder_args& operator=(const SHIFTService_submitOrder_args&);
-  SHIFTService_submitOrder_args() : username(), orderType(), orderSymbol(), orderSize(0), orderPrice(0), orderID() {
-  }
+    virtual ~SHIFTService_submitOrder_args() throw();
+    std::string username;
+    std::string orderType;
+    std::string orderSymbol;
+    int32_t orderSize;
+    double orderPrice;
+    std::string orderID;
 
-  virtual ~SHIFTService_submitOrder_args() throw();
-  std::string username;
-  std::string orderType;
-  std::string orderSymbol;
-  int32_t orderSize;
-  double orderPrice;
-  std::string orderID;
+    _SHIFTService_submitOrder_args__isset __isset;
 
-  _SHIFTService_submitOrder_args__isset __isset;
+    void __set_username(const std::string& val);
 
-  void __set_username(const std::string& val);
+    void __set_orderType(const std::string& val);
 
-  void __set_orderType(const std::string& val);
+    void __set_orderSymbol(const std::string& val);
 
-  void __set_orderSymbol(const std::string& val);
+    void __set_orderSize(const int32_t val);
 
-  void __set_orderSize(const int32_t val);
+    void __set_orderPrice(const double val);
 
-  void __set_orderPrice(const double val);
+    void __set_orderID(const std::string& val);
 
-  void __set_orderID(const std::string& val);
+    bool operator==(const SHIFTService_submitOrder_args& rhs) const
+    {
+        if (!(username == rhs.username))
+            return false;
+        if (!(orderType == rhs.orderType))
+            return false;
+        if (!(orderSymbol == rhs.orderSymbol))
+            return false;
+        if (!(orderSize == rhs.orderSize))
+            return false;
+        if (!(orderPrice == rhs.orderPrice))
+            return false;
+        if (!(orderID == rhs.orderID))
+            return false;
+        return true;
+    }
+    bool operator!=(const SHIFTService_submitOrder_args& rhs) const
+    {
+        return !(*this == rhs);
+    }
 
-  bool operator == (const SHIFTService_submitOrder_args & rhs) const
-  {
-    if (!(username == rhs.username))
-      return false;
-    if (!(orderType == rhs.orderType))
-      return false;
-    if (!(orderSymbol == rhs.orderSymbol))
-      return false;
-    if (!(orderSize == rhs.orderSize))
-      return false;
-    if (!(orderPrice == rhs.orderPrice))
-      return false;
-    if (!(orderID == rhs.orderID))
-      return false;
-    return true;
-  }
-  bool operator != (const SHIFTService_submitOrder_args &rhs) const {
-    return !(*this == rhs);
-  }
+    bool operator<(const SHIFTService_submitOrder_args&) const;
 
-  bool operator < (const SHIFTService_submitOrder_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
-
 
 class SHIFTService_submitOrder_pargs {
- public:
+public:
+    virtual ~SHIFTService_submitOrder_pargs() throw();
+    const std::string* username;
+    const std::string* orderType;
+    const std::string* orderSymbol;
+    const int32_t* orderSize;
+    const double* orderPrice;
+    const std::string* orderID;
 
-
-  virtual ~SHIFTService_submitOrder_pargs() throw();
-  const std::string* username;
-  const std::string* orderType;
-  const std::string* orderSymbol;
-  const int32_t* orderSize;
-  const double* orderPrice;
-  const std::string* orderID;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
-
 
 class SHIFTService_submitOrder_result {
- public:
+public:
+    SHIFTService_submitOrder_result(const SHIFTService_submitOrder_result&);
+    SHIFTService_submitOrder_result& operator=(const SHIFTService_submitOrder_result&);
+    SHIFTService_submitOrder_result()
+    {
+    }
 
-  SHIFTService_submitOrder_result(const SHIFTService_submitOrder_result&);
-  SHIFTService_submitOrder_result& operator=(const SHIFTService_submitOrder_result&);
-  SHIFTService_submitOrder_result() {
-  }
+    virtual ~SHIFTService_submitOrder_result() throw();
 
-  virtual ~SHIFTService_submitOrder_result() throw();
+    bool operator==(const SHIFTService_submitOrder_result& /* rhs */) const
+    {
+        return true;
+    }
+    bool operator!=(const SHIFTService_submitOrder_result& rhs) const
+    {
+        return !(*this == rhs);
+    }
 
-  bool operator == (const SHIFTService_submitOrder_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const SHIFTService_submitOrder_result &rhs) const {
-    return !(*this == rhs);
-  }
+    bool operator<(const SHIFTService_submitOrder_result&) const;
 
-  bool operator < (const SHIFTService_submitOrder_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
 
-
 class SHIFTService_submitOrder_presult {
- public:
+public:
+    virtual ~SHIFTService_submitOrder_presult() throw();
 
-
-  virtual ~SHIFTService_submitOrder_presult() throw();
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 };
 
 typedef struct _SHIFTService_webClientSendUsername_args__isset {
-  _SHIFTService_webClientSendUsername_args__isset() : username(false) {}
-  bool username :1;
+    _SHIFTService_webClientSendUsername_args__isset()
+        : username(false)
+    {
+    }
+    bool username : 1;
 } _SHIFTService_webClientSendUsername_args__isset;
 
 class SHIFTService_webClientSendUsername_args {
- public:
+public:
+    SHIFTService_webClientSendUsername_args(const SHIFTService_webClientSendUsername_args&);
+    SHIFTService_webClientSendUsername_args& operator=(const SHIFTService_webClientSendUsername_args&);
+    SHIFTService_webClientSendUsername_args()
+        : username()
+    {
+    }
 
-  SHIFTService_webClientSendUsername_args(const SHIFTService_webClientSendUsername_args&);
-  SHIFTService_webClientSendUsername_args& operator=(const SHIFTService_webClientSendUsername_args&);
-  SHIFTService_webClientSendUsername_args() : username() {
-  }
+    virtual ~SHIFTService_webClientSendUsername_args() throw();
+    std::string username;
 
-  virtual ~SHIFTService_webClientSendUsername_args() throw();
-  std::string username;
+    _SHIFTService_webClientSendUsername_args__isset __isset;
 
-  _SHIFTService_webClientSendUsername_args__isset __isset;
+    void __set_username(const std::string& val);
 
-  void __set_username(const std::string& val);
+    bool operator==(const SHIFTService_webClientSendUsername_args& rhs) const
+    {
+        if (!(username == rhs.username))
+            return false;
+        return true;
+    }
+    bool operator!=(const SHIFTService_webClientSendUsername_args& rhs) const
+    {
+        return !(*this == rhs);
+    }
 
-  bool operator == (const SHIFTService_webClientSendUsername_args & rhs) const
-  {
-    if (!(username == rhs.username))
-      return false;
-    return true;
-  }
-  bool operator != (const SHIFTService_webClientSendUsername_args &rhs) const {
-    return !(*this == rhs);
-  }
+    bool operator<(const SHIFTService_webClientSendUsername_args&) const;
 
-  bool operator < (const SHIFTService_webClientSendUsername_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
-
 
 class SHIFTService_webClientSendUsername_pargs {
- public:
+public:
+    virtual ~SHIFTService_webClientSendUsername_pargs() throw();
+    const std::string* username;
 
-
-  virtual ~SHIFTService_webClientSendUsername_pargs() throw();
-  const std::string* username;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
-
 
 class SHIFTService_webClientSendUsername_result {
- public:
+public:
+    SHIFTService_webClientSendUsername_result(const SHIFTService_webClientSendUsername_result&);
+    SHIFTService_webClientSendUsername_result& operator=(const SHIFTService_webClientSendUsername_result&);
+    SHIFTService_webClientSendUsername_result()
+    {
+    }
 
-  SHIFTService_webClientSendUsername_result(const SHIFTService_webClientSendUsername_result&);
-  SHIFTService_webClientSendUsername_result& operator=(const SHIFTService_webClientSendUsername_result&);
-  SHIFTService_webClientSendUsername_result() {
-  }
+    virtual ~SHIFTService_webClientSendUsername_result() throw();
 
-  virtual ~SHIFTService_webClientSendUsername_result() throw();
+    bool operator==(const SHIFTService_webClientSendUsername_result& /* rhs */) const
+    {
+        return true;
+    }
+    bool operator!=(const SHIFTService_webClientSendUsername_result& rhs) const
+    {
+        return !(*this == rhs);
+    }
 
-  bool operator == (const SHIFTService_webClientSendUsername_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const SHIFTService_webClientSendUsername_result &rhs) const {
-    return !(*this == rhs);
-  }
+    bool operator<(const SHIFTService_webClientSendUsername_result&) const;
 
-  bool operator < (const SHIFTService_webClientSendUsername_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
 
-
 class SHIFTService_webClientSendUsername_presult {
- public:
+public:
+    virtual ~SHIFTService_webClientSendUsername_presult() throw();
 
-
-  virtual ~SHIFTService_webClientSendUsername_presult() throw();
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 };
 
 typedef struct _SHIFTService_webUserLogin_args__isset {
-  _SHIFTService_webUserLogin_args__isset() : username(false) {}
-  bool username :1;
+    _SHIFTService_webUserLogin_args__isset()
+        : username(false)
+    {
+    }
+    bool username : 1;
 } _SHIFTService_webUserLogin_args__isset;
 
 class SHIFTService_webUserLogin_args {
- public:
+public:
+    SHIFTService_webUserLogin_args(const SHIFTService_webUserLogin_args&);
+    SHIFTService_webUserLogin_args& operator=(const SHIFTService_webUserLogin_args&);
+    SHIFTService_webUserLogin_args()
+        : username()
+    {
+    }
 
-  SHIFTService_webUserLogin_args(const SHIFTService_webUserLogin_args&);
-  SHIFTService_webUserLogin_args& operator=(const SHIFTService_webUserLogin_args&);
-  SHIFTService_webUserLogin_args() : username() {
-  }
+    virtual ~SHIFTService_webUserLogin_args() throw();
+    std::string username;
 
-  virtual ~SHIFTService_webUserLogin_args() throw();
-  std::string username;
+    _SHIFTService_webUserLogin_args__isset __isset;
 
-  _SHIFTService_webUserLogin_args__isset __isset;
+    void __set_username(const std::string& val);
 
-  void __set_username(const std::string& val);
+    bool operator==(const SHIFTService_webUserLogin_args& rhs) const
+    {
+        if (!(username == rhs.username))
+            return false;
+        return true;
+    }
+    bool operator!=(const SHIFTService_webUserLogin_args& rhs) const
+    {
+        return !(*this == rhs);
+    }
 
-  bool operator == (const SHIFTService_webUserLogin_args & rhs) const
-  {
-    if (!(username == rhs.username))
-      return false;
-    return true;
-  }
-  bool operator != (const SHIFTService_webUserLogin_args &rhs) const {
-    return !(*this == rhs);
-  }
+    bool operator<(const SHIFTService_webUserLogin_args&) const;
 
-  bool operator < (const SHIFTService_webUserLogin_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
-
 
 class SHIFTService_webUserLogin_pargs {
- public:
+public:
+    virtual ~SHIFTService_webUserLogin_pargs() throw();
+    const std::string* username;
 
-
-  virtual ~SHIFTService_webUserLogin_pargs() throw();
-  const std::string* username;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
-
 
 class SHIFTService_webUserLogin_result {
- public:
+public:
+    SHIFTService_webUserLogin_result(const SHIFTService_webUserLogin_result&);
+    SHIFTService_webUserLogin_result& operator=(const SHIFTService_webUserLogin_result&);
+    SHIFTService_webUserLogin_result()
+    {
+    }
 
-  SHIFTService_webUserLogin_result(const SHIFTService_webUserLogin_result&);
-  SHIFTService_webUserLogin_result& operator=(const SHIFTService_webUserLogin_result&);
-  SHIFTService_webUserLogin_result() {
-  }
+    virtual ~SHIFTService_webUserLogin_result() throw();
 
-  virtual ~SHIFTService_webUserLogin_result() throw();
+    bool operator==(const SHIFTService_webUserLogin_result& /* rhs */) const
+    {
+        return true;
+    }
+    bool operator!=(const SHIFTService_webUserLogin_result& rhs) const
+    {
+        return !(*this == rhs);
+    }
 
-  bool operator == (const SHIFTService_webUserLogin_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const SHIFTService_webUserLogin_result &rhs) const {
-    return !(*this == rhs);
-  }
+    bool operator<(const SHIFTService_webUserLogin_result&) const;
 
-  bool operator < (const SHIFTService_webUserLogin_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+    uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 };
 
-
 class SHIFTService_webUserLogin_presult {
- public:
+public:
+    virtual ~SHIFTService_webUserLogin_presult() throw();
 
-
-  virtual ~SHIFTService_webUserLogin_presult() throw();
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
+    uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 };
 
 class SHIFTServiceClient : virtual public SHIFTServiceIf {
- public:
-  SHIFTServiceClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
-    setProtocol(prot);
-  }
-  SHIFTServiceClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
-    setProtocol(iprot,oprot);
-  }
- private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
-  setProtocol(prot,prot);
-  }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
-    piprot_=iprot;
-    poprot_=oprot;
-    iprot_ = iprot.get();
-    oprot_ = oprot.get();
-  }
- public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
-    return piprot_;
-  }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
-    return poprot_;
-  }
-  void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
-  void send_submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
-  void recv_submitOrder();
-  void webClientSendUsername(const std::string& username);
-  void send_webClientSendUsername(const std::string& username);
-  void recv_webClientSendUsername();
-  void webUserLogin(const std::string& username);
-  void send_webUserLogin(const std::string& username);
-  void recv_webUserLogin();
- protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
-  ::apache::thrift::protocol::TProtocol* iprot_;
-  ::apache::thrift::protocol::TProtocol* oprot_;
+public:
+    SHIFTServiceClient(apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> prot)
+    {
+        setProtocol(prot);
+    }
+    SHIFTServiceClient(apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> oprot)
+    {
+        setProtocol(iprot, oprot);
+    }
+
+private:
+    void setProtocol(apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> prot)
+    {
+        setProtocol(prot, prot);
+    }
+    void setProtocol(apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> oprot)
+    {
+        piprot_ = iprot;
+        poprot_ = oprot;
+        iprot_ = iprot.get();
+        oprot_ = oprot.get();
+    }
+
+public:
+    apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> getInputProtocol()
+    {
+        return piprot_;
+    }
+    apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> getOutputProtocol()
+    {
+        return poprot_;
+    }
+    void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
+    void send_submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
+    void recv_submitOrder();
+    void webClientSendUsername(const std::string& username);
+    void send_webClientSendUsername(const std::string& username);
+    void recv_webClientSendUsername();
+    void webUserLogin(const std::string& username);
+    void send_webUserLogin(const std::string& username);
+    void recv_webUserLogin();
+
+protected:
+    apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> piprot_;
+    apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> poprot_;
+    ::apache::thrift::protocol::TProtocol* iprot_;
+    ::apache::thrift::protocol::TProtocol* oprot_;
 };
 
 class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
- protected:
-  ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface_;
-  virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
- private:
-  typedef  void (SHIFTServiceProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
-  typedef std::map<std::string, ProcessFunction> ProcessMap;
-  ProcessMap processMap_;
-  void process_submitOrder(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_webClientSendUsername(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_webUserLogin(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
- public:
-  SHIFTServiceProcessor(::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface) :
-    iface_(iface) {
-    processMap_["submitOrder"] = &SHIFTServiceProcessor::process_submitOrder;
-    processMap_["webClientSendUsername"] = &SHIFTServiceProcessor::process_webClientSendUsername;
-    processMap_["webUserLogin"] = &SHIFTServiceProcessor::process_webUserLogin;
-  }
+protected:
+    ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface_;
+    virtual bool dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext);
 
-  virtual ~SHIFTServiceProcessor() {}
+private:
+    typedef void (SHIFTServiceProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
+    typedef std::map<std::string, ProcessFunction> ProcessMap;
+    ProcessMap processMap_;
+    void process_submitOrder(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+    void process_webClientSendUsername(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+    void process_webUserLogin(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+
+public:
+    SHIFTServiceProcessor(::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface)
+        : iface_(iface)
+    {
+        processMap_["submitOrder"] = &SHIFTServiceProcessor::process_submitOrder;
+        processMap_["webClientSendUsername"] = &SHIFTServiceProcessor::process_webClientSendUsername;
+        processMap_["webUserLogin"] = &SHIFTServiceProcessor::process_webUserLogin;
+    }
+
+    virtual ~SHIFTServiceProcessor() {}
 };
 
 class SHIFTServiceProcessorFactory : public ::apache::thrift::TProcessorFactory {
- public:
-  SHIFTServiceProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr< SHIFTServiceIfFactory >& handlerFactory) :
-      handlerFactory_(handlerFactory) {}
+public:
+    SHIFTServiceProcessorFactory(const ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIfFactory>& handlerFactory)
+        : handlerFactory_(handlerFactory)
+    {
+    }
 
-  ::apache::thrift::stdcxx::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+    ::apache::thrift::stdcxx::shared_ptr<::apache::thrift::TProcessor> getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
 
- protected:
-  ::apache::thrift::stdcxx::shared_ptr< SHIFTServiceIfFactory > handlerFactory_;
+protected:
+    ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIfFactory> handlerFactory_;
 };
 
 class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
- public:
-  SHIFTServiceMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> >& ifaces) : ifaces_(ifaces) {
-  }
-  virtual ~SHIFTServiceMultiface() {}
- protected:
-  std::vector<apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> > ifaces_;
-  SHIFTServiceMultiface() {}
-  void add(::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface) {
-    ifaces_.push_back(iface);
-  }
- public:
-  void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->submitOrder(username, orderType, orderSymbol, orderSize, orderPrice, orderID);
+public:
+    SHIFTServiceMultiface(std::vector<apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf>>& ifaces)
+        : ifaces_(ifaces)
+    {
     }
-    ifaces_[i]->submitOrder(username, orderType, orderSymbol, orderSize, orderPrice, orderID);
-  }
+    virtual ~SHIFTServiceMultiface() {}
 
-  void webClientSendUsername(const std::string& username) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->webClientSendUsername(username);
+protected:
+    std::vector<apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf>> ifaces_;
+    SHIFTServiceMultiface() {}
+    void add(::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface)
+    {
+        ifaces_.push_back(iface);
     }
-    ifaces_[i]->webClientSendUsername(username);
-  }
 
-  void webUserLogin(const std::string& username) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->webUserLogin(username);
+public:
+    void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID)
+    {
+        size_t sz = ifaces_.size();
+        size_t i = 0;
+        for (; i < (sz - 1); ++i) {
+            ifaces_[i]->submitOrder(username, orderType, orderSymbol, orderSize, orderPrice, orderID);
+        }
+        ifaces_[i]->submitOrder(username, orderType, orderSymbol, orderSize, orderPrice, orderID);
     }
-    ifaces_[i]->webUserLogin(username);
-  }
 
+    void webClientSendUsername(const std::string& username)
+    {
+        size_t sz = ifaces_.size();
+        size_t i = 0;
+        for (; i < (sz - 1); ++i) {
+            ifaces_[i]->webClientSendUsername(username);
+        }
+        ifaces_[i]->webClientSendUsername(username);
+    }
+
+    void webUserLogin(const std::string& username)
+    {
+        size_t sz = ifaces_.size();
+        size_t i = 0;
+        for (; i < (sz - 1); ++i) {
+            ifaces_[i]->webUserLogin(username);
+        }
+        ifaces_[i]->webUserLogin(username);
+    }
 };
 
 // The 'concurrent' client is a thread safe client that correctly handles
 // out of order responses.  It is slower than the regular client, so should
 // only be used when you need to share a connection among multiple threads
 class SHIFTServiceConcurrentClient : virtual public SHIFTServiceIf {
- public:
-  SHIFTServiceConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
-    setProtocol(prot);
-  }
-  SHIFTServiceConcurrentClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
-    setProtocol(iprot,oprot);
-  }
- private:
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
-  setProtocol(prot,prot);
-  }
-  void setProtocol(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {
-    piprot_=iprot;
-    poprot_=oprot;
-    iprot_ = iprot.get();
-    oprot_ = oprot.get();
-  }
- public:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {
-    return piprot_;
-  }
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
-    return poprot_;
-  }
-  void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
-  int32_t send_submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
-  void recv_submitOrder(const int32_t seqid);
-  void webClientSendUsername(const std::string& username);
-  int32_t send_webClientSendUsername(const std::string& username);
-  void recv_webClientSendUsername(const int32_t seqid);
-  void webUserLogin(const std::string& username);
-  int32_t send_webUserLogin(const std::string& username);
-  void recv_webUserLogin(const int32_t seqid);
- protected:
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
-  apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
-  ::apache::thrift::protocol::TProtocol* iprot_;
-  ::apache::thrift::protocol::TProtocol* oprot_;
-  ::apache::thrift::async::TConcurrentClientSyncInfo sync_;
+public:
+    SHIFTServiceConcurrentClient(apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> prot)
+    {
+        setProtocol(prot);
+    }
+    SHIFTServiceConcurrentClient(apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> oprot)
+    {
+        setProtocol(iprot, oprot);
+    }
+
+private:
+    void setProtocol(apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> prot)
+    {
+        setProtocol(prot, prot);
+    }
+    void setProtocol(apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> iprot, apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> oprot)
+    {
+        piprot_ = iprot;
+        poprot_ = oprot;
+        iprot_ = iprot.get();
+        oprot_ = oprot.get();
+    }
+
+public:
+    apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> getInputProtocol()
+    {
+        return piprot_;
+    }
+    apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> getOutputProtocol()
+    {
+        return poprot_;
+    }
+    void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
+    int32_t send_submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID);
+    void recv_submitOrder(const int32_t seqid);
+    void webClientSendUsername(const std::string& username);
+    int32_t send_webClientSendUsername(const std::string& username);
+    void recv_webClientSendUsername(const int32_t seqid);
+    void webUserLogin(const std::string& username);
+    int32_t send_webUserLogin(const std::string& username);
+    void recv_webUserLogin(const int32_t seqid);
+
+protected:
+    apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> piprot_;
+    apache::thrift::stdcxx::shared_ptr<::apache::thrift::protocol::TProtocol> poprot_;
+    ::apache::thrift::protocol::TProtocol* iprot_;
+    ::apache::thrift::protocol::TProtocol* oprot_;
+    ::apache::thrift::async::TConcurrentClientSyncInfo sync_;
 };
 
 #ifdef _MSC_VER
-  #pragma warning( pop )
+#pragma warning(pop)
 #endif
-
-
 
 #endif

@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 //-------------------------------------------------------------------------------------------
 
-/* static */ std::atomic<bool> BCDocuments::s_isSecurityListReady{ false };
+/* static */ std::atomic<bool> BCDocuments::s_isSecurityListReady { false };
 
 /*static*/ BCDocuments* BCDocuments::getInstance()
 {
@@ -246,7 +246,7 @@ std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator BCDoc
 
     auto& rmPtr = res.first->second;
 
-    auto lock{ DBConnector::getInstance()->lockPSQL() };
+    auto lock { DBConnector::getInstance()->lockPSQL() };
 
     const auto summary = shift::database::readFieldsOfRow(DBConnector::getInstance()->getConn(),
         "SELECT buying_power, holding_balance, borrowed_balance, total_pl, total_shares\n"

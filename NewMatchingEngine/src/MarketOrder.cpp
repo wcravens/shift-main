@@ -13,8 +13,8 @@ MarketOrder::MarketOrder(bool isGlobal, std::string orderID, std::string brokerI
     std::string destination, std::unique_ptr<Instrument> instrument, Order::SIDE side, double orderQuantity,
     boost::posix_time::ptime time)
     : Order(isGlobal, std::move(orderID), std::move(brokerID), std::move(traderID),
-          std::move(destination), std::move(instrument), side, orderQuantity,
-          std::move(time))
+        std::move(destination), std::move(instrument), side, orderQuantity,
+        std::move(time))
 {
 }
 

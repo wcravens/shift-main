@@ -380,7 +380,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     FIX50SP2::NewOrderSingle::NoPartyIDs* pIDGroup;
     FIX::PartyID* pTraderID;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -417,7 +417,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     long milli = TimeSetting::getInstance().pastMilli();
     FIX::UtcTimeStamp now = TimeSetting::getInstance().simulationTimestamp();
 
-    Order order{ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), static_cast<Order::Type>(pOrderType->getValue()), now };
+    Order order { pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), static_cast<Order::Type>(pOrderType->getValue()), now };
     order.setMilli(milli);
 
     // add new quote to buffer

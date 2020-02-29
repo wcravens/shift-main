@@ -615,7 +615,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::MarketDataRequest& message, const FI
     FIX50SP2::MarketDataRequest::NoRelatedSym* pRelatedSymGroup;
     FIX::Symbol* pSymbol;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -673,7 +673,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::RFQRequest& message, const FIX::Sess
     FIX50SP2::MarketDataRequest::NoRelatedSym* pRelatedSymGroup;
     FIX::Symbol* pSymbol;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -739,7 +739,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     FIX50SP2::NewOrderSingle::NoPartyIDs* pOrderIDGroup;
     FIX::PartyID* pOrderUserID;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -821,10 +821,10 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
         + "\n\tSuccess: " + (success ? "True" : "False") + '\n');
 
     if (success) {
-        Order order{ type, symbol, size, price, id, userID };
+        Order order { type, symbol, size, price, id, userID };
         BCDocuments::getInstance()->onNewOrderForUserRiskManagement(userID, std::move(order));
     } else {
-        ExecutionReport report{
+        ExecutionReport report {
             userID,
             id,
             type,

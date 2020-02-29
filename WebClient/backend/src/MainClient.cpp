@@ -11,10 +11,10 @@
 
 using namespace std::chrono_literals;
 
-/* static */ std::atomic<bool> MainClient::s_isTimeout{ false };
+/* static */ std::atomic<bool> MainClient::s_isTimeout { false };
 
 MainClient::MainClient(const std::string& username)
-    : CoreClient{ username }
+    : CoreClient { username }
 {
 }
 

@@ -11,6 +11,3 @@
 
 #include <thrift/TToString.h>
 
-
-
-

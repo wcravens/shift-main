@@ -4,8 +4,8 @@
 #include "SHIFTService.h"
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/server/TSimpleServer.h>
-#include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TBufferTransports.h>
+#include <thrift/transport/TServerSocket.h>
 
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
@@ -13,38 +13,41 @@ using namespace ::apache::thrift::transport;
 using namespace ::apache::thrift::server;
 
 class SHIFTServiceHandler : virtual public SHIFTServiceIf {
- public:
-  SHIFTServiceHandler() {
-    // Your initialization goes here
-  }
+public:
+    SHIFTServiceHandler()
+    {
+        // Your initialization goes here
+    }
 
-  void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) {
-    // Your implementation goes here
-    printf("submitOrder\n");
-  }
+    void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID)
+    {
+        // Your implementation goes here
+        printf("submitOrder\n");
+    }
 
-  void webClientSendUsername(const std::string& username) {
-    // Your implementation goes here
-    printf("webClientSendUsername\n");
-  }
+    void webClientSendUsername(const std::string& username)
+    {
+        // Your implementation goes here
+        printf("webClientSendUsername\n");
+    }
 
-  void webUserLogin(const std::string& username) {
-    // Your implementation goes here
-    printf("webUserLogin\n");
-  }
-
+    void webUserLogin(const std::string& username)
+    {
+        // Your implementation goes here
+        printf("webUserLogin\n");
+    }
 };
 
-int main(int argc, char **argv) {
-  int port = 9090;
-  ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceHandler> handler(new SHIFTServiceHandler());
-  ::apache::thrift::stdcxx::shared_ptr<TProcessor> processor(new SHIFTServiceProcessor(handler));
-  ::apache::thrift::stdcxx::shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
-  ::apache::thrift::stdcxx::shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
-  ::apache::thrift::stdcxx::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
+int main(int argc, char** argv)
+{
+    int port = 9090;
+    ::apache::thrift::stdcxx::shared_ptr<SHIFTServiceHandler> handler(new SHIFTServiceHandler());
+    ::apache::thrift::stdcxx::shared_ptr<TProcessor> processor(new SHIFTServiceProcessor(handler));
+    ::apache::thrift::stdcxx::shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
+    ::apache::thrift::stdcxx::shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
+    ::apache::thrift::stdcxx::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
 
-  TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
-  server.serve();
-  return 0;
+    TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
+    server.serve();
+    return 0;
 }
-

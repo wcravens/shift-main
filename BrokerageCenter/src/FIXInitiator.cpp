@@ -245,7 +245,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
     FIX::MDEntryTime* pSimulationTime;
     FIX::MDMkt* pDestination;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -284,7 +284,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
         pEntryGroup->getField(*pSimulationTime);
         pEntryGroup->getField(*pDestination);
 
-        OrderBookEntry entry{
+        OrderBookEntry entry {
             static_cast<OrderBookEntry::Type>(pBookType->getValue()),
             pSymbol->getValue(),
             pPrice->getValue(),
@@ -368,7 +368,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     FIX::MDEntryTime* pSimulationTime;
     FIX::MDMkt* pDestination;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -404,7 +404,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
     pEntryGroup->getField(*pSimulationTime);
     pEntryGroup->getField(*pDestination);
 
-    OrderBookEntry entry{
+    OrderBookEntry entry {
         static_cast<OrderBookEntry::Type>(pBookType->getValue()),
         pSymbol->getValue(),
         pPrice->getValue(),
@@ -475,7 +475,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
         FIX::PartyID* pUserID;
 
-        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        static std::atomic<unsigned int> s_cntAtom { 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -533,7 +533,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
              << pConfirmTime->getString() << "\t"
              << pServerTime->getString() << endl;
 
-        ExecutionReport report{
+        ExecutionReport report {
             pUserID->getValue(),
             pOrderID->getValue(),
             static_cast<Order::Type>(pOrderType->getValue()),
@@ -616,7 +616,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         FIX::TrdRegTimestamp* pUTCTime1;
         FIX::TrdRegTimestamp* pUTCTime2;
 
-        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        static std::atomic<unsigned int> s_cntAtom { 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -698,7 +698,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
         };
 
         if (pStatus->getValue() != FIX::OrdStatus_REPLACED) { // == '5', means this is a trade update from TRTH -> no need to store it
-            TradingRecord record{
+            TradingRecord record {
                 pServerTime->getValue(),
                 pExecTime->getValue(),
                 pSymbol->getValue(),
@@ -736,7 +736,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
                 printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 
-                ExecutionReport report1{
+                ExecutionReport report1 {
                     pUserID1->getValue(),
                     pOrderID1->getValue(),
                     static_cast<Order::Type>(pOrderType1->getValue()),
@@ -750,7 +750,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     pServerTime->getValue()
                 };
 
-                ExecutionReport report2{
+                ExecutionReport report2 {
                     pUserID2->getValue(),
                     pOrderID2->getValue(),
                     static_cast<Order::Type>(pOrderType2->getValue()),
@@ -776,7 +776,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
             printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
 
-            ExecutionReport report2{
+            ExecutionReport report2 {
                 pUserID2->getValue(),
                 pOrderID2->getValue(),
                 static_cast<Order::Type>(pOrderType2->getValue()),

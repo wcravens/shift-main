@@ -30,7 +30,7 @@
 #endif
 
 CandlestickData::CandlestickData()
-    : CandlestickData("", .0, .0, .0, .0, .0, std::time_t{})
+    : CandlestickData("", .0, .0, .0, .0, .0, std::time_t {})
 {
 }
 
@@ -66,7 +66,7 @@ void CandlestickData::sendHistory(std::string targetID)
         std::lock_guard<std::mutex> guard(m_mtxHistory);
         histCopy = m_history;
     }
-    const std::vector<std::string> targetList{ std::move(targetID) };
+    const std::vector<std::string> targetList { std::move(targetID) };
 
     for (const auto& i : histCopy) {
         FIXAcceptor::getInstance()->sendCandlestickData(targetList, i.second);
@@ -132,7 +132,7 @@ void CandlestickData::process()
 
         const auto currSimulTime = transac.simulationTime.getTimeT(); // simulTime in nano-seconds => in seconds; == tick history start timepoint + elapsed simulation duration; see MatchingEngine/src/TimeSetting.cpp for the details.
 
-        if (std::time_t{} == m_lastOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup state ?
+        if (std::time_t {} == m_lastOpenTime || m_symbol.empty()) { // is Candlestick Data not yet initialized to valid startup state ?
             m_symbol = std::move(transac.symbol);
 
             m_lastOpenPrice

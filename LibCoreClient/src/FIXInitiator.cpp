@@ -103,7 +103,7 @@ bool shift::FIXInitiator::connectBrokerageCenter(const std::string& configFile, 
 
     m_superUsername = client->getUsername();
 
-    std::istringstream iss{ password };
+    std::istringstream iss { password };
     shift::crypto::Encryptor enc;
     iss >> enc >> m_superUserPsw;
 
@@ -651,7 +651,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::Advertisement& message, cons
         FIX::TransactTime* pSimulationTime;
         FIX::LastMkt* pDestination;
 
-        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        static std::atomic<unsigned int> s_cntAtom { 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -737,7 +737,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefres
     FIX::MDEntryTime* pSimulationTime;
     FIX::MDMkt* pDestination;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -840,7 +840,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     FIX::MDEntryTime* pSimulationTime;
     FIX::MDMkt* pDestination;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -879,7 +879,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh
     std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
     if (pPrice->getValue() > 0.0) {
-        OrderBookEntry entry{
+        OrderBookEntry entry {
             pPrice->getValue(),
             static_cast<int>(pSize->getValue()),
             pDestination->getValue(),
@@ -927,7 +927,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::SecurityStatus& message, con
     FIX::FirstPx* pOpenPrice;
     FIX::TransactTime* pTimestamp;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -1022,7 +1022,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, co
     FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
     FIX::PartyID* pUserID;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -1114,7 +1114,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         FIX::LongQty* pLongSize;
         FIX::ShortQty* pShortSize;
 
-        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        static std::atomic<unsigned int> s_cntAtom { 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -1210,7 +1210,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::PositionReport& message, con
         FIX50SP2::PositionReport::NoPosAmt* pTotalBuyingPowerGroup;
         FIX::PosAmt* pTotalBuyingPower;
 
-        static std::atomic<unsigned int> s_cntAtom{ 0 };
+        static std::atomic<unsigned int> s_cntAtom { 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
         while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -1302,7 +1302,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
     FIX::OrderQty2* pExecutedSize;
     FIX::PositionEffect* pStatus;
 
-    static std::atomic<unsigned int> s_cntAtom{ 0 };
+    static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
     while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
@@ -1361,7 +1361,7 @@ void shift::FIXInitiator::onMessage(const FIX50SP2::NewOrderList& message, const
 
             std::string symbol = m_originalName_symbol[pOriginalName->getValue()];
 
-            shift::Order order{
+            shift::Order order {
                 static_cast<shift::Order::Type>(pOrderType->getValue()),
                 symbol,
                 sizeInt,

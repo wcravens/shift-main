@@ -100,7 +100,7 @@ void OrderBook::onUnsubscribeOrderBook(const std::string& targetID)
 void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
 {
     FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
-    const std::vector<std::string> targetList{ targetID };
+    const std::vector<std::string> targetList { targetID };
 
     std::lock_guard<std::mutex> guard_B(m_mtxGlobalBidOrderBook);
     std::lock_guard<std::mutex> guard_A(m_mtxGlobalAskOrderBook);

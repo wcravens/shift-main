@@ -45,7 +45,7 @@ namespace po = boost::program_options;
 /* 'using' is the same as 'typedef' */
 using voh_t = shift::terminal::VerboseOptHelper;
 
-static std::atomic<bool> s_isRequestingData{ true };
+static std::atomic<bool> s_isRequestingData { true };
 
 /*
  * @brief Function to request data chunks in the background.
@@ -275,10 +275,10 @@ int main(int ac, char* av[])
     if ((homeDir = getenv("HOME")) == nullptr) {
         homeDir = getpwuid(getuid())->pw_dir;
     }
-    std::string servicePath{ homeDir };
+    std::string servicePath { homeDir };
     servicePath += "/.shift/MatchingEngine";
-    boost::filesystem::create_directories(boost::filesystem::path{ servicePath });
-    std::ofstream doneSignal{ servicePath + "/done" };
+    boost::filesystem::create_directories(boost::filesystem::path { servicePath });
+    std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
 
     // running in background
@@ -288,7 +288,7 @@ int main(int ac, char* av[])
              << COLOR_PROMPT "Timer begins ( " << params.timer.minutes << " mins )..." NO_COLOR << '\n'
              << endl;
 
-        voh_t{ cout, params.isVerbose, true };
+        voh_t { cout, params.isVerbose, true };
         std::this_thread::sleep_for(params.timer.minutes * 1min);
     } else {
         std::async(std::launch::async // no delay
@@ -299,7 +299,7 @@ int main(int ac, char* av[])
                     cout << '\n'
                          << COLOR_PROMPT "The MatchingEngine is running. (Enter 'T' to stop)" NO_COLOR << '\n'
                          << endl;
-                    voh_t{ cout, params.isVerbose, true };
+                    voh_t { cout, params.isVerbose, true };
 
                     char cmd = cin.get(); // wait
                     cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs

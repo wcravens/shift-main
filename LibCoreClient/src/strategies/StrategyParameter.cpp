@@ -186,7 +186,7 @@ namespace strategies {
         if (isBool())
             return m_b;
         else
-            throw new StrategyParameter::Invalid{};
+            throw new StrategyParameter::Invalid {};
     }
 
     StrategyParameter::operator char() const
@@ -194,7 +194,7 @@ namespace strategies {
         if (isChar())
             return m_c;
         else
-            throw new StrategyParameter::Invalid{};
+            throw new StrategyParameter::Invalid {};
     }
 
     StrategyParameter::operator double() const
@@ -204,7 +204,7 @@ namespace strategies {
         else if (isInt())
             return m_i;
         else
-            throw new StrategyParameter::Invalid{};
+            throw new StrategyParameter::Invalid {};
     }
 
     StrategyParameter::operator int() const
@@ -212,7 +212,7 @@ namespace strategies {
         if (isInt())
             return m_i;
         else
-            throw new StrategyParameter::Invalid{};
+            throw new StrategyParameter::Invalid {};
     }
 
     StrategyParameter::operator std::string() const
@@ -220,7 +220,7 @@ namespace strategies {
         if (isString())
             return m_s;
         else
-            throw new StrategyParameter::Invalid{};
+            throw new StrategyParameter::Invalid {};
     }
 
     //--------------------------------------------------------------------------
@@ -238,7 +238,7 @@ namespace strategies {
         } else if (sp.isString()) {
             return os << sp.m_s;
         } else {
-            throw new StrategyParameter::Invalid{};
+            throw new StrategyParameter::Invalid {};
         }
     }
 

@@ -202,7 +202,7 @@ namespace crossguid {
 
     // create empty guid
     Guid::Guid()
-        : _bytes{ { 0 } }
+        : _bytes { { 0 } }
     {
     }
 

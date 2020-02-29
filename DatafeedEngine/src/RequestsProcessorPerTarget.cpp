@@ -179,7 +179,7 @@ void RequestsProcessorPerTarget::processRequests()
 
     for (auto idx : requestedSymbolsIndexes) {
         // here relies on the stability of the memory location that proms[idx] locates at!
-        TRTHRequest trthReq{ symbols[idx], marketReq.getDate(), &proms[idx] };
+        TRTHRequest trthReq { symbols[idx], marketReq.getDate(), &proms[idx] };
         TRTHAPI::getInstance()->enqueueRequest(std::move(trthReq));
     }
 

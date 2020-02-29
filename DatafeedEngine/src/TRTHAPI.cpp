@@ -69,7 +69,7 @@ static auto operator>>(utility::ifstream_t&& istrm, _Sink&& s) -> decltype(istrm
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*static*/ TRTHAPI* TRTHAPI::s_pInst = nullptr;
-/*static*/ std::atomic<bool> TRTHAPI::s_bTRTHLoginJsonExists{ false };
+/*static*/ std::atomic<bool> TRTHAPI::s_bTRTHLoginJsonExists { false };
 
 TRTHAPI::TRTHAPI(const std::string& cryptoKey, const std::string& configDir)
     : m_key(cryptoKey)
@@ -276,7 +276,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     hcconf.set_timeout(15min);
 
     web::json::value jCred;
-    utility::ifstream_t{ m_cfgDir + CSTR_TRTHLOGIN_JSN } >> shift::crypto::Decryptor{ m_key } >> jCred;
+    utility::ifstream_t { m_cfgDir + CSTR_TRTHLOGIN_JSN } >> shift::crypto::Decryptor { m_key } >> jCred;
 
     // base HTTP client for upcomming request
     web::http::client::http_client client("https://hosted.datascopeapi.reuters.com/RestApi/v1", hcconf);
@@ -300,7 +300,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
 
     // cout << "Extract extractRaw.json..." << endl;
     web::json::value jExtr;
-    utility::ifstream_t{ m_cfgDir + CSTR_EXTRACTRAW_JSN } >> jExtr;
+    utility::ifstream_t { m_cfgDir + CSTR_EXTRACTRAW_JSN } >> jExtr;
 
     const std::string startTime = "00:00:00.000000000Z";
     const std::string endTime = "23:59:59.999999999Z";
@@ -333,7 +333,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     req.headers().add(web::http::header_names::connection, U("keep-alive"));
     req.set_body(jExtr);
 
-    auto extrJobID = utility::string_t{};
+    auto extrJobID = utility::string_t {};
     try {
         web::http::http_response extrReqResp;
         shift::terminal::dots_awaiter([&extrReqResp, &client, &req] { extrReqResp = client.request(req).get(); });
@@ -376,7 +376,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
 
     Concurrency::streams::fstream::open_ostream(gzipName, std::ios::binary)
         .then([&gzipStrm](Concurrency::streams::ostream os) {
-            size_t nread{};
+            size_t nread {};
             shift::terminal::dots_awaiter([&nread, &gzipStrm, &os] { nread = gzipStrm.read_to_end(os.streambuf()).get(); });
             cout << " - Size: " << nread << endl;
             os.flush();
@@ -395,7 +395,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
 
     std::remove(gzipName.c_str());
 
-    if (std::ifstream{ csvName }.peek() == std::ifstream::traits_type::eof()) { // empty CSV file ?
+    if (std::ifstream { csvName }.peek() == std::ifstream::traits_type::eof()) { // empty CSV file ?
         cout << COLOR_WARNING "WARNING: No data for this RIC!" << NO_COLOR << endl;
         std::remove(csvName.c_str());
         return 1; // e.g. RIC does not exist in TRTH

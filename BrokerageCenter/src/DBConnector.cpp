@@ -128,7 +128,7 @@ bool DBConnector::insertTradingRecord(const TradingRecord& trade)
               << trade.decision << "','"
               << trade.destination << "');";
 
-    auto lock{ lockPSQL() };
+    auto lock { lockPSQL() };
     if (!doQuery(queryStrm.str(), COLOR_ERROR "ERROR: Insert into [" + std::string(shift::database::PSQLTable<shift::database::TradingRecords>::name) + "] failed with query:\n" NO_COLOR)) {
         cout << COLOR_WARNING << queryStrm.str() << NO_COLOR << '\n'
              << endl;

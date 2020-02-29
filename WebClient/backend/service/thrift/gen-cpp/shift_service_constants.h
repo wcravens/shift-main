@@ -9,16 +9,11 @@
 
 #include "shift_service_types.h"
 
-
-
 class shift_serviceConstants {
- public:
-  shift_serviceConstants();
-
+public:
+    shift_serviceConstants();
 };
 
 extern const shift_serviceConstants g_shift_service_constants;
-
-
 
 #endif
