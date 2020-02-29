@@ -140,7 +140,7 @@ void RiskManagement::processOrder()
             insertPortfolioItem(orderPtr->getSymbol(), orderPtr->getSymbol());
 
             if (!DBConnector::s_isPortfolioDBReadOnly) {
-                auto lock{ DBConnector::getInstance()->lockPSQL() };
+                auto lock { DBConnector::getInstance()->lockPSQL() };
                 DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ('" + m_userID + "','" + orderPtr->getSymbol() + "');", "");
             }
         }
@@ -270,7 +270,7 @@ void RiskManagement::processExecRpt()
                         item.addShortPrice(price, sellShares);
                         item.addShortShares(sellShares);
                     } else {
-                        if (sellShares < m_pendingAskOrders[reportPtr->orderID].second) { // if enought shares were previously reserved
+                        if (sellShares < m_pendingAskOrders[reportPtr->orderID].second) { // if enough shares were previously reserved
                             inc = (price - item.getLongPrice()) * sellShares; // (NP - OP) * NS
 
                             // update buying power for selling shares
@@ -367,7 +367,7 @@ void RiskManagement::processExecRpt()
             }
             if (!DBConnector::s_isPortfolioDBReadOnly && wasPortfolioSent) {
                 const auto& item = m_portfolioItems[reportPtr->orderSymbol];
-                auto lock{ DBConnector::getInstance()->lockPSQL() };
+                auto lock { DBConnector::getInstance()->lockPSQL() };
 
                 DBConnector::getInstance()->doQuery(
                     "UPDATE portfolio_items" // presume that we have got the user's uuid already in it
@@ -498,7 +498,7 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
     if (success) {
         s_sendOrderToME(order);
     } else {
-        ExecutionReport report{
+        ExecutionReport report {
             m_userID,
             order.getID(),
             order.getType(),
