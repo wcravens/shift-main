@@ -107,7 +107,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 ### Build Configuration #######################################################
 
 find_package(Boost REQUIRED
-             COMPONENTS date_time filesystem program_options)
+             COMPONENTS date_time program_options)
 
 find_package(Threads REQUIRED)
 
@@ -141,6 +141,11 @@ target_link_libraries(${PROJECT_NAME}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${QUICKFIX}
                       ${LIBMISCUTILS})
+
+# Required when linking <experimental/filesystem> using GCC
+if(UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} stdc++fs)
+endif(UNIX AND NOT APPLE)
 
 ### Install Configuration #####################################################
 

@@ -1,12 +1,12 @@
 #include "MainClient.h"
 #include "SHIFTServiceHandler.h"
 
+#include <experimental/filesystem>
 #include <future>
 #include <thread>
 
 #include <pwd.h>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <shift/coreclient/FIXInitiator.h>
@@ -166,7 +166,7 @@ int main(int ac, char* av[])
     }
     std::string servicePath { homeDir };
     servicePath += "/.shift/WebClient";
-    boost::filesystem::create_directories(boost::filesystem::path { servicePath });
+    std::experimental::filesystem::create_directories(servicePath);
     std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
 

@@ -190,7 +190,7 @@ mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERS
 #######################################
 
 find_package(Boost REQUIRED
-             COMPONENTS filesystem program_options)
+             COMPONENTS program_options)
 
 find_package(Threads REQUIRED)
 
@@ -239,6 +239,11 @@ target_link_libraries(${PROJECT_NAME}
                       ${ZEROMQ}
                       ${LIBCORECLIENT}
                       ${LIBMISCUTILS})
+
+# Required when linking <experimental/filesystem> using GCC
+if(UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} stdc++fs)
+endif(UNIX AND NOT APPLE)
 
 if(APPLE)
     find_library(CFLIB CoreFoundation)

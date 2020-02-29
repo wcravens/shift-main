@@ -5,10 +5,10 @@
 
 #include <algorithm>
 #include <atomic>
+#include <experimental/filesystem>
 
 #include <pwd.h>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <shift/miscutils/crypto/Encryptor.h>
@@ -310,7 +310,7 @@ int main(int ac, char* av[])
     }
     std::string servicePath { homeDir };
     servicePath += "/.shift/BrokerageCenter";
-    boost::filesystem::create_directories(boost::filesystem::path { servicePath });
+    std::experimental::filesystem::create_directories(servicePath);
     std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
 

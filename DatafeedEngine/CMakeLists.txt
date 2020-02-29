@@ -103,7 +103,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 ### Build Configuration #######################################################
 
 find_package(Boost REQUIRED
-             COMPONENTS chrono date_time filesystem program_options thread)
+             COMPONENTS chrono date_time program_options thread)
 
 find_package(OpenSSL REQUIRED)
 
@@ -152,6 +152,11 @@ target_link_libraries(${PROJECT_NAME}
                       ${CPPREST}
                       ${QUICKFIX}
                       ${LIBMISCUTILS})
+
+# Required when linking <experimental/filesystem> using GCC
+if(UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} stdc++fs)
+endif(UNIX AND NOT APPLE)
 
 ### Install Configuration #####################################################
 
