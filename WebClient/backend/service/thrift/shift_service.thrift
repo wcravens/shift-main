@@ -16,5 +16,6 @@ service SHIFTService{
     string getThisLeaderboard(1:string startDate = "", 2:string endDate = ""),
     string getThisLeaderboardByDay(1:i32 contestDay)
 
+    i32 getAllTraders()
 }
 

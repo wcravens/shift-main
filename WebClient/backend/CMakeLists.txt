@@ -75,7 +75,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 if(UNIX AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
+    include_directories(/usr/include/postgresql)
 endif(UNIX AND NOT APPLE)
 
 # GCC (Raspbian Buster for Raspberry Pi 4)
@@ -278,7 +279,7 @@ else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE __linux__)
 endif()
 
-### Install Configuration ######################################################
+### Install Configuration #####################################################
 
 # If no installation path is set, the default is /usr/local
 if(NOT CMAKE_INSTALL_PREFIX)
