@@ -20,14 +20,15 @@ MainClient::MainClient(const std::string& username)
 
 void MainClient::sendDBLoginToFront(const std::string& cryptoKey, const std::string& fileName)
 {
+    //TODO: Currently enforces strict psql format
     auto login = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
     std::ostringstream out;
     out << "{\"category\": \"loginCredentials\", \"data\":"
         << "{\"data\": "
         << "\" <?php"
-        << "    $db_config['dsn'] = '" << login["host"] << ";dbname=" << login["dbname"] << "';"
-        << "    $db_config['user'] = '" << login["user"] << "';"
-        << "    $db_config['pass'] = '" << login["pass"] << "';\""
+        << "    $db_config['dsn'] = 'pgsql:host=" << login["DBHost"] << ";dbname=" << login["DBName"] << "';"
+        << "    $db_config['user'] = '" << login["DBUser"] << "';"
+        << "    $db_config['pass'] = '" << login["DBPassword"] << "';\""
         << "} }";
 
     MyZMQ::getInstance()->send(out.str());
