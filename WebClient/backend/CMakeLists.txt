@@ -19,6 +19,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/MyZMQ.h
     ${PROJECT_SOURCE_DIR}/include/SHIFTServiceHandler.h
     ${PROJECT_SOURCE_DIR}/include/UserClient.h
+    ${PROJECT_SOURCE_DIR}/include/DBConnector.h
 )
 
 set(SERVICE
@@ -29,8 +30,14 @@ set(SERVICE
     # ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService_server.skeleton.cpp
     ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService.cpp
     ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService.h
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/Types.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTServiceClient.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTServiceIf.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_getAllTraders_args.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_submitOrder_args.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_submitOrder_result.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_webClientSendUsername_args.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_webUserLogin_args.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_webUserLogin_result.php
     ${PROJECT_SOURCE_DIR}/service/thrift/shift_service.thrift
 )
 
@@ -40,6 +47,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/MyZMQ.cpp
     ${PROJECT_SOURCE_DIR}/src/SHIFTServiceHandler.cpp
     ${PROJECT_SOURCE_DIR}/src/UserClient.cpp
+    ${PROJECT_SOURCE_DIR}/src/DBConnector.cpp
 )
 
 set(OTHER
@@ -191,12 +199,15 @@ mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERS
 find_package(Boost REQUIRED
              COMPONENTS program_options)
 
+find_package(PostgreSQL REQUIRED)
+
 find_package(Threads REQUIRED)
 
 find_library(ZEROMQ zmq)
 if(NOT ZEROMQ)
     message(FATAL_ERROR "ZeroMQ was not found.")
 endif(NOT ZEROMQ)
+
 
 # Always enforce search for SHIFT LibCoreClient
 # (necessary when using the same name for Debug and Release)
@@ -232,6 +243,7 @@ target_include_directories(${PROJECT_NAME}
                            PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(${PROJECT_NAME}
+                      ${PostgreSQL_LIBRARIES}
                       ${THRIFT_LIBRARIES}
                       ${Boost_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
