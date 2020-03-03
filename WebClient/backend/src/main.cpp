@@ -1,4 +1,5 @@
 #include "MainClient.h"
+#include "DBConnector.h"
 #include "SHIFTServiceHandler.h"
 
 #if __has_include(<filesystem>)
@@ -31,6 +32,10 @@ using namespace std::chrono_literals;
     "timeout"
 #define CSTR_VERBOSE \
     "verbose"
+#define CSTR_DBLOGIN_TXT \
+    "dbLogin.txt"
+#define CSTR_PFDBREADONLY \
+    "readonlyportfolio"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -123,6 +128,25 @@ int main(int ac, char* av[])
         }
     }
 
+    DBConnector::s_isPortfolioDBReadOnly = vm.count(CSTR_PFDBREADONLY) > 0;
+
+    DBConnector::getInstance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+
+    if (!DBConnector::getInstance()->connectDB()) {
+        cout.clear();
+        cout << COLOR_ERROR "DB ERROR: Failed to connect database." NO_COLOR << endl;
+        cout << "\tRetry ('Y') connection to database ? : ";
+        voh_t { cout, params.isVerbose, true };
+
+        char cmd = cin.get();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
+        if ('Y' != cmd && 'y' != cmd)
+            return 5;
+    } else {
+        cout << "DB connection OK.\n"
+                << endl;
+    }
+
     MainClient* pMClient = new MainClient("webclient");
 
     pMClient->setVerbose(params.isVerbose);
@@ -177,7 +201,7 @@ int main(int ac, char* av[])
 #endif
     std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
-
+    
     // running in background
     if (params.timer.isSet) {
         cout.clear();
@@ -192,6 +216,7 @@ int main(int ac, char* av[])
             ,
             [&params] {
                 while (true) {
+
                     cout.clear();
                     cout << '\n'
                          << COLOR_PROMPT "The WebClient is running. (Enter 'T' to stop)" NO_COLOR << '\n'

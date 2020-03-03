@@ -8,6 +8,8 @@
 #include <shift/coreclient/FIXInitiator.h>
 #include <shift/coreclient/Order.h>
 
+#include "DBConnector.h"
+
 /**
  * @brief Method for submitting orders to BC.
  */
@@ -21,6 +23,12 @@ void SHIFTServiceHandler::submitOrder(const std::string& username, const std::st
     shift::CoreClient* ccptr = shift::FIXInitiator::getInstance().getClient(username);
     if (ccptr)
         ccptr->submitOrder(order);
+}
+
+int SHIFTServiceHandler::getAllTraders(){
+    this->incrementor += 1;
+    std::cout << "Hello from shift!" << std::endl;
+    return this->incrementor;
 }
 
 /**
