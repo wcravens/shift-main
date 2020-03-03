@@ -104,6 +104,12 @@ void SHIFTServiceHandler::submitOrder(const std::string& username, const std::st
         ccptr->submitOrder(order);
 }
 
+int SHIFTServiceHandler::getAllTraders(){
+    this->incrementor += 1;
+    std::cout << "Hello from shift!" << std::endl;
+    return this->incrementor;
+}
+
 /**
  * @brief Method for sending a list of all active traders, and their properties
  * @param _return Thrift default param that all thrift service functions have in their virtual void funcs
