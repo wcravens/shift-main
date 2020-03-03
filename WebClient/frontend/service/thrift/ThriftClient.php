@@ -9,7 +9,7 @@ $GEN_DIR = getenv('SITE_ROOT').'/service/thrift/gen-php';
 
 $loader = new ThriftClassLoader();
 $loader->registerNamespace('Thrift', getenv('SITE_ROOT').'/service/thrift/lib');
-$loader->registerDefinition('client', $GEN_DIR);
+$loader->registerNamespace('client', $GEN_DIR);
 $loader->register();
 
 
