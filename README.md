@@ -56,10 +56,11 @@ Additional instructions for each platform may be included at the end of each sec
 | libxml2               | `libxml2-dev`               | *pre-installed*                                     |                               |
 | PostgreSQL            | `postgresql-server-dev-all` | `postgresql` **\***                                 |                               |
 | UUID                  | `uuid-dev`                  | *pre-installed*                                     |                               | 
-| nlohmann/json**\*\***         | `see Manual`                | `brew tap nlohmann/json; brew install nlohmann-json`| `https://github.com/nlohman.json`             |
+| `nlohmann/json`**\*\***         | `see Manual`                | `brew tap nlohmann/json; brew install nlohmann-json`| `https://github.com/nlohman.json`             |
 
 **\*** This macOS formula installs both PostgreSQL and its libraries.
-**\*\*** Brew has a formula for this library, follow the instructions below to install the json library
+
+**\*\*** Brew has a formula for this library, follow the instructions below to install the json library.
 
 ## Installing nlohmann/json
 
