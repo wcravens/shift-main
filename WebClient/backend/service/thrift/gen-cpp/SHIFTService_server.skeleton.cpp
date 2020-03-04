@@ -33,7 +33,7 @@ class SHIFTServiceHandler : virtual public SHIFTServiceIf {
     printf("webUserLogin\n");
   }
 
-  int32_t getAllTraders() {
+  void getAllTraders(std::string& _return) {
     // Your implementation goes here
     printf("getAllTraders\n");
   }

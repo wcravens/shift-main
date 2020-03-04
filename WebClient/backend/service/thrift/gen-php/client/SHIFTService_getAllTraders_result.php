@@ -24,12 +24,12 @@ class SHIFTService_getAllTraders_result
         0 => array(
             'var' => 'success',
             'isRequired' => false,
-            'type' => TType::I32,
+            'type' => TType::STRING,
         ),
     );
 
     /**
-     * @var int
+     * @var string
      */
     public $success = null;
 
@@ -62,8 +62,8 @@ class SHIFTService_getAllTraders_result
             }
             switch ($fid) {
                 case 0:
-                    if ($ftype == TType::I32) {
-                        $xfer += $input->readI32($this->success);
+                    if ($ftype == TType::STRING) {
+                        $xfer += $input->readString($this->success);
                     } else {
                         $xfer += $input->skip($ftype);
                     }
@@ -83,8 +83,8 @@ class SHIFTService_getAllTraders_result
         $xfer = 0;
         $xfer += $output->writeStructBegin('SHIFTService_getAllTraders_result');
         if ($this->success !== null) {
-            $xfer += $output->writeFieldBegin('success', TType::I32, 0);
-            $xfer += $output->writeI32($this->success);
+            $xfer += $output->writeFieldBegin('success', TType::STRING, 0);
+            $xfer += $output->writeString($this->success);
             $xfer += $output->writeFieldEnd();
         }
         $xfer += $output->writeFieldStop();

@@ -24,7 +24,7 @@ class SHIFTServiceIf {
   virtual void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) = 0;
   virtual void webClientSendUsername(const std::string& username) = 0;
   virtual void webUserLogin(const std::string& username) = 0;
-  virtual int32_t getAllTraders() = 0;
+  virtual void getAllTraders(std::string& _return) = 0;
 };
 
 class SHIFTServiceIfFactory {
@@ -63,9 +63,8 @@ class SHIFTServiceNull : virtual public SHIFTServiceIf {
   void webUserLogin(const std::string& /* username */) {
     return;
   }
-  int32_t getAllTraders() {
-    int32_t _return = 0;
-    return _return;
+  void getAllTraders(std::string& /* _return */) {
+    return;
   }
 };
 
@@ -409,15 +408,15 @@ class SHIFTService_getAllTraders_result {
 
   SHIFTService_getAllTraders_result(const SHIFTService_getAllTraders_result&);
   SHIFTService_getAllTraders_result& operator=(const SHIFTService_getAllTraders_result&);
-  SHIFTService_getAllTraders_result() : success(0) {
+  SHIFTService_getAllTraders_result() : success() {
   }
 
   virtual ~SHIFTService_getAllTraders_result() throw();
-  int32_t success;
+  std::string success;
 
   _SHIFTService_getAllTraders_result__isset __isset;
 
-  void __set_success(const int32_t val);
+  void __set_success(const std::string& val);
 
   bool operator == (const SHIFTService_getAllTraders_result & rhs) const
   {
@@ -446,7 +445,7 @@ class SHIFTService_getAllTraders_presult {
 
 
   virtual ~SHIFTService_getAllTraders_presult() throw();
-  int32_t* success;
+  std::string* success;
 
   _SHIFTService_getAllTraders_presult__isset __isset;
 
@@ -488,9 +487,9 @@ class SHIFTServiceClient : virtual public SHIFTServiceIf {
   void webUserLogin(const std::string& username);
   void send_webUserLogin(const std::string& username);
   void recv_webUserLogin();
-  int32_t getAllTraders();
+  void getAllTraders(std::string& _return);
   void send_getAllTraders();
-  int32_t recv_getAllTraders();
+  void recv_getAllTraders(std::string& _return);
  protected:
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -572,13 +571,14 @@ class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
     ifaces_[i]->webUserLogin(username);
   }
 
-  int32_t getAllTraders() {
+  void getAllTraders(std::string& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->getAllTraders();
+      ifaces_[i]->getAllTraders(_return);
     }
-    return ifaces_[i]->getAllTraders();
+    ifaces_[i]->getAllTraders(_return);
+    return;
   }
 
 };
@@ -620,9 +620,9 @@ class SHIFTServiceConcurrentClient : virtual public SHIFTServiceIf {
   void webUserLogin(const std::string& username);
   int32_t send_webUserLogin(const std::string& username);
   void recv_webUserLogin(const int32_t seqid);
-  int32_t getAllTraders();
+  void getAllTraders(std::string& _return);
   int32_t send_getAllTraders();
-  int32_t recv_getAllTraders(const int32_t seqid);
+  void recv_getAllTraders(std::string& _return, const int32_t seqid);
  protected:
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;

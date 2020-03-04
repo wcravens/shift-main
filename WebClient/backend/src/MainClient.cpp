@@ -20,7 +20,8 @@ MainClient::MainClient(const std::string& username)
 
 void MainClient::sendDBLoginToFront(const std::string& cryptoKey, const std::string& fileName)
 {
-    //TODO: Currently enforces strict psql format
+    //TODO: Currently enforces strict psql format.. this should be a bit more dynamic somehow.
+    //The only reason it's like this is because the front-end currently depends on dbLogin.txt too
     auto login = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
     std::ostringstream out;
     out << "{\"category\": \"loginCredentials\", \"data\":"

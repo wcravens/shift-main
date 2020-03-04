@@ -201,7 +201,11 @@ mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERS
 find_package(Boost REQUIRED
              COMPONENTS program_options)
 
+#DB
 find_package(PostgreSQL REQUIRED)
+
+#Pass data to connecting thrift clients
+find_package(nlohmann_json 3.2.0 REQUIRED)
 
 find_package(Threads REQUIRED)
 
@@ -251,7 +255,8 @@ target_link_libraries(${PROJECT_NAME}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${ZEROMQ}
                       ${LIBCORECLIENT}
-                      ${LIBMISCUTILS})
+                      ${LIBMISCUTILS}
+                      nlohmann_json::nlohmann_json)
 
 # Required when linking <experimental/filesystem> using GCC
 if(UNIX AND NOT APPLE)
