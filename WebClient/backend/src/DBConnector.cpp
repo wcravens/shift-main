@@ -10,6 +10,7 @@
 //----------------------------------------------------------------------------------------------------------------
 
 /*static*/ bool DBConnector::s_isPortfolioDBReadOnly = false;
+/*static*/ bool DBConnector::b_hasConnected = false;
 /*static*/ const std::string DBConnector::s_sessionID = shift::crossguid::newGuid().str();
 
 DBConnector::DBConnector()
@@ -64,11 +65,10 @@ bool DBConnector::connectDB()
     }
     else {
         cout << "CONNECTION IS A-OK" << endl;
+        DBConnector::b_hasConnected = true;
     }
 
-    return shift::database::checkCreateTable<shift::database::TradingRecords>(m_pConn)
-        && shift::database::checkCreateTable<shift::database::PortfolioSummary>(m_pConn)
-        && shift::database::checkCreateTable<shift::database::PortfolioItem>(m_pConn);
+    return DBConnector::b_hasConnected;
 }
 
 /**
@@ -83,9 +83,22 @@ void DBConnector::disconnectDB()
     m_pConn = nullptr;
 }
 
+/**
+ * @brief: Used to issue queries. IE: CREATE, BEGIN ,SELECT etc.
+ * @param pConn: psql connection
+ * @param query: string query
+ * @param msgIfStatMismatch: string, to print if the query failed
+ * @param statToMatch: psql status condition expected.
+ *        @NOTE: If you want to execute a result that returns tuples, use the flag PGRES_TUPLES_OK
+ * @param ppRes: double pointer to the target PGresult object. call like (&pRes)
+ */
 bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
 {
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
+}
+
+std::vector<std::string> DBConnector::readRowsOfField(std::string query, int fieldIndex /*= 0*/){
+    return shift::database::readRowsOfField(m_pConn, std::move(query), fieldIndex);
 }
 
 /**

@@ -36,7 +36,7 @@ interface SHIFTServiceIf
      */
     public function webUserLogin($username);
     /**
-     * @return int
+     * @return string
      */
     public function getAllTraders();
 }

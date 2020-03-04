@@ -8,6 +8,6 @@ service SHIFTService{
     
     void webUserLogin(1:string username),
 
-    i32 getAllTraders()
+    string getAllTraders()
 }
 

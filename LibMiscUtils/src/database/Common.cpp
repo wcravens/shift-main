@@ -7,6 +7,15 @@
 namespace shift {
 namespace database {
 
+    /**
+     * @brief: Used to issue queries. IE: CREATE, BEGIN ,SELECT etc.
+     * @param pConn: psql connection
+     * @param query: string query
+     * @param msgIfStatMismatch: string, to print if the query failed
+     * @param statToMatch: psql status condition expected.
+     *        @NOTE: If you want to execute a result that returns tuples, use the flag PGRES_TUPLES_OK
+     * @param ppRes: double pointer to the target PGresult object. call like (&pRes)
+     */
     bool doQuery(PGconn* const pConn, const std::string query, const std::string msgIfStatMismatch, const ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
     {
         bool isMatch = true;
@@ -56,6 +65,17 @@ namespace database {
         return TABLE_STATUS::OTHER_ERROR;
     }
 
+    /**
+     * Used to retrieve all field entries in every row.
+     * EX:
+     *  readRowsOfField(...,...,1) of the following table:
+     * |row1|row2|row3|
+     *  A    B    C
+     *  D    E    F
+     *  G    H    I
+     * 
+     * Will return: [B,E,H]
+     */
     std::vector<std::string> readRowsOfField(PGconn* const pConn, const std::string& query, int fieldIndex /*= 0*/)
     {
         std::vector<std::string> vs;
@@ -72,6 +92,17 @@ namespace database {
         return vs;
     }
 
+    /**
+     * Used to retrieve all entries of a single row.
+     * EX:
+     *  readRowsOfField(...,...,2,1) of the following table:
+     * |row1|row2|row3|
+     *  A    B    C
+     *  D    E    F
+     *  G    H    I
+     * 
+     * Will return: [G,H]
+     */
     std::vector<std::string> readFieldsOfRow(PGconn* const pConn, const std::string& query, int numFields, int rowIndex /*= 0*/)
     {
         std::vector<std::string> vs;

@@ -641,8 +641,8 @@ uint32_t SHIFTService_getAllTraders_result::read(::apache::thrift::protocol::TPr
     switch (fid)
     {
       case 0:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->success);
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->success);
           this->__isset.success = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -667,8 +667,8 @@ uint32_t SHIFTService_getAllTraders_result::write(::apache::thrift::protocol::TP
   xfer += oprot->writeStructBegin("SHIFTService_getAllTraders_result");
 
   if (this->__isset.success) {
-    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_I32, 0);
-    xfer += oprot->writeI32(this->success);
+    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRING, 0);
+    xfer += oprot->writeString(this->success);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -703,8 +703,8 @@ uint32_t SHIFTService_getAllTraders_presult::read(::apache::thrift::protocol::TP
     switch (fid)
     {
       case 0:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32((*(this->success)));
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString((*(this->success)));
           this->__isset.success = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -886,10 +886,10 @@ void SHIFTServiceClient::recv_webUserLogin()
   return;
 }
 
-int32_t SHIFTServiceClient::getAllTraders()
+void SHIFTServiceClient::getAllTraders(std::string& _return)
 {
   send_getAllTraders();
-  return recv_getAllTraders();
+  recv_getAllTraders(_return);
 }
 
 void SHIFTServiceClient::send_getAllTraders()
@@ -905,7 +905,7 @@ void SHIFTServiceClient::send_getAllTraders()
   oprot_->getTransport()->flush();
 }
 
-int32_t SHIFTServiceClient::recv_getAllTraders()
+void SHIFTServiceClient::recv_getAllTraders(std::string& _return)
 {
 
   int32_t rseqid = 0;
@@ -930,7 +930,6 @@ int32_t SHIFTServiceClient::recv_getAllTraders()
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  int32_t _return;
   SHIFTService_getAllTraders_presult result;
   result.success = &_return;
   result.read(iprot_);
@@ -938,7 +937,8 @@ int32_t SHIFTServiceClient::recv_getAllTraders()
   iprot_->getTransport()->readEnd();
 
   if (result.__isset.success) {
-    return _return;
+    // _return pointer has now been filled
+    return;
   }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getAllTraders failed: unknown result");
 }
@@ -1144,7 +1144,7 @@ void SHIFTServiceProcessor::process_getAllTraders(int32_t seqid, ::apache::thrif
 
   SHIFTService_getAllTraders_result result;
   try {
-    result.success = iface_->getAllTraders();
+    iface_->getAllTraders(result.success);
     result.__isset.success = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
@@ -1421,10 +1421,10 @@ void SHIFTServiceConcurrentClient::recv_webUserLogin(const int32_t seqid)
   } // end while(true)
 }
 
-int32_t SHIFTServiceConcurrentClient::getAllTraders()
+void SHIFTServiceConcurrentClient::getAllTraders(std::string& _return)
 {
   int32_t seqid = send_getAllTraders();
-  return recv_getAllTraders(seqid);
+  recv_getAllTraders(_return, seqid);
 }
 
 int32_t SHIFTServiceConcurrentClient::send_getAllTraders()
@@ -1444,7 +1444,7 @@ int32_t SHIFTServiceConcurrentClient::send_getAllTraders()
   return cseqid;
 }
 
-int32_t SHIFTServiceConcurrentClient::recv_getAllTraders(const int32_t seqid)
+void SHIFTServiceConcurrentClient::recv_getAllTraders(std::string& _return, const int32_t seqid)
 {
 
   int32_t rseqid = 0;
@@ -1482,7 +1482,6 @@ int32_t SHIFTServiceConcurrentClient::recv_getAllTraders(const int32_t seqid)
         using ::apache::thrift::protocol::TProtocolException;
         throw TProtocolException(TProtocolException::INVALID_DATA);
       }
-      int32_t _return;
       SHIFTService_getAllTraders_presult result;
       result.success = &_return;
       result.read(iprot_);
@@ -1490,8 +1489,9 @@ int32_t SHIFTServiceConcurrentClient::recv_getAllTraders(const int32_t seqid)
       iprot_->getTransport()->readEnd();
 
       if (result.__isset.success) {
+        // _return pointer has now been filled
         sentry.commit();
-        return _return;
+        return;
       }
       // in a bad state, don't commit
       throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getAllTraders failed: unknown result");
