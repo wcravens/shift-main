@@ -104,10 +104,38 @@ void SHIFTServiceHandler::submitOrder(const std::string& username, const std::st
         ccptr->submitOrder(order);
 }
 
-int SHIFTServiceHandler::getAllTraders(){
-    this->incrementor += 1;
+/**
+ * @brief Method for sending a list of all active traders, and their properties
+ * @param _return Thrift default param that all thrift service functions have in their virtual void funcs
+ */
+void SHIFTServiceHandler::getAllTraders(std::string& _return){ //NOTE: Thrift modules deposit the result in this _return value param, for more complicated data structs
+    //Probably make this last param some kind of default value..?
+
+    PGresult* pRes;
+    if(DBConnector::getInstance()->doQuery("SELECT id, username, email, role, super from traders", "FAILED QUERY\n", PGRES_TUPLES_OK, &pRes)){
+        std::cout << "RESULTS OBTAINED" << std::endl;
+    }
+    else{
+        std::cout << "COULD NOT GET??" << std::endl;
+    }
+
     std::cout << "Hello from shift!" << std::endl;
-    return this->incrementor;
+    if(DBConnector::b_hasConnected){
+        std::cout << "DB has been initialized and is connected!" << std::endl;
+    }
+    else {
+        std::cout << "Oh no...." << std::endl;
+    }
+
+    json j;
+    j = parsePresult(pRes);
+    auto s = j.dump(4);
+
+    _return = s;
+
+    std::cout << "returned... " << s << std::endl;
+    //practice proper hygiene ^.^
+    PQclear(pRes);
 }
 
 /**
