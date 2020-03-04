@@ -65,10 +65,11 @@ Additional instructions for each platform may be included at the end of each sec
 ## Installing nlohmann/json
 
 # Ubuntu
+
     - Choose a locaton to keep the nlohmann/json source files, and then:
 
     ```
-    git clone https://github.com/nlohman.json
+    git clone https://github.com/nlohman.json;
     cd json;
     mkdir build;
     cd build;
@@ -76,10 +77,10 @@ Additional instructions for each platform may be included at the end of each sec
     make;
     make install;
     ```
+
 ---
 
 ## Required Tools
-| ------------------- |
 | Tool              | Ubuntu [pkg]                    | macOS [formula]     | 
 | ----------------- | ------------------------------- | ------------------- |
 | CMake             | `cmake`                         | `cmake`             |
