@@ -20,5 +20,8 @@ namespace database {
     /*static*/ constexpr char PSQLTable<PortfolioItem>::sc_colsDefinition[];
     /*static*/ const char* PSQLTable<PortfolioItem>::name = "portfolio_items";
 
+    /*static*/ constexpr char PSQLTable<Leaderboard>::sc_colsDefinition[];
+    /*static*/ const char* PSQLTable<Leaderboard>::name = "leaderboard";
+
 } // database
 } // shift
