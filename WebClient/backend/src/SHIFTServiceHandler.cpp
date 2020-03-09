@@ -112,6 +112,7 @@ void SHIFTServiceHandler::getAllTraders(std::string& _return){ //NOTE: Thrift mo
     //Probably make this last param some kind of default value..?
 
     PGresult* pRes;
+
     if(DBConnector::getInstance()->doQuery("SELECT id, username, email, role, super from traders", "FAILED QUERY\n", PGRES_TUPLES_OK, &pRes)){
         std::cout << "RESULTS OBTAINED" << std::endl;
     }
