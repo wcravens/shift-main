@@ -25,6 +25,7 @@ class SHIFTServiceIf {
   virtual void webClientSendUsername(const std::string& username) = 0;
   virtual void webUserLogin(const std::string& username) = 0;
   virtual void getAllTraders(std::string& _return) = 0;
+  virtual void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate) = 0;
 };
 
 class SHIFTServiceIfFactory {
@@ -64,6 +65,9 @@ class SHIFTServiceNull : virtual public SHIFTServiceIf {
     return;
   }
   void getAllTraders(std::string& /* _return */) {
+    return;
+  }
+  void getThisLeaderboard(std::string& /* _return */, const std::string& /* startDate */, const std::string& /* endDate */) {
     return;
   }
 };
@@ -453,6 +457,117 @@ class SHIFTService_getAllTraders_presult {
 
 };
 
+typedef struct _SHIFTService_getThisLeaderboard_args__isset {
+  _SHIFTService_getThisLeaderboard_args__isset() : startDate(true), endDate(true) {}
+  bool startDate :1;
+  bool endDate :1;
+} _SHIFTService_getThisLeaderboard_args__isset;
+
+class SHIFTService_getThisLeaderboard_args {
+ public:
+
+  SHIFTService_getThisLeaderboard_args(const SHIFTService_getThisLeaderboard_args&);
+  SHIFTService_getThisLeaderboard_args& operator=(const SHIFTService_getThisLeaderboard_args&);
+  SHIFTService_getThisLeaderboard_args() : startDate(""), endDate("") {
+  }
+
+  virtual ~SHIFTService_getThisLeaderboard_args() throw();
+  std::string startDate;
+  std::string endDate;
+
+  _SHIFTService_getThisLeaderboard_args__isset __isset;
+
+  void __set_startDate(const std::string& val);
+
+  void __set_endDate(const std::string& val);
+
+  bool operator == (const SHIFTService_getThisLeaderboard_args & rhs) const
+  {
+    if (!(startDate == rhs.startDate))
+      return false;
+    if (!(endDate == rhs.endDate))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_getThisLeaderboard_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_getThisLeaderboard_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class SHIFTService_getThisLeaderboard_pargs {
+ public:
+
+
+  virtual ~SHIFTService_getThisLeaderboard_pargs() throw();
+  const std::string* startDate;
+  const std::string* endDate;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_getThisLeaderboard_result__isset {
+  _SHIFTService_getThisLeaderboard_result__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_getThisLeaderboard_result__isset;
+
+class SHIFTService_getThisLeaderboard_result {
+ public:
+
+  SHIFTService_getThisLeaderboard_result(const SHIFTService_getThisLeaderboard_result&);
+  SHIFTService_getThisLeaderboard_result& operator=(const SHIFTService_getThisLeaderboard_result&);
+  SHIFTService_getThisLeaderboard_result() : success() {
+  }
+
+  virtual ~SHIFTService_getThisLeaderboard_result() throw();
+  std::string success;
+
+  _SHIFTService_getThisLeaderboard_result__isset __isset;
+
+  void __set_success(const std::string& val);
+
+  bool operator == (const SHIFTService_getThisLeaderboard_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_getThisLeaderboard_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_getThisLeaderboard_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_getThisLeaderboard_presult__isset {
+  _SHIFTService_getThisLeaderboard_presult__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_getThisLeaderboard_presult__isset;
+
+class SHIFTService_getThisLeaderboard_presult {
+ public:
+
+
+  virtual ~SHIFTService_getThisLeaderboard_presult() throw();
+  std::string* success;
+
+  _SHIFTService_getThisLeaderboard_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class SHIFTServiceClient : virtual public SHIFTServiceIf {
  public:
   SHIFTServiceClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
@@ -490,6 +605,9 @@ class SHIFTServiceClient : virtual public SHIFTServiceIf {
   void getAllTraders(std::string& _return);
   void send_getAllTraders();
   void recv_getAllTraders(std::string& _return);
+  void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate);
+  void send_getThisLeaderboard(const std::string& startDate, const std::string& endDate);
+  void recv_getThisLeaderboard(std::string& _return);
  protected:
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -509,6 +627,7 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_webClientSendUsername(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_webUserLogin(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getAllTraders(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getThisLeaderboard(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   SHIFTServiceProcessor(::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface) :
     iface_(iface) {
@@ -516,6 +635,7 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["webClientSendUsername"] = &SHIFTServiceProcessor::process_webClientSendUsername;
     processMap_["webUserLogin"] = &SHIFTServiceProcessor::process_webUserLogin;
     processMap_["getAllTraders"] = &SHIFTServiceProcessor::process_getAllTraders;
+    processMap_["getThisLeaderboard"] = &SHIFTServiceProcessor::process_getThisLeaderboard;
   }
 
   virtual ~SHIFTServiceProcessor() {}
@@ -581,6 +701,16 @@ class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
     return;
   }
 
+  void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getThisLeaderboard(_return, startDate, endDate);
+    }
+    ifaces_[i]->getThisLeaderboard(_return, startDate, endDate);
+    return;
+  }
+
 };
 
 // The 'concurrent' client is a thread safe client that correctly handles
@@ -623,6 +753,9 @@ class SHIFTServiceConcurrentClient : virtual public SHIFTServiceIf {
   void getAllTraders(std::string& _return);
   int32_t send_getAllTraders();
   void recv_getAllTraders(std::string& _return, const int32_t seqid);
+  void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate);
+  int32_t send_getThisLeaderboard(const std::string& startDate, const std::string& endDate);
+  void recv_getThisLeaderboard(std::string& _return, const int32_t seqid);
  protected:
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;

@@ -16,13 +16,18 @@ use Thrift\Protocol\TProtocol;
 use Thrift\Protocol\TBinaryProtocolAccelerated;
 use Thrift\Exception\TApplicationException;
 
-class SHIFTService_getAllTraders_result
+class SHIFTService_getThisLeaderboard_args
 {
     static public $isValidate = false;
 
     static public $_TSPEC = array(
-        0 => array(
-            'var' => 'success',
+        1 => array(
+            'var' => 'startDate',
+            'isRequired' => false,
+            'type' => TType::STRING,
+        ),
+        2 => array(
+            'var' => 'endDate',
             'isRequired' => false,
             'type' => TType::STRING,
         ),
@@ -31,20 +36,27 @@ class SHIFTService_getAllTraders_result
     /**
      * @var string
      */
-    public $success = null;
+    public $startDate = "";
+    /**
+     * @var string
+     */
+    public $endDate = "";
 
     public function __construct($vals = null)
     {
         if (is_array($vals)) {
-            if (isset($vals['success'])) {
-                $this->success = $vals['success'];
+            if (isset($vals['startDate'])) {
+                $this->startDate = $vals['startDate'];
+            }
+            if (isset($vals['endDate'])) {
+                $this->endDate = $vals['endDate'];
             }
         }
     }
 
     public function getName()
     {
-        return 'SHIFTService_getAllTraders_result';
+        return 'SHIFTService_getThisLeaderboard_args';
     }
 
 
@@ -61,9 +73,16 @@ class SHIFTService_getAllTraders_result
                 break;
             }
             switch ($fid) {
-                case 0:
+                case 1:
                     if ($ftype == TType::STRING) {
-                        $xfer += $input->readString($this->success);
+                        $xfer += $input->readString($this->startDate);
+                    } else {
+                        $xfer += $input->skip($ftype);
+                    }
+                    break;
+                case 2:
+                    if ($ftype == TType::STRING) {
+                        $xfer += $input->readString($this->endDate);
                     } else {
                         $xfer += $input->skip($ftype);
                     }
@@ -81,10 +100,15 @@ class SHIFTService_getAllTraders_result
     public function write($output)
     {
         $xfer = 0;
-        $xfer += $output->writeStructBegin('SHIFTService_getAllTraders_result');
-        if ($this->success !== null) {
-            $xfer += $output->writeFieldBegin('success', TType::STRING, 0);
-            $xfer += $output->writeString($this->success);
+        $xfer += $output->writeStructBegin('SHIFTService_getThisLeaderboard_args');
+        if ($this->startDate !== null) {
+            $xfer += $output->writeFieldBegin('startDate', TType::STRING, 1);
+            $xfer += $output->writeString($this->startDate);
+            $xfer += $output->writeFieldEnd();
+        }
+        if ($this->endDate !== null) {
+            $xfer += $output->writeFieldBegin('endDate', TType::STRING, 2);
+            $xfer += $output->writeString($this->endDate);
             $xfer += $output->writeFieldEnd();
         }
         $xfer += $output->writeFieldStop();

@@ -9,5 +9,6 @@ service SHIFTService{
     void webUserLogin(1:string username),
 
     string getAllTraders()
+    string getThisLeaderboard(1:string startDate = "", 2:string endDate = "")
 }
 

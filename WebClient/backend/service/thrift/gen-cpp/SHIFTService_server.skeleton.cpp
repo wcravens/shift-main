@@ -38,6 +38,11 @@ class SHIFTServiceHandler : virtual public SHIFTServiceIf {
     printf("getAllTraders\n");
   }
 
+  void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate) {
+    // Your implementation goes here
+    printf("getThisLeaderboard\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

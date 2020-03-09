@@ -13,6 +13,7 @@ class SHIFTServiceHandler : public SHIFTServiceIf {
 public:
     void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, int32_t orderSize, double orderPrice, const std::string& orderID);
     void getAllTraders(std::string& _return);
+    void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate);
     void webClientSendUsername(const std::string& username);
     void webUserLogin(const std::string& username);
 };
