@@ -3,6 +3,7 @@
 #include "UserClient.h"
 
 #include <thread>
+#include <ctime>
 
 #include <shift/coreclient/CoreClient.h>
 #include <shift/coreclient/FIXInitiator.h>
@@ -63,6 +64,7 @@ void SHIFTServiceHandler::getAllTraders(std::string& _return){ //NOTE: Thrift mo
     //Probably make this last param some kind of default value..?
 
     PGresult* pRes;
+
     if(DBConnector::getInstance()->doQuery("SELECT id, username, email, role, super from traders", "FAILED QUERY\n", PGRES_TUPLES_OK, &pRes)){
         std::cout << "RESULTS OBTAINED" << std::endl;
     }
@@ -87,6 +89,47 @@ void SHIFTServiceHandler::getAllTraders(std::string& _return){ //NOTE: Thrift mo
     std::cout << "returned... " << s << std::endl;
     //practice proper hygiene ^.^
     PQclear(pRes);
+}
+
+/**
+ * @brief Method for sending a list of the specified day's rankings
+ * @param _return Thrift default param that all thrift service functions have in their virtual void funcs
+ * @param dateRange Day of interest for rankings, in the format YYYY-MM-DD
+ */
+void SHIFTServiceHandler::getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate){
+
+    PGresult* pRes;
+
+    struct tm tm;
+
+    std::string validatedStart = "";
+    std::string query;
+    if(strptime(startDate.c_str(), "%Y-%m-%d",&tm) && strptime(endDate.c_str(), "%Y-%m-%d", &tm)){
+        std::cout << "valid dates" << std::endl;
+        query = std::string("SELECT * from leaderboard where start_date > '") + startDate + std::string("' and end_date < '") + endDate + std::string("' ORDER BY rank asc;");
+    }
+    else{
+        std::cout << "invalid dates!" << std::endl;
+        query = "SELECT * from leaderboard;";
+    }
+
+    if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE LEADEBOARD\n", PGRES_TUPLES_OK, &pRes)){
+        std::cout << "RESULTS OBTAINED" << std::endl;
+    }
+    else{
+        std::cout << "COULD NOT GET??" << std::endl;
+    }
+
+    json j;
+    j = parsePresult(pRes);
+    auto s = j.dump(4);
+
+    _return = s;
+
+    std::cout << "returned... " << s << std::endl;
+    //practice proper hygiene ^.^
+    PQclear(pRes);
+
 }
 
 /**

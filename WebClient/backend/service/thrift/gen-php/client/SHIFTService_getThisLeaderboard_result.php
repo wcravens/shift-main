@@ -16,7 +16,7 @@ use Thrift\Protocol\TProtocol;
 use Thrift\Protocol\TBinaryProtocolAccelerated;
 use Thrift\Exception\TApplicationException;
 
-class SHIFTService_getAllTraders_result
+class SHIFTService_getThisLeaderboard_result
 {
     static public $isValidate = false;
 
@@ -44,7 +44,7 @@ class SHIFTService_getAllTraders_result
 
     public function getName()
     {
-        return 'SHIFTService_getAllTraders_result';
+        return 'SHIFTService_getThisLeaderboard_result';
     }
 
 
@@ -81,7 +81,7 @@ class SHIFTService_getAllTraders_result
     public function write($output)
     {
         $xfer = 0;
-        $xfer += $output->writeStructBegin('SHIFTService_getAllTraders_result');
+        $xfer += $output->writeStructBegin('SHIFTService_getThisLeaderboard_result');
         if ($this->success !== null) {
             $xfer += $output->writeFieldBegin('success', TType::STRING, 0);
             $xfer += $output->writeString($this->success);

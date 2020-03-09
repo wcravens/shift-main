@@ -36,7 +36,13 @@ interface SHIFTServiceIf
      */
     public function webUserLogin($username);
     /**
-     * @return int
+     * @return string
      */
     public function getAllTraders();
+    /**
+     * @param string $startDate
+     * @param string $endDate
+     * @return string
+     */
+    public function getThisLeaderboard($startDate, $endDate);
 }

@@ -39,4 +39,10 @@ interface SHIFTServiceIf
      * @return string
      */
     public function getAllTraders();
+    /**
+     * @param string $startDate
+     * @param string $endDate
+     * @return string
+     */
+    public function getThisLeaderboard($startDate, $endDate);
 }
