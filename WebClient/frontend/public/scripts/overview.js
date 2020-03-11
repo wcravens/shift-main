@@ -4,7 +4,7 @@
 
 $(document).ready(function () {
     $("#" + localStorage.getItem("cur_symbol")).toggleClass("row-active");
-    var conn = new ab.Session('ws://' + php_server_ip + ':8080',
+      var conn = new ab.Session("ws://" + php_server_ip + ":8080",
         function () {
             conn.subscribe('bestPrice', function (topic, data) {
                 var bestPriceCells = document.getElementById(data.data.symbol).cells;
