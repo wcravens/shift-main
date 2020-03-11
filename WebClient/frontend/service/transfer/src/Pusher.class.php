@@ -1,4 +1,4 @@
-<?php
+                    <?php
 use Ratchet\ConnectionInterface;
 use Ratchet\Wamp\WampServerInterface;
 
@@ -27,6 +27,7 @@ class pusher implements WampServerInterface {
     //this $conn is a WampConnection
     public function onSubscribe(ConnectionInterface $conn, $topic) {
         $this->subscribedTopics[$topic->getId()] = $topic;
+        //Isn't the check below...redundant?
         if(isset($this->storedData[$topic->getId()])){
             $conn->event( $topic->getId(), $this->storedData[$topic->getId()]); 
         }

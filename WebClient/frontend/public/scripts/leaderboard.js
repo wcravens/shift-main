@@ -1,9 +1,9 @@
 /*
  * rceive leaderboard data and display
  */
-
+ 
 $(document).ready(function () {
-    var conn = new ab.Session('ws://' + php_server_ip + ':8080',
+    var conn = new ab.Session("ws://" + php_server_ip + ":8080", 
         function () {
             var leaderboard_table = document.getElementById("leaderboard");
             conn.subscribe('leaderboard', function (topic, data) {

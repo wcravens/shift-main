@@ -106,11 +106,11 @@ void SHIFTServiceHandler::getThisLeaderboard(std::string& _return, const std::st
     std::string query;
     if(strptime(startDate.c_str(), "%Y-%m-%d",&tm) && strptime(endDate.c_str(), "%Y-%m-%d", &tm)){
         std::cout << "valid dates" << std::endl;
-        query = std::string("SELECT * from leaderboard where start_date > '") + startDate + std::string("' and end_date < '") + endDate + std::string("' ORDER BY rank asc;");
+        query = std::string("SELECT user_id, rank, eod_buying_power, eod_traded_shares, eod_pl, eod_earnings, end_date from leaderboard where start_date > '") + startDate + std::string("' and end_date < '") + endDate + std::string("' ORDER BY rank asc;");
     }
     else{
         std::cout << "invalid dates!" << std::endl;
-        query = "SELECT * from leaderboard;";
+        query = "SELECT user_id, rank, eod_buying_power, eod_traded_shares, eod_pl, eod_earnings, end_date from leaderboard;";
     }
 
     if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE LEADEBOARD\n", PGRES_TUPLES_OK, &pRes)){

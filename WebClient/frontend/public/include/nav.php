@@ -86,7 +86,7 @@ if (isset($_GET['username'])) {
         <li class="<?php echo $page=='overview'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Best price summary for all tickers (Q)'><a href="/overview.php">Overview</a></li>
         <li class="<?php echo $page=='orderbook'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Order book & candlestick chart (W)'><a href="/orderbook.php">Order Book</a></li>
         <li class="<?php echo $page=='myportfolio'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Account summary & positions (E)'><a href="/myportfolio.php">My Portfolio</a></li>
-        <li class="<?php echo $page=='leaderboard'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Leaderboard (R)'><a href="/leaderboard.php">Leaderboard</a></li>
+        <li class="<?php echo $page=='leaderboard'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Leaderboard (R)'><a href="/userperf.php">Leaderboard</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <!-- <li><a href="test.html"><i class="material-icons" style="font-size:22px;">lightbulb_outline</i></a></li> -->

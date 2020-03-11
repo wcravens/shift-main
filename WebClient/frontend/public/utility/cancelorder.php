@@ -1,6 +1,6 @@
 <?php
 /*
- * cancelorder form, used to cancle order
+ * cancel order form, used to cancel order
  */
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
