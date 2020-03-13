@@ -1,6 +1,10 @@
 $(document).ready( function(){
+  var EOD_INDEX = 6;
+  var PROFITDETERMINATOR_INDEX = 4;
   var profitData = {};
   var contestStart = moment('2020-03-06 00:00:00', 'YYYY-MM-DD HH:mm:ss').valueOf();
+  var allTimes = [];
+
   //leaderboardAllStats from userperf.php
   for(i = 0; i < leaderboardAllStats["data"].length; i++){
     var userTag = leaderboardAllStats["data"][i][0];
@@ -8,22 +12,76 @@ $(document).ready( function(){
       profitData[userTag] = []
     }
     
+    var cTime = moment(leaderboardAllStats["data"][i][EOD_INDEX], 'YYYY-MM-DD HH:mm:ss');
+    var normalized_cTime = moment(cTime.format('YYYY-MM-DD')+' 17:00:00');
+    
+    if(! allTimes.includes(normalized_cTime.valueOf())){
+
+      allTimes.push(normalized_cTime.valueOf());
+
+    }
     profitData[userTag].push([
-                      moment(leaderboardAllStats["data"][i][6], 'YYYY-MM-DD HH:mm:ss').valueOf(),
-                      parseFloat(leaderboardAllStats["data"][i][2])
+                      parseFloat(leaderboardAllStats["data"][i][PROFITDETERMINATOR_INDEX])
                     ]);
-    console.log(profitData[userTag]);
   }
 
   var seriesData = [];
+  var totalTeams = 0;
+  var maxLen = 0;
+  var buckets = []
+  for(i = 1; i<allTimes.length+1; i++){
+    buckets.push('Day ' + i)
+  }
+  console.log(buckets);
+
   for(var key in profitData){
+    totalTeams++;
+    allTimes.push()
+    if(profitData[key].length > maxLen){
+      maxLen = profitData[key].length;
+    }
+
     seriesData.push({
       name: key,
       data: profitData[key],
-      pointStart: contestStart,
-      pointInterval: 24 * 3600 * 1000
     })
   }
+  console.log(seriesData);
+  //Calc average amt.
+  
+  profitData["avg"] = []
+  for(i = 0; i < maxLen; i++){
+    profitData["avg"].push(0.0)
+  }
+
+  for(var key in profitData){
+    for(i = 0; i < profitData[key].length; i++){
+      if(key == "avg"){
+        continue;
+      }
+      profitData["avg"][i] += parseFloat(profitData[key][i]);
+
+    }
+  }
+
+
+
+  console.log(maxLen+1);
+  for(i = 0; i < maxLen; i++){
+    console.log("SUM");
+    console.log(profitData["avg"][i]);
+    profitData["avg"][i] = profitData["avg"][i] / maxLen+1.0;
+    console.log("AVG");
+    console.log(profitData["avg"][i]);
+  }
+
+  //Separate the values into day categories
+  seriesData.push({
+      name: "avg",
+      data: profitData["avg"],
+  });
+
+
   var myChart = Highcharts.chart('perfChart', {
     chart: {
       type: 'line'
@@ -37,14 +95,11 @@ $(document).ready( function(){
         }
     },
     xAxis: {
-      type: 'datetime',
-      dateTimeLabelFormats: {
-        day: '%e of %b'
-      },
-      title: {
-        text: "Day"
-      },
-      tickInterval: 24 * 3600 * 1000 // interval of 1 day (in your case = 60)
+      labels: {
+        formatter: function() {
+          return buckets[this.value];
+        }
+      }
     },
     legend: {
       title: {
@@ -58,13 +113,20 @@ $(document).ready( function(){
       borderWidth: 1
     },
     plotOptions: {
+        line: {
+          dataLabels: {
+            enabled: true
+          }
+        },
         series: {
             marker: {
                 enabled: true
             }
         },
-        column: {
-          pointStart: contestStart
+        toolTip: {
+          formatter: function (){
+            return buckets[this.x] + ': ' + Highcharts.numberFormat(this.y,0);
+          }
         }
     },
     series: seriesData
