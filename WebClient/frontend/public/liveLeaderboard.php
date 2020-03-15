@@ -2,11 +2,8 @@
 // the leaderpage, which shows the current leaderboard. 
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
-$page = 'leaderboard';
-$lbViewed = 'chart';
-$redirect_url = '/leaderboard.php';
-$leaderBoardData = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'getThisLeaderboard', array('', '')));
-
+$page = 'liveLeaderboard';
+$redirect_url = '/liveLeaderboard.php';
 ?>
 
 <!DOCTYPE HTML>
@@ -16,20 +13,15 @@ $leaderBoardData = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 
         <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
         <script src="/static/jquery-3.1.1.min.js"></script>  
         <script src="/static/autobahn.min.js"></script>
-        <script src="/static/moment.js"></script>
         <script src="/static/bootstrap/js/bootstrap.min.js"></script>
-        <script src="/static/highstock/js/highstock.js"></script>
         <script type="text/javascript">
-            //Pass in the php values into javascript world (Kill me)
             var php_stockList_json = JSON.parse('<?php echo json_encode($stockList);?>');
             var php_server_ip= "<?php echo $server_ip;?>";
-            var leaderboardAllStats = JSON.parse('<?php echo json_encode($leaderBoardData);?>');
         </script>
         <?php
             echo '<script src="/scripts/verifications.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/keymapping.js?version='.$SHIFT_version.'"></script>';
-            echo '<script src="/scripts/perfChart.js"</script>';
-            echo '<script src="/scripts/overview.js?version='.$SHIFT_version.'"></script>';
+            echo '<script src="/scripts/leaderboard.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/lastprice.js?version='.$SHIFT_version.'"></script>';
         ?> 
     </head>
@@ -56,7 +48,19 @@ $leaderBoardData = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 
                             <li class="<?php echo $lbViewed=='Day Six'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Six results'><a href="/leaderboard.php?start=2020-04-10&end=2020-04-11">Day Six</a></li>
                             </ul>
                         </div>
-                        <div id="perfChart" style="width:100%; height:500px;"></div>
+                        <div class="stocks">
+                            <table class="table notselectable bborder nomargin" id="leaderboard">
+                                <tr>
+                                    <th class="text-right notwrap" width="5%">Rank</th>
+                                    <th width="10%"></th>
+                                    <th class="notwrap" width="10%">Username</th>
+                                    <th class="text-right notwrap notimpcol" width="20%">Buying Power</th>
+                                    <th class="text-right notwrap notimpcol" width="20%">Total Traded Shares</th>
+                                    <th class="text-right notwrap notimpcol" width="20%">Total P&L</th>
+                                    <th class="text-right notwrap" width="15%">Earnings</th>
+                                </tr>
+                            </table>
+                        </div>
                         <div class="notselectable">
                             <font class="grey alignup" size="-2" >Rank is determined by the earnings of each trader. In case of a draw, the user who traded the less amount of shares is ranked first.</font>
                         </div>
@@ -66,5 +70,3 @@ $leaderBoardData = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 
         </div>
     </body>
 </html>
-<div id="perfChart" style="width:100%; height:400px;"></div>
-

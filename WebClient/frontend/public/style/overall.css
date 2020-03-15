@@ -255,6 +255,9 @@ body {
     background-color: rgba(0, 0, 0, 0.50) !important;
 }
 
+.statsBar {
+    background-color: rgba(188, 203, 227, 0.80) !important;
+}
 
 /* ############################################BUG of highshart the way to fix############################################## */
 

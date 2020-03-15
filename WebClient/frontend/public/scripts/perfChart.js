@@ -1,5 +1,7 @@
 $(document).ready( function(){
+  var AVERAGE_LABEL = "Average";
   var EOD_INDEX = 6;
+  var USERNAME_INDEX = 1
   var PROFITDETERMINATOR_INDEX = 4;
   var profitData = {};
   var contestStart = moment('2020-03-06 00:00:00', 'YYYY-MM-DD HH:mm:ss').valueOf();
@@ -7,7 +9,7 @@ $(document).ready( function(){
 
   //leaderboardAllStats from userperf.php
   for(i = 0; i < leaderboardAllStats["data"].length; i++){
-    var userTag = leaderboardAllStats["data"][i][0];
+    var userTag = leaderboardAllStats["data"][i][USERNAME_INDEX];
     if(!(userTag in profitData)){
       profitData[userTag] = []
     }
@@ -17,11 +19,13 @@ $(document).ready( function(){
     
     if(! allTimes.includes(normalized_cTime.valueOf())){
 
-      allTimes.push(normalized_cTime.valueOf());
+      allTimes.push(normalized_cTime.format('MM-DD'));
 
     }
+    var cVal = parseFloat(leaderboardAllStats["data"][i][PROFITDETERMINATOR_INDEX]);
+    cVal = Math.round(cVal * 1e2) / 1e2;
     profitData[userTag].push([
-                      parseFloat(leaderboardAllStats["data"][i][PROFITDETERMINATOR_INDEX])
+                      cVal
                     ]);
   }
 
@@ -30,13 +34,12 @@ $(document).ready( function(){
   var maxLen = 0;
   var buckets = []
   for(i = 1; i<allTimes.length+1; i++){
-    buckets.push('Day ' + i)
+    buckets.push('Day ' + i + '<br></br>(' + allTimes[i] + ')')
   }
   console.log(buckets);
 
   for(var key in profitData){
     totalTeams++;
-    allTimes.push()
     if(profitData[key].length > maxLen){
       maxLen = profitData[key].length;
     }
@@ -49,17 +52,17 @@ $(document).ready( function(){
   console.log(seriesData);
   //Calc average amt.
   
-  profitData["avg"] = []
+  profitData[AVERAGE_LABEL] = []
   for(i = 0; i < maxLen; i++){
-    profitData["avg"].push(0.0)
+    profitData[AVERAGE_LABEL].push(0.0)
   }
 
   for(var key in profitData){
     for(i = 0; i < profitData[key].length; i++){
-      if(key == "avg"){
+      if(key == AVERAGE_LABEL){
         continue;
       }
-      profitData["avg"][i] += parseFloat(profitData[key][i]);
+      profitData[AVERAGE_LABEL][i] += parseFloat(profitData[key][i]);
 
     }
   }
@@ -69,16 +72,17 @@ $(document).ready( function(){
   console.log(maxLen+1);
   for(i = 0; i < maxLen; i++){
     console.log("SUM");
-    console.log(profitData["avg"][i]);
-    profitData["avg"][i] = profitData["avg"][i] / maxLen+1.0;
+    console.log(profitData[AVERAGE_LABEL][i]);
+    profitData[AVERAGE_LABEL][i] = profitData[AVERAGE_LABEL][i] / maxLen+1.0;
     console.log("AVG");
-    console.log(profitData["avg"][i]);
+    console.log(profitData[AVERAGE_LABEL][i]);
   }
 
   //Separate the values into day categories
   seriesData.push({
-      name: "avg",
-      data: profitData["avg"],
+      name: AVERAGE_LABEL,
+      data: profitData[AVERAGE_LABEL],
+      color: '#FF0000'
   });
 
 
@@ -91,12 +95,13 @@ $(document).ready( function(){
     },
     yAxis: {
         title: {
-          text: "Profit"
+          text: "P&L"
         }
     },
     xAxis: {
       labels: {
         formatter: function() {
+          console.log(buckets[this.value]);
           return buckets[this.value];
         }
       }
@@ -112,22 +117,22 @@ $(document).ready( function(){
       borderColor: '#C98657',
       borderWidth: 1
     },
+    tooltip: {
+      formatter: function () {
+        return buckets[this.x] + ' results: ' + Highcharts.numberFormat(this.y);
+      }
+    },
     plotOptions: {
-        line: {
-          dataLabels: {
-            enabled: true
-          }
-        },
-        series: {
-            marker: {
-                enabled: true
+      line: {
+        dataLabels: {
+          enabled: true,
+          formatter: function() {
+            if (this.isLast) {
+              return this.value
             }
+          }  
         },
-        toolTip: {
-          formatter: function (){
-            return buckets[this.x] + ': ' + Highcharts.numberFormat(this.y,0);
-          }
-        }
+      }
     },
     series: seriesData
   });
