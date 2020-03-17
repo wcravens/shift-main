@@ -98,7 +98,7 @@ class User
         $sql = 'UPDATE traders SET password = ? WHERE username = ?';
         $sth = $dbh->prepare($sql);
         $is_succ = $sth->execute(array(sha1($new_password), $username));
-        if (is_succ == false) {
+        if ($is_succ == false) {
             return $_SESSION['err'] = 'Looks like we\'re having some server issues. Please try again later.';
         }
 
@@ -129,6 +129,13 @@ class User
         return $user['role'] == 'admin';
     }
 
+    public function is_student(){
+        $user = $this->is_login();
+        if(empty($user)){
+            return false;
+        }
+        return $user['role'] == 'student';
+    }
 
     public function logout()
     {

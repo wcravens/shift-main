@@ -30,10 +30,6 @@ $page = 'overview';
         <div class="container">
             <div class="starter-template">
                 <div class="row">
-                    <div class="col-md-12">
-                        <?php include_once('./include/sendorderform.php');?>
-                        <?php include_once('./include/lastprice.php');?>
-                    </div>
                     <div class="col-md-12" style="padding-top: 10px;">
                         <div class="stocks">
                             <table class="table notselectable bborder" id="stock_list">

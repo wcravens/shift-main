@@ -128,6 +128,21 @@ if (isset($_GET['username'])) {
   </div>
 </nav>
 
+<!--- NavBar --->
+<div class="container">
+  <div class="starter-template">
+    <div class="row">
+      <div class="col-md-12">
+        <?php if (! $userModel->is_student()) { ?>
+          <?php include_once('./include/sendorderform.php');?>
+        <?php } ?>
+        <?php include_once('./include/lastprice.php');?>
+      </div>
+    </div>
+  </div>
+</div>
+<!--- END NavBar --->
+
 <script type="text/javascript">
     var php_server_ip= "<?php echo $server_ip;?>";
     var php_username="<?php echo $username;?>";
