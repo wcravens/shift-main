@@ -38,22 +38,18 @@ $leaderBoardData = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 
         <div class="container">
             <div class="starter-template">
                 <div class="row">
-                    <div class="col-md-12">
-                        <?php include_once('./include/sendorderform.php');?>
-                        <?php include_once('./include/lastprice.php');?>
-                    </div>
                     <div class="col-md-12" style="padding-top: 10px;">
                         <h3 class="header3">Leaderboard</h3>
                         <div class="collapse navbar-collapse" id="myNavbar" >
                             <ul class="nav navbar-nav">
                             <li class="<?php echo $lbViewed=='chart'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View graph'><a href="/userperf.php">Daily Statistics</a></li>
                             <li class="<?php echo $page=='liveLeaderboard'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View graph'><a href="/liveLeaderboard.php">Live Leaderboard</a></li>
-                            <li class="<?php echo $lbViewed=='Day One'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day One results'><a href="/leaderboard.php?start=2020-03-06&end=2020-03-07">Day One</a></li>
-                            <li class="<?php echo $lbViewed=='Day Two'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Two results'><a href="/leaderboard.php?start=2020-03-14&end=2020-03-15">Day Two</a></li>
-                            <li class="<?php echo $lbViewed=='Day Three'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Three results'><a href="/leaderboard.php?start=2020-03-21&end=2020-03-22">Day Three</a></li>
-                            <li class="<?php echo $lbViewed=='Day Four'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Four results'><a href="/leaderboard.php?start=2020-03-28&end=2020-03-29">Day Four</a></li>
-                            <li class="<?php echo $lbViewed=='Day Five'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Five results'><a href="/leaderboard.php?start=2020-04-04&end=2020-04-05">Day Five</a></li>
-                            <li class="<?php echo $lbViewed=='Day Six'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Six results'><a href="/leaderboard.php?start=2020-04-10&end=2020-04-11">Day Six</a></li>
+                            <li class="<?php echo $_GET["start"]=='2020-03-06'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day One results'><a href="/leaderboard.php?start=2020-03-06&end=2020-03-07">Day </br> One</a></li>
+                            <li class="<?php echo $_GET["start"]=='2020-03-14'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Two results'><a href="/leaderboard.php?start=2020-03-14&end=2020-03-15">Day </br> Two</a></li>
+                            <li class="<?php echo $_GET["start"]=='2020-03-21'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Three results'><a href="/leaderboard.php?start=2020-03-21&end=2020-03-22">Day </br> Three</a></li>
+                            <li class="<?php echo $_GET["start"]=='2020-03-28'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Four results'><a href="/leaderboard.php?start=2020-03-28&end=2020-03-29">Day </br> Four</a></li>
+                            <li class="<?php echo $_GET["start"]=='2020-04-04'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Five results'><a href="/leaderboard.php?start=2020-04-04&end=2020-04-05">Day </br> Five</a></li>
+                            <li class="<?php echo $_GET["start"]=='2020-04-10'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Six results'><a href="/leaderboard.php?start=2020-04-10&end=2020-04-11">Day </br> Six</a></li>
                             </ul>
                         </div>
                         <div id="perfChart" style="width:100%; height:500px;"></div>
