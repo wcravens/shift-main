@@ -336,7 +336,7 @@ void SHIFTServiceHandler::webUserLoginV2(std::string& _return, const std::string
     } catch (...) {
         shift::CoreClient* ccptr = new UserClient(username);
         shift::FIXInitiator::getInstance().attachClient(ccptr);
-    }
+    }*/
 }
 
 void SHIFTServiceHandler::is_login(std::string& _return, const std::string& sessionid){

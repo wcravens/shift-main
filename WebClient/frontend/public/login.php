@@ -20,7 +20,7 @@ if (isset($_POST['login-submit'])) {
         header("Location: /index.php");
     }
 }
-
+*/
 $fromReg = $_GET['from'] == 'reg';
 
 if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
