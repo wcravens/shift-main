@@ -1,4 +1,6 @@
 <?php
+require_once(getenv('SITE_ROOT').'/service/thrift/ThriftClient.php');
+
 class User
 {
 
@@ -21,6 +23,20 @@ class User
         if ($is_succ == false) {
             return $_SESSION['err'] = 'Looks like we\'re having some server issues. Please try again later.';
         }
+    }
+
+    public function login_userv2($username, $password)
+    {
+        if ($this->is_login()) {
+            return true;
+        }
+
+        if (empty($username) || empty($password)) {
+            return $_SESSION['err'] = 'Please provide both username and password.';
+        }
+        
+        $profile = ThriftClient::exec('\client\SHIFTServiceClient', 'webUserLoginV2', array($username, $password));
+
     }
 
     public function login_user($username, $password)

@@ -28,6 +28,11 @@ class SHIFTServiceHandler : virtual public SHIFTServiceIf {
     printf("webClientSendUsername\n");
   }
 
+  void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password) {
+    // Your implementation goes here
+    printf("webUserLoginV2\n");
+  }
+
   void webUserLogin(const std::string& username) {
     // Your implementation goes here
     printf("webUserLogin\n");

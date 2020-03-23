@@ -33,6 +33,12 @@ interface SHIFTServiceIf
     public function webClientSendUsername($username);
     /**
      * @param string $username
+     * @param string $password
+     * @return string
+     */
+    public function webUserLoginV2($username, $password);
+    /**
+     * @param string $username
      */
     public function webUserLogin($username);
     /**

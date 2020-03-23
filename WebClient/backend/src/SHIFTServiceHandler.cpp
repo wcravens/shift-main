@@ -11,6 +11,8 @@
 
 #include "DBConnector.h"
 #include <nlohmann/json.hpp>
+#include <openssl/sha.h>
+#include <shift/miscutils/crossguid/Guid.h>
 
 using json = nlohmann::json;
 
@@ -39,6 +41,36 @@ json parsePresult(PGresult* pRes){
     j["data"] = vs;
 
     return j;
+}
+
+/**
+ * @brief: SHA1 Encrypts a string.
+ * @param: str: std::string to encrypt
+ * @return: hex representation of the string that has been encrypted
+ * @TODO: Probably move this somewhere more multi-purpose? Other modules can utilize this.
+ */
+std::string encryptStr(std::string str){
+
+    SHA_CTX shactx;
+
+    unsigned char digest[SHA_DIGEST_LENGTH];
+
+    SHA1_Init(&shactx);
+    SHA1_Update(&shactx, str.c_str(), sizeof(str.c_str()));
+    SHA1_Final(digest, &shactx);
+
+    //C++ stringstreams are the way to go
+    std::stringstream strm;
+    strm << std::hex << std::setfill('0');
+    for(int i =0; i < SHA_DIGEST_LENGTH; i++){
+        strm << std::setw(2) << static_cast<int>(digest[i]);
+    }
+    
+    std::string strDigest = strm.str();
+
+    std::cout << strDigest << std::endl;
+    std::cout << digest << std::endl;
+    return strDigest;
 }
 
 /**
@@ -136,6 +168,62 @@ void SHIFTServiceHandler::getThisLeaderboard(std::string& _return, const std::st
  * @brief Method for sending current username to frontend.
  * @param username The current user who is operating on WebClient.
  */
+void SHIFTServiceHandler::webUserLoginV2(std::string& _return, const std::string& username, const std::string& password)
+{
+    std::cout << password << std::endl;
+    PGresult* pRes;
+    bool b_found_user = false;
+    std::string sessionGuid = "";
+
+    std::string shaPw = encryptStr(password);
+    std::string query;
+    query = "SELECT * from traders where username = '" + username + "' and password = '" + shaPw + "' LIMIT 1;";
+    //std::cout << query << std::endl;
+    if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE USER\n", PGRES_TUPLES_OK, &pRes)){
+        std::cout << "RESULTS OBTAINED" << std::endl;
+        b_found_user = true;
+
+        sessionGuid = shift::crossguid::newGuid().str();
+        query = "UPDATE traders SET sessionid = '" + sessionGuid + "' WHERE username = '" + username + "';";
+        std::cout << query << std::endl;
+        if(DBConnector::getInstance()->doQuery(query, "COULD NOT UPDATE SESSION ID\n")){
+            std::cout << "new guid: " << sessionGuid << std::endl;
+        }        
+    }
+    else{
+        std::cout << "COULD NOT FIND USER" << std::endl;
+    }
+
+    if (username == "" && password == "")
+        return;
+
+    json j;
+    j = parsePresult(pRes);
+    j["success"] = b_found_user;
+    j["sessionid"] = sessionGuid;
+
+    auto s = j.dump(4);
+
+    std::cout << "returned... " << s << std::endl;
+    _return = s;
+    /*
+    try {
+        shift::FIXInitiator::getInstance().getClient(username);
+    } catch (...) {
+        shift::CoreClient* ccptr = new UserClient(username);
+        shift::FIXInitiator::getInstance().attachClient(ccptr);
+    }*/
+}
+
+void SHIFTServiceHandler::webClientSendUsername(const std::string& username)
+{
+    return;
+}
+
+/**
+ * @brief Method for sending current username to frontend.
+ * @param username The current user who is operating on WebClient.
+ */
 void SHIFTServiceHandler::webUserLogin(const std::string& username)
 {
     if (username == "")
@@ -149,7 +237,3 @@ void SHIFTServiceHandler::webUserLogin(const std::string& username)
     }
 }
 
-void SHIFTServiceHandler::webClientSendUsername(const std::string& username)
-{
-    return;
-}
