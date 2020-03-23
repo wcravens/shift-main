@@ -23,6 +23,7 @@ class SHIFTServiceIf {
   virtual ~SHIFTServiceIf() {}
   virtual void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) = 0;
   virtual void webClientSendUsername(const std::string& username) = 0;
+  virtual void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password) = 0;
   virtual void webUserLogin(const std::string& username) = 0;
   virtual void getAllTraders(std::string& _return) = 0;
   virtual void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate) = 0;
@@ -59,6 +60,9 @@ class SHIFTServiceNull : virtual public SHIFTServiceIf {
     return;
   }
   void webClientSendUsername(const std::string& /* username */) {
+    return;
+  }
+  void webUserLoginV2(std::string& /* _return */, const std::string& /* username */, const std::string& /* password */) {
     return;
   }
   void webUserLogin(const std::string& /* username */) {
@@ -274,6 +278,117 @@ class SHIFTService_webClientSendUsername_presult {
 
 
   virtual ~SHIFTService_webClientSendUsername_presult() throw();
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _SHIFTService_webUserLoginV2_args__isset {
+  _SHIFTService_webUserLoginV2_args__isset() : username(false), password(false) {}
+  bool username :1;
+  bool password :1;
+} _SHIFTService_webUserLoginV2_args__isset;
+
+class SHIFTService_webUserLoginV2_args {
+ public:
+
+  SHIFTService_webUserLoginV2_args(const SHIFTService_webUserLoginV2_args&);
+  SHIFTService_webUserLoginV2_args& operator=(const SHIFTService_webUserLoginV2_args&);
+  SHIFTService_webUserLoginV2_args() : username(), password() {
+  }
+
+  virtual ~SHIFTService_webUserLoginV2_args() throw();
+  std::string username;
+  std::string password;
+
+  _SHIFTService_webUserLoginV2_args__isset __isset;
+
+  void __set_username(const std::string& val);
+
+  void __set_password(const std::string& val);
+
+  bool operator == (const SHIFTService_webUserLoginV2_args & rhs) const
+  {
+    if (!(username == rhs.username))
+      return false;
+    if (!(password == rhs.password))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_webUserLoginV2_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_webUserLoginV2_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class SHIFTService_webUserLoginV2_pargs {
+ public:
+
+
+  virtual ~SHIFTService_webUserLoginV2_pargs() throw();
+  const std::string* username;
+  const std::string* password;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_webUserLoginV2_result__isset {
+  _SHIFTService_webUserLoginV2_result__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_webUserLoginV2_result__isset;
+
+class SHIFTService_webUserLoginV2_result {
+ public:
+
+  SHIFTService_webUserLoginV2_result(const SHIFTService_webUserLoginV2_result&);
+  SHIFTService_webUserLoginV2_result& operator=(const SHIFTService_webUserLoginV2_result&);
+  SHIFTService_webUserLoginV2_result() : success() {
+  }
+
+  virtual ~SHIFTService_webUserLoginV2_result() throw();
+  std::string success;
+
+  _SHIFTService_webUserLoginV2_result__isset __isset;
+
+  void __set_success(const std::string& val);
+
+  bool operator == (const SHIFTService_webUserLoginV2_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_webUserLoginV2_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_webUserLoginV2_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_webUserLoginV2_presult__isset {
+  _SHIFTService_webUserLoginV2_presult__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_webUserLoginV2_presult__isset;
+
+class SHIFTService_webUserLoginV2_presult {
+ public:
+
+
+  virtual ~SHIFTService_webUserLoginV2_presult() throw();
+  std::string* success;
+
+  _SHIFTService_webUserLoginV2_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -599,6 +714,9 @@ class SHIFTServiceClient : virtual public SHIFTServiceIf {
   void webClientSendUsername(const std::string& username);
   void send_webClientSendUsername(const std::string& username);
   void recv_webClientSendUsername();
+  void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password);
+  void send_webUserLoginV2(const std::string& username, const std::string& password);
+  void recv_webUserLoginV2(std::string& _return);
   void webUserLogin(const std::string& username);
   void send_webUserLogin(const std::string& username);
   void recv_webUserLogin();
@@ -625,6 +743,7 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   ProcessMap processMap_;
   void process_submitOrder(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_webClientSendUsername(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_webUserLoginV2(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_webUserLogin(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getAllTraders(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getThisLeaderboard(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -633,6 +752,7 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
     iface_(iface) {
     processMap_["submitOrder"] = &SHIFTServiceProcessor::process_submitOrder;
     processMap_["webClientSendUsername"] = &SHIFTServiceProcessor::process_webClientSendUsername;
+    processMap_["webUserLoginV2"] = &SHIFTServiceProcessor::process_webUserLoginV2;
     processMap_["webUserLogin"] = &SHIFTServiceProcessor::process_webUserLogin;
     processMap_["getAllTraders"] = &SHIFTServiceProcessor::process_getAllTraders;
     processMap_["getThisLeaderboard"] = &SHIFTServiceProcessor::process_getThisLeaderboard;
@@ -680,6 +800,16 @@ class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
       ifaces_[i]->webClientSendUsername(username);
     }
     ifaces_[i]->webClientSendUsername(username);
+  }
+
+  void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->webUserLoginV2(_return, username, password);
+    }
+    ifaces_[i]->webUserLoginV2(_return, username, password);
+    return;
   }
 
   void webUserLogin(const std::string& username) {
@@ -747,6 +877,9 @@ class SHIFTServiceConcurrentClient : virtual public SHIFTServiceIf {
   void webClientSendUsername(const std::string& username);
   int32_t send_webClientSendUsername(const std::string& username);
   void recv_webClientSendUsername(const int32_t seqid);
+  void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password);
+  int32_t send_webUserLoginV2(const std::string& username, const std::string& password);
+  void recv_webUserLoginV2(std::string& _return, const int32_t seqid);
   void webUserLogin(const std::string& username);
   int32_t send_webUserLogin(const std::string& username);
   void recv_webUserLogin(const int32_t seqid);

@@ -17,10 +17,9 @@ $(document).ready( function(){
     var cTime = moment(leaderboardAllStats["data"][i][EOD_INDEX], 'YYYY-MM-DD HH:mm:ss');
     var normalized_cTime = moment(cTime.format('YYYY-MM-DD')+' 17:00:00');
     
-    if(! allTimes.includes(normalized_cTime.valueOf())){
+    if(! allTimes.includes(normalized_cTime.format('MM-DD'))){
 
       allTimes.push(normalized_cTime.format('MM-DD'));
-
     }
     var cVal = parseFloat(leaderboardAllStats["data"][i][PROFITDETERMINATOR_INDEX]);
     cVal = Math.round(cVal * 1e2) / 1e2;
@@ -33,8 +32,11 @@ $(document).ready( function(){
   var totalTeams = 0;
   var maxLen = 0;
   var buckets = []
-  for(i = 1; i<allTimes.length+1; i++){
-    buckets.push('Day ' + i + '<br></br>(' + allTimes[i] + ')')
+  console.log("ALLTIMES" + allTimes);
+  for(i = 0; i<allTimes.length; i++){
+    buckets.push('Day ' + (i+1) + '<br></br>(' + allTimes[i] + ')')
+    console.log('BUCKETS ' + buckets[i]);
+
   }
   console.log(buckets);
 
@@ -95,7 +97,7 @@ $(document).ready( function(){
     },
     yAxis: {
         title: {
-          text: "P&L"
+          text: "P&L (USD)"
         }
     },
     xAxis: {

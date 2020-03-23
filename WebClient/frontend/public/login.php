@@ -14,6 +14,13 @@ if ($user->is_login()) {
 }
 
 if (isset($_POST['login-submit'])) {
+    $isSuccess = $user->login_userv2($_POST['username'], $_POST['password']);
+    if ($isSuccess === true) {
+    }
+}
+
+/*
+if (isset($_POST['login-submit'])) {
     $isSuccess = $user->login_user($_POST['username'], $_POST['password']);
     if ($isSuccess === true) {
         error_log(print_r($_POST['username'], true), 3, "/tmp/error.log");
@@ -21,7 +28,7 @@ if (isset($_POST['login-submit'])) {
         header("Location: /index.php");
     }
 }
-
+*/
 $fromReg = $_GET['from'] == 'reg';
 
 if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {

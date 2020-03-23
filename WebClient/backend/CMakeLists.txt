@@ -205,6 +205,8 @@ find_package(PostgreSQL REQUIRED)
 #Pass data to connecting thrift clients
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
+find_package(OpenSSL REQUIRED)
+
 find_package(Threads REQUIRED)
 
 find_library(ZEROMQ zmq)
@@ -254,6 +256,7 @@ target_link_libraries(${PROJECT_NAME}
                       ${ZEROMQ}
                       ${LIBCORECLIENT}
                       ${LIBMISCUTILS}
+                      OpenSSL::SSL
                       nlohmann_json::nlohmann_json)
 
 # Required when linking <filesystem> using GCC < 9.1

@@ -6,6 +6,7 @@ service SHIFTService{
 
     void webClientSendUsername(1:string username),
     
+    string webUserLoginV2(1:string username, 2:string password),
     void webUserLogin(1:string username),
 
     string getAllTraders()
