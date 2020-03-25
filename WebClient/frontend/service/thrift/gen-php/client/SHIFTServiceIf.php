@@ -33,6 +33,15 @@ interface SHIFTServiceIf
     public function webClientSendUsername($username);
     /**
      * @param string $username
+     * @param string $firstname
+     * @param string $lastname
+     * @param string $email
+     * @param string $password
+     * @return string
+     */
+    public function registerUser($username, $firstname, $lastname, $email, $password);
+    /**
+     * @param string $username
      * @param string $password
      * @return string
      */
@@ -41,6 +50,23 @@ interface SHIFTServiceIf
      * @param string $username
      */
     public function webUserLogin($username);
+    /**
+     * @param string $sessionid
+     * @return string
+     */
+    public function is_login($sessionid);
+    /**
+     * @param string $cur_password
+     * @param string $new_password
+     * @param string $username
+     * @return string
+     */
+    public function change_password($cur_password, $new_password, $username);
+    /**
+     * @param string $username
+     * @return string
+     */
+    public function get_user_by_username($username);
     /**
      * @return string
      */

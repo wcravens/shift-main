@@ -3,7 +3,7 @@
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
 if (isset($_POST['change-password-submit'])) {
-    $isSucc = $userModel->change_password($_POST['cur_password'], $_POST['new_password'], $_POST['confirm_new_password']);
+    $isSucc = $userModel->change_passwordv2($_POST['cur_password'], $_POST['new_password'], $_POST['confirm_new_password']);
     if ($isSucc === true) {
         echo '<script>console.log("isSucc")</script>';
         header("location: /myprofile.php");
@@ -28,11 +28,9 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
         <script type="text/javascript">
             var php_stockList_json = JSON.parse('<?php echo json_encode($stockList);?>');
             var php_server_ip= "<?php echo $server_ip;?>";
-            var php_username="<?php echo $username;?>"
         </script>
         <?php
             echo '<script src="/scripts/verifications.js?version='.$SHIFT_version.'"></script>';
-            echo '<script src="/scripts/keymapping.js?version='.$SHIFT_version.'"></script>';
         ?> 
         <?php
             echo '<link rel="stylesheet" href="/style/login.css?version='.$SHIFT_version.'"></script>';

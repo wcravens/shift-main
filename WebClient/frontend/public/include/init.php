@@ -43,9 +43,10 @@ $SHIFT_version = substr(md5(mt_rand()), 0, 7);
 // check if user already login, if not redirect to login.php
 $userModel = new User();
 $user = null;
-if (!($user = $userModel->is_login())) {
+if (!($user = $userModel->is_loginv2())) {
     header("location: /login.php");
 }
+$profile = $user[0];
 
 // register to BROKERAGECENTER, if WC not running, redirect to error.php
 ThriftClient::exec('\client\SHIFTServiceClient', 'webUserLogin', array(trim($user['username'])));

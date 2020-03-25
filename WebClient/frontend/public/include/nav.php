@@ -4,7 +4,7 @@
 */
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
-$username = $user['username'];
+$username = $profile['username'];
 if (isset($_GET['username'])) {
     $username = trim($_GET['username']);
 }
@@ -95,7 +95,7 @@ if (isset($_GET['username'])) {
         <li class="dropdown collapseitem" style="width: 110px; text-align: center; margin-left: auto;">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><?php echo $username;?>&nbsp<span class="caret"></span></a>
           <ul class="dropdown-menu keep-open-on-click">
-            <?php if ($userModel->is_admin()) { ?>
+            <?php if ($userModel->is_adminv2()) { ?>
               <li><a href="/../admin">Admin Panel</a></li>
             <?php }?>
             <li>
@@ -133,7 +133,7 @@ if (isset($_GET['username'])) {
   <div class="starter-template">
     <div class="row">
       <div class="col-md-12">
-        <?php if (! $userModel->is_student()) { ?>
+        <?php if (! $userModel->is_studentv2()) { ?>
           <?php include_once('./include/sendorderform.php');?>
         <?php } ?>
         <?php include_once('./include/lastprice.php');?>

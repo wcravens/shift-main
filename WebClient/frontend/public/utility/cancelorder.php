@@ -6,9 +6,10 @@ require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
 $userModel = new User();
 $user = null;
-if (!($user = $userModel->is_login())) {
+if (!($user = $userModel->is_loginv2())) {
     header("location: /login.php");
 }
+$profile = $user[0];
 
 if (!isset($_POST['symbol']) || !isset($_POST['orderType']) || !isset($_POST['size']) || !isset($_POST['orderId']) || !isset($_POST['price'])) {
     exit('invalid submit');
@@ -29,7 +30,7 @@ if ($_POST['orderType'] == "6") {
     $orderType = '6';
 }
 
-ThriftClient::exec('\client\SHIFTServiceClient', 'submitOrder', array($user['username'], $orderType, $orderSymbol, $orderSize, $orderPrice, $orderId));
+ThriftClient::exec('\client\SHIFTServiceClient', 'submitOrder', array($profile['username'], $orderType, $orderSymbol, $orderSize, $orderPrice, $orderId));
 if (!empty($_POST['redirect_url'])) {
     header("Location: {$_POST['redirect_url']}");
 } else {

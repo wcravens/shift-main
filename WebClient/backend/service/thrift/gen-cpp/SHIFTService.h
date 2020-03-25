@@ -23,8 +23,12 @@ class SHIFTServiceIf {
   virtual ~SHIFTServiceIf() {}
   virtual void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, const int32_t orderSize, const double orderPrice, const std::string& orderID) = 0;
   virtual void webClientSendUsername(const std::string& username) = 0;
+  virtual void registerUser(std::string& _return, const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password) = 0;
   virtual void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password) = 0;
   virtual void webUserLogin(const std::string& username) = 0;
+  virtual void is_login(std::string& _return, const std::string& sessionid) = 0;
+  virtual void change_password(std::string& _return, const std::string& cur_password, const std::string& new_password, const std::string& username) = 0;
+  virtual void get_user_by_username(std::string& _return, const std::string& username) = 0;
   virtual void getAllTraders(std::string& _return) = 0;
   virtual void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate) = 0;
 };
@@ -62,10 +66,22 @@ class SHIFTServiceNull : virtual public SHIFTServiceIf {
   void webClientSendUsername(const std::string& /* username */) {
     return;
   }
+  void registerUser(std::string& /* _return */, const std::string& /* username */, const std::string& /* firstname */, const std::string& /* lastname */, const std::string& /* email */, const std::string& /* password */) {
+    return;
+  }
   void webUserLoginV2(std::string& /* _return */, const std::string& /* username */, const std::string& /* password */) {
     return;
   }
   void webUserLogin(const std::string& /* username */) {
+    return;
+  }
+  void is_login(std::string& /* _return */, const std::string& /* sessionid */) {
+    return;
+  }
+  void change_password(std::string& /* _return */, const std::string& /* cur_password */, const std::string& /* new_password */, const std::string& /* username */) {
+    return;
+  }
+  void get_user_by_username(std::string& /* _return */, const std::string& /* username */) {
     return;
   }
   void getAllTraders(std::string& /* _return */) {
@@ -283,6 +299,138 @@ class SHIFTService_webClientSendUsername_presult {
 
 };
 
+typedef struct _SHIFTService_registerUser_args__isset {
+  _SHIFTService_registerUser_args__isset() : username(false), firstname(false), lastname(false), email(false), password(false) {}
+  bool username :1;
+  bool firstname :1;
+  bool lastname :1;
+  bool email :1;
+  bool password :1;
+} _SHIFTService_registerUser_args__isset;
+
+class SHIFTService_registerUser_args {
+ public:
+
+  SHIFTService_registerUser_args(const SHIFTService_registerUser_args&);
+  SHIFTService_registerUser_args& operator=(const SHIFTService_registerUser_args&);
+  SHIFTService_registerUser_args() : username(), firstname(), lastname(), email(), password() {
+  }
+
+  virtual ~SHIFTService_registerUser_args() throw();
+  std::string username;
+  std::string firstname;
+  std::string lastname;
+  std::string email;
+  std::string password;
+
+  _SHIFTService_registerUser_args__isset __isset;
+
+  void __set_username(const std::string& val);
+
+  void __set_firstname(const std::string& val);
+
+  void __set_lastname(const std::string& val);
+
+  void __set_email(const std::string& val);
+
+  void __set_password(const std::string& val);
+
+  bool operator == (const SHIFTService_registerUser_args & rhs) const
+  {
+    if (!(username == rhs.username))
+      return false;
+    if (!(firstname == rhs.firstname))
+      return false;
+    if (!(lastname == rhs.lastname))
+      return false;
+    if (!(email == rhs.email))
+      return false;
+    if (!(password == rhs.password))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_registerUser_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_registerUser_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class SHIFTService_registerUser_pargs {
+ public:
+
+
+  virtual ~SHIFTService_registerUser_pargs() throw();
+  const std::string* username;
+  const std::string* firstname;
+  const std::string* lastname;
+  const std::string* email;
+  const std::string* password;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_registerUser_result__isset {
+  _SHIFTService_registerUser_result__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_registerUser_result__isset;
+
+class SHIFTService_registerUser_result {
+ public:
+
+  SHIFTService_registerUser_result(const SHIFTService_registerUser_result&);
+  SHIFTService_registerUser_result& operator=(const SHIFTService_registerUser_result&);
+  SHIFTService_registerUser_result() : success() {
+  }
+
+  virtual ~SHIFTService_registerUser_result() throw();
+  std::string success;
+
+  _SHIFTService_registerUser_result__isset __isset;
+
+  void __set_success(const std::string& val);
+
+  bool operator == (const SHIFTService_registerUser_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_registerUser_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_registerUser_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_registerUser_presult__isset {
+  _SHIFTService_registerUser_presult__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_registerUser_presult__isset;
+
+class SHIFTService_registerUser_presult {
+ public:
+
+
+  virtual ~SHIFTService_registerUser_presult() throw();
+  std::string* success;
+
+  _SHIFTService_registerUser_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 typedef struct _SHIFTService_webUserLoginV2_args__isset {
   _SHIFTService_webUserLoginV2_args__isset() : username(false), password(false) {}
   bool username :1;
@@ -475,6 +623,332 @@ class SHIFTService_webUserLogin_presult {
 
 
   virtual ~SHIFTService_webUserLogin_presult() throw();
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _SHIFTService_is_login_args__isset {
+  _SHIFTService_is_login_args__isset() : sessionid(false) {}
+  bool sessionid :1;
+} _SHIFTService_is_login_args__isset;
+
+class SHIFTService_is_login_args {
+ public:
+
+  SHIFTService_is_login_args(const SHIFTService_is_login_args&);
+  SHIFTService_is_login_args& operator=(const SHIFTService_is_login_args&);
+  SHIFTService_is_login_args() : sessionid() {
+  }
+
+  virtual ~SHIFTService_is_login_args() throw();
+  std::string sessionid;
+
+  _SHIFTService_is_login_args__isset __isset;
+
+  void __set_sessionid(const std::string& val);
+
+  bool operator == (const SHIFTService_is_login_args & rhs) const
+  {
+    if (!(sessionid == rhs.sessionid))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_is_login_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_is_login_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class SHIFTService_is_login_pargs {
+ public:
+
+
+  virtual ~SHIFTService_is_login_pargs() throw();
+  const std::string* sessionid;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_is_login_result__isset {
+  _SHIFTService_is_login_result__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_is_login_result__isset;
+
+class SHIFTService_is_login_result {
+ public:
+
+  SHIFTService_is_login_result(const SHIFTService_is_login_result&);
+  SHIFTService_is_login_result& operator=(const SHIFTService_is_login_result&);
+  SHIFTService_is_login_result() : success() {
+  }
+
+  virtual ~SHIFTService_is_login_result() throw();
+  std::string success;
+
+  _SHIFTService_is_login_result__isset __isset;
+
+  void __set_success(const std::string& val);
+
+  bool operator == (const SHIFTService_is_login_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_is_login_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_is_login_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_is_login_presult__isset {
+  _SHIFTService_is_login_presult__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_is_login_presult__isset;
+
+class SHIFTService_is_login_presult {
+ public:
+
+
+  virtual ~SHIFTService_is_login_presult() throw();
+  std::string* success;
+
+  _SHIFTService_is_login_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _SHIFTService_change_password_args__isset {
+  _SHIFTService_change_password_args__isset() : cur_password(false), new_password(false), username(false) {}
+  bool cur_password :1;
+  bool new_password :1;
+  bool username :1;
+} _SHIFTService_change_password_args__isset;
+
+class SHIFTService_change_password_args {
+ public:
+
+  SHIFTService_change_password_args(const SHIFTService_change_password_args&);
+  SHIFTService_change_password_args& operator=(const SHIFTService_change_password_args&);
+  SHIFTService_change_password_args() : cur_password(), new_password(), username() {
+  }
+
+  virtual ~SHIFTService_change_password_args() throw();
+  std::string cur_password;
+  std::string new_password;
+  std::string username;
+
+  _SHIFTService_change_password_args__isset __isset;
+
+  void __set_cur_password(const std::string& val);
+
+  void __set_new_password(const std::string& val);
+
+  void __set_username(const std::string& val);
+
+  bool operator == (const SHIFTService_change_password_args & rhs) const
+  {
+    if (!(cur_password == rhs.cur_password))
+      return false;
+    if (!(new_password == rhs.new_password))
+      return false;
+    if (!(username == rhs.username))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_change_password_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_change_password_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class SHIFTService_change_password_pargs {
+ public:
+
+
+  virtual ~SHIFTService_change_password_pargs() throw();
+  const std::string* cur_password;
+  const std::string* new_password;
+  const std::string* username;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_change_password_result__isset {
+  _SHIFTService_change_password_result__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_change_password_result__isset;
+
+class SHIFTService_change_password_result {
+ public:
+
+  SHIFTService_change_password_result(const SHIFTService_change_password_result&);
+  SHIFTService_change_password_result& operator=(const SHIFTService_change_password_result&);
+  SHIFTService_change_password_result() : success() {
+  }
+
+  virtual ~SHIFTService_change_password_result() throw();
+  std::string success;
+
+  _SHIFTService_change_password_result__isset __isset;
+
+  void __set_success(const std::string& val);
+
+  bool operator == (const SHIFTService_change_password_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_change_password_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_change_password_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_change_password_presult__isset {
+  _SHIFTService_change_password_presult__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_change_password_presult__isset;
+
+class SHIFTService_change_password_presult {
+ public:
+
+
+  virtual ~SHIFTService_change_password_presult() throw();
+  std::string* success;
+
+  _SHIFTService_change_password_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _SHIFTService_get_user_by_username_args__isset {
+  _SHIFTService_get_user_by_username_args__isset() : username(false) {}
+  bool username :1;
+} _SHIFTService_get_user_by_username_args__isset;
+
+class SHIFTService_get_user_by_username_args {
+ public:
+
+  SHIFTService_get_user_by_username_args(const SHIFTService_get_user_by_username_args&);
+  SHIFTService_get_user_by_username_args& operator=(const SHIFTService_get_user_by_username_args&);
+  SHIFTService_get_user_by_username_args() : username() {
+  }
+
+  virtual ~SHIFTService_get_user_by_username_args() throw();
+  std::string username;
+
+  _SHIFTService_get_user_by_username_args__isset __isset;
+
+  void __set_username(const std::string& val);
+
+  bool operator == (const SHIFTService_get_user_by_username_args & rhs) const
+  {
+    if (!(username == rhs.username))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_get_user_by_username_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_get_user_by_username_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class SHIFTService_get_user_by_username_pargs {
+ public:
+
+
+  virtual ~SHIFTService_get_user_by_username_pargs() throw();
+  const std::string* username;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_get_user_by_username_result__isset {
+  _SHIFTService_get_user_by_username_result__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_get_user_by_username_result__isset;
+
+class SHIFTService_get_user_by_username_result {
+ public:
+
+  SHIFTService_get_user_by_username_result(const SHIFTService_get_user_by_username_result&);
+  SHIFTService_get_user_by_username_result& operator=(const SHIFTService_get_user_by_username_result&);
+  SHIFTService_get_user_by_username_result() : success() {
+  }
+
+  virtual ~SHIFTService_get_user_by_username_result() throw();
+  std::string success;
+
+  _SHIFTService_get_user_by_username_result__isset __isset;
+
+  void __set_success(const std::string& val);
+
+  bool operator == (const SHIFTService_get_user_by_username_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_get_user_by_username_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_get_user_by_username_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_get_user_by_username_presult__isset {
+  _SHIFTService_get_user_by_username_presult__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_get_user_by_username_presult__isset;
+
+class SHIFTService_get_user_by_username_presult {
+ public:
+
+
+  virtual ~SHIFTService_get_user_by_username_presult() throw();
+  std::string* success;
+
+  _SHIFTService_get_user_by_username_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -714,12 +1188,24 @@ class SHIFTServiceClient : virtual public SHIFTServiceIf {
   void webClientSendUsername(const std::string& username);
   void send_webClientSendUsername(const std::string& username);
   void recv_webClientSendUsername();
+  void registerUser(std::string& _return, const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password);
+  void send_registerUser(const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password);
+  void recv_registerUser(std::string& _return);
   void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password);
   void send_webUserLoginV2(const std::string& username, const std::string& password);
   void recv_webUserLoginV2(std::string& _return);
   void webUserLogin(const std::string& username);
   void send_webUserLogin(const std::string& username);
   void recv_webUserLogin();
+  void is_login(std::string& _return, const std::string& sessionid);
+  void send_is_login(const std::string& sessionid);
+  void recv_is_login(std::string& _return);
+  void change_password(std::string& _return, const std::string& cur_password, const std::string& new_password, const std::string& username);
+  void send_change_password(const std::string& cur_password, const std::string& new_password, const std::string& username);
+  void recv_change_password(std::string& _return);
+  void get_user_by_username(std::string& _return, const std::string& username);
+  void send_get_user_by_username(const std::string& username);
+  void recv_get_user_by_username(std::string& _return);
   void getAllTraders(std::string& _return);
   void send_getAllTraders();
   void recv_getAllTraders(std::string& _return);
@@ -743,8 +1229,12 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   ProcessMap processMap_;
   void process_submitOrder(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_webClientSendUsername(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_registerUser(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_webUserLoginV2(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_webUserLogin(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_is_login(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_change_password(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_user_by_username(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getAllTraders(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getThisLeaderboard(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
@@ -752,8 +1242,12 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
     iface_(iface) {
     processMap_["submitOrder"] = &SHIFTServiceProcessor::process_submitOrder;
     processMap_["webClientSendUsername"] = &SHIFTServiceProcessor::process_webClientSendUsername;
+    processMap_["registerUser"] = &SHIFTServiceProcessor::process_registerUser;
     processMap_["webUserLoginV2"] = &SHIFTServiceProcessor::process_webUserLoginV2;
     processMap_["webUserLogin"] = &SHIFTServiceProcessor::process_webUserLogin;
+    processMap_["is_login"] = &SHIFTServiceProcessor::process_is_login;
+    processMap_["change_password"] = &SHIFTServiceProcessor::process_change_password;
+    processMap_["get_user_by_username"] = &SHIFTServiceProcessor::process_get_user_by_username;
     processMap_["getAllTraders"] = &SHIFTServiceProcessor::process_getAllTraders;
     processMap_["getThisLeaderboard"] = &SHIFTServiceProcessor::process_getThisLeaderboard;
   }
@@ -802,6 +1296,16 @@ class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
     ifaces_[i]->webClientSendUsername(username);
   }
 
+  void registerUser(std::string& _return, const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->registerUser(_return, username, firstname, lastname, email, password);
+    }
+    ifaces_[i]->registerUser(_return, username, firstname, lastname, email, password);
+    return;
+  }
+
   void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password) {
     size_t sz = ifaces_.size();
     size_t i = 0;
@@ -819,6 +1323,36 @@ class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
       ifaces_[i]->webUserLogin(username);
     }
     ifaces_[i]->webUserLogin(username);
+  }
+
+  void is_login(std::string& _return, const std::string& sessionid) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->is_login(_return, sessionid);
+    }
+    ifaces_[i]->is_login(_return, sessionid);
+    return;
+  }
+
+  void change_password(std::string& _return, const std::string& cur_password, const std::string& new_password, const std::string& username) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->change_password(_return, cur_password, new_password, username);
+    }
+    ifaces_[i]->change_password(_return, cur_password, new_password, username);
+    return;
+  }
+
+  void get_user_by_username(std::string& _return, const std::string& username) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_user_by_username(_return, username);
+    }
+    ifaces_[i]->get_user_by_username(_return, username);
+    return;
   }
 
   void getAllTraders(std::string& _return) {
@@ -877,12 +1411,24 @@ class SHIFTServiceConcurrentClient : virtual public SHIFTServiceIf {
   void webClientSendUsername(const std::string& username);
   int32_t send_webClientSendUsername(const std::string& username);
   void recv_webClientSendUsername(const int32_t seqid);
+  void registerUser(std::string& _return, const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password);
+  int32_t send_registerUser(const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password);
+  void recv_registerUser(std::string& _return, const int32_t seqid);
   void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password);
   int32_t send_webUserLoginV2(const std::string& username, const std::string& password);
   void recv_webUserLoginV2(std::string& _return, const int32_t seqid);
   void webUserLogin(const std::string& username);
   int32_t send_webUserLogin(const std::string& username);
   void recv_webUserLogin(const int32_t seqid);
+  void is_login(std::string& _return, const std::string& sessionid);
+  int32_t send_is_login(const std::string& sessionid);
+  void recv_is_login(std::string& _return, const int32_t seqid);
+  void change_password(std::string& _return, const std::string& cur_password, const std::string& new_password, const std::string& username);
+  int32_t send_change_password(const std::string& cur_password, const std::string& new_password, const std::string& username);
+  void recv_change_password(std::string& _return, const int32_t seqid);
+  void get_user_by_username(std::string& _return, const std::string& username);
+  int32_t send_get_user_by_username(const std::string& username);
+  void recv_get_user_by_username(std::string& _return, const int32_t seqid);
   void getAllTraders(std::string& _return);
   int32_t send_getAllTraders();
   void recv_getAllTraders(std::string& _return, const int32_t seqid);
