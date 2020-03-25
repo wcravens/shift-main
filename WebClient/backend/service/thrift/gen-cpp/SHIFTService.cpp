@@ -4007,6 +4007,10 @@ int32_t SHIFTServiceConcurrentClient::send_get_user_by_username(const std::strin
 
   SHIFTService_get_user_by_username_pargs args;
   args.username = &username;
+  args.firstname = &firstname;
+  args.lastname = &lastname;
+  args.email = &email;
+  args.password = &password;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
