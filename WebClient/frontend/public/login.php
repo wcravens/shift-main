@@ -9,26 +9,18 @@ require_once(getenv('SITE_ROOT').'/service/thrift/ThriftClient.php');
 
 $user = new User();
 
-if ($user->is_login()) {
-    header("location: /index.php");
+if ($user->is_loginv2()) {
+    header("Location: /index.php");
 }
 
 if (isset($_POST['login-submit'])) {
     $isSuccess = $user->login_userv2($_POST['username'], $_POST['password']);
     if ($isSuccess === true) {
-    }
-}
-
-/*
-if (isset($_POST['login-submit'])) {
-    $isSuccess = $user->login_user($_POST['username'], $_POST['password']);
-    if ($isSuccess === true) {
-        error_log(print_r($_POST['username'], true), 3, "/tmp/error.log");
-        ThriftClient::exec('\client\SHIFTServiceClient', 'webUserLogin', array(trim($_POST['username'])));
+        $username = $_POST['username'];
         header("Location: /index.php");
     }
 }
-*/
+
 $fromReg = $_GET['from'] == 'reg';
 
 if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {

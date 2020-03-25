@@ -44,19 +44,39 @@ json parsePresult(PGresult* pRes){
 }
 
 /**
+ * 
+ * 0:id, 1:username, 2:firstname, 3:lastname, 4:email, 5:role, 6:sessionid, 7:super
+ */ 
+json parseProfile(PGresult* pRes){
+    json j;
+
+    j["id"] = PQgetvalue(pRes,0,0);
+    j["username"] = PQgetvalue(pRes,0,1);
+    j["firstname"] = PQgetvalue(pRes,0,2);
+    j["lastname"] = PQgetvalue(pRes,0,3);
+    j["email"] = PQgetvalue(pRes,0,4);
+    j["role"] = PQgetvalue(pRes,0,5);
+    j["sessionid"] = PQgetvalue(pRes,0,6);
+    j["super"] = PQgetvalue(pRes,0,7);
+
+    return j;
+}
+
+/**
  * @brief: SHA1 Encrypts a string.
  * @param: str: std::string to encrypt
  * @return: hex representation of the string that has been encrypted
  * @TODO: Probably move this somewhere more multi-purpose? Other modules can utilize this.
  */
-std::string encryptStr(std::string str){
 
-    SHA_CTX shactx;
+std::string encryptStr(const std::string& str){
 
+    std::cout << "ENCRYPTING " << str << std::endl;
     unsigned char digest[SHA_DIGEST_LENGTH];
-
+    SHA_CTX shactx;
     SHA1_Init(&shactx);
-    SHA1_Update(&shactx, str.c_str(), sizeof(str.c_str()));
+
+    SHA1_Update(&shactx, str.c_str(), str.size());
     SHA1_Final(digest, &shactx);
 
     //C++ stringstreams are the way to go
@@ -66,11 +86,7 @@ std::string encryptStr(std::string str){
         strm << std::setw(2) << static_cast<int>(digest[i]);
     }
     
-    std::string strDigest = strm.str();
-
-    std::cout << strDigest << std::endl;
-    std::cout << digest << std::endl;
-    return strDigest;
+    return strm.str();
 }
 
 /**
@@ -164,20 +180,62 @@ void SHIFTServiceHandler::getThisLeaderboard(std::string& _return, const std::st
 
 }
 
+void SHIFTServiceHandler::registerUser(std::string& _return, const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password)
+{
+    std::cout << "REGISTERUSER" << std::endl;
+    PGresult* pRes;
+    std::string shaPw = encryptStr(password);
+    bool b_user_register_success = false;
+
+    if(DBConnector::getInstance()->doQuery("SELECT * FROM traders where username = '" + username + "';", "COULD NOT RETRIEVE USERNAME; CREATING..\n", PGRES_TUPLES_OK, &pRes)){
+        std::cout << "query failed: " << username << std::endl;
+        json j;
+        j["success"] = b_user_register_success;
+        auto s = j.dump(4);
+
+        std::cout << "returned... " << s << std::endl;
+        _return = s;
+
+    }
+    if(PQntuples(pRes) == 0){
+        const auto query = "INSERT INTO traders (username, password, firstname, lastname, email, role, super) VALUES ('"
+            + username + "','"
+            + shaPw + "','"
+            + firstname + "','" + lastname + "','" + email 
+            + "','student"// info
+            + "',TRUE);";
+
+        std::cout << query << std::endl;
+        if(DBConnector::getInstance()->doQuery(query, "COULD NOT UPDATE SESSION ID\n")){
+            std::cout << "new user: " << username << std::endl;
+            b_user_register_success = true;
+        }        
+
+        json j;
+        j["success"] = b_user_register_success;
+        auto s = j.dump(4);
+
+        std::cout << "returned... " << s << std::endl;
+        _return = s;
+
+    }
+
+}
+
 /**
  * @brief Method for sending current username to frontend.
  * @param username The current user who is operating on WebClient.
  */
 void SHIFTServiceHandler::webUserLoginV2(std::string& _return, const std::string& username, const std::string& password)
 {
-    std::cout << password << std::endl;
+    std::cout << "LOGGINGIN" << std::endl;
     PGresult* pRes;
     bool b_found_user = false;
     std::string sessionGuid = "";
 
     std::string shaPw = encryptStr(password);
     std::string query;
-    query = "SELECT * from traders where username = '" + username + "' and password = '" + shaPw + "' LIMIT 1;";
+    query = "SELECT id, username, firstname, lastname, email, role, sessionid, super from traders where username = '" + username + "' and password = '" + shaPw + "' LIMIT 1;";
     //std::cout << query << std::endl;
     if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE USER\n", PGRES_TUPLES_OK, &pRes)){
         std::cout << "RESULTS OBTAINED" << std::endl;
@@ -198,7 +256,7 @@ void SHIFTServiceHandler::webUserLoginV2(std::string& _return, const std::string
         return;
 
     json j;
-    j = parsePresult(pRes);
+    j = parseProfile(pRes);
     j["success"] = b_found_user;
     j["sessionid"] = sessionGuid;
 
@@ -206,13 +264,116 @@ void SHIFTServiceHandler::webUserLoginV2(std::string& _return, const std::string
 
     std::cout << "returned... " << s << std::endl;
     _return = s;
-    /*
+
+    //SHiFT Fix Login.
     try {
         shift::FIXInitiator::getInstance().getClient(username);
     } catch (...) {
         shift::CoreClient* ccptr = new UserClient(username);
         shift::FIXInitiator::getInstance().attachClient(ccptr);
-    }*/
+    }
+}
+
+void SHIFTServiceHandler::is_login(std::string& _return, const std::string& sessionid){
+    std::cout << "ISLOGIN" << std::endl;
+    PGresult* pRes;
+    const auto query = "SELECT id, username, firstname, lastname, email, role, sessionid, super from traders where sessionid = '" + sessionid + "';";
+    json j;
+
+    if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE USERNAME; CREATING..\n", PGRES_TUPLES_OK, &pRes)){
+        std::cout << "query succeeded: " << sessionid << std::endl;
+        j["success"] = false;
+
+    }
+
+    if(PQntuples(pRes) != 1){
+        j["success"] = false;
+    }
+    else{
+        j = parseProfile(pRes);
+        j["success"] = true;
+    }
+
+    auto s = j.dump(4);
+
+    std::cout << "returned... " << s << std::endl;
+    _return = s;
+
+}
+
+void SHIFTServiceHandler::change_password(std::string& _return, const std::string& cur_password, const std::string& new_password, const std::string& username){
+    std::cout << "CHANGEPW" << std::endl;
+    std::string shaCPw = encryptStr(cur_password);
+    std::string newPw = encryptStr(new_password);
+
+    const auto query = "SELECT id, username, firstname, lastname, email, role, sessionid, super from traders where password = '" + shaCPw + "' and username = '" + username + "';";
+    json j;
+
+    PGresult* eRes;
+    if(DBConnector::getInstance()->doQuery(query, "COULD find user w/ password..\n", PGRES_TUPLES_OK, &eRes)){
+        std::cout << "query succeeded: " << username << std::endl;
+    }
+    else{
+
+        std::cout << "incorrect user/password" << std::endl;
+    }
+
+
+    if(PQntuples(eRes) != 1){
+        std::cout << "query failed "  << shaCPw << " " << newPw << std::endl;
+        j["success"] = false;
+    }
+    else {
+
+        if(shaCPw.compare(newPw) != 0){
+            const auto updateQuery = "UPDATE traders SET password = '"+newPw+"'"+  " WHERE username = '" + username + "';";
+            if(DBConnector::getInstance()->doQuery(updateQuery, "COULD NOT UPDATE SESSION ID\n")){
+                std::cout << "new pw saved: " << username << std::endl;
+                j["success"] = true;
+            }        
+
+        }
+        else{
+            std::cout << "username attempted to change to same pw " << shaCPw << " " << newPw << std::endl;
+            std::cout << "username attempted to change to same pw " << cur_password << " " << new_password << std::endl;
+
+            j["success"] = false;
+        }
+
+    }
+
+    auto s = j.dump(4);
+
+    std::cout << "returned... " << s << std::endl;
+    _return = s;
+
+}
+
+void SHIFTServiceHandler::get_user_by_username(std::string& _return, const std::string& username){
+    std::cout << "GETUSERBYNAME" << std::endl;
+    PGresult* pRes;
+    const auto query = "SELECT id, username, firstname, lastname, email, role, sessionid, super from traders where username = '" + username + "';";
+    json j;
+
+    if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE USER..\n", PGRES_TUPLES_OK, &pRes)){
+        std::cout << "query succeeded: " << username << std::endl;
+    }
+
+    if(PQntuples(pRes) != 1){
+        std::cout << "did not find user " << username << std::endl;
+        j["success"] = false;
+    }
+    else{
+        std::cout << "found user " << username << std::endl;
+        j = parseProfile(pRes);
+        j["success"] = true;
+    }
+
+    auto s = j.dump(4);
+
+    std::cout << "returned... " << s << std::endl;
+    _return = s;
+
 }
 
 void SHIFTServiceHandler::webClientSendUsername(const std::string& username)

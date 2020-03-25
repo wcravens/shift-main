@@ -1,6 +1,7 @@
 <?php
 // the class for accessing db, this is the wrong way of doing this. Frontend should not access db itself. All checking should be in the BC
-class DB
+
+/*class DB
 {
     private static $dbh;
     public static function get_dbh()
@@ -20,4 +21,4 @@ class DB
         ));
         return self::$dbh;
     }
-}
+}*/
