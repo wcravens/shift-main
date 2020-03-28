@@ -1,14 +1,14 @@
-### CMake Version #############################################################
+### CMake Version ##############################################################
 
 cmake_minimum_required(VERSION 3.10)
 
-### Project Configuration #####################################################
+### Project Configuration ######################################################
 
 project(WebClient
         VERSION 1.0.0.0 # <major>.<minor>.<patch>.<tweak>
         LANGUAGES CXX)
 
-### List of Files #############################################################
+### List of Files ##############################################################
 
 set(CMAKE
     ${PROJECT_SOURCE_DIR}/cmake/FindLibuuid.cmake
@@ -46,10 +46,10 @@ set(OTHER
     ${PROJECT_SOURCE_DIR}/debug.sh
 )
 
-### Compiler Flags ############################################################
+### Compiler Flags #############################################################
 
-# C++14
-set(CMAKE_CXX_STANDARD 14)
+# C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -66,24 +66,22 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 if(UNIX AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif(UNIX AND NOT APPLE)
 
 # GCC (Raspbian Buster for Raspberry Pi 4)
 # Ubuntu rules apply here as well
-# -Wdeprecated-declarations is required when linking ZeroMQ on Raspbian
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Catalina 10.15)
 if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     include_directories(/usr/local/include)
 endif(APPLE)
 
-### Build Types ###############################################################
+### Build Types ################################################################
 
 # If no build type is set, the default is Debug
 if(NOT CMAKE_BUILD_TYPE)
@@ -92,11 +90,11 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
-### Build Configuration #######################################################
+### Build Configuration ########################################################
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
-#######################################
+########################################
 # - Find Thrift (a cross platform RPC lib/tool)
 # This module defines
 #  THRIFT_VERSION_STRING, version string of ant if found
@@ -187,7 +185,7 @@ endif ()
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(THRIFT DEFAULT_MSG THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER)
 mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERSION_STRING)
-#######################################
+########################################
 
 find_package(Boost REQUIRED
              COMPONENTS program_options)
@@ -240,7 +238,7 @@ target_link_libraries(${PROJECT_NAME}
                       ${LIBCORECLIENT}
                       ${LIBMISCUTILS})
 
-# Required when linking <experimental/filesystem> using GCC
+# Required when linking <filesystem> using GCC < 9.1
 if(UNIX AND NOT APPLE)
     target_link_libraries(${PROJECT_NAME} stdc++fs)
 endif(UNIX AND NOT APPLE)
@@ -259,7 +257,7 @@ else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE __linux__)
 endif()
 
-### Install Configuration #####################################################
+### Install Configuration ######################################################
 
 # If no installation path is set, the default is /usr/local
 if(NOT CMAKE_INSTALL_PREFIX)
@@ -274,4 +272,4 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/../config/
         DESTINATION share/shift/${PROJECT_NAME}
         CONFIGURATIONS Release)
 
-###############################################################################
+################################################################################

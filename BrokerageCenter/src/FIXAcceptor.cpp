@@ -521,7 +521,7 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 /**
  * @brief Events from the admin/super user
  */
-void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override
+void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& sessionID) noexcept(false) // override
 {
     const auto& targetID = sessionID.getTargetCompID().getValue();
 
@@ -558,7 +558,7 @@ void FIXAcceptor::fromAdmin(const FIX::Message& message, const FIX::SessionID& s
     }
 }
 
-void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
+void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) noexcept(false) // override
 {
     crack(message, sessionID);
     // synchPrint("\nfromAPP message: " + message + '\n');

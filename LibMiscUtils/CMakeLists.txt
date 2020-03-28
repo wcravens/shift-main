@@ -1,8 +1,8 @@
-### CMake Version #############################################################
+### CMake Version ##############################################################
 
 cmake_minimum_required(VERSION 3.10)
 
-### Project Configuration #####################################################
+### Project Configuration ######################################################
 
 get_filename_component(PROJECT_DIR_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
 string(REPLACE " " "_" PROJECT_DIR_NAME ${PROJECT_DIR_NAME})
@@ -14,7 +14,7 @@ project(${PROJECT_DIR_NAME}
 string(SUBSTRING ${PROJECT_NAME} 3 -1 LIB_NAME)
 string(TOLOWER ${LIB_NAME} LIB_NAME)
 
-### List of Files #############################################################
+### List of Files ##############################################################
 
 set(CMAKE
     ${PROJECT_SOURCE_DIR}/cmake/FindLibuuid.cmake
@@ -74,7 +74,7 @@ set(OTHER
     ${PROJECT_SOURCE_DIR}/win-build.sh
 )
 
-### Compiler Flags ############################################################
+### Compiler Flags #############################################################
 
 # Important for libraries
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -82,8 +82,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # UNIX only
 if(NOT WIN32)
 
-# C++14
-set(CMAKE_CXX_STANDARD 14)
+# C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -118,7 +118,7 @@ endif(APPLE)
 
 endif(NOT WIN32)
 
-### Build Types ###############################################################
+### Build Types ################################################################
 
 # If no build type is set, the default is Debug
 if(NOT CMAKE_BUILD_TYPE)
@@ -131,7 +131,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_DEBUG_POSTFIX -d)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
-### Build Configuration #######################################################
+### Build Configuration ########################################################
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -175,7 +175,7 @@ if(ADDONS)
     add_subdirectory(${PROJECT_SOURCE_DIR}/trthrestdownloader)
 endif(ADDONS)
 
-### Install Configuration #####################################################
+### Install Configuration ######################################################
 
 # UNIX only
 if(NOT WIN32)
@@ -201,4 +201,4 @@ install(FILES pkg-config/libshift_miscutils-d.pc
 
 endif(NOT WIN32)
 
-###############################################################################
+################################################################################

@@ -172,7 +172,7 @@ void FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
          << "Logout - " << sessionID.toString() << endl;
 }
 
-void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
+void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) noexcept(false) // override
 {
     crack(message, sessionID); // message is message type
 }

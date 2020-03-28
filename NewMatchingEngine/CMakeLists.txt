@@ -1,8 +1,8 @@
-### CMake Version #############################################################
+### CMake Version ##############################################################
 
 cmake_minimum_required(VERSION 3.10)
 
-### Project Configuration #####################################################
+### Project Configuration ######################################################
 
 get_filename_component(PROJECT_DIR_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
 string(REPLACE " " "_" PROJECT_DIR_NAME ${PROJECT_DIR_NAME})
@@ -11,7 +11,7 @@ project(${PROJECT_DIR_NAME}
         VERSION 1.0.0.0 # <major>.<minor>.<patch>.<tweak>
         LANGUAGES CXX)
 
-### List of Files #############################################################
+### List of Files ##############################################################
 
 IF(EXISTS ${PROJECT_SOURCE_DIR}/config)
     set(CONFIG
@@ -48,12 +48,13 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/PriceLevel.cpp
 )
 
-### Compiler Flags ############################################################
+### Compiler Flags #############################################################
 
-# C++14
-set(CMAKE_CXX_STANDARD 14)
+# C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+add_definitions("-DHAVE_STD_UNIQUE_PTR=1") # QuickFIX C++17 compatibility req.
 
 # Common Flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fexceptions -pedantic-errors")
@@ -67,37 +68,34 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
-# -Wno-deprecated is required when linking QuickFIX on Ubuntu
 if(UNIX AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     include_directories(/usr/include/postgresql)
 endif(UNIX AND NOT APPLE)
 
 # GCC (Raspbian Buster for Raspberry Pi 4)
+# Ubuntu rules apply here as well
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    include_directories(/usr/include/postgresql)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_BOOST_ATOMIC_COUNT")
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Catalina 10.15)
-# -Wno-deprecated-declarations is required when linking QuickFIX on macOS
 # -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
     include_directories(/usr/local/include)
 endif(APPLE)
 
-### Build Types ###############################################################
+### Build Types ################################################################
 
-# if no build type is set, the default is Debug
+# If no build type is set, the default is Debug
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif(NOT CMAKE_BUILD_TYPE)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
-### Build Configuration #######################################################
+### Build Configuration ########################################################
 
 find_package(Boost REQUIRED
              COMPONENTS date_time program_options)
@@ -135,7 +133,12 @@ target_link_libraries(${PROJECT_NAME}
                       ${QUICKFIX}
                       ${LIBMISCUTILS})
 
-### Install Configuration #####################################################
+# Required when linking <filesystem> using GCC < 9.1
+if(UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} stdc++fs)
+endif(UNIX AND NOT APPLE)
+
+### Install Configuration ######################################################
 
 # If no installation path is set, the default is /usr/local
 if(NOT CMAKE_INSTALL_PREFIX)
@@ -150,4 +153,4 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/config/
         DESTINATION share/shift/${PROJECT_NAME}
         CONFIGURATIONS Release)
 
-###############################################################################
+################################################################################

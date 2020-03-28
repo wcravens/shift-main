@@ -1,12 +1,12 @@
-### CMake Version #############################################################
+### CMake Version ##############################################################
 
 cmake_minimum_required(VERSION 3.10)
 
-### Build Types ###############################################################
+### Build Types ################################################################
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
-### Build Configuration #######################################################
+### Build Configuration ########################################################
 
 add_executable(GUIDTester
                ${PROJECT_SOURCE_DIR}/guidtester/main.cpp)
@@ -14,4 +14,4 @@ add_executable(GUIDTester
 target_link_libraries(GUIDTester
                       shift_${LIB_NAME})
 
-###############################################################################
+################################################################################

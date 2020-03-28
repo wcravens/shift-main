@@ -554,7 +554,7 @@ void shift::FIXInitiator::toAdmin(FIX::Message& message, const FIX::SessionID&) 
 /**
  * @brief Method for passing message to Core Client.
  */
-void shift::FIXInitiator::fromAdmin(const FIX::Message& message, const FIX::SessionID&) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::RejectLogon) // override
+void shift::FIXInitiator::fromAdmin(const FIX::Message& message, const FIX::SessionID&) noexcept(false) // override
 {
     try {
         if (FIX::MsgType_Logout == message.getHeader().getField(FIX::FIELD::MsgType)) {
@@ -571,7 +571,7 @@ void shift::FIXInitiator::fromAdmin(const FIX::Message& message, const FIX::Sess
 /**
  * @brief Method to communicate with FIX server.
  */
-void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
+void shift::FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) noexcept(false) // override
 {
     crack(message, sessionID);
 }

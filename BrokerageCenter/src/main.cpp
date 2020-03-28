@@ -5,7 +5,11 @@
 
 #include <algorithm>
 #include <atomic>
+#if GCC_VERSION < 8
 #include <experimental/filesystem>
+#else
+#include <filesystem>
+#endif
 
 #include <pwd.h>
 
@@ -75,9 +79,9 @@ int main(int ac, char* av[])
      * When storing FIX messages AND handling too many client connections,
      * we need to request an increase in the open files allowance for this process:
      * - soft limit = current limit of open files
-     *   (1024 in Ubuntu 18.04; 256 in macOS 10.16)
+     *   (1024 in Ubuntu 18.04; 256 in macOS 10.15)
      * - hard limit = maximum number of open files a process may request
-     *   (4096 in Ubuntu 18.04; unlimited in macOS 10.16)
+     *   (4096 in Ubuntu 18.04; unlimited in macOS 10.15)
      */
     struct rlimit rlim;
     if (getrlimit(RLIMIT_NOFILE, &rlim) == 0) {
@@ -310,7 +314,11 @@ int main(int ac, char* av[])
     }
     std::string servicePath { homeDir };
     servicePath += "/.shift/BrokerageCenter";
+#if GCC_VERSION < 8
     std::experimental::filesystem::create_directories(servicePath);
+#else
+    std::filesystem::create_directories(servicePath);
+#endif
     std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
 

@@ -244,7 +244,7 @@ void FIXInitiator::onLogout(const FIX::SessionID& sessionID) // override
     cout << COLOR_WARNING "\nLogout:\n[Target] " NO_COLOR << targetID << endl;
 }
 
-void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
+void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) noexcept(false) // override
 {
     crack(message, sessionID);
 }

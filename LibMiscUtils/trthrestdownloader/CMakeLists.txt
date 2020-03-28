@@ -1,8 +1,8 @@
-### CMake Version #############################################################
+### CMake Version ##############################################################
 
 cmake_minimum_required(VERSION 3.10)
 
-### Compiler Flags ############################################################
+### Compiler Flags #############################################################
 
 # Clang (macOS Catalina 10.15)
 if(APPLE)
@@ -10,11 +10,11 @@ if(APPLE)
     include_directories(/usr/local/opt/openssl/include)
 endif(APPLE)
 
-### Build Types ###############################################################
+### Build Types ################################################################
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
-### Build Configuration #######################################################
+### Build Configuration ########################################################
 
 find_package(Boost REQUIRED
              COMPONENTS chrono program_options thread)
@@ -54,4 +54,4 @@ configure_file(${PROJECT_SOURCE_DIR}/trthrestdownloader/extractRaw.json
                ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/extractRaw.json
                COPYONLY)
 
-###############################################################################
+################################################################################

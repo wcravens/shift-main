@@ -1,8 +1,8 @@
-### CMake Version #############################################################
+### CMake Version ##############################################################
 
 cmake_minimum_required(VERSION 3.10)
 
-### Project Configuration #####################################################
+### Project Configuration ######################################################
 
 get_filename_component(PROJECT_DIR_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
 string(REPLACE " " "_" PROJECT_DIR_NAME ${PROJECT_DIR_NAME})
@@ -14,7 +14,7 @@ project(${PROJECT_DIR_NAME}
 string(SUBSTRING ${PROJECT_NAME} 3 -1 LIB_NAME)
 string(TOLOWER ${LIB_NAME} LIB_NAME)
 
-### List of Files #############################################################
+### List of Files ##############################################################
 
 set(INCLUDE
     # ${PROJECT_SOURCE_DIR}/include/strategies/IStrategy.h
@@ -67,7 +67,7 @@ set(OTHER
     ${PROJECT_SOURCE_DIR}/win-build.sh
 )
 
-### Compiler Flags ############################################################
+### Compiler Flags #############################################################
 
 # Important for libraries
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -75,10 +75,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # UNIX only
 if(NOT WIN32)
 
-# C++14
-set(CMAKE_CXX_STANDARD 14)
+# C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+add_definitions("-DHAVE_STD_UNIQUE_PTR=1") # QuickFIX C++17 compatibility req.
 
 # Common Flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fexceptions -pedantic-errors")
@@ -92,9 +93,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
-# -Wno-deprecated is required when linking QuickFIX on Ubuntu
 if(UNIX AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif(UNIX AND NOT APPLE)
 
 # GCC (Raspbian Buster for Raspberry Pi 4)
@@ -106,10 +106,8 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
 # Clang (macOS Catalina 10.15)
-# -Wno-deprecated-declarations is required when linking QuickFIX on macOS
 # -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
     include_directories(/usr/local/include)
 endif(APPLE)
@@ -123,7 +121,7 @@ if(WIN32)
     include_directories(${PROJECT_SOURCE_DIR}/../LibMiscUtils/include)
 endif(WIN32)
 
-### Build Types ###############################################################
+### Build Types ################################################################
 
 # If no build type is set, the default is Debug
 if(NOT CMAKE_BUILD_TYPE)
@@ -136,7 +134,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_DEBUG_POSTFIX -d)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
-### Build Configuration #######################################################
+### Build Configuration ########################################################
 
 if(NOT WIN32) # UNIX
     find_package(CURL REQUIRED)
@@ -214,7 +212,7 @@ if(TESTING)
     add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif(TESTING)
 
-### Install Configuration #####################################################
+### Install Configuration ######################################################
 
 # UNIX only
 if(NOT WIN32)
@@ -240,4 +238,4 @@ install(FILES pkg-config/libshift_coreclient-d.pc
 
 endif(NOT WIN32)
 
-###############################################################################
+################################################################################

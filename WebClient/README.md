@@ -33,9 +33,26 @@ git checkout tags/v0.12.0
 cd build
 
 # Ubuntu:
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 # Raspbian:
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -lboost_atomic" ..
+cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -lboost_atomic" -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+make
+sudo make install
+```
+
+### JSON for Modern C++:
+
+Choose a location to keep the JSON for Modern C++ source files (for debugging purposes), e.g. a "C++" folder in your home directory, and then:
+
+``` bash
+git clone https://github.com/nlohmann/json.git
+cd json
+git checkout tags/v3.7.3
+mkdir build
+cd build
+
+cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 
 make
 sudo make install

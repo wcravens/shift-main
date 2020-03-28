@@ -2,7 +2,11 @@
 #include "PSQL.h"
 #include "TRTHAPI.h"
 
+#if GCC_VERSION < 8
 #include <experimental/filesystem>
+#else
+#include <filesystem>
+#endif
 
 #include <pwd.h>
 
@@ -143,7 +147,11 @@ int main(int ac, char* av[])
     }
     std::string servicePath { homeDir };
     servicePath += "/.shift/DatafeedEngine";
+#if GCC_VERSION < 8
     std::experimental::filesystem::create_directories(servicePath);
+#else
+    std::filesystem::create_directories(servicePath);
+#endif
     std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
 

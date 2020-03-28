@@ -1,7 +1,11 @@
 #include "MainClient.h"
 #include "SHIFTServiceHandler.h"
 
+#if GCC_VERSION < 8
 #include <experimental/filesystem>
+#else
+#include <filesystem>
+#endif
 #include <future>
 #include <thread>
 
@@ -166,7 +170,11 @@ int main(int ac, char* av[])
     }
     std::string servicePath { homeDir };
     servicePath += "/.shift/WebClient";
+#if GCC_VERSION < 8
     std::experimental::filesystem::create_directories(servicePath);
+#else
+    std::filesystem::create_directories(servicePath);
+#endif
     std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
 

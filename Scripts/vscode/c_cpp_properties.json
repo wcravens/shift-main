@@ -32,7 +32,7 @@
             ],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
-            "cppStandard": "c++14"
+            "cppStandard": "c++17"
         },
         {
             "name": "Linux",
@@ -68,7 +68,7 @@
             },
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
-            "cppStandard": "c++14"
+            "cppStandard": "c++17"
         },
         {
             "name": "Win32",
@@ -93,7 +93,7 @@
                 "databaseFilename": ""
             },
             "cStandard": "c11",
-            "cppStandard": "c++14"
+            "cppStandard": "c++17"
         }
     ],
     "version": 4

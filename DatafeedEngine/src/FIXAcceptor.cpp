@@ -245,7 +245,7 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
          << "FIX:Logout - " << sessionID.toString() << endl;
 }
 
-void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) throw(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType) // override
+void FIXAcceptor::fromApp(const FIX::Message& message, const FIX::SessionID& sessionID) noexcept(false) // override
 {
     crack(message, sessionID);
 }
