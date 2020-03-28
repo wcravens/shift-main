@@ -185,9 +185,9 @@ void MainClient::sendCompanyNamesToFront()
         sleep(1);
     }
 
-    for (const auto& companyName : getCompanyNames()) {
+    for (const auto& [ticker, companyName] : getCompanyNames()) {
         std::ostringstream oss;
-        oss << "{\"" << companyName.first << "\": \"" << companyName.second << "\"}";
+        oss << "{\"" << ticker << "\": \"" << companyName << "\"}";
         if (res == "") {
             res += oss.str();
         } else {

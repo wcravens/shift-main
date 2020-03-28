@@ -22,8 +22,8 @@ BOOST_AUTO_TEST_CASE(COMPANYLISTTEST)
     auto after_size = testClient->getCompanyNames().size();
     std::cout << "after check the size: " << after_size << std::endl;
 
-    for (auto companyName : testClient->getCompanyNames()) {
-        std::cout << companyName.first << " - " << companyName.second << std::endl;
+    for (const auto& [ticker, companyName] : testClient->getCompanyNames()) {
+        std::cout << ticker << " - " << companyName << std::endl;
     }
 
     initiator.disconnectBrokerageCenter();

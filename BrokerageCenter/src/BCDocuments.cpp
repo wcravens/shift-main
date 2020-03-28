@@ -64,9 +64,9 @@ void BCDocuments::unregisterTargetFromDoc(const std::string& targetID)
     unregisterTarget(targetID);
 
     std::vector<std::string> userIDs;
-    for (auto& kv : m_userID2TargetID)
-        if (targetID == kv.second)
-            userIDs.push_back(kv.first);
+    for (const auto& [uID, tID] : m_userID2TargetID)
+        if (tID == targetID)
+            userIDs.push_back(uID);
 
     for (const auto& userID : userIDs)
         m_userID2TargetID.erase(userID);
@@ -233,8 +233,7 @@ void BCDocuments::onNewExecutionReportForUserRiskManagement(const std::string& u
 void BCDocuments::broadcastOrderBooks() const
 {
     for (const auto& kv : m_orderBookBySymbol) {
-        auto& orderBook = *kv.second;
-        orderBook.broadcastWholeOrderBookToAll();
+        kv.second->broadcastWholeOrderBookToAll();
     }
 }
 
