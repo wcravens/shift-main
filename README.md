@@ -25,7 +25,7 @@ These are required in order to install all tools and libraries contained in this
 - In the Terminal: `xcode-select --install`
 
 - Install [Homebrew](http://brew.sh/) (APT-like environment for macOS):
-    - In the Terminal: `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+    - In the Terminal: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`
 
 ---
 

@@ -9,7 +9,7 @@
     "telemetry.enableTelemetry": false,
     "C_Cpp.clang_format_fallbackStyle": "WebKit",
     "C_Cpp.configurationWarnings": "Disabled",
-    "C_Cpp.default.cppStandard": "c++14",
+    "C_Cpp.default.cppStandard": "c++17",
     "C_Cpp.default.cStandard": "c11",
     "C_Cpp.intelliSenseCacheSize": 1024,
     "cmake.configureOnOpen": true,
