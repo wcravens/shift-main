@@ -6,10 +6,10 @@
 #include "configFunctions.h"
 
 #include <atomic>
-#if GCC_VERSION < 8
-#include <experimental/filesystem>
-#else
+#if __has_include(<filesystem>)
 #include <filesystem>
+#else
+#include <experimental/filesystem>
 #endif
 #include <future>
 
@@ -281,10 +281,10 @@ int main(int ac, char* av[])
     }
     std::string servicePath { homeDir };
     servicePath += "/.shift/MatchingEngine";
-#if GCC_VERSION < 8
-    std::experimental::filesystem::create_directories(servicePath);
-#else
+#if __has_include(<filesystem>)
     std::filesystem::create_directories(servicePath);
+#else
+    std::experimental::filesystem::create_directories(servicePath);
 #endif
     std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
