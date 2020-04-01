@@ -31,6 +31,7 @@ class SHIFTServiceIf {
   virtual void get_user_by_username(std::string& _return, const std::string& username) = 0;
   virtual void getAllTraders(std::string& _return) = 0;
   virtual void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate) = 0;
+  virtual void getThisLeaderboardByDay(std::string& _return, const int32_t contestDay) = 0;
 };
 
 class SHIFTServiceIfFactory {
@@ -88,6 +89,9 @@ class SHIFTServiceNull : virtual public SHIFTServiceIf {
     return;
   }
   void getThisLeaderboard(std::string& /* _return */, const std::string& /* startDate */, const std::string& /* endDate */) {
+    return;
+  }
+  void getThisLeaderboardByDay(std::string& /* _return */, const int32_t /* contestDay */) {
     return;
   }
 };
@@ -1157,6 +1161,110 @@ class SHIFTService_getThisLeaderboard_presult {
 
 };
 
+typedef struct _SHIFTService_getThisLeaderboardByDay_args__isset {
+  _SHIFTService_getThisLeaderboardByDay_args__isset() : contestDay(false) {}
+  bool contestDay :1;
+} _SHIFTService_getThisLeaderboardByDay_args__isset;
+
+class SHIFTService_getThisLeaderboardByDay_args {
+ public:
+
+  SHIFTService_getThisLeaderboardByDay_args(const SHIFTService_getThisLeaderboardByDay_args&);
+  SHIFTService_getThisLeaderboardByDay_args& operator=(const SHIFTService_getThisLeaderboardByDay_args&);
+  SHIFTService_getThisLeaderboardByDay_args() : contestDay(0) {
+  }
+
+  virtual ~SHIFTService_getThisLeaderboardByDay_args() throw();
+  int32_t contestDay;
+
+  _SHIFTService_getThisLeaderboardByDay_args__isset __isset;
+
+  void __set_contestDay(const int32_t val);
+
+  bool operator == (const SHIFTService_getThisLeaderboardByDay_args & rhs) const
+  {
+    if (!(contestDay == rhs.contestDay))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_getThisLeaderboardByDay_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_getThisLeaderboardByDay_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class SHIFTService_getThisLeaderboardByDay_pargs {
+ public:
+
+
+  virtual ~SHIFTService_getThisLeaderboardByDay_pargs() throw();
+  const int32_t* contestDay;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_getThisLeaderboardByDay_result__isset {
+  _SHIFTService_getThisLeaderboardByDay_result__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_getThisLeaderboardByDay_result__isset;
+
+class SHIFTService_getThisLeaderboardByDay_result {
+ public:
+
+  SHIFTService_getThisLeaderboardByDay_result(const SHIFTService_getThisLeaderboardByDay_result&);
+  SHIFTService_getThisLeaderboardByDay_result& operator=(const SHIFTService_getThisLeaderboardByDay_result&);
+  SHIFTService_getThisLeaderboardByDay_result() : success() {
+  }
+
+  virtual ~SHIFTService_getThisLeaderboardByDay_result() throw();
+  std::string success;
+
+  _SHIFTService_getThisLeaderboardByDay_result__isset __isset;
+
+  void __set_success(const std::string& val);
+
+  bool operator == (const SHIFTService_getThisLeaderboardByDay_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const SHIFTService_getThisLeaderboardByDay_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SHIFTService_getThisLeaderboardByDay_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _SHIFTService_getThisLeaderboardByDay_presult__isset {
+  _SHIFTService_getThisLeaderboardByDay_presult__isset() : success(false) {}
+  bool success :1;
+} _SHIFTService_getThisLeaderboardByDay_presult__isset;
+
+class SHIFTService_getThisLeaderboardByDay_presult {
+ public:
+
+
+  virtual ~SHIFTService_getThisLeaderboardByDay_presult() throw();
+  std::string* success;
+
+  _SHIFTService_getThisLeaderboardByDay_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class SHIFTServiceClient : virtual public SHIFTServiceIf {
  public:
   SHIFTServiceClient(apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {
@@ -1212,6 +1320,9 @@ class SHIFTServiceClient : virtual public SHIFTServiceIf {
   void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate);
   void send_getThisLeaderboard(const std::string& startDate, const std::string& endDate);
   void recv_getThisLeaderboard(std::string& _return);
+  void getThisLeaderboardByDay(std::string& _return, const int32_t contestDay);
+  void send_getThisLeaderboardByDay(const int32_t contestDay);
+  void recv_getThisLeaderboardByDay(std::string& _return);
  protected:
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -1237,6 +1348,7 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_get_user_by_username(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getAllTraders(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getThisLeaderboard(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getThisLeaderboardByDay(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   SHIFTServiceProcessor(::apache::thrift::stdcxx::shared_ptr<SHIFTServiceIf> iface) :
     iface_(iface) {
@@ -1250,6 +1362,7 @@ class SHIFTServiceProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["get_user_by_username"] = &SHIFTServiceProcessor::process_get_user_by_username;
     processMap_["getAllTraders"] = &SHIFTServiceProcessor::process_getAllTraders;
     processMap_["getThisLeaderboard"] = &SHIFTServiceProcessor::process_getThisLeaderboard;
+    processMap_["getThisLeaderboardByDay"] = &SHIFTServiceProcessor::process_getThisLeaderboardByDay;
   }
 
   virtual ~SHIFTServiceProcessor() {}
@@ -1375,6 +1488,16 @@ class SHIFTServiceMultiface : virtual public SHIFTServiceIf {
     return;
   }
 
+  void getThisLeaderboardByDay(std::string& _return, const int32_t contestDay) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getThisLeaderboardByDay(_return, contestDay);
+    }
+    ifaces_[i]->getThisLeaderboardByDay(_return, contestDay);
+    return;
+  }
+
 };
 
 // The 'concurrent' client is a thread safe client that correctly handles
@@ -1435,6 +1558,9 @@ class SHIFTServiceConcurrentClient : virtual public SHIFTServiceIf {
   void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate);
   int32_t send_getThisLeaderboard(const std::string& startDate, const std::string& endDate);
   void recv_getThisLeaderboard(std::string& _return, const int32_t seqid);
+  void getThisLeaderboardByDay(std::string& _return, const int32_t contestDay);
+  int32_t send_getThisLeaderboardByDay(const int32_t contestDay);
+  void recv_getThisLeaderboardByDay(std::string& _return, const int32_t seqid);
  protected:
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   apache::thrift::stdcxx::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;

@@ -154,12 +154,42 @@ void SHIFTServiceHandler::getThisLeaderboard(std::string& _return, const std::st
     std::string query;
     if(strptime(startDate.c_str(), "%Y-%m-%d",&tm) && strptime(endDate.c_str(), "%Y-%m-%d", &tm)){
         std::cout << "valid dates" << std::endl;
-        query = std::string("SELECT rank, username, eod_buying_power, eod_traded_shares, eod_pl, eod_earnings, end_date from leaderboard join traders on leaderboard.user_id = traders.id where start_date > '") + startDate + std::string("' and end_date < '") + endDate + std::string("' ORDER BY rank asc;");
+        query = std::string("SELECT rank, username, eod_buying_power, eod_traded_shares, eod_pl, pl_2, end_date, contest_day from leaderboard join traders on leaderboard.trader_id = traders.id where start_date > '") + startDate + std::string("' and end_date < '") + endDate + std::string("' ORDER BY rank asc;");
     }
     else{
         std::cout << "invalid dates!" << std::endl;
-        query = "SELECT rank, username, eod_buying_power, eod_traded_shares, eod_pl, eod_earnings, end_date from leaderboard join traders on leaderboard.user_id = traders.id;";
+        query = "SELECT rank, username, eod_buying_power, eod_traded_shares, eod_pl, pl_2, end_date, contest_day from leaderboard join traders on leaderboard.trader_id = traders.id;";
     }
+
+    if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE LEADERBOARD\n", PGRES_TUPLES_OK, &pRes)){
+        std::cout << "RESULTS OBTAINED" << std::endl;
+    }
+    else{
+        std::cout << "COULD NOT GET??" << std::endl;
+    }
+
+    json j;
+    j = parsePresult(pRes);
+    auto s = j.dump(4);
+
+    _return = s;
+
+    std::cout << "returned... " << s << std::endl;
+    //practice proper hygiene ^.^
+    PQclear(pRes);
+
+}
+
+/**
+ * @brief Method for sending a list of the specified day's rankings
+ * @param _return Thrift default param that all thrift service functions have in their virtual void funcs
+ * @param dateRange Day of interest for rankings, in the format YYYY-MM-DD
+ */
+void SHIFTServiceHandler::getThisLeaderboardByDay(std::string& _return, int32_t contestDay){
+
+    PGresult* pRes;
+
+    auto query = std::string("SELECT rank, username, eod_buying_power, eod_traded_shares, eod_pl, pl_2, end_date from leaderboard join traders on leaderboard.trader_id = traders.id where contest_day = ") + std::to_string(contestDay) + std::string(" ORDER BY rank asc;");
 
     if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE LEADERBOARD\n", PGRES_TUPLES_OK, &pRes)){
         std::cout << "RESULTS OBTAINED" << std::endl;

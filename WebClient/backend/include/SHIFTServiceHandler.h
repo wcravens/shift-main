@@ -14,6 +14,7 @@ public:
     void submitOrder(const std::string& username, const std::string& orderType, const std::string& orderSymbol, int32_t orderSize, double orderPrice, const std::string& orderID);
     void getAllTraders(std::string& _return);
     void getThisLeaderboard(std::string& _return, const std::string& startDate, const std::string& endDate);
+    void getThisLeaderboardByDay(std::string& _return, int32_t contestDay);
     void webClientSendUsername(const std::string& username);
     void webUserLoginV2(std::string& _return, const std::string& username, const std::string& password);
     void registerUser(std::string& _return, const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password);
