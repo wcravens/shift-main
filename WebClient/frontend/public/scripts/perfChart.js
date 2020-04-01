@@ -1,26 +1,36 @@
 $(document).ready( function(){
   var AVERAGE_LABEL = "Average";
   var EOD_INDEX = 6;
+  var CONTESTDAY_INDEX = 7;
   var USERNAME_INDEX = 1
   var PROFITDETERMINATOR_INDEX = 4;
   var profitData = {};
   var contestStart = moment('2020-03-06 00:00:00', 'YYYY-MM-DD HH:mm:ss').valueOf();
   var allTimes = [];
 
+  var allDays = [];
+
   //leaderboardAllStats from userperf.php
+  console.log(leaderboardAllStats);
   for(i = 0; i < leaderboardAllStats["data"].length; i++){
     var userTag = leaderboardAllStats["data"][i][USERNAME_INDEX];
     if(!(userTag in profitData)){
       profitData[userTag] = []
     }
     
+    var foundDay = leaderboardAllStats["data"][i][CONTESTDAY_INDEX];
+    if(! allDays.includes(foundDay)){
+      allDays.push(foundDay);
+    }
+
+    /*
     var cTime = moment(leaderboardAllStats["data"][i][EOD_INDEX], 'YYYY-MM-DD HH:mm:ss');
     var normalized_cTime = moment(cTime.format('YYYY-MM-DD')+' 17:00:00');
     
     if(! allTimes.includes(normalized_cTime.format('MM-DD'))){
 
       allTimes.push(normalized_cTime.format('MM-DD'));
-    }
+    }*/
     var cVal = parseFloat(leaderboardAllStats["data"][i][PROFITDETERMINATOR_INDEX]);
     cVal = Math.round(cVal * 1e2) / 1e2;
     profitData[userTag].push([
@@ -33,9 +43,9 @@ $(document).ready( function(){
   var maxLen = 0;
   var buckets = []
   console.log("ALLTIMES" + allTimes);
-  for(i = 0; i<allTimes.length; i++){
-    buckets.push('Day ' + (i+1) + '<br></br>(' + allTimes[i] + ')')
-    console.log('BUCKETS ' + buckets[i]);
+  for(i = 0; i<allDays.length; i++){
+    buckets.push('Day ' + (allDays[i]));
+    console.log('BUCKETS ' + allDays[i]);
 
   }
   console.log(buckets);

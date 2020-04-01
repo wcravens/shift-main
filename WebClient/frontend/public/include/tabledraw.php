@@ -1,20 +1,28 @@
+<?php
+// the leaderpage, which shows the current leaderboard. 
+require_once(getenv('SITE_ROOT').'/public/include/init.php');
+
+include("./include/tablecheck.php");
+
+?>
+
 <div class="collapse navbar-collapse" id="myNavbar" >
     <ul class="nav navbar-nav">
+    <li class="<?php echo $page=='liveLeaderboard'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View graph'><a href="/liveLeaderboard.php">Live Leaderboard</a></li>
     <li class="<?php echo $lbViewed=='chart'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View graph'><a href="/userperf.php">Daily Statistics</a></li>
-    <li class="<?php echo $page=='liveLeaderboard'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View graph'><a href="/liveLeaderboard.php">Live Leaderboard</a></li>    
-    <li class="<?php echo $_GET["start"]=='2020-03-06'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day One results'><a href="/leaderboard.php?start=2020-03-27&end=2020-03-28">Day </br> One</a></li>
-    <li class="<?php echo $_GET["start"]=='2020-03-14'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Two results'><a href="/leaderboard.php?start=2020-04-03&end=2020-04-04">Day </br> Two</a></li>
-    <li class="<?php echo $_GET["start"]=='2020-03-21'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Three results'><a href="/leaderboard.php?start=2020-04-10&end=2020-04-11">Day </br> Three</a></li>
-    <li class="<?php echo $_GET["start"]=='2020-03-28'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Four results'><a href="/leaderboard.php?start=2020-04-17&end=2020-04-18">Day </br> Four</a></li>
-    <li class="<?php echo $_GET["start"]=='2020-04-04'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Five results'><a href="/leaderboard.php?start=2020-04-24&end=2020-04-25">Day </br> Five</a></li>
-    <li class="<?php echo $_GET["start"]=='2020-04-10'?'statsBar':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Six results'><a href="/leaderboard.php?start=2020-05-01&end=2020-05-02">Day </br> Six</a></li>
-    </ul>
+    <li class="<?php echo $_GET["day"]=='1'?'statsBar':''; ?> collapseitem <?php echo $presentLeaderboardD1==true?'hide':''; ?>" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day One results'><a href="/leaderboard.php?day=1">Day </br> One</a></li>
+    <li class="<?php echo $_GET["day"]=='2'?'statsBar':''; ?> collapseitem <?php echo $presentLeaderboardD2==true?'hide':''; ?>" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Two results'><a href="/leaderboard.php?day=2">Day </br> Two</a></li>
+    <li class="<?php echo $_GET["day"]=='3'?'statsBar':''; ?> collapseitem <?php echo $presentLeaderboardD3==true?'hide':''; ?>" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Three results'><a href="/leaderboard.php?day=3">Day </br> Three</a></li>
+    <li class="<?php echo $_GET["day"]=='4'?'statsBar':''; ?> collapseitem <?php echo $presentLeaderboardD4==true?'hide':''; ?>" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Four results'><a href="/leaderboard.php?day=4">Day </br> Four</a></li>
+    <li class="<?php echo $_GET["day"]=='5'?'statsBar':''; ?> collapseitem <?php echo $presentLeaderboardD5==true?'hide':''; ?>" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Five results'><a href="/leaderboard.php?day=5">Day </br> Five</a></li>
+    <li class="<?php echo $_GET["day"]=='6'?'statsBar':''; ?> collapseitem <?php echo $presentLeaderboardD6==true?'hide':''; ?>" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Six results'><a href="/leaderboard.php?day=6">Day </br> Six</a></li>
+    <li class="<?php echo $_GET["day"]=='7'?'statsBar':''; ?> collapseitem <?php echo $presentLeaderboardD7==true?'hide':''; ?>" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='View Day Six results'><a href="/leaderboard.php?day=7">Day </br> Seven</a></li>
+</ul>
 </div>
 
 <?php
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
-$leaderBoardData = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'getThisLeaderboard', array($_GET["start"], $_GET["end"])));
 
 //Personally, this feels ~slightly~ more manageable than using jquery - J.U.
 //especially since the tables aren't live anymore.
@@ -30,7 +38,7 @@ echo '<th class="text-right notwrap" width="15%">EOD Earnings</th>';
 echo '<th class="text-right notwrap width="15%">EOD Time</th>';
 echo '</tr>';
 
-foreach ($leaderBoardData->data as $idx => $row) {
+foreach ($leaderBoardData["data"] as $idx => $row) {
   echo '<tr>';
 
   $idx = 0;

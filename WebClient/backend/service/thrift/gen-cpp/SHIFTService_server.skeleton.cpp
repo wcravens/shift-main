@@ -68,6 +68,11 @@ class SHIFTServiceHandler : virtual public SHIFTServiceIf {
     printf("getThisLeaderboard\n");
   }
 
+  void getThisLeaderboardByDay(std::string& _return, const int32_t contestDay) {
+    // Your implementation goes here
+    printf("getThisLeaderboardByDay\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

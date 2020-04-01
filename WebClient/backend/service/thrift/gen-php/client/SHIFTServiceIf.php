@@ -77,4 +77,9 @@ interface SHIFTServiceIf
      * @return string
      */
     public function getThisLeaderboard($startDate, $endDate);
+    /**
+     * @param int $contestDay
+     * @return string
+     */
+    public function getThisLeaderboardByDay($contestDay);
 }

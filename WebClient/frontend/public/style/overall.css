@@ -283,6 +283,9 @@ body {
     display: none;
 }
 
+.hide {
+    display:none;
+}
 
 /* The slider */
 
@@ -339,3 +342,11 @@ input:checked+.slider:before {
 .dropdown-header {
     color: #979797 !important;
 }
+
+.dailyChart {
+    padding-left: 45px;
+    width: 1200px;
+    position: center;
+    left: 0;
+}
+  

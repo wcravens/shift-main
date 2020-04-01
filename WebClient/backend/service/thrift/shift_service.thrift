@@ -13,6 +13,8 @@ service SHIFTService{
     string change_password(1:string cur_password, 2:string new_password, 3:string username),
     string get_user_by_username(1:string username),
     string getAllTraders(),
-    string getThisLeaderboard(1:string startDate = "", 2:string endDate = "")
+    string getThisLeaderboard(1:string startDate = "", 2:string endDate = ""),
+    string getThisLeaderboardByDay(1:i32 contestDay)
+
 }
 
