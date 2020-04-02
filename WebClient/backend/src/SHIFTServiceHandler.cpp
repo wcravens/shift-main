@@ -140,41 +140,6 @@ void SHIFTServiceHandler::getAllTraders(std::string& _return){ //NOTE: Thrift mo
 }
 
 /**
- * @brief Method for sending a list of all active traders, and their properties
- * @param _return Thrift default param that all thrift service functions have in their virtual void funcs
- */
-void SHIFTServiceHandler::getAllTraders(std::string& _return){ //NOTE: Thrift modules deposit the result in this _return value param, for more complicated data structs
-    //Probably make this last param some kind of default value..?
-
-    PGresult* pRes;
-
-    if(DBConnector::getInstance()->doQuery("SELECT id, username, email, role, super from traders", "FAILED QUERY\n", PGRES_TUPLES_OK, &pRes)){
-        std::cout << "RESULTS OBTAINED" << std::endl;
-    }
-    else{
-        std::cout << "COULD NOT GET??" << std::endl;
-    }
-
-    std::cout << "Hello from shift!" << std::endl;
-    if(DBConnector::b_hasConnected){
-        std::cout << "DB has been initialized and is connected!" << std::endl;
-    }
-    else {
-        std::cout << "Oh no...." << std::endl;
-    }
-
-    json j;
-    j = parsePresult(pRes);
-    auto s = j.dump(4);
-
-    _return = s;
-
-    std::cout << "returned... " << s << std::endl;
-    //practice proper hygiene ^.^
-    PQclear(pRes);
-}
-
-/**
  * @brief Method for sending a list of the specified day's rankings
  * @param _return Thrift default param that all thrift service functions have in their virtual void funcs
  * @param dateRange Day of interest for rankings, in the format YYYY-MM-DD
@@ -287,77 +252,6 @@ void SHIFTServiceHandler::registerUser(std::string& _return, const std::string& 
 
 }
 
-/**
- * @brief Method for sending a list of the specified day's rankings
- * @param _return Thrift default param that all thrift service functions have in their virtual void funcs
- * @param dateRange Day of interest for rankings, in the format YYYY-MM-DD
- */
-void SHIFTServiceHandler::getThisLeaderboardByDay(std::string& _return, int32_t contestDay){
-
-    PGresult* pRes;
-
-    auto query = std::string("SELECT rank, username, eod_buying_power, eod_traded_shares, eod_pl, pl_2, end_date from leaderboard join traders on leaderboard.trader_id = traders.id where contest_day = ") + std::to_string(contestDay) + std::string(" ORDER BY rank asc;");
-
-    if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE LEADERBOARD\n", PGRES_TUPLES_OK, &pRes)){
-        std::cout << "RESULTS OBTAINED" << std::endl;
-    }
-    else{
-        std::cout << "COULD NOT GET??" << std::endl;
-    }
-
-    json j;
-    j = parsePresult(pRes);
-    auto s = j.dump(4);
-
-    _return = s;
-
-    std::cout << "returned... " << s << std::endl;
-    //practice proper hygiene ^.^
-    PQclear(pRes);
-
-}
-
-void SHIFTServiceHandler::registerUser(std::string& _return, const std::string& username, const std::string& firstname, const std::string& lastname, const std::string& email, const std::string& password)
-{
-    std::cout << "REGISTERUSER" << std::endl;
-    PGresult* pRes;
-    std::string shaPw = encryptStr(password);
-    bool b_user_register_success = false;
-
-    if(DBConnector::getInstance()->doQuery("SELECT * FROM traders where username = '" + username + "';", "COULD NOT RETRIEVE USERNAME; CREATING..\n", PGRES_TUPLES_OK, &pRes)){
-        std::cout << "query failed: " << username << std::endl;
-        json j;
-        j["success"] = b_user_register_success;
-        auto s = j.dump(4);
-
-        std::cout << "returned... " << s << std::endl;
-        _return = s;
-
-    }
-    if(PQntuples(pRes) == 0){
-        const auto query = "INSERT INTO traders (username, password, firstname, lastname, email, role, super) VALUES ('"
-            + username + "','"
-            + shaPw + "','"
-            + firstname + "','" + lastname + "','" + email 
-            + "','student"// info
-            + "',TRUE);";
-
-        std::cout << query << std::endl;
-        if(DBConnector::getInstance()->doQuery(query, "COULD NOT UPDATE SESSION ID\n")){
-            std::cout << "new user: " << username << std::endl;
-            b_user_register_success = true;
-        }        
-
-        json j;
-        j["success"] = b_user_register_success;
-        auto s = j.dump(4);
-
-        std::cout << "returned... " << s << std::endl;
-        _return = s;
-
-    }
-
-}
 
 /**
  * @brief Method for sending current username to frontend.
@@ -424,109 +318,7 @@ void SHIFTServiceHandler::is_login(std::string& _return, const std::string& sess
     }
 
     if(PQntuples(pRes) != 1){
-        j["success"] = false;
-    }
-    else{
-        j = parseProfile(pRes);
-        j["success"] = true;
-    }
-
-    auto s = j.dump(4);
-
-    std::cout << "returned... " << s << std::endl;
-    _return = s;
-
-}
-
-void SHIFTServiceHandler::change_password(std::string& _return, const std::string& cur_password, const std::string& new_password, const std::string& username){
-    std::cout << "CHANGEPW" << std::endl;
-    std::string shaCPw = encryptStr(cur_password);
-    std::string newPw = encryptStr(new_password);
-
-    const auto query = "SELECT id, username, firstname, lastname, email, role, sessionid, super from traders where password = '" + shaCPw + "' and username = '" + username + "';";
-    json j;
-
-    PGresult* eRes;
-    if(DBConnector::getInstance()->doQuery(query, "COULD find user w/ password..\n", PGRES_TUPLES_OK, &eRes)){
-        std::cout << "query succeeded: " << username << std::endl;
-    }
-    else{
-
-        std::cout << "incorrect user/password" << std::endl;
-    }
-
-
-    if(PQntuples(eRes) != 1){
-        std::cout << "query failed "  << shaCPw << " " << newPw << std::endl;
-        j["success"] = false;
-    }
-    else {
-
-        if(shaCPw.compare(newPw) != 0){
-            const auto updateQuery = "UPDATE traders SET password = '"+newPw+"'"+  " WHERE username = '" + username + "';";
-            if(DBConnector::getInstance()->doQuery(updateQuery, "COULD NOT UPDATE SESSION ID\n")){
-                std::cout << "new pw saved: " << username << std::endl;
-                j["success"] = true;
-            }        
-
-        }
-        else{
-            std::cout << "username attempted to change to same pw " << shaCPw << " " << newPw << std::endl;
-            std::cout << "username attempted to change to same pw " << cur_password << " " << new_password << std::endl;
-
-            j["success"] = false;
-        }
-
-    }
-
-    auto s = j.dump(4);
-
-    std::cout << "returned... " << s << std::endl;
-    _return = s;
-
-}
-
-void SHIFTServiceHandler::get_user_by_username(std::string& _return, const std::string& username){
-    std::cout << "GETUSERBYNAME" << std::endl;
-    PGresult* pRes;
-    const auto query = "SELECT id, username, firstname, lastname, email, role, sessionid, super from traders where username = '" + username + "';";
-    json j;
-
-    if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE USER..\n", PGRES_TUPLES_OK, &pRes)){
-        std::cout << "query succeeded: " << username << std::endl;
-    }
-
-    if(PQntuples(pRes) != 1){
-        std::cout << "did not find user " << username << std::endl;
-        j["success"] = false;
-    }
-    else{
-        std::cout << "found user " << username << std::endl;
-        j = parseProfile(pRes);
-        j["success"] = true;
-    }
-
-    auto s = j.dump(4);
-
-    std::cout << "returned... " << s << std::endl;
-    _return = s;
-
-}
-
-void SHIFTServiceHandler::is_login(std::string& _return, const std::string& sessionid){
-    std::cout << "ISLOGIN" << std::endl;
-    PGresult* pRes;
-    const auto query = "SELECT id, username, firstname, lastname, email, role, sessionid, super from traders where sessionid = '" + sessionid + "';";
-    json j;
-
-    if(DBConnector::getInstance()->doQuery(query, "COULD NOT RETRIEVE USERNAME; CREATING..\n", PGRES_TUPLES_OK, &pRes)){
-        std::cout << "query succeeded: " << sessionid << std::endl;
-        j["success"] = false;
-
-    }
-
-    if(PQntuples(pRes) != 1){
-        j["success"] = false;
+        j["success"] = false; 
     }
     else{
         j = parseProfile(pRes);
@@ -636,4 +428,3 @@ void SHIFTServiceHandler::webUserLogin(const std::string& username)
         shift::FIXInitiator::getInstance().attachClient(ccptr);
     }
 }
-
