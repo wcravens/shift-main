@@ -279,6 +279,7 @@ else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE __linux__)
 endif()
 
+
 ### Install Configuration #####################################################
 
 # If no installation path is set, the default is /usr/local
