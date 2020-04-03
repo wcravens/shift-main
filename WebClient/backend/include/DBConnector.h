@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "TradingRecord.h"
-
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -11,7 +9,6 @@
 
 class DBConnector {
 public:
-    static bool s_isPortfolioDBReadOnly; // e.g. useful for research purpose when true
     static const std::string s_sessionID;
     static bool b_hasConnected;
 
@@ -28,9 +25,6 @@ public:
 
     bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
     std::vector<std::string> readRowsOfField(std::string query, int fieldIndex /*= 0*/);
-
-    /*@ brief Inserts trade history into the table used to save the trading records. */
-    //bool insertTradingRecord(const TradingRecord& trade);
 
 protected:
     PGconn* m_pConn;

@@ -1,6 +1,9 @@
 # Composer files
 installer
 
+# Python __pycache__
+__pycache__/
+
 # Third party dependencies
 vendor/
 

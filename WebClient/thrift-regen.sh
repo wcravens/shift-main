@@ -1,28 +1,23 @@
 #!/bin/bash
 
-ROOT_DIR=`pwd`
-GENCPP_DIR="${ROOT_DIR}/backend/service/thrift/gen-cpp";
-GENPHP_DIR="${ROOT_DIR}/backend/service/thrift/gen-php";
+WEBCLIENT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-### RECREATE THRIFT FILES
-echo $ROOT_DIR;
+### REGENERATE THRIFT FILES
 
-echo "REGENERATING THRIFT FILES";
-cd backend/service/thrift;
-rm -rf gen-cpp;
+echo "REGENERATING THRIFT FILES"
+cd "${WEBCLIENT_ROOT}/backend/service/thrift"
+rm -rf gen-cpp
 thrift -r --gen cpp shift_service.thrift
-
-rm -rf gen-php;
-thrift -r --gen php shift_service.thrift;
+rm -rf gen-php
+thrift -r --gen php shift_service.thrift
 
 ### MOVE PHP TO INTENDED LOCATION
 
 echo "MOVING PHP TO ITS PROPER DESTINATION"
-cd "${ROOT_DIR}/frontend/service/thrift";
-rm -rf gen-php;
-cp -r "${GENPHP_DIR}" .;
-touch "php.move.done"
+cd "${WEBCLIENT_ROOT}/frontend/service/thrift"
+rm -rf gen-php
+mv "${WEBCLIENT_ROOT}/backend/service/thrift/gen-php" .
 
-echo "gen-php MV DONE!"
+### DONE
 
-
+echo "DONE!"

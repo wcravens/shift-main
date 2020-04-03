@@ -15,11 +15,11 @@ set(CMAKE
 )
 
 set(INCLUDE
+    ${PROJECT_SOURCE_DIR}/include/DBConnector.h
     ${PROJECT_SOURCE_DIR}/include/MainClient.h
     ${PROJECT_SOURCE_DIR}/include/MyZMQ.h
     ${PROJECT_SOURCE_DIR}/include/SHIFTServiceHandler.h
     ${PROJECT_SOURCE_DIR}/include/UserClient.h
-    ${PROJECT_SOURCE_DIR}/include/DBConnector.h
 )
 
 set(SERVICE
@@ -30,28 +30,17 @@ set(SERVICE
     # ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService_server.skeleton.cpp
     ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService.cpp
     ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService.h
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTServiceClient.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTServiceIf.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_getAllTraders_args.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_submitOrder_args.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_submitOrder_result.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_webClientSendUsername_args.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_webUserLogin_args.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService_webUserLogin_result.php
     ${PROJECT_SOURCE_DIR}/service/thrift/shift_service.thrift
+    ${PROJECT_SOURCE_DIR}/service/thrift/SHIFTService.php
 )
 
 set(SRC
+    ${PROJECT_SOURCE_DIR}/src/DBConnector.cpp
     ${PROJECT_SOURCE_DIR}/src/main.cpp
     ${PROJECT_SOURCE_DIR}/src/MainClient.cpp
     ${PROJECT_SOURCE_DIR}/src/MyZMQ.cpp
     ${PROJECT_SOURCE_DIR}/src/SHIFTServiceHandler.cpp
     ${PROJECT_SOURCE_DIR}/src/UserClient.cpp
-    ${PROJECT_SOURCE_DIR}/src/DBConnector.cpp
-)
-
-set(OTHER
-    ${PROJECT_SOURCE_DIR}/debug.sh
 )
 
 ### Compiler Flags #############################################################
@@ -75,7 +64,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 if(UNIX AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     include_directories(/usr/include/postgresql)
 endif(UNIX AND NOT APPLE)
 
@@ -200,13 +189,11 @@ mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERS
 find_package(Boost REQUIRED
              COMPONENTS program_options)
 
-#DB
-find_package(PostgreSQL REQUIRED)
-
-#Pass data to connecting thrift clients
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 find_package(OpenSSL REQUIRED)
+
+find_package(PostgreSQL REQUIRED)
 
 find_package(Threads REQUIRED)
 
@@ -214,7 +201,6 @@ find_library(ZEROMQ zmq)
 if(NOT ZEROMQ)
     message(FATAL_ERROR "ZeroMQ was not found.")
 endif(NOT ZEROMQ)
-
 
 # Always enforce search for SHIFT LibCoreClient
 # (necessary when using the same name for Debug and Release)
@@ -250,15 +236,15 @@ target_include_directories(${PROJECT_NAME}
                            PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(${PROJECT_NAME}
-                      ${PostgreSQL_LIBRARIES}
                       ${THRIFT_LIBRARIES}
                       ${Boost_LIBRARIES}
+                      nlohmann_json::nlohmann_json
+                      ${OPENSSL_LIBRARIES}
+                      ${PostgreSQL_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${ZEROMQ}
                       ${LIBCORECLIENT}
-                      ${LIBMISCUTILS}
-                      OpenSSL::SSL
-                      nlohmann_json::nlohmann_json)
+                      ${LIBMISCUTILS})
 
 # Required when linking <filesystem> using GCC < 9.1
 if(UNIX AND NOT APPLE)

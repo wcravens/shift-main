@@ -1,5 +1,5 @@
-#include "MainClient.h"
 #include "DBConnector.h"
+#include "MainClient.h"
 #include "SHIFTServiceHandler.h"
 
 #if __has_include(<filesystem>)
@@ -27,15 +27,13 @@ using namespace std::chrono_literals;
 #define CSTR_CONFIG \
     "config"
 #define CSTR_KEY \
-    "crypto key"
+    "key"
+#define CSTR_DBLOGIN_TXT \
+    "dbLogin.txt"
 #define CSTR_TIMEOUT \
     "timeout"
 #define CSTR_VERBOSE \
     "verbose"
-#define CSTR_DBLOGIN_TXT \
-    "dbLogin.txt"
-#define CSTR_PFDBREADONLY \
-    "readonlyportfolio"
 
 /* Abbreviation of NAMESPACE */
 namespace po = boost::program_options;
@@ -71,7 +69,7 @@ int main(int ac, char* av[])
     desc.add_options() // <--- every line-end from here needs a comment mark so that to prevent auto formating into single line
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
-        (CSTR_KEY ",k", po::value<std::string>(), "specify a key for database credential decryption") //
+        (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         ; // add_options
@@ -128,8 +126,6 @@ int main(int ac, char* av[])
         }
     }
 
-    DBConnector::s_isPortfolioDBReadOnly = vm.count(CSTR_PFDBREADONLY) > 0;
-
     DBConnector::getInstance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     if (!DBConnector::getInstance()->connectDB()) {
@@ -144,7 +140,7 @@ int main(int ac, char* av[])
             return 5;
     } else {
         cout << "DB connection OK.\n"
-                << endl;
+             << endl;
     }
 
     MainClient* pMClient = new MainClient("webclient");
@@ -201,7 +197,7 @@ int main(int ac, char* av[])
 #endif
     std::ofstream doneSignal { servicePath + "/done" };
     doneSignal.close();
-    
+
     // running in background
     if (params.timer.isSet) {
         cout.clear();
