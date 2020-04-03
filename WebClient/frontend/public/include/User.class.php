@@ -1,8 +1,19 @@
 <?php
 require_once(getenv('SITE_ROOT').'/service/thrift/ThriftClient.php');
+define('__VENDOR_ROOT__', getenv('SITE_ROOT').'/vendor/');
+require_once(__VENDOR_ROOT__.'autoload.php');
+
+$dotEnv = Dotenv\Dotenv::createImmutable('/usr/local/share/shift/WebClient/', 'php.env');
+$dotEnv->load();
 
 class User
 {
+
+    public function check_permit_all(){
+        $permitFlag = $_ENV['PERMITALL'];
+
+        return $permitFlag === "ALLOW";
+    }
 
     public function registerv2($username, $firstname, $lastname, $email, $password, $confirm_password){
 
@@ -115,7 +126,7 @@ class User
         }
 
         $profile = $user[0];
-        return $profile['role'] == 'admin';
+        return $profile['role'] == 'admin' && ! $this->check_permit_all();
     }
 
     public function is_studentv2()
@@ -126,7 +137,7 @@ class User
         }
 
         $profile = $user[0];
-        return $profile['role'] == 'student';
+        return $profile['role'] == 'student' && !$this->check_permit_all();
     }
 
     public function logout()

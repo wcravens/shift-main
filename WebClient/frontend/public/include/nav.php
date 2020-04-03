@@ -93,7 +93,9 @@ if (isset($_GET['username'])) {
       <ul class="nav navbar-nav navbar-right">
         <!-- <li><a href="test.html"><i class="material-icons" style="font-size:22px;">lightbulb_outline</i></a></li> -->
         <!-- <li onclick="toggleFullScreen()"><a href="#"><i id="fullscreenbutton" class="material-icons" style="font-size:22px";>fullscreen</i></a></li> -->
-        <p id="Summary" class="navbar-text notselectable notimp">BP: 0.00 | P&L: 0.00 (0.00%)</p> 
+        <?php if(!$userModel->is_studentv2()){ ?>
+          <p id="Summary" class="navbar-text notselectable notimp">BP: 0.00 | P&L: 0.00 (0.00%)</p>
+        <?php }?>
         <li class="dropdown collapseitem" style="width: 110px; text-align: center; margin-left: auto;">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><?php echo $username;?>&nbsp<span class="caret"></span></a>
           <ul class="dropdown-menu keep-open-on-click">
@@ -113,9 +115,13 @@ if (isset($_GET['username'])) {
               </a>
             </li>
             <li class="divider"></li>
+            <?php if (!$userModel->is_studentv2()) { ?>
+
             <li>
               <a href="../submittedorders.php">Submitted Orders</a>
             </li>
+            <?php }?>
+
             <li>
               <a href="../myprofile.php">My Profile</a>
             </li>
