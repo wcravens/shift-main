@@ -22,5 +22,4 @@ public:
     void change_password(std::string& _return, const std::string& cur_password, const std::string& new_password, const std::string& username);
     void get_user_by_username(std::string& _return, const std::string& username);
     void webUserLogin(const std::string& username);
-
 };

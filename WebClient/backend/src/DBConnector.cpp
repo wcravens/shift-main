@@ -9,7 +9,6 @@
 
 //----------------------------------------------------------------------------------------------------------------
 
-/*static*/ bool DBConnector::s_isPortfolioDBReadOnly = false;
 /*static*/ bool DBConnector::b_hasConnected = false;
 /*static*/ const std::string DBConnector::s_sessionID = shift::crossguid::newGuid().str();
 
@@ -44,7 +43,7 @@ bool DBConnector::init(const std::string& cryptoKey, const std::string& fileName
 {
     m_loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
     cout << "READING:" << fileName << endl;
-    
+
     return m_loginInfo.size();
 }
 
@@ -62,8 +61,7 @@ bool DBConnector::connectDB()
         disconnectDB();
         cout << COLOR_ERROR "ERROR: Connection to database failed.\n" NO_COLOR;
         return false;
-    }
-    else {
+    } else {
         cout << "CONNECTION IS A-OK" << endl;
         DBConnector::b_hasConnected = true;
     }
@@ -97,61 +95,7 @@ bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, Exec
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
 }
 
-std::vector<std::string> DBConnector::readRowsOfField(std::string query, int fieldIndex /*= 0*/){
+std::vector<std::string> DBConnector::readRowsOfField(std::string query, int fieldIndex /*= 0*/)
+{
     return shift::database::readRowsOfField(m_pConn, std::move(query), fieldIndex);
 }
-
-/**
- * @brief Convert FIX::UtcTimeStamp to string used for date field in DB.
- */
-
-/*\
-static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
-{
-    std::ostringstream os;
-
-    time_t t = ts.getTimeT();
-    if (localTime) {
-        os << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
-    } else {
-        os << std::put_time(std::gmtime(&t), "%Y-%m-%d %H:%M:%S");
-    }
-
-    os << '.';
-
-    std::string fraction = std::to_string(ts.getFraction(6));
-    os << std::string(6 - fraction.length(), '0') + fraction; // microseconds with "0" padding
-
-    return os.str();
-}
-
-bool DBConnector::insertTradingRecord(const TradingRecord& trade)
-{
-    std::ostringstream queryStrm;
-    queryStrm << "INSERT INTO " << shift::database::PSQLTable<shift::database::TradingRecords>::name << " VALUES ('"
-              << s_sessionID << "','"
-              << s_utcToString(trade.realTime, true) << "','"
-              << s_utcToString(trade.executionTime, true) << "','"
-              << trade.symbol << "','"
-              << trade.price << "','"
-              << trade.size << "','"
-              << trade.traderID1 << "','"
-              << trade.traderID2 << "','"
-              << trade.orderID1 << "','"
-              << trade.orderID2 << "','"
-              << static_cast<char>(trade.orderType1) << "','"
-              << static_cast<char>(trade.orderType2) << "','"
-              << s_utcToString(trade.simulationTime1, true) << "','"
-              << s_utcToString(trade.simulationTime2, true) << "','"
-              << trade.decision << "','"
-              << trade.destination << "');";
-
-    auto lock { lockPSQL() };
-    if (!doQuery(queryStrm.str(), COLOR_ERROR "ERROR: Insert into [" + std::string(shift::database::PSQLTable<shift::database::TradingRecords>::name) + "] failed with query:\n" NO_COLOR)) {
-        cout << COLOR_WARNING << queryStrm.str() << NO_COLOR << '\n'
-             << endl;
-        return false;
-    }
-    return true;
-}
-*/

@@ -47,29 +47,31 @@ Additional instructions for each platform may be included at the end of each sec
 
 ## Required Libraries
 
-| Library               | Ubuntu [pkg]                | macOS [formula]                                     |
-| --------------------- | --------------------------- | --------------------------------------------------- |
-| Boost (C++ libraries) | `libboost-all-dev`          | `boost`                                             | 
-| C++ REST SDK          | `libcpprest-dev`            | `cpprestsdk`                                        |
-| cURL                  | `libcurl4-openssl-dev`      | *pre-installed*                                     | 
-| OpenSSL               | `libssl-dev`                | `openssl`                                           | 
-| libxml2               | `libxml2-dev`               | *pre-installed*                                     | 
-| PostgreSQL            | `postgresql-server-dev-all` | `postgresql` **\***                                 | 
-| UUID                  | `uuid-dev`                  | *pre-installed*                                     | 
+| Library               | Ubuntu [pkg]                | macOS [formula]     |
+| --------------------- | --------------------------- | ------------------- |
+| Boost (C++ libraries) | `libboost-all-dev`          | `boost`             |
+| C++ REST SDK          | `libcpprest-dev`            | `cpprestsdk`        |
+| cURL                  | `libcurl4-openssl-dev`      | *pre-installed*     |
+| OpenSSL               | `libssl-dev`                | `openssl`           |
+| libxml2               | `libxml2-dev`               | *pre-installed*     |
+| PostgreSQL            | `postgresql-server-dev-all` | `postgresql` **\*** |
+| UUID                  | `uuid-dev`                  | *pre-installed*     |
 
 **\*** This macOS formula installs both PostgreSQL and its libraries.
 
 ---
 
 ## Required Tools
-| Tool              | Ubuntu [pkg]                    | macOS [formula]     | 
-| ----------------- | ------------------------------- | ------------------- |
-| CMake             | `cmake`                         | `cmake`             |
-| Doxygen           | `doxygen`                       | `doxygen`           |
-| Git               | `git`                           | `git`               |
-| Pandoc            | `pandoc`                        | `pandoc`            |
-| pkg-config        | `pkg-config`                    | `pkg-config`        |
-| PostgreSQL **\*** | `postgresql postgresql-contrib` | `postgresql`        |
+
+| Tool              | Ubuntu [pkg]                    | macOS [formula] |
+| ----------------- | ------------------------------- | --------------- |
+| CMake             | `cmake`                         | `cmake`         |
+| Doxygen           | `doxygen`                       | `doxygen`       |
+| Git               | `git`                           | `git`           |
+| Pandoc            | `pandoc`                        | `pandoc`        |
+| pkg-config        | `pkg-config`                    | `pkg-config`    |
+| PostgreSQL **\*** | `postgresql postgresql-contrib` | `postgresql`    |
+
 **\*** Required only in the machines where a PostgreSQL instance is needed.
 
 ---
