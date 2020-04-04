@@ -1,3 +1,4 @@
+#include "DBConnector.h"
 #include "MainClient.h"
 #include "SHIFTServiceHandler.h"
 
@@ -26,7 +27,9 @@ using namespace std::chrono_literals;
 #define CSTR_CONFIG \
     "config"
 #define CSTR_KEY \
-    "crypto key"
+    "key"
+#define CSTR_DBLOGIN_TXT \
+    "dbLogin.txt"
 #define CSTR_TIMEOUT \
     "timeout"
 #define CSTR_VERBOSE \
@@ -66,7 +69,7 @@ int main(int ac, char* av[])
     desc.add_options() // <--- every line-end from here needs a comment mark so that to prevent auto formating into single line
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
-        (CSTR_KEY ",k", po::value<std::string>(), "specify a key for database credential decryption") //
+        (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
         (CSTR_VERBOSE ",v", "verbose mode that dumps detailed server information") //
         ; // add_options
@@ -121,6 +124,23 @@ int main(int ac, char* av[])
             cout << COLOR "Note: The timeout option is ignored because of the given value." NO_COLOR << '\n'
                  << endl;
         }
+    }
+
+    DBConnector::getInstance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+
+    if (!DBConnector::getInstance()->connectDB()) {
+        cout.clear();
+        cout << COLOR_ERROR "DB ERROR: Failed to connect database." NO_COLOR << endl;
+        cout << "\tRetry ('Y') connection to database ? : ";
+        voh_t { cout, params.isVerbose, true };
+
+        char cmd = cin.get();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
+        if ('Y' != cmd && 'y' != cmd)
+            return 5;
+    } else {
+        cout << "DB connection OK.\n"
+             << endl;
     }
 
     MainClient* pMClient = new MainClient("webclient");

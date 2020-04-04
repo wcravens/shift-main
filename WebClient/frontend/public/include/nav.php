@@ -4,7 +4,7 @@
 */
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
-$username = $user['username'];
+$username = $profile['username'];
 if (isset($_GET['username'])) {
     $username = trim($_GET['username']);
 }
@@ -85,17 +85,21 @@ if (isset($_GET['username'])) {
       <ul class="nav navbar-nav">
         <li class="<?php echo $page=='overview'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Best price summary for all tickers (Q)'><a href="/overview.php">Overview</a></li>
         <li class="<?php echo $page=='orderbook'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Order book & candlestick chart (W)'><a href="/orderbook.php">Order Book</a></li>
-        <li class="<?php echo $page=='myportfolio'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Account summary & positions (E)'><a href="/myportfolio.php">My Portfolio</a></li>
-        <li class="<?php echo $page=='leaderboard'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Leaderboard (R)'><a href="/leaderboard.php">Leaderboard</a></li>
+        <?php if (!$userModel->is_studentv2()) { ?>
+          <li class="<?php echo $page=='myportfolio'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Account summary & positions (E)'><a href="/myportfolio.php">My Portfolio</a></li>
+        <?php }?>
+        <li class="<?php echo $page=='leaderboard'?'active':''; ?> collapseitem" style="width: 110px; text-align: center; margin-left: auto;" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content='Leaderboard (R)'><a href="/liveLeaderboard.php">Leaderboard</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <!-- <li><a href="test.html"><i class="material-icons" style="font-size:22px;">lightbulb_outline</i></a></li> -->
         <!-- <li onclick="toggleFullScreen()"><a href="#"><i id="fullscreenbutton" class="material-icons" style="font-size:22px";>fullscreen</i></a></li> -->
-        <p id="Summary" class="navbar-text notselectable notimp">BP: 0.00 | P&L: 0.00 (0.00%)</p> 
+        <?php if(!$userModel->is_studentv2()){ ?>
+          <p id="Summary" class="navbar-text notselectable notimp">BP: 0.00 | P&L: 0.00 (0.00%)</p>
+        <?php }?>
         <li class="dropdown collapseitem" style="width: 110px; text-align: center; margin-left: auto;">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><?php echo $username;?>&nbsp<span class="caret"></span></a>
           <ul class="dropdown-menu keep-open-on-click">
-            <?php if ($userModel->is_admin()) { ?>
+            <?php if ($userModel->is_adminv2()) { ?>
               <li><a href="/../admin">Admin Panel</a></li>
             <?php }?>
             <li>
@@ -111,9 +115,13 @@ if (isset($_GET['username'])) {
               </a>
             </li>
             <li class="divider"></li>
+            <?php if (!$userModel->is_studentv2()) { ?>
+
             <li>
               <a href="../submittedorders.php">Submitted Orders</a>
             </li>
+            <?php }?>
+
             <li>
               <a href="../myprofile.php">My Profile</a>
             </li>
@@ -127,6 +135,21 @@ if (isset($_GET['username'])) {
     </div>
   </div>
 </nav>
+
+<!--- NavBar --->
+<div class="container">
+  <div class="starter-template">
+    <div class="row">
+      <div class="col-md-12">
+        <?php if (! $userModel->is_studentv2()) { ?>
+          <?php include_once('./include/sendorderform.php');?>
+        <?php } ?>
+        <?php include_once('./include/lastprice.php');?>
+      </div>
+    </div>
+  </div>
+</div>
+<!--- END NavBar --->
 
 <script type="text/javascript">
     var php_server_ip= "<?php echo $server_ip;?>";

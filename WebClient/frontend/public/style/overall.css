@@ -255,6 +255,9 @@ body {
     background-color: rgba(0, 0, 0, 0.50) !important;
 }
 
+.statsBar {
+    background-color: rgba(188, 203, 227, 0.80) !important;
+}
 
 /* ############################################BUG of highshart the way to fix############################################## */
 
@@ -280,6 +283,9 @@ body {
     display: none;
 }
 
+.hide {
+    display:none;
+}
 
 /* The slider */
 
@@ -336,3 +342,11 @@ input:checked+.slider:before {
 .dropdown-header {
     color: #979797 !important;
 }
+
+.dailyChart {
+    padding-left: 45px;
+    width: 1200px;
+    position: center;
+    left: 0;
+}
+  

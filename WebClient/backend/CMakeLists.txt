@@ -15,6 +15,7 @@ set(CMAKE
 )
 
 set(INCLUDE
+    ${PROJECT_SOURCE_DIR}/include/DBConnector.h
     ${PROJECT_SOURCE_DIR}/include/MainClient.h
     ${PROJECT_SOURCE_DIR}/include/MyZMQ.h
     ${PROJECT_SOURCE_DIR}/include/SHIFTServiceHandler.h
@@ -29,21 +30,32 @@ set(SERVICE
     # ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService_server.skeleton.cpp
     ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService.cpp
     ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService.h
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/SHIFTService.php
-    ${PROJECT_SOURCE_DIR}/service/thrift/gen-php/client/Types.php
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/__init__.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/constants.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/SHIFTService-remote
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/SHIFTService.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/ttypes.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/__init__.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/client.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testChangePW.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testGetByDay.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testGetLeaderboard.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testGetUser.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testIsLogin.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testLogin.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testRegister.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/py-gen.sh
     ${PROJECT_SOURCE_DIR}/service/thrift/shift_service.thrift
+    ${PROJECT_SOURCE_DIR}/service/thrift/SHIFTService.php
 )
 
 set(SRC
+    ${PROJECT_SOURCE_DIR}/src/DBConnector.cpp
     ${PROJECT_SOURCE_DIR}/src/main.cpp
     ${PROJECT_SOURCE_DIR}/src/MainClient.cpp
     ${PROJECT_SOURCE_DIR}/src/MyZMQ.cpp
     ${PROJECT_SOURCE_DIR}/src/SHIFTServiceHandler.cpp
     ${PROJECT_SOURCE_DIR}/src/UserClient.cpp
-)
-
-set(OTHER
-    ${PROJECT_SOURCE_DIR}/debug.sh
 )
 
 ### Compiler Flags #############################################################
@@ -68,6 +80,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -finline-functions -flto")
 # GCC (Ubuntu 18.04 LTS Bionic Beaver)
 if(UNIX AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    include_directories(/usr/include/postgresql)
 endif(UNIX AND NOT APPLE)
 
 # GCC (Raspbian Buster for Raspberry Pi 4)
@@ -191,6 +204,12 @@ mark_as_advanced(THRIFT_LIBRARIES THRIFT_INCLUDE_DIR THRIFT_COMPILER THRIFT_VERS
 find_package(Boost REQUIRED
              COMPONENTS program_options)
 
+find_package(nlohmann_json 3.2.0 REQUIRED)
+
+find_package(OpenSSL REQUIRED)
+
+find_package(PostgreSQL REQUIRED)
+
 find_package(Threads REQUIRED)
 
 find_library(ZEROMQ zmq)
@@ -234,6 +253,9 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
                       ${THRIFT_LIBRARIES}
                       ${Boost_LIBRARIES}
+                      nlohmann_json::nlohmann_json
+                      ${OPENSSL_LIBRARIES}
+                      ${PostgreSQL_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${ZEROMQ}
                       ${LIBCORECLIENT}

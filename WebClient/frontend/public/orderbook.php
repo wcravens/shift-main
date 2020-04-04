@@ -35,8 +35,6 @@ $redirect_url = '/orderbook.php';
             <div class="starter-template">
                 <div class="row">
                     <div class="col-md-12">
-                        <?php include_once('./include/sendorderform.php');?>
-                        <?php include_once('./include/lastprice.php');?>
                         <div id="candle_data_container" style="position: relative"></div>
                         <div class="orderbook">
                             <div class="table-responsive col-xs-6 col-sm-6 col-md-6 col-lg-6">
