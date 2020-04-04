@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("shiftpy")
 
 from shift_service import SHIFTService
@@ -7,7 +8,7 @@ from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 
 
-trans = TSocket.TSocket('localhost', 9090)
+trans = TSocket.TSocket("localhost", 9090)
 trans = TTransport.TBufferedTransport(trans)
 
 proto = TBinaryProtocol.TBinaryProtocol(trans)
@@ -17,7 +18,7 @@ trans.open()
 
 msg = None
 
-#msg = client.is_login("e84cbe1b-300e-4b3e-8174-b7125297fa45")
-msg = client.getThisLeaderboard('','')
+# msg = client.is_login("e84cbe1b-300e-4b3e-8174-b7125297fa45")
+msg = client.getThisLeaderboard("", "")
 
 print(msg)

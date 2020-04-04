@@ -30,6 +30,21 @@ set(SERVICE
     # ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService_server.skeleton.cpp
     ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService.cpp
     ${PROJECT_SOURCE_DIR}/service/thrift/gen-cpp/SHIFTService.h
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/__init__.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/constants.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/SHIFTService-remote
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/SHIFTService.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/shift_service/ttypes.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/shiftpy/__init__.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/client.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testChangePW.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testGetByDay.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testGetLeaderboard.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testGetUser.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testIsLogin.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testLogin.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/tests/testRegister.py
+    ${PROJECT_SOURCE_DIR}/service/thrift/py-gen.sh
     ${PROJECT_SOURCE_DIR}/service/thrift/shift_service.thrift
     ${PROJECT_SOURCE_DIR}/service/thrift/SHIFTService.php
 )

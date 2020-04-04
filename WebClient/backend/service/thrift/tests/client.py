@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("shiftpy")
 
 from shift_service import SHIFTService
@@ -7,7 +8,7 @@ from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 
 
-trans = TSocket.TSocket('localhost', 9090)
+trans = TSocket.TSocket("localhost", 9090)
 trans = TTransport.TBufferedTransport(trans)
 
 proto = TBinaryProtocol.TBinaryProtocol(trans)
@@ -20,6 +21,5 @@ sDate = "2020-03-16"
 eDate = "2020-03-17"
 
 print("w/ params:")
-msg = client.getThisLeaderboard('', '')
+msg = client.getThisLeaderboard("", "")
 print(msg)
-
