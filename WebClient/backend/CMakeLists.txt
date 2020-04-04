@@ -265,8 +265,7 @@ else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE __linux__)
 endif()
 
-
-### Install Configuration #####################################################
+### Install Configuration ######################################################
 
 # If no installation path is set, the default is /usr/local
 if(NOT CMAKE_INSTALL_PREFIX)
