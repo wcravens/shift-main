@@ -212,7 +212,6 @@ int main(int ac, char* av[])
             ,
             [&params] {
                 while (true) {
-
                     cout.clear();
                     cout << '\n'
                          << COLOR_PROMPT "The WebClient is running. (Enter 'T' to stop)" NO_COLOR << '\n'
