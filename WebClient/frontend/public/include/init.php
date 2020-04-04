@@ -33,7 +33,6 @@ php global var initialization
 session_start();
 
 require_once(getenv('SITE_ROOT').'/public/include/functions.php');
-require_once(getenv('SITE_ROOT').'/public/include/Db.class.php');
 require_once(getenv('SITE_ROOT').'/public/include/User.class.php');
 require_once(getenv('SITE_ROOT').'/service/thrift/ThriftClient.php');
 
