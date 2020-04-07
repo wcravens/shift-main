@@ -46,7 +46,6 @@ set(SERVICE
     ${PROJECT_SOURCE_DIR}/service/thrift/tests/testRegister.py
     ${PROJECT_SOURCE_DIR}/service/thrift/py-gen.sh
     ${PROJECT_SOURCE_DIR}/service/thrift/shift_service.thrift
-    ${PROJECT_SOURCE_DIR}/service/thrift/SHIFTService.php
 )
 
 set(SRC
