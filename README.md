@@ -18,7 +18,7 @@ These are required in order to install all tools and libraries contained in this
 
 ### Ubuntu:
 
-- In the Terminal: `sudo apt-get install autoconf build-essential`
+- In the Terminal: `sudo apt-get install autoconf automake build-essential libtool`
 
 ### macOS:
 
@@ -73,17 +73,6 @@ Additional instructions for each platform may be included at the end of each sec
 | PostgreSQL **\*** | `postgresql postgresql-contrib` | `postgresql`    |
 
 **\*** Required only in the machines where a PostgreSQL instance is needed.
-
----
-
-## Recommended Tools
-
-| Tool    | Ubuntu [pkg]    | macOS [formula] |
-| ------- | --------------- | --------------- |
-| Nmap    | `nmap`          | `nmap`          |
-| cURL    | `curl`          | *pre-installed* |
-| pgAdmin | `pgadmin3`      | *use a .dmg*    |
-| unzip   | `unzip`         | *pre-installed* |
 
 ---
 
