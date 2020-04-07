@@ -11,7 +11,7 @@ if (!($user = $userModel->is_loginv2())) {
 }
 $profile = $user[0];
 
-echo ($_POST['price']);
+echo($_POST['price']);
 
 if (!isset($_POST['symbol']) || !isset($_POST['price']) || !isset($_POST['size']) || !isset($_POST['mysubmit'])) {
     exit('invalid submit');
@@ -22,7 +22,7 @@ $orderSymbol = $_POST['symbol'];
 $orderSize = $_POST['size'] + 0;
 $orderPrice = $_POST['price'] + 0.0;
 
-//1:LimitBuy 2:LimitSell 3:MarketBuy 4:MarketSell 5:CancelBid 6:CancelAsk
+// 1:LimitBuy 2:LimitSell 3:MarketBuy 4:MarketSell 5:CancelBid 6:CancelAsk
 if ($_POST['mysubmit'] == 'Limit Buy') {
     $orderType = '1';
 }

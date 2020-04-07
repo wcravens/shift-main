@@ -93,7 +93,7 @@ if (isset($_GET['username'])) {
       <ul class="nav navbar-nav navbar-right">
         <!-- <li><a href="test.html"><i class="material-icons" style="font-size:22px;">lightbulb_outline</i></a></li> -->
         <!-- <li onclick="toggleFullScreen()"><a href="#"><i id="fullscreenbutton" class="material-icons" style="font-size:22px";>fullscreen</i></a></li> -->
-        <?php if(!$userModel->is_studentv2()){ ?>
+        <?php if (!$userModel->is_studentv2()) { ?>
           <p id="Summary" class="navbar-text notselectable notimp">BP: 0.00 | P&L: 0.00 (0.00%)</p>
         <?php }?>
         <li class="dropdown collapseitem" style="width: 110px; text-align: center; margin-left: auto;">
@@ -159,4 +159,4 @@ if (isset($_GET['username'])) {
 
 <?php
 echo '<script src="/scripts/nav.js?version='.$SHIFT_version.'"></script>';
-?> 
+?>

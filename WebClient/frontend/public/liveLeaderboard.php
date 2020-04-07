@@ -1,5 +1,5 @@
 <?php
-// the leaderpage, which shows the current leaderboard. 
+// the leaderpage, which shows the current leaderboard.
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
 $page = 'liveLeaderboard';

@@ -8,15 +8,15 @@ $dotEnv->load();
 
 class User
 {
-
-    public function check_permit_all(){
+    public function check_permit_all()
+    {
         $permitFlag = $_ENV['PERMITALL'];
 
         return $permitFlag === "ALLOW";
     }
 
-    public function registerv2($username, $firstname, $lastname, $email, $password, $confirm_password){
-
+    public function registerv2($username, $firstname, $lastname, $email, $password, $confirm_password)
+    {
         if (empty($username) || empty($firstname) || empty($lastname) || empty($email) || empty($password) ||empty($confirm_password)) {
             return $_SESSION['err'] = 'Please fill in all the fields below.';
         }
@@ -31,7 +31,7 @@ class User
 
         $profile = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'registerUser', array($username, $firstname, $lastname, $email, $password)), true);
 
-        if($profile["success"] == false){
+        if ($profile["success"] == false) {
             return $_SESSION['err'] = 'Looks like we\'re having some server issues. Please try again later.';
         }
     }
@@ -52,7 +52,8 @@ class User
         return $profile['success'];
     }
 
-    public function is_loginv2(){
+    public function is_loginv2()
+    {
         if (empty($_COOKIE['sessionid'])) {
             return false;
         }
@@ -61,20 +62,17 @@ class User
         $profile = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'is_login', array($sessionid)), true);
         
         $result = [];
-        if(!$profile['success']){
+        if (!$profile['success']) {
             setcookie("sessionid", "", time() - 3600);
-        }
-        else{
+        } else {
             array_push($result, $profile);
         }
 
         return $result;
-
     }
 
     public function change_passwordv2($cur_password, $new_password, $confirm_new_password)
     {
-
         $user = $this->is_loginv2();
         if (count($user) == 0) {
             return $_SESSION['err'] = 'Could not reset PW.';
@@ -95,8 +93,7 @@ class User
             return $_SESSION['err'] = 'Authorization Failed';
         }
 
-        return true; 
-
+        return true;
     }
 
     public function create_sessionid()
@@ -105,13 +102,13 @@ class User
     }
 
 
-    public function get_user_by_usernamev2($username){
-
+    public function get_user_by_usernamev2($username)
+    {
         $profile = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'get_user_by_username', array($username)), true);
 
         $results = [];
 
-        if($profile['success']){
+        if ($profile['success']) {
             array_push($results, $profile);
         }
 
@@ -144,5 +141,4 @@ class User
     {
         setcookie("sessionid", "", time() - 3600);
     }
-
 }

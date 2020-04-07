@@ -17,5 +17,3 @@ $presentLeaderboardD4 = $leaderBoardDataD4["rowCount"] == 0;
 $presentLeaderboardD5 = $leaderBoardDataD5["rowCount"] == 0;
 $presentLeaderboardD6 = $leaderBoardDataD6["rowCount"] == 0;
 $presentLeaderboardD7 = $leaderBoardDataD7["rowCount"] == 0;
-
-?>

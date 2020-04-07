@@ -57,7 +57,7 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
                 });
                 <?php
                 if ($fromReg) {
-                ?>
+                    ?>
                     $("#register-form").delay(100).fadeIn(100);
                     $("#login-form").fadeOut(100);
                     $('#login-form-link').removeClass('active');

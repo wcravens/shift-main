@@ -1,5 +1,5 @@
 <?php
-// the leaderpage, which shows the current leaderboard. 
+// the leaderpage, which shows the current leaderboard.
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
 $page = 'leaderboard';
@@ -21,7 +21,7 @@ $leaderBoardDataGraph = json_decode(ThriftClient::exec('\client\SHIFTServiceClie
         <script src="/static/bootstrap/js/bootstrap.min.js"></script>
         <script src="/static/highstock/js/highstock.js"></script>
         <script type="text/javascript">
-            //Pass in the php values into javascript world (Kill me)
+            // pass in the php values into javascript world (kill me)
             var php_stockList_json = JSON.parse('<?php echo json_encode($stockList);?>');
             var php_server_ip= "<?php echo $server_ip;?>";
             var leaderboardAllStats = JSON.parse('<?php echo json_encode($leaderBoardDataGraph);?>');
@@ -66,4 +66,3 @@ $leaderBoardDataGraph = json_decode(ThriftClient::exec('\client\SHIFTServiceClie
     </body>
 </html>
 <div id="perfChart" style="width:100%; height:400px;"></div>
-

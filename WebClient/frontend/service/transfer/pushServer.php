@@ -1,6 +1,6 @@
 <?php
 /*
- *  push-ser works as ZMQ server, which receives requests from cpp ZMQ client and donot reply
+ *  push-server works as ZMQ server, which receives requests from cpp ZMQ client and donot reply
  */
 include_once dirname(__DIR__) . '/../vendor/autoload.php';
 include_once dirname(__DIR__) . '/transfer/src/Pusher.class.php';
@@ -14,7 +14,7 @@ $requester = $context->getSocket(ZMQ::SOCKET_REQ);
 $requester->bind("tcp://127.0.0.1:5550");
 echo "Connected\n";
 $requester->send("Hello");
-$requester->on('message', function($msg) use ($requester) {
+$requester->on('message', function ($msg) use ($requester) {
     echo "receive from CC: ";
     echo $msg;
 });

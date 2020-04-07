@@ -10,7 +10,7 @@ php global var initialization
 <!-- this is a bad code, however simply solve flickering problem (find a better way of doing this latter if you can) -->
 <script>
     // set default val for localstorage
-    if (localStorage.getItem('dark-theme-enabled') === null){
+    if (localStorage.getItem('dark-theme-enabled') === null) {
         localStorage.setItem('dark-theme-enabled', false);
     }
     if (localStorage.getItem('tickerlocked') === null){
@@ -23,7 +23,7 @@ php global var initialization
 
     var elm=document.getElementsByTagName("html")[0];
     elm.style.display="none";
-    document.addEventListener("DOMContentLoaded",function(event) { elm.style.display="block"; });
+    document.addEventListener("DOMContentLoaded", function(event) { elm.style.display="block"; });
 </script>
 
 <?php
@@ -60,8 +60,8 @@ $symbol_companyName_map = unserialize(file_get_contents(getenv('SITE_ROOT').'/pu
 $server_ip = getLocalIp();
 
 // pass symbol value from php to javascript
-if (isset($_GET['symbol']) && $_GET['symbol']!='' && in_array($_GET['symbol'], $stockList)){
-?>
+if (isset($_GET['symbol']) && $_GET['symbol']!='' && in_array($_GET['symbol'], $stockList)) {
+    ?>
     <script>
         localStorage.setItem("cur_symbol", "<?php echo $_GET['symbol']; ?>");
     </script>

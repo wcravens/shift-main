@@ -1,5 +1,5 @@
 <?php
-// the leaderpage, which shows the current leaderboard. 
+// the leaderpage, which shows the current leaderboard.
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
 include("./include/tablecheck.php");
@@ -24,9 +24,9 @@ include("./include/tablecheck.php");
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
 
-//Personally, this feels ~slightly~ more manageable than using jquery - J.U.
-//especially since the tables aren't live anymore.
-//Though I do understand why it was done w/ jquery..
+// Personally, this feels ~slightly~ more manageable than using jquery - J.U.
+// especially since the tables aren't live anymore.
+// Though I do understand why it was done w/ jquery..
 echo '<table class="table notselectable bborder nomargin" id="leaderboard">';
 echo '<tr>';
 echo '<th class="text-right notwrap" width="5%">Rank</th>';
@@ -39,21 +39,20 @@ echo '<th class="text-right notwrap width="15%">EOD Time</th>';
 echo '</tr>';
 
 foreach ($leaderBoardData["data"] as $idx => $row) {
-  echo '<tr>';
+    echo '<tr>';
 
-  $idx = 0;
-  foreach ($row as $value) {
-    echo '<td class="text-right notimpcol">';
-    if($idx == 2 || $idx == 4 || $idx == 5){
-      echo number_format($value, 2);
+    $idx = 0;
+    foreach ($row as $value) {
+        echo '<td class="text-right notimpcol">';
+        if ($idx == 2 || $idx == 4 || $idx == 5) {
+            echo number_format($value, 2);
+        } else {
+            echo $value;
+        }
+        echo '</td>';
+        $idx++;
     }
-    else{
-      echo $value;
-    }
-    echo '</td>';  
-    $idx++;
-  }
-  echo '</tr>';
+    echo '</tr>';
 }
 echo '</table>'
 ?>

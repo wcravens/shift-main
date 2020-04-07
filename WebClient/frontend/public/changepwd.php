@@ -46,16 +46,15 @@ if (isset($_SESSION['err']) && !empty($_SESSION['err'])) {
         <?php include("./include/nav.php")?>
         <div class="container">
             <div class="row">
-                <?php if (isset($err))
-                {
-                ?>
+                <?php if (isset($err)) {
+            ?>
                     <div class="col-lg-6 col-lg-offset-3">
                         <div class="alert alert-danger alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
-                            <?php echo $err;?>
+                            <?php echo $err; ?>
                         </div>
                     </div>
                 <?php
-                }
+        }
                 ?>
                 <div class="col-md-6 col-md-offset-3">
                     <div class="panel panel-login">

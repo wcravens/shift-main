@@ -3,7 +3,8 @@ use Ratchet\ConnectionInterface;
 use Ratchet\Wamp\WampServerInterface;
 
 // WebSocket Application Messaging Protocol (WAMP)
-class pusher implements WampServerInterface {
+class pusher implements WampServerInterface
+{
     /**
      * A lookup of all the topics clients have subscribed to
      */
@@ -15,21 +16,24 @@ class pusher implements WampServerInterface {
     protected $connections;
     protected $zmqSocket;
 
-    public function __construct() {
+    public function __construct()
+    {
         // used to manage all connections may use in the furure
         $this->connections = new \SplObjectStorage;
     }
 
-    public function getZmqSocket(&$outerIns) {
+    public function getZmqSocket(&$outerIns)
+    {
         $this->zmqSocket = $outerIns;
     }
 
     // this $conn is a WampConnection
-    public function onSubscribe(ConnectionInterface $conn, $topic) {
+    public function onSubscribe(ConnectionInterface $conn, $topic)
+    {
         $this->subscribedTopics[$topic->getId()] = $topic;
         // isn't the check below...redundant?
         if (isset($this->storedData[$topic->getId()])) {
-            $conn->event($topic->getId(), $this->storedData[$topic->getId()]); 
+            $conn->event($topic->getId(), $this->storedData[$topic->getId()]);
         }
         echo "send zmq req_ ";
         echo $topic->getId()."\n";
@@ -39,17 +43,18 @@ class pusher implements WampServerInterface {
     /**
      * @param string JSON'ified string we'll receive from ZeroMQ
      */
-    public function onData($entry) {
+    public function onData($entry)
+    {
         // var_dump($entry);
         $entryData = json_decode($entry, true);
 
         // stupid code avoid showing web user info
-        if (strpos($entryData['category'], '_web') !== false ) {
+        if (strpos($entryData['category'], '_web') !== false) {
             return;
         }
 
-        if (strpos($entryData['category'], 'portfolio') !== false ) {
-            if (strpos($entryData['category'], 'portfolioSummary_') !== false ) { // summary
+        if (strpos($entryData['category'], 'portfolio') !== false) {
+            if (strpos($entryData['category'], 'portfolioSummary_') !== false) { // summary
                 $data = $this->calLeaderboard($entryData);
                 $data = array('category'=>'leaderboard', 'data'=>$data);
                 if (array_key_exists('leaderboard', $this->subscribedTopics)) {
@@ -95,7 +100,7 @@ class pusher implements WampServerInterface {
                 foreach ($companyName as $key => $value) {
                     $value = preg_replace('/\'/', "?", $value);
                     $value = preg_replace('/\"/', "=", $value);
-                    $value = preg_replace('/ \(.*?\)/',"",$value);
+                    $value = preg_replace('/ \(.*?\)/', "", $value);
                     $this->companyNames[$key] = $value;
                 }
             }
@@ -117,12 +122,12 @@ class pusher implements WampServerInterface {
             $this->storedData[$entryData['category']] = $entryData;
         }
 
-        if (strpos($entryData['category'], 'candleData_') !== false ) {
+        if (strpos($entryData['category'], 'candleData_') !== false) {
             // push to end of that array
             $this->storedData[$entryData['category']][] = $entryData;
         }
 
-        if (strpos($entryData['category'], 'lastPriceView_') !== false ) {
+        if (strpos($entryData['category'], 'lastPriceView_') !== false) {
         }
 
         // if the lookup topic object isn't set there is no one to publish to
@@ -136,21 +141,32 @@ class pusher implements WampServerInterface {
         $topic->broadcast($entryData); // TODO: remove comment later
     }
 
-    public function calLeaderboard($data) {
+    public function calLeaderboard($data)
+    {
         $res = array();
         $username = str_replace("portfolioSummary_", '', $data['category']);
         if ($this->isUserInClass($username)) {
-            $this->leaderboard[$username] = $data['data']; 
+            $this->leaderboard[$username] = $data['data'];
         }
         ksort($this->leaderboard);
-        uasort($this->leaderboard, 
-            function($a, $b) {
-                if($a['earnings'] > $b['earnings']) return -1;
-                if($a['earnings'] < $b['earnings']) return 1;
-                if($a['total_shares'] > $b['total_shares']) return 1;
-                if($a['total_shares'] < $b['total_shares']) return -1;
+        uasort(
+            $this->leaderboard,
+            function ($a, $b) {
+                if ($a['earnings'] > $b['earnings']) {
+                    return -1;
+                }
+                if ($a['earnings'] < $b['earnings']) {
+                    return 1;
+                }
+                if ($a['total_shares'] > $b['total_shares']) {
+                    return 1;
+                }
+                if ($a['total_shares'] < $b['total_shares']) {
+                    return -1;
+                }
                 return 0;
-        });
+            }
+        );
         foreach ($this->leaderboard as $username => $value) {
             $value['username'] = $username;
             array_push($res, $value);
@@ -158,7 +174,8 @@ class pusher implements WampServerInterface {
         return $res;
     }
 
-    public function isUserInClass($username) {
+    public function isUserInClass($username)
+    {
         return true; // TODO: delete this later (Runxi)
         $users = array();
         for ($i =1; $i<=50; $i++) {
@@ -167,28 +184,34 @@ class pusher implements WampServerInterface {
         return in_array($username, $users);
     }
 
-    public function onUnSubscribe(ConnectionInterface $conn, $topic) {
+    public function onUnSubscribe(ConnectionInterface $conn, $topic)
+    {
     }
 
-    public function onOpen(ConnectionInterface $conn) {
+    public function onOpen(ConnectionInterface $conn)
+    {
         $this->connections->attach($conn);
         echo "\n".sizeof($this->connections)."\n";
     }
 
-    public function onClose(ConnectionInterface $conn) {
+    public function onClose(ConnectionInterface $conn)
+    {
         $this->connections->detach($conn);
     }
 
-    public function onCall(ConnectionInterface $conn, $id, $topic, array $params) {
+    public function onCall(ConnectionInterface $conn, $id, $topic, array $params)
+    {
         // In this application if clients send data it's because the user hacked around in console
         $conn->callError($id, $topic, 'You are not allowed to make calls')->close();
     }
 
-    public function onPublish(ConnectionInterface $conn, $topic, $event, array $exclude, array $eligible) {
+    public function onPublish(ConnectionInterface $conn, $topic, $event, array $exclude, array $eligible)
+    {
         // In this application if clients send data it's because the user hacked around in console
         $conn->close();
     }
     
-    public function onError(ConnectionInterface $conn, \Exception $e) {
+    public function onError(ConnectionInterface $conn, \Exception $e)
+    {
     }
 }
