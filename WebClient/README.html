@@ -713,7 +713,7 @@ border-bottom-color: #eee;
 <a class="sourceLine" id="cb3-3" data-line-number="3"><span class="fu">sudo</span> apt-get update</a>
 <a class="sourceLine" id="cb3-4" data-line-number="4"><span class="fu">sudo</span> apt-get install php7.0-cli php7.0-fpm php7.0-pgsql php7.0-xml php-zmq</a>
 <a class="sourceLine" id="cb3-5" data-line-number="5"><span class="co"># Raspbian:</span></a>
-<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="fu">sudo</span> apt-get install php7.1-cli php7.1-fpm php7.1-pgsql php7.1-xml php-zmq</a></code></pre></div>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="fu">sudo</span> apt-get install php7.3-cli php7.3-fpm php7.3-pgsql php7.3-xml php-zmq</a></code></pre></div>
 <hr />
 <h2 id="nginx-installation">Nginx Installation</h2>
 <ul>
@@ -742,7 +742,7 @@ border-bottom-color: #eee;
 <a class="sourceLine" id="cb4-20" data-line-number="20">    <span class="ex">fastcgi_param</span> SITE_ROOT <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span>/WebClient/frontend<span class="kw">;</span></a>
 <a class="sourceLine" id="cb4-21" data-line-number="21">    <span class="ex">fastcgi_param</span> env production<span class="kw">;</span></a>
 <a class="sourceLine" id="cb4-22" data-line-number="22">}</a></code></pre></div>
-<p><strong>*</strong> In Raspbian: <code>fastcgi_pass unix:/var/run/php/php7.1-fpm.sock;</code>.</p>
+<p><strong>*</strong> In Raspbian: <code>fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;</code>.</p>
 <p>Remove the default Nginx site information and create one for SHIFT:</p>
 <ul>
 <li><p>In the Terminal:</p>

@@ -39,7 +39,7 @@ if ($_POST['mysubmit'] == 'Market Sell') {
     $orderType = '4';
 }
 
-ThriftClient::exec('\client\SHIFTServiceClient', 'submitOrder', array($profile['username'], $orderType, $orderSymbol, $orderSize, $orderPrice));
+ThriftClient::exec('\client\SHIFTServiceClient', 'submitOrder', array($profile['username'], $orderType, $orderSymbol, $orderSize, $orderPrice, ''));
 if (!empty($_POST['redirect_url'])) {
     header("Location: {$_POST['redirect_url']}");
 } else {

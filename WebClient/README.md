@@ -72,7 +72,7 @@ sudo add-apt-repository ppa:ondrej/php
 sudo apt-get update
 sudo apt-get install php7.0-cli php7.0-fpm php7.0-pgsql php7.0-xml php-zmq
 # Raspbian:
-sudo apt-get install php7.1-cli php7.1-fpm php7.1-pgsql php7.1-xml php-zmq
+sudo apt-get install php7.3-cli php7.3-fpm php7.3-pgsql php7.3-xml php-zmq
 ```
 
 ---
@@ -108,7 +108,7 @@ location ~ \.php {
 }
 ```
 
-**\*** In Raspbian: `fastcgi_pass unix:/var/run/php/php7.1-fpm.sock;`.
+**\*** In Raspbian: `fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;`.
 
 Remove the default Nginx site information and create one for SHIFT:
 
