@@ -128,19 +128,22 @@ int main(int ac, char* av[])
 
     DBConnector::getInstance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
-    if (!DBConnector::getInstance()->connectDB()) {
-        cout.clear();
-        cout << COLOR_ERROR "DB ERROR: Failed to connect database." NO_COLOR << endl;
-        cout << "\tRetry ('Y') connection to database ? : ";
-        voh_t { cout, params.isVerbose, true };
+    while (true) {
+        if (!DBConnector::getInstance()->connectDB()) {
+            cout.clear();
+            cout << COLOR_ERROR "DB ERROR: Failed to connect database." NO_COLOR << endl;
+            cout << "\tRetry ('Y') connection to database ? : ";
+            voh_t { cout, params.isVerbose, true };
 
-        char cmd = cin.get();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
-        if ('Y' != cmd && 'y' != cmd)
-            return 5;
-    } else {
-        cout << "DB connection OK.\n"
-             << endl;
+            char cmd = cin.get();
+            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
+            if ('Y' != cmd && 'y' != cmd)
+                return 5;
+        } else {
+            cout << "DB connection OK.\n"
+                 << endl;
+            break;
+        }
     }
 
     MainClient* pMClient = new MainClient("webclient");
