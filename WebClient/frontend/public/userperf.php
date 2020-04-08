@@ -4,7 +4,7 @@ require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
 $page = 'leaderboard';
 $lbViewed = 'chart';
-$redirect_url = '/leaderboard.php';
+$redirect_url = '/userperf.php';
 include("./include/tablecheck.php");
 $leaderBoardDataGraph = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'getThisLeaderboard', array('', '')));
 

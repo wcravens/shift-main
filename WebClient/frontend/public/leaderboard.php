@@ -1,9 +1,9 @@
 <?php
-// the leaderpage, which shows the current leaderboard.
+// the leaderpage, which shows the current leaderboard. 
 require_once(getenv('SITE_ROOT').'/public/include/init.php');
 
 $page = 'leaderboard';
-$redirect_url = '/leaderboard.php';
+$redirect_url = "/leaderboard.php?day=".$_GET["day"];
 ?>
 
 <!DOCTYPE HTML>
@@ -21,7 +21,7 @@ $redirect_url = '/leaderboard.php';
         <?php
             echo '<script src="/scripts/verifications.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/keymapping.js?version='.$SHIFT_version.'"></script>';
-            // echo '<script src="/scripts/leaderboard.js?version='.$SHIFT_version.'"></script>';
+            //echo '<script src="/scripts/leaderboard.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/lastprice.js?version='.$SHIFT_version.'"></script>';
         ?> 
     </head>

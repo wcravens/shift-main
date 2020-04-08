@@ -48,7 +48,7 @@ if (!($user = $userModel->is_loginv2())) {
 $profile = $user[0];
 
 // register to BROKERAGECENTER, if WC not running, redirect to error.php
-ThriftClient::exec('\client\SHIFTServiceClient', 'webUserLogin', array(trim($user['username'])));
+ThriftClient::exec('\client\SHIFTServiceClient', 'webUserLogin', array(trim($profile['username'])));
 
 // the stocklist
 $stockList = array_values(unserialize(file_get_contents(getenv('SITE_ROOT').'/public/data/stockList.data')));

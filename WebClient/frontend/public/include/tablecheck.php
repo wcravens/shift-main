@@ -1,6 +1,5 @@
 <?php
 
-$redirect_url = '/leaderboard.php';
 $leaderBoardData = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'getThisLeaderboardByDay', array((int)$_GET["day"])), true);
 $leaderBoardDataD1 = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'getThisLeaderboardByDay', array(1)), true);
 $leaderBoardDataD2 = json_decode(ThriftClient::exec('\client\SHIFTServiceClient', 'getThisLeaderboardByDay', array(2)), true);
