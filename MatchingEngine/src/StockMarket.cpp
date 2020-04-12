@@ -401,11 +401,12 @@ void StockMarket::doGlobalLimitBuy(Order& orderRef)
 
         if (m_thisLocalOrder->getType() == Order::Type::MARKET_SELL) {
             // if the next order in line is an unfulfilled market order
-            // we should use the next price level as the order price, if available
+            // we should use the next price level as the order price
+            // (if available and better than the matching limit order price),
             // otherwise we should use the matching limit order price
             auto nextPriceLevel = m_thisPriceLevel;
             ++nextPriceLevel;
-            if (nextPriceLevel != m_localAsks.end()) {
+            if ((nextPriceLevel != m_localAsks.end()) && (nextPriceLevel->getPrice() < orderRef.getPrice())) {
                 price = nextPriceLevel->getPrice();
             } else {
                 price = orderRef.getPrice();
@@ -459,11 +460,12 @@ void StockMarket::doGlobalLimitSell(Order& orderRef)
 
         if (m_thisLocalOrder->getType() == Order::Type::MARKET_BUY) {
             // if the next order in line is an unfulfilled market order
-            // we should use the next price level as the order price, if available
+            // we should use the next price level as the order price
+            // (if available and better than the matching limit order price),
             // otherwise we should use the matching limit order price
             auto nextPriceLevel = m_thisPriceLevel;
             ++nextPriceLevel;
-            if (nextPriceLevel != m_localBids.end()) {
+            if ((nextPriceLevel != m_localBids.end()) && (nextPriceLevel->getPrice() > orderRef.getPrice())) {
                 price = nextPriceLevel->getPrice();
             } else {
                 price = orderRef.getPrice();
@@ -594,11 +596,12 @@ void StockMarket::doLocalLimitBuy(Order& orderRef)
                     continue;
                 } else if (m_thisLocalOrder->getType() == Order::Type::MARKET_SELL) {
                     // if the next order in line is an unfulfilled market order
-                    // we should use the next price level as the order price, if available
+                    // we should use the next price level as the order price
+                    // (if available and better than the matching limit order price),
                     // otherwise we should use the matching limit order price
                     auto nextPriceLevel = m_thisPriceLevel;
                     ++nextPriceLevel;
-                    if (nextPriceLevel != m_localAsks.end()) {
+                    if ((nextPriceLevel != m_localAsks.end()) && (nextPriceLevel->getPrice() < orderRef.getPrice())) {
                         localBestAsk = nextPriceLevel->getPrice();
                     } else {
                         localBestAsk = orderRef.getPrice();
@@ -707,11 +710,12 @@ void StockMarket::doLocalLimitSell(Order& orderRef)
                     continue;
                 } else if (m_thisLocalOrder->getType() == Order::Type::MARKET_BUY) {
                     // if the next order in line is an unfulfilled market order
-                    // we should use the next price level as the order price, if available
+                    // we should use the next price level as the order price
+                    // (if available and better than the matching limit order price),
                     // otherwise we should use the matching limit order price
                     auto nextPriceLevel = m_thisPriceLevel;
                     ++nextPriceLevel;
-                    if (nextPriceLevel != m_localBids.end()) {
+                    if ((nextPriceLevel != m_localBids.end()) && (nextPriceLevel->getPrice() > orderRef.getPrice())) {
                         localBestBid = nextPriceLevel->getPrice();
                     } else {
                         localBestBid = orderRef.getPrice();
@@ -817,7 +821,8 @@ void StockMarket::doLocalMarketBuy(Order& orderRef)
                     continue;
                 } else if (m_thisLocalOrder->getType() == Order::Type::MARKET_SELL) {
                     // if the next order in line is an unfulfilled market order
-                    // we should use the next price level as the order price, if available
+                    // we should use the next price level as the order price
+                    // (if available)
                     auto nextPriceLevel = m_thisPriceLevel;
                     ++nextPriceLevel;
                     if (nextPriceLevel != m_localAsks.end()) {
@@ -919,7 +924,8 @@ void StockMarket::doLocalMarketSell(Order& orderRef)
                     continue;
                 } else if (m_thisLocalOrder->getType() == Order::Type::MARKET_BUY) {
                     // if the next order in line is an unfulfilled market order
-                    // we should use the next price level as the order price, if available
+                    // we should use the next price level as the order price
+                    // (if available)
                     auto nextPriceLevel = m_thisPriceLevel;
                     ++nextPriceLevel;
                     if (nextPriceLevel != m_localBids.end()) {
