@@ -174,7 +174,7 @@ All php environment variables are pulled from the `/usr/local/share/shift/WebCli
 
 | Variable  | Type        | Purpose                                                                               | Example             |
 |-----------|-------------|---------------------------------------------------------------------------------------|---------------------|
-| WSADDR    | Hostname/IP | Sets what the web sockets listen to in the script files.                              | ws://localhost:8080 |
+| WSADDR    | Hostname/IP | Sets what the web sockets listen to in the script files.                              | localhost (Note, that ws:// and :8080 is prepended/appended to this value!) |
 | PERMITALL | String      | If set to `ALLOW`, user roles will be disregarded and all features will be presented. | ALLOW               | 
 
 ---
