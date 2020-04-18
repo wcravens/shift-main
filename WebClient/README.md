@@ -172,10 +172,10 @@ The file containing php environment values is the `config/php.env` file. During 
 
 All php environment variables are pulled from the `/usr/local/share/shift/WebClient/php.env` file, and their purposes are as follows:
 
-| Variable  | Type        | Purpose                                                                               | Example             |
-|-----------|-------------|---------------------------------------------------------------------------------------|---------------------|
-| WSADDR    | Hostname/IP | Sets what the web sockets listen to in the script files.                              | localhost (Note, that ws:// and :8080 is prepended/appended to this value!) |
-| PERMITALL | String      | If set to `ALLOW`, user roles will be disregarded and all features will be presented. | ALLOW               | 
+| Variable  | Type        | Purpose                                                                               | Example                                                                    |
+|-----------|-------------|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| WSADDR    | Hostname/IP | Sets what the web sockets listen to in the script files.                              | localhost (Note that ws:// and :8080 is prepended/appended to this value!) |
+| PERMITALL | String      | If set to `ALLOW`, user roles will be disregarded and all features will be presented. | ALLOW                                                                      |
 
 ---
 

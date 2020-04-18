@@ -784,12 +784,12 @@ border-bottom-color: #eee;
 <p>The WebClient uses the phpdotenv module to manage environment variables (<a href="https://github.com/vlucas/phpdotenv" class="uri">https://github.com/vlucas/phpdotenv</a>).</p>
 <p>The file containing php environment values is the <code>config/php.env</code> file. During installation, this file will be moved to <code>/usr/local/share/shift/WebClient/php.env</code>.</p>
 <p>All php environment variables are pulled from the <code>/usr/local/share/shift/WebClient/php.env</code> file, and their purposes are as follows:</p>
-<table style="width:100%;">
+<table>
 <colgroup>
-<col style="width: 8%"></col>
-<col style="width: 9%"></col>
-<col style="width: 65%"></col>
-<col style="width: 15%"></col>
+<col style="width: 5%"></col>
+<col style="width: 6%"></col>
+<col style="width: 46%"></col>
+<col style="width: 40%"></col>
 </colgroup>
 <thead>
 <tr class="header">
@@ -804,7 +804,7 @@ border-bottom-color: #eee;
 <td>WSADDR</td>
 <td>Hostname/IP</td>
 <td>Sets what the web sockets listen to in the script files.</td>
-<td>ws://localhost:8080</td>
+<td>localhost (Note that ws:// and :8080 is prepended/appended to this value!)</td>
 </tr>
 <tr class="even">
 <td>PERMITALL</td>
