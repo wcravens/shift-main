@@ -85,10 +85,13 @@ Once downloaded, open Visual Studio Code, and install the following extensions:
 | Extension                      |
 | ------------------------------ |
 | `C/C++`                        |
+| `C/C++ Themes` **\***          |
 | `CMake`                        |
 | `CMake Tools`                  |
+| `CodeLLDB`                     |
 | `Git History` **\***           |
-| `vscode-todo-highlight` **\*** |
+| `Rainbow CSV` **\***           |
+| `TODO Highlight` **\***        |
 | `vscode-icons` **\***          |
 
 **\*** Recommended, not required.
