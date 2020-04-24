@@ -102,8 +102,8 @@ function installWebClient
 
     # frontend composer
     [ -d frontend/vendor ] && rm -r frontend/vendor
-    export COMPOSER_HTACCESS_PROTECT=0
-    composer install --quiet --no-cache --working-dir=frontend
+    export COMPOSER_HOME=${CURRENT_USER_HOME}/.composer
+    composer install --quiet --working-dir=frontend
     chown -R ${CURRENT_USER}:${CURRENT_USER} frontend/vendor
 
     # frontend data folder
