@@ -9,6 +9,7 @@ NO_COLOR='\033[0m'
 
 # current user running the installation script
 CURRENT_USER="$( who | awk 'NR==1 {print $1; exit}' )"
+CURRENT_USER_HOME="$( eval echo "~${CURRENT_USER}" )"
 
 # default installation path prefix
 INSTALL_PREFIX="/usr/local"
@@ -77,14 +78,14 @@ function installServer
     echo -e ${NO_COLOR}
 
     # create ~/.shift directory if it does not exist yet 
-    [ -d ~/.shift/${1} ] || mkdir -p ~/.shift/${1}
+    [ -d ${CURRENT_USER_HOME}/.shift/${1} ] || mkdir -p ${CURRENT_USER_HOME}/.shift/${1}
 
     # save installation path to install.log (erasing previous version)
-    [ -f ~/.shift/${1}/install.log ] && rm ~/.shift/${1}/install.log
-    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" >> ~/.shift/${1}/install.log
+    [ -f ${CURRENT_USER_HOME}/.shift/${1}/install.log ] && rm ${CURRENT_USER_HOME}/.shift/${1}/install.log
+    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" >> ${CURRENT_USER_HOME}/.shift/${1}/install.log
     
     # give ownership of the ~/.shift directory to the current user
-    chownFix ~/.shift
+    chownFix ${CURRENT_USER_HOME}/.shift
 
     if [ ${CLEAN_INSTALL} -ne 0 ]
     then
@@ -122,10 +123,10 @@ function uninstallServer
     echo -e ${NO_COLOR}
 
     # if installation did not use default installation path
-    if [ -f ~/.shift/${1}/install.log ]
+    if [ -f ${CURRENT_USER_HOME}/.shift/${1}/install.log ]
     then
-        source ~/.shift/${1}/install.log
-        rm ~/.shift/${1}/install.log
+        source ${CURRENT_USER_HOME}/.shift/${1}/install.log
+        rm ${CURRENT_USER_HOME}/.shift/${1}/install.log
     fi
 
     # if installation is not found
@@ -162,14 +163,14 @@ function installLibrary
     LIB_NAME=$(echo ${1} | awk 'NR==1 {print substr(tolower($1), 4); exit}') 
 
     # create ~/.shift directory if it does not exist yet 
-    [ -d ~/.shift/${1} ] || mkdir -p ~/.shift/${1}
+    [ -d ${CURRENT_USER_HOME}/.shift/${1} ] || mkdir -p ${CURRENT_USER_HOME}/.shift/${1}
 
     # save installation path to install.log (erasing previous version)
-    [ -f ~/.shift/${1}/install.log ] && rm ~/.shift/${1}/install.log
-    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" >> ~/.shift/${1}/install.log
+    [ -f ${CURRENT_USER_HOME}/.shift/${1}/install.log ] && rm ${CURRENT_USER_HOME}/.shift/${1}/install.log
+    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" >> ${CURRENT_USER_HOME}/.shift/${1}/install.log
 
     # give ownership of the ~/.shift directory to the current user
-    chownFix ~/.shift
+    chownFix ${CURRENT_USER_HOME}/.shift
 
     if [ ${CLEAN_INSTALL} -ne 0 ]
     then
@@ -210,10 +211,10 @@ function uninstallLibrary
     LIB_NAME=$(echo ${1} | awk 'NR==1 {print substr(tolower($1), 4); exit}') 
 
     # if installation did not use default installation path
-    if [ -f ~/.shift/${1}/install.log ]
+    if [ -f ${CURRENT_USER_HOME}/.shift/${1}/install.log ]
     then
-        source ~/.shift/${1}/install.log
-        rm ~/.shift/${1}/install.log
+        source ${CURRENT_USER_HOME}/.shift/${1}/install.log
+        rm ${CURRENT_USER_HOME}/.shift/${1}/install.log
     fi
 
     # remove installation
@@ -430,4 +431,3 @@ else
         esac
     done
 fi
-

@@ -9,6 +9,7 @@ NO_COLOR='\033[0m'
 
 # current user running the installation script
 CURRENT_USER="$( who | awk 'NR==1 {print $1; exit}' )"
+CURRENT_USER_HOME="$( eval echo "~${CURRENT_USER}" )"
 
 # default installation path prefix
 INSTALL_PREFIX="/usr/local"
@@ -62,14 +63,14 @@ function installWebClient
     echo -e ${NO_COLOR}
 
     # create ~/.shift directory if it does not exist yet 
-    [ -d ~/.shift/WebClient ] || mkdir -p ~/.shift/WebClient
+    [ -d ${CURRENT_USER_HOME}/.shift/WebClient ] || mkdir -p ${CURRENT_USER_HOME}/.shift/WebClient
 
     # save installation path to install.log (erasing previous version)
-    [ -f ~/.shift/WebClient/install.log ] && rm ~/.shift/WebClient/install.log
-    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" > ~/.shift/WebClient/install.log
+    [ -f ${CURRENT_USER_HOME}/.shift/WebClient/install.log ] && rm ${CURRENT_USER_HOME}/.shift/WebClient/install.log
+    echo "INSTALL_PREFIX=${INSTALL_PREFIX}" > ${CURRENT_USER_HOME}/.shift/WebClient/install.log
     
     # give ownership of the ~/.shift directory to the current user
-    chown -R ${CURRENT_USER}:${CURRENT_USER} ~/.shift
+    chown -R ${CURRENT_USER}:${CURRENT_USER} ${CURRENT_USER_HOME}/.shift
 
     if [ ${CLEAN_INSTALL} -ne 0 ]
     then
@@ -101,10 +102,9 @@ function installWebClient
 
     # frontend composer
     [ -d frontend/vendor ] && rm -r frontend/vendor
-    composer install --quiet --working-dir=frontend
-    composer require --quiet --working-dir=frontend vlucas/phpdotenv
+    export COMPOSER_HTACCESS_PROTECT=0
+    composer install --quiet --no-cache --working-dir=frontend
     chown -R ${CURRENT_USER}:${CURRENT_USER} frontend/vendor
-    chown -R ${CURRENT_USER}:${CURRENT_USER} ~/.composer
 
     # frontend data folder
     [ -d frontend/public/data ] && rm -r frontend/public/data
@@ -119,10 +119,10 @@ function uninstallWebClient
     echo -e ${NO_COLOR}
 
     # if installation did not use default installation path
-    if [ -f ~/.shift/WebClient/install.log ]
+    if [ -f ${CURRENT_USER_HOME}/.shift/WebClient/install.log ]
     then
-        source ~/.shift/WebClient/install.log
-        rm ~/.shift/WebClient/install.log
+        source ${CURRENT_USER_HOME}/.shift/WebClient/install.log
+        rm ${CURRENT_USER_HOME}/.shift/WebClient/install.log
     fi
 
      # if installation is not found
