@@ -166,7 +166,6 @@ int main(int ac, char* av[])
 
     std::thread tRecReq(&MainClient::receiveRequestFromPHP, pMClient);
 
-    pMClient->sendDBLoginToFront(params.cryptoKey, params.configDir + "dbLogin.txt");
     pMClient->subAllOrderBook();
     pMClient->subAllCandleData();
     pMClient->sendStockListToFront();

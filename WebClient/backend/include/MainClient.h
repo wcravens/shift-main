@@ -11,8 +11,6 @@ public:
 
     MainClient(const std::string& username);
 
-    void sendDBLoginToFront(const std::string& cryptoKey, const std::string& fileName);
-
     void sendAllPortfoliosToFront();
     void sendAllSubmittedOrders();
     void sendAllWaitingList();
