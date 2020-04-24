@@ -14,7 +14,7 @@ MyZMQ::MyZMQ()
     , m_otherall_socket { m_context, ZMQ_PUSH }
     , m_responder { m_context, ZMQ_REP }
 {
-    // http://api.zeromq.org/3-2:zmq-setsockopt
+    // http://api.zeromq.org/master:zmq-setsockopt
     // ZMQ_LINGER: Set linger period for socket shutdown
     // ZMQ_RCVTIMEO: Maximum time before a recv operation returns with EAGAIN
     // ZMQ_SNDTIMEO: Maximum time before a send operation returns with EAGAIN
@@ -56,7 +56,11 @@ void MyZMQ::send(const std::string& message)
     try {
         zmq::message_t jsondata(message.length());
         std::memcpy(jsondata.data(), message.c_str(), message.length());
+#if (defined(CPPZMQ_VERSION) && CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1))
+        m_otherall_socket.send(jsondata, zmq::send_flags::none);
+#else
         m_otherall_socket.send(jsondata);
+#endif
     } catch (const std::exception& e) {
         cout << e.what() << endl;
     } catch (...) {
@@ -69,16 +73,24 @@ void MyZMQ::send(const std::string& message)
  */
 void MyZMQ::receiveReq()
 {
-    // using dynamic cast to cast pointer to CoreClient to MainClient so that we can call it's member function
+    // using dynamic cast to cast pointer to CoreClient to MainClient so that we can call it's member functions
     MainClient* mainClient = dynamic_cast<MainClient*>(shift::FIXInitiator::getInstance().getSuperUser());
 
     std::lock_guard<std::mutex> lock(m_mutex_reqrep);
     zmq::message_t request;
-    if (!m_responder.recv(&request)) { // http://api.zeromq.org/2-1:zmq-cpp
+#if (defined(CPPZMQ_VERSION) && CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1))
+    if (!m_responder.recv(request, zmq::recv_flags::none)) {
+#else
+    if (!m_responder.recv(&request)) { // http://api.zeromq.org/2-2:zmq-cpp
+#endif
         return;
     }
-    mainClient->sendOnce((char*)request.data());
+    mainClient->sendOnce((const char*)request.data());
     zmq::message_t reply(5);
     memcpy(reply.data(), "World", 5);
+#if (defined(CPPZMQ_VERSION) && CPPZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 3, 1))
+    m_responder.send(reply, zmq::send_flags::none);
+#else
     m_responder.send(reply);
+#endif
 }
