@@ -24,19 +24,16 @@ void UserClient::sendPortfolioToFront()
     std::string res = "";
 
     if (portfolioSummary.isOpenBPReady()) {
-        auto portfolioItems = getPortfolioItems();
-        for (auto it = portfolioItems.begin(); it != portfolioItems.end(); ++it) {
-            std::string symbol = it->second.getSymbol();
-            int currentShares = it->second.getShares();
+        for (const auto& [symbol, portfolioItem] : getPortfolioItems()) {
+            int currentShares = portfolioItem.getShares();
 
             debugDump(username + " " + symbol + " " + std::to_string(currentShares));
 
-            double tradedPrice = it->second.getPrice();
-            bool buy = (currentShares < 0);
-            double closePrice = (currentShares == 0) ? 0.0 : getClosePrice(symbol, buy, currentShares / 100);
+            double tradedPrice = portfolioItem.getPrice();
+            double closePrice = getClosePrice(symbol);
             double unrealizedPL = (closePrice - tradedPrice) * currentShares;
             portfolioUnrealizedPL += unrealizedPL;
-            auto pl = roundNearest(it->second.getRealizedPL() + unrealizedPL, 0.01);
+            auto pl = roundNearest(portfolioItem.getRealizedPL() + unrealizedPL, 0.01);
 
             std::ostringstream out;
             out << "{ "

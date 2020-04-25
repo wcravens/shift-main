@@ -54,6 +54,7 @@ public:
     PortfolioSummary getPortfolioSummary();
     std::map<std::string, PortfolioItem> getPortfolioItems();
     PortfolioItem getPortfolioItem(const std::string& symbol);
+    double getUnrealizedPL(const std::string& symbol = "");
     int getSubmittedOrdersSize();
     std::vector<shift::Order> getSubmittedOrders();
     shift::Order getOrder(const std::string& orderID);
@@ -65,6 +66,7 @@ public:
     // price methods
     double getOpenPrice(const std::string& symbol);
     double getClosePrice(const std::string& symbol, bool buy, int size);
+    double getClosePrice(const std::string& symbol);
     double getLastPrice(const std::string& symbol);
     int getLastSize(const std::string& symbol);
     std::chrono::system_clock::time_point getLastTradeTime();

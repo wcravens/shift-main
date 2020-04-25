@@ -141,6 +141,26 @@ shift::PortfolioItem shift::CoreClient::getPortfolioItem(const std::string& symb
     return m_symbol_portfolioItem[symbol];
 }
 
+double shift::CoreClient::getUnrealizedPL(const std::string& symbol)
+{
+    if (!isConnected()) {
+        return 0.0;
+    }
+
+    double unrealizedPL = 0.0;
+
+    if (symbol != "") {
+        auto portfolioItem = getPortfolioItem(symbol);
+        unrealizedPL = (getClosePrice(symbol) - portfolioItem.getPrice()) * portfolioItem.getShares();
+    } else {
+        for (const auto& [s, portfolioItem] : getPortfolioItems()) {
+            unrealizedPL += (getClosePrice(s) - portfolioItem.getPrice()) * portfolioItem.getShares();
+        }
+    }
+
+    return unrealizedPL;
+}
+
 int shift::CoreClient::getSubmittedOrdersSize()
 {
     return m_submittedOrdersSize;
@@ -285,6 +305,23 @@ double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int
     }
 
     return closePrice;
+}
+
+double shift::CoreClient::getClosePrice(const std::string& symbol)
+{
+    if (!isConnected()) {
+        return 0.0;
+    }
+
+    auto portfolioItem = getPortfolioItem(symbol);
+
+    if (portfolioItem.getShares() > 0) {
+        return getClosePrice(symbol, false, portfolioItem.getShares() / 100);
+    } else if (portfolioItem.getShares() < 0) {
+        return getClosePrice(symbol, true, portfolioItem.getShares() / 100);
+    } else {
+        return 0.0;
+    }
 }
 
 double shift::CoreClient::getLastPrice(const std::string& symbol)
