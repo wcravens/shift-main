@@ -33,7 +33,7 @@ void UserClient::sendPortfolioToFront()
             double closePrice = getClosePrice(symbol);
             double unrealizedPL = (closePrice - tradedPrice) * currentShares;
             portfolioUnrealizedPL += unrealizedPL;
-            auto pl = roundNearest(portfolioItem.getRealizedPL() + unrealizedPL, 0.01);
+            auto pl = portfolioItem.getRealizedPL() + unrealizedPL;
 
             std::ostringstream out;
             out << "{ "
@@ -61,7 +61,7 @@ void UserClient::sendPortfolioToFront()
         MyZMQ::getInstance()->send(out.str());
     }
 
-    totalPL = roundNearest(portfolioSummary.getTotalRealizedPL() + portfolioUnrealizedPL, 0.01);
+    totalPL = portfolioSummary.getTotalRealizedPL() + portfolioUnrealizedPL;
 
     std::ostringstream out;
     out << std::fixed << "{\"category\": \"portfolioSummary_" << username << "\", \"data\":{ "
@@ -166,11 +166,6 @@ void UserClient::receiveWaitingList()
     std::string s = out.str();
     debugDump(s);
     MyZMQ::getInstance()->send(s);
-}
-
-inline double UserClient::roundNearest(double value, double nearest)
-{
-    return std::round(value / nearest) * nearest;
 }
 
 inline void UserClient::debugDump(const std::string& message)

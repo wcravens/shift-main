@@ -14,6 +14,5 @@ public:
     void receiveWaitingList() override;
 
 private:
-    double roundNearest(double value, double nearest);
     void debugDump(const std::string& message);
 };
