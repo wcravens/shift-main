@@ -710,10 +710,10 @@ border-bottom-color: #eee;
 <h2 id="php-installation">PHP Installation</h2>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="co"># Ubuntu 18.04:</span></a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"><span class="fu">sudo</span> apt-get install php7.2-cli php7.2-fpm php-zmq</a>
-<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="co"># Raspbian:</span></a>
-<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="fu">sudo</span> apt-get install php7.3-cli php7.3-fpm php-zmq</a>
-<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="co"># Ubuntu 20.04:</span></a>
-<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="fu">sudo</span> apt-get install php7.4-cli php7.4-fpm php-zmq</a></code></pre></div>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="co"># Ubuntu 20.04:</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="fu">sudo</span> apt-get install php7.4-cli php7.4-fpm php-zmq</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="co"># Raspbian:</span></a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="fu">sudo</span> apt-get install php7.3-cli php7.3-fpm php-zmq</a></code></pre></div>
 <hr />
 <h2 id="nginx-installation">Nginx Installation</h2>
 <ul>
@@ -742,8 +742,8 @@ border-bottom-color: #eee;
 <a class="sourceLine" id="cb4-20" data-line-number="20">    <span class="ex">fastcgi_param</span> SITE_ROOT <span class="op">&lt;</span>path_to_cloned_repository<span class="op">&gt;</span>/WebClient/frontend<span class="kw">;</span></a>
 <a class="sourceLine" id="cb4-21" data-line-number="21">    <span class="ex">fastcgi_param</span> env production<span class="kw">;</span></a>
 <a class="sourceLine" id="cb4-22" data-line-number="22">}</a></code></pre></div>
-<p><strong>*</strong> In Raspbian: <code>fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;</code>.</p>
 <p><strong>*</strong> In Ubuntu 20.04: <code>fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;</code>.</p>
+<p><strong>*</strong> In Raspbian: <code>fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;</code>.</p>
 <p>Remove the default Nginx site information and create one for SHIFT:</p>
 <ul>
 <li><p>In the Terminal:</p>

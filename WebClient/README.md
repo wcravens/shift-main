@@ -69,10 +69,10 @@ sudo make install
 ``` bash
 # Ubuntu 18.04:
 sudo apt-get install php7.2-cli php7.2-fpm php-zmq
-# Raspbian:
-sudo apt-get install php7.3-cli php7.3-fpm php-zmq
 # Ubuntu 20.04:
 sudo apt-get install php7.4-cli php7.4-fpm php-zmq
+# Raspbian:
+sudo apt-get install php7.3-cli php7.3-fpm php-zmq
 ```
 
 ---
@@ -108,9 +108,9 @@ location ~ \.php {
 }
 ```
 
-**\*** In Raspbian: `fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;`.
-
 **\*** In Ubuntu 20.04: `fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;`.
+
+**\*** In Raspbian: `fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;`.
 
 Remove the default Nginx site information and create one for SHIFT:
 
