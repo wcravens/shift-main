@@ -7,8 +7,8 @@
 
 ```
 git config --global user.name "John Doe"
-git config --global user.email johndoe@example.com
-git config --global push.default simple
+git config --global user.email "johndoe@example.com"
+git config --global push.default "simple"
 ```
 
 ---
@@ -26,7 +26,7 @@ ssh-keygen -t rsa -b 4096 -C "johndoe@example.com"
 ### Case Sensitivity
 
 ```
-git config --global core.ignorecase false
+git config --global core.ignorecase "false"
 ```
 
 ### Color:
