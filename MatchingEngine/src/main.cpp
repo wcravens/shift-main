@@ -253,8 +253,8 @@ int main(int ac, char* av[])
     {
         int i = 0;
 
-        for (auto& stockMarketEntry : markets::StockMarketList::getInstance()) {
-            stockMarketThreadList[i] = std::thread(std::ref(stockMarketEntry.second));
+        for (auto& [symbol, market] : markets::StockMarketList::getInstance()) {
+            stockMarketThreadList[i] = std::thread(std::ref(market));
             ++i;
         }
     }
