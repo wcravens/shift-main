@@ -4,6 +4,8 @@
 
 #include <list>
 
+namespace markets {
+
 class PriceLevel {
 public:
     // getters
@@ -27,3 +29,5 @@ private:
     int m_size;
     std::list<Order> m_orders;
 };
+
+} // markets

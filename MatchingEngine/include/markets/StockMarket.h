@@ -15,6 +15,8 @@
 
 #include <quickfix/FieldTypes.h>
 
+namespace markets {
+
 class StockMarket {
 public:
     std::vector<ExecutionReport> executionReports;
@@ -96,3 +98,5 @@ public:
 private:
     StockMarketList() = default;
 };
+
+} // markets

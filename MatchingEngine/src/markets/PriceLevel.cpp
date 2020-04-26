@@ -1,4 +1,6 @@
-#include "PriceLevel.h"
+#include "markets/PriceLevel.h"
+
+namespace markets {
 
 double PriceLevel::getPrice() const
 {
@@ -49,3 +51,5 @@ std::list<Order>::iterator PriceLevel::erase(std::list<Order>::iterator iter)
 {
     return m_orders.erase(iter);
 }
+
+} // markets

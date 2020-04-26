@@ -1,9 +1,9 @@
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
 #include "Parameters.h"
-#include "StockMarket.h"
 #include "TimeSetting.h"
 #include "configFunctions.h"
+#include "markets/StockMarket.h"
 
 #include <atomic>
 #if __has_include(<filesystem>)
@@ -239,21 +239,21 @@ int main(int ac, char* av[])
 
     // create Stock Market List and Stock Market objects
     for (auto& symbol : symbols) {
-        StockMarketList::getInstance().insert(std::pair<std::string, StockMarket>(symbol, { symbol }));
+        markets::StockMarketList::getInstance().insert(std::pair<std::string, markets::StockMarket>(symbol, { symbol }));
     }
 
-    if (StockMarketList::getInstance().size() != symbols.size()) {
+    if (markets::StockMarketList::getInstance().size() != symbols.size()) {
         cout << "Error during stock list creation!" << endl;
         return 4;
     }
 
     // begin Stock Market threads
-    int numOfStockMarkets = StockMarketList::getInstance().size();
+    int numOfStockMarkets = markets::StockMarketList::getInstance().size();
     std::vector<std::thread> stockMarketThreadList(numOfStockMarkets);
     {
         int i = 0;
 
-        for (auto& stockMarketEntry : StockMarketList::getInstance()) {
+        for (auto& stockMarketEntry : markets::StockMarketList::getInstance()) {
             stockMarketThreadList[i] = std::thread(std::ref(stockMarketEntry.second));
             ++i;
         }
@@ -325,7 +325,7 @@ int main(int ac, char* av[])
     if (dataRequester.joinable())
         dataRequester.join(); // wait for termination
 
-    StockMarketList::s_isTimeout = true;
+    markets::StockMarketList::s_isTimeout = true;
     for (int i = 0; i < numOfStockMarkets; ++i) {
         stockMarketThreadList[i].join();
     }

@@ -1,4 +1,4 @@
-#include "StockMarket.h"
+#include "markets/StockMarket.h"
 
 #include "FIXAcceptor.h"
 #include "TimeSetting.h"
@@ -9,6 +9,8 @@
 #include <shift/miscutils/terminal/Common.h>
 
 using namespace std::chrono_literals;
+
+namespace markets {
 
 StockMarket::StockMarket(const std::string& symbol)
     : m_symbol(symbol)
@@ -1223,3 +1225,5 @@ void StockMarket::insertLocalAsk(Order newAsk)
     static stock_market_list_t data;
     return data;
 }
+
+} // markets

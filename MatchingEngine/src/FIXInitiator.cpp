@@ -1,8 +1,8 @@
 #include "FIXInitiator.h"
 
 #include "Parameters.h"
-#include "StockMarket.h"
 #include "TimeSetting.h"
+#include "markets/StockMarket.h"
 
 #include <atomic>
 #include <cassert>
@@ -397,8 +397,8 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     message.getGroup(1, *pIDGroup);
     pIDGroup->getField(*pBuyerID);
 
-    auto stockMarketIt = StockMarketList::getInstance().find(pSymbol->getValue());
-    if (stockMarketIt == StockMarketList::getInstance().end()) {
+    auto stockMarketIt = markets::StockMarketList::getInstance().find(pSymbol->getValue());
+    if (stockMarketIt == markets::StockMarketList::getInstance().end()) {
         cout << "Receive error in Global!" << endl;
         return;
     }

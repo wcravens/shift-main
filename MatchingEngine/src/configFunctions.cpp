@@ -1,12 +1,7 @@
 #include "configFunctions.h"
 
-#include "FIXAcceptor.h"
-#include "FIXInitiator.h"
-#include "StockMarket.h"
-#include "TimeSetting.h"
-
-#include <atomic>
-#include <thread>
+#include <fstream>
+#include <sstream>
 
 #include <shift/miscutils/terminal/Common.h>
 

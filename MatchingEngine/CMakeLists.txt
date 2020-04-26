@@ -30,6 +30,8 @@ set(CONFIGDEFAULT
 )
 
 set(INCLUDE
+    ${PROJECT_SOURCE_DIR}/include/markets/PriceLevel.h
+    ${PROJECT_SOURCE_DIR}/include/markets/StockMarket.h
     ${PROJECT_SOURCE_DIR}/include/configFunctions.h
     ${PROJECT_SOURCE_DIR}/include/ExecutionReport.h
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
@@ -38,20 +40,18 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/OrderBookEntry.h
     ${PROJECT_SOURCE_DIR}/include/OrderConfirmation.h
     ${PROJECT_SOURCE_DIR}/include/Parameters.h
-    ${PROJECT_SOURCE_DIR}/include/PriceLevel.h
-    ${PROJECT_SOURCE_DIR}/include/StockMarket.h
     ${PROJECT_SOURCE_DIR}/include/TimeSetting.h
 )
 
 set(SRC
+    ${PROJECT_SOURCE_DIR}/src/markets/PriceLevel.cpp
+    ${PROJECT_SOURCE_DIR}/src/markets/StockMarket.cpp
     ${PROJECT_SOURCE_DIR}/src/configFunctions.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXAcceptor.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp
     ${PROJECT_SOURCE_DIR}/src/main.cpp
     ${PROJECT_SOURCE_DIR}/src/Order.cpp
     ${PROJECT_SOURCE_DIR}/src/OrderBookEntry.cpp
-    ${PROJECT_SOURCE_DIR}/src/PriceLevel.cpp
-    ${PROJECT_SOURCE_DIR}/src/StockMarket.cpp
     ${PROJECT_SOURCE_DIR}/src/TimeSetting.cpp
 )
 
