@@ -3,6 +3,7 @@
 #include "Parameters.h"
 #include "TimeSetting.h"
 #include "configFunctions.h"
+#include "markets/ContinuousStockMarket.h"
 #include "markets/StockMarket.h"
 
 #include <atomic>
@@ -239,7 +240,7 @@ int main(int ac, char* av[])
 
     // create Stock Market List and Stock Market objects
     for (auto& symbol : symbols) {
-        markets::StockMarketList::getInstance().insert(std::pair<std::string, markets::StockMarket>(symbol, { symbol }));
+        markets::StockMarketList::getInstance().insert(std::pair<std::string, std::unique_ptr<markets::StockMarket>>(symbol, new markets::ContinuousStockMarket { symbol }));
     }
 
     if (markets::StockMarketList::getInstance().size() != symbols.size()) {
@@ -253,8 +254,8 @@ int main(int ac, char* av[])
     {
         int i = 0;
 
-        for (auto& [symbol, market] : markets::StockMarketList::getInstance()) {
-            stockMarketThreadList[i] = std::thread(std::ref(market));
+        for (auto& [symbol, marketPtr] : markets::StockMarketList::getInstance()) {
+            stockMarketThreadList[i] = std::thread(std::ref(*marketPtr));
             ++i;
         }
     }

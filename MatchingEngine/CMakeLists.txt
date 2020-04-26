@@ -30,6 +30,7 @@ set(CONFIGDEFAULT
 )
 
 set(INCLUDE
+    ${PROJECT_SOURCE_DIR}/include/markets/ContinuousStockMarket.h
     ${PROJECT_SOURCE_DIR}/include/markets/PriceLevel.h
     ${PROJECT_SOURCE_DIR}/include/markets/StockMarket.h
     ${PROJECT_SOURCE_DIR}/include/configFunctions.h
@@ -44,6 +45,7 @@ set(INCLUDE
 )
 
 set(SRC
+    ${PROJECT_SOURCE_DIR}/src/markets/ContinuousStockMarket.cpp
     ${PROJECT_SOURCE_DIR}/src/markets/PriceLevel.cpp
     ${PROJECT_SOURCE_DIR}/src/markets/StockMarket.cpp
     ${PROJECT_SOURCE_DIR}/src/configFunctions.cpp

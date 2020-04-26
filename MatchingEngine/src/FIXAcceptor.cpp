@@ -319,8 +319,8 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     sendSecurityList(targetID);
 
     // send current order book data of all securities to connecting target
-    for (auto& [symbol, market] : markets::StockMarketList::getInstance()) {
-        market.sendOrderBookDataToTarget(targetID);
+    for (auto& [symbol, marketPtr] : markets::StockMarketList::getInstance()) {
+        marketPtr->sendOrderBookDataToTarget(targetID);
     }
 
     {
@@ -423,7 +423,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     // add new quote to buffer
     auto stockMarketIt = markets::StockMarketList::getInstance().find(pSymbol->getValue());
     if (stockMarketIt != markets::StockMarketList::getInstance().end()) {
-        stockMarketIt->second.bufNewLocalOrder(std::move(order));
+        stockMarketIt->second->bufNewLocalOrder(std::move(order));
     } else {
         return;
     }

@@ -420,9 +420,9 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         Order order2 { pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), Order::Type::TRTH_ASK, pSellerID->getValue(), pTransactTime->getValue() };
         order2.setMilli(mili);
 
-        stockMarketIt->second.bufNewGlobalOrder(std::move(order2));
+        stockMarketIt->second->bufNewGlobalOrder(std::move(order2));
     }
-    stockMarketIt->second.bufNewGlobalOrder(std::move(order));
+    stockMarketIt->second->bufNewGlobalOrder(std::move(order));
 
     if (prevCnt) { // > 1 threads
         delete pSymbol;
