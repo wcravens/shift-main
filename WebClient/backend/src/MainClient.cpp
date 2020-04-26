@@ -244,7 +244,7 @@ void MainClient::checkEverySecond()
     }
 }
 
-void MainClient::debugDump(const std::string& message)
+inline void MainClient::debugDump(const std::string& message)
 {
     cout << "***From MainClient***" << endl;
     cout << message << endl;

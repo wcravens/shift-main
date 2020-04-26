@@ -99,7 +99,7 @@ void RequestsProcessorPerTarget::processRequests()
 /**
  * @brief Announces requested data is ready to send.
  */
-/*static*/ void RequestsProcessorPerTarget::s_announceSecurityListRequestComplete(const std::string& targetID, const std::string& requestID, int numAvailableSecurities)
+/* static */ void RequestsProcessorPerTarget::s_announceSecurityListRequestComplete(const std::string& targetID, const std::string& requestID, int numAvailableSecurities)
 {
     // its only purpose is to ensure atomically print message and send signal at the same time
     // its lifetime will last from first time the program encountered it, to when the entire DE program terminates
@@ -121,7 +121,7 @@ void RequestsProcessorPerTarget::processRequests()
  * @param targetID: ID of this target.
  * @return future<bool> for waiting the TRTH downloads finish; bool value indicates whether it was a smooth, successful processing.
  */
-/*static*/ std::future<bool> RequestsProcessorPerTarget::s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID)
+/* static */ std::future<bool> RequestsProcessorPerTarget::s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID)
 {
     auto& db = PSQLManager::getInstance();
     if (!db.isConnected()) {
@@ -224,7 +224,7 @@ void RequestsProcessorPerTarget::processRequests()
  * @param lastMarketRequestPtr: The pointer to last Market Data request with necessary informations. The request object will be mutated.
  * @param targetID: ID of this target.
 */
-/*static*/ void RequestsProcessorPerTarget::s_processNextDataRequest(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const lastMarketRequestPtr, const std::string& targetID)
+/* static */ void RequestsProcessorPerTarget::s_processNextDataRequest(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const lastMarketRequestPtr, const std::string& targetID)
 {
     bool warnUnavailSkipped = false;
 

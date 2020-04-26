@@ -8,20 +8,20 @@ namespace database {
     // then there always shall be a "template<>" before each such definition --
     // otherwise, there shall NOT any "template<>" present.
 
-    /*static*/ constexpr char PSQLTable<TradeAndQuoteRecords>::sc_colsDefinition[];
-    /*static*/ constexpr char PSQLTable<TradeAndQuoteRecords>::sc_recordFormat[];
+    /* static */ constexpr char PSQLTable<TradeAndQuoteRecords>::sc_colsDefinition[];
+    /* static */ constexpr char PSQLTable<TradeAndQuoteRecords>::sc_recordFormat[];
 
-    /*static*/ constexpr char PSQLTable<TradingRecords>::sc_colsDefinition[];
-    /*static*/ const char* PSQLTable<TradingRecords>::name = "trading_records";
+    /* static */ constexpr char PSQLTable<TradingRecords>::sc_colsDefinition[];
+    /* static */ const char* PSQLTable<TradingRecords>::name = "trading_records";
 
-    /*static*/ constexpr char PSQLTable<PortfolioSummary>::sc_colsDefinition[];
-    /*static*/ const char* PSQLTable<PortfolioSummary>::name = "portfolio_summary";
+    /* static */ constexpr char PSQLTable<PortfolioSummary>::sc_colsDefinition[];
+    /* static */ const char* PSQLTable<PortfolioSummary>::name = "portfolio_summary";
 
-    /*static*/ constexpr char PSQLTable<PortfolioItem>::sc_colsDefinition[];
-    /*static*/ const char* PSQLTable<PortfolioItem>::name = "portfolio_items";
+    /* static */ constexpr char PSQLTable<PortfolioItem>::sc_colsDefinition[];
+    /* static */ const char* PSQLTable<PortfolioItem>::name = "portfolio_items";
 
-    /*static*/ constexpr char PSQLTable<Leaderboard>::sc_colsDefinition[];
-    /*static*/ const char* PSQLTable<Leaderboard>::name = "leaderboard";
+    /* static */ constexpr char PSQLTable<Leaderboard>::sc_colsDefinition[];
+    /* static */ const char* PSQLTable<Leaderboard>::name = "leaderboard";
 
 } // database
 } // shift

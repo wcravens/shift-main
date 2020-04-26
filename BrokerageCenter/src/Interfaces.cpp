@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-/*virtual*/ ITargetsInfo::~ITargetsInfo() /*= 0*/ = default;
+/* virtual */ ITargetsInfo::~ITargetsInfo() /* = 0 */ = default;
 
 std::vector<std::string> ITargetsInfo::getTargetList() const
 {

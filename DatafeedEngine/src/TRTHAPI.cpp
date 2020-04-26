@@ -30,7 +30,7 @@ using namespace std::chrono_literals;
 /**
  * @brief Formulate a CSV file name.
  */
-static inline std::string createCSVName(const std::string& symbol, const std::string& date /*yyyy-mm-dd*/)
+static inline std::string s_createCSVName(const std::string& symbol, const std::string& date /*yyyy-mm-dd*/)
 {
     return symbol + date + ".csv";
 }
@@ -68,8 +68,8 @@ static auto operator>>(utility::ifstream_t&& istrm, _Sink&& s) -> decltype(istrm
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*static*/ TRTHAPI* TRTHAPI::s_pInst = nullptr;
-/*static*/ std::atomic<bool> TRTHAPI::s_bTRTHLoginJsonExists { false };
+/* static */ TRTHAPI* TRTHAPI::s_pInst = nullptr;
+/* static */ std::atomic<bool> TRTHAPI::s_bTRTHLoginJsonExists { false };
 
 TRTHAPI::TRTHAPI(const std::string& cryptoKey, const std::string& configDir)
     : m_key(cryptoKey)
@@ -236,7 +236,7 @@ void TRTHAPI::processRequests()
         }
 
         if (flag == 0) {
-            std::string csvName = ::createCSVName(req.symbol, req.date);
+            std::string csvName = ::s_createCSVName(req.symbol, req.date);
             isPerfect &= db.isConnected() && db.saveCSVIntoDB(csvName, req.symbol, req.date);
 
             if (isPerfect) {
@@ -371,7 +371,7 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     if (!gzipStrm.is_valid())
         throw web::http::http_exception(COLOR_ERROR "ERROR: Cannot retrieve(GET) raw data file!" NO_COLOR);
 
-    auto csvName = ::createCSVName(symbol, requestDate);
+    auto csvName = ::s_createCSVName(symbol, requestDate);
     auto gzipName = csvName + ".gz";
 
     Concurrency::streams::fstream::open_ostream(gzipName, std::ios::binary)

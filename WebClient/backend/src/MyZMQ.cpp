@@ -40,7 +40,7 @@ MyZMQ::~MyZMQ()
  * @brief Method to get the singleton instance of MyZMQ.
  * @return Pointer to current MyZMQ instance.
  */
-/*static*/ MyZMQ* MyZMQ::getInstance()
+/* static */ MyZMQ* MyZMQ::getInstance()
 {
     static MyZMQ instance;
     return &instance;

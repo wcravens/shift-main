@@ -78,13 +78,13 @@ const std::string& CandlestickData::getSymbol() const
     return m_symbol;
 }
 
-/*static*/ std::time_t CandlestickData::s_nowUnixTimestamp() noexcept
+/* static */ std::time_t CandlestickData::s_nowUnixTimestamp() noexcept
 {
     auto tnow = boost::posix_time::to_tm(boost::posix_time::microsec_clock::local_time());
     return std::mktime(&tnow);
 }
 
-/*static*/ std::time_t CandlestickData::s_toUnixTimestamp(const std::string& time) noexcept
+/* static */ std::time_t CandlestickData::s_toUnixTimestamp(const std::string& time) noexcept
 {
     struct std::tm tm;
     ::strptime(time.c_str(), CSTR_TIME_FORMAT_YMDHMS, &tm);

@@ -35,9 +35,10 @@ public:
 
     void saveGlobalBidOrderBookUpdate(const OrderBookEntry& update);
     void saveGlobalAskOrderBookUpdate(const OrderBookEntry& update);
+
+    static void s_saveLocalOrderBookUpdate(const OrderBookEntry& update, std::mutex& mtxLocalOrderBookk, std::map<double, std::map<std::string, OrderBookEntry>>& localOrderBook);
     void saveLocalBidOrderBookUpdate(const OrderBookEntry& update);
     void saveLocalAskOrderBookUpdate(const OrderBookEntry& update);
-    static void s_saveLocalOrderBookUpdate(const OrderBookEntry& update, std::mutex& mtxLocalOrderBookk, std::map<double, std::map<std::string, OrderBookEntry>>& localOrderBook);
 
     double getGlobalBidOrderBookFirstPrice() const;
     double getGlobalAskOrderBookFirstPrice() const;

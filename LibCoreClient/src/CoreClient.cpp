@@ -34,10 +34,6 @@ shift::CoreClient::CoreClient(const std::string& username)
 {
 }
 
-shift::CoreClient::~CoreClient(void)
-{
-}
-
 void shift::CoreClient::setVerbose(bool verbose)
 {
     m_verbose = verbose;

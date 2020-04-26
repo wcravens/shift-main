@@ -133,7 +133,7 @@ void UserClient::sendSubmittedOrders()
     MyZMQ::getInstance()->send(s);
 }
 
-void UserClient::receiveWaitingList()
+void UserClient::receiveWaitingList() // override
 {
     auto waitingList = getWaitingList();
     std::string res = "";

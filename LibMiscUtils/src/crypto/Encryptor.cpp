@@ -27,12 +27,12 @@ shift::crypto::Encryptor::Encryptor()
 
 shift::crypto::Encryptor::~Encryptor() = default;
 
-shift::crypto::Encryptor::operator std::istream&()
+shift::crypto::Encryptor::operator std::istream &()
 {
     return m_impl->get();
 }
 
-// these functions are inline-decleared as 'friend', hence shall be present within the same namespace
+// these functions are inline-declared as 'friend', hence shall be present within the same namespace
 namespace shift {
 namespace crypto {
 

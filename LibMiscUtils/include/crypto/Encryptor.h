@@ -19,7 +19,7 @@ namespace crypto {
 
         ~Encryptor();
 
-        operator std::istream&(); ///> Enable the object transfers encrypted results as an input stream later on. E.g. enc_obj >> str;.
+        operator std::istream &(); ///> Enable the object transfers encrypted results as an input stream later on. E.g. enc_obj >> str;.
 
         friend std::istream& operator>>(std::istream& is, Encryptor& enc); ///> Input stream operator >> overloading for Encryptor.
         friend std::ostream& operator<<(std::ostream& os, Encryptor& enc); ///> Output stream operator << overloading for Encryptor.

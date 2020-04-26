@@ -10,17 +10,17 @@
 #include <shift/miscutils/concurrency/Consumer.h>
 #include <shift/miscutils/terminal/Common.h>
 
-/*static*/ inline void RiskManagement::s_sendOrderToME(const Order& order)
+/* static */ inline void RiskManagement::s_sendOrderToME(const Order& order)
 {
     FIXInitiator::getInstance()->sendOrder(order);
 }
 
-/*static*/ inline void RiskManagement::s_sendPortfolioSummaryToUser(const std::string& userID, const PortfolioSummary& summary)
+/* static */ inline void RiskManagement::s_sendPortfolioSummaryToUser(const std::string& userID, const PortfolioSummary& summary)
 {
     FIXAcceptor::getInstance()->sendPortfolioSummary(userID, summary);
 }
 
-/*static*/ inline void RiskManagement::s_sendPortfolioItemToUser(const std::string& userID, const PortfolioItem& item)
+/* static */ inline void RiskManagement::s_sendPortfolioItemToUser(const std::string& userID, const PortfolioItem& item)
 {
     FIXAcceptor::getInstance()->sendPortfolioItem(userID, item);
 }

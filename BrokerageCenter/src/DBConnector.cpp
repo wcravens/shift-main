@@ -11,8 +11,8 @@
 
 //----------------------------------------------------------------------------------------------------------------
 
-/*static*/ bool DBConnector::s_isPortfolioDBReadOnly = false;
-/*static*/ const std::string DBConnector::s_sessionID = shift::crossguid::newGuid().str();
+/* static */ bool DBConnector::s_isPortfolioDBReadOnly = false;
+/* static */ const std::string DBConnector::s_sessionID = shift::crossguid::newGuid().str();
 
 DBConnector::DBConnector()
     : m_pConn(nullptr)
@@ -35,7 +35,7 @@ std::unique_lock<std::mutex> DBConnector::lockPSQL() const
     return lock; // move()-ed out here
 }
 
-/*static*/ DBConnector* DBConnector::getInstance()
+/* static */ DBConnector* DBConnector::getInstance()
 {
     static DBConnector s_DBInst;
     return &s_DBInst;

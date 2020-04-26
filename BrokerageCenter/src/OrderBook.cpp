@@ -219,25 +219,7 @@ void OrderBook::saveGlobalAskOrderBookUpdate(const OrderBookEntry& update)
     m_globalAskOrderBook.erase(m_globalAskOrderBook.begin(), m_globalAskOrderBook.lower_bound(price));
 }
 
-/**
- * @brief Thread-safely saves order book entry to local bid order book at specific price.
- * @param update The order book entry to be saved.
- */
-inline void OrderBook::saveLocalBidOrderBookUpdate(const OrderBookEntry& update)
-{
-    s_saveLocalOrderBookUpdate(update, m_mtxLocalBidOrderBook, m_localBidOrderBook);
-}
-
-/**
- * @brief Thread-safely saves order book entry to local ask order book at specific price.
- * @param update The order book entry to be saved.
- */
-inline void OrderBook::saveLocalAskOrderBookUpdate(const OrderBookEntry& update)
-{
-    s_saveLocalOrderBookUpdate(update, m_mtxLocalAskOrderBook, m_localAskOrderBook);
-}
-
-/*static*/ void OrderBook::s_saveLocalOrderBookUpdate(const OrderBookEntry& update, std::mutex& mtxLocalOrderBookk, std::map<double, std::map<std::string, OrderBookEntry>>& localOrderBook)
+/* static */ void OrderBook::s_saveLocalOrderBookUpdate(const OrderBookEntry& update, std::mutex& mtxLocalOrderBookk, std::map<double, std::map<std::string, OrderBookEntry>>& localOrderBook)
 {
     double price = update.getPrice();
     std::lock_guard<std::mutex> guard(mtxLocalOrderBookk);
@@ -256,6 +238,24 @@ inline void OrderBook::saveLocalAskOrderBookUpdate(const OrderBookEntry& update)
             localOrderBook.erase(price);
         }
     }
+}
+
+/**
+ * @brief Thread-safely saves order book entry to local bid order book at specific price.
+ * @param update The order book entry to be saved.
+ */
+inline void OrderBook::saveLocalBidOrderBookUpdate(const OrderBookEntry& update)
+{
+    s_saveLocalOrderBookUpdate(update, m_mtxLocalBidOrderBook, m_localBidOrderBook);
+}
+
+/**
+ * @brief Thread-safely saves order book entry to local ask order book at specific price.
+ * @param update The order book entry to be saved.
+ */
+inline void OrderBook::saveLocalAskOrderBookUpdate(const OrderBookEntry& update)
+{
+    s_saveLocalOrderBookUpdate(update, m_mtxLocalAskOrderBook, m_localAskOrderBook);
 }
 
 double OrderBook::getGlobalBidOrderBookFirstPrice() const

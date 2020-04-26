@@ -9,8 +9,8 @@
 
 class DBConnector {
 public:
+    static bool s_hasConnected;
     static const std::string s_sessionID;
-    static bool b_hasConnected;
 
     ~DBConnector();
 

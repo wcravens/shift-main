@@ -37,7 +37,7 @@ FIXAcceptor::~FIXAcceptor() // override
     disconnectClients();
 }
 
-/*static*/ FIXAcceptor* FIXAcceptor::getInstance()
+/* static */ FIXAcceptor* FIXAcceptor::getInstance()
 {
     static FIXAcceptor s_FIXAccInst;
     return &s_FIXAccInst;

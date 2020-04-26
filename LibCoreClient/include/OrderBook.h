@@ -24,7 +24,7 @@ public:
     };
 
     OrderBook(const std::string& symbol, Type type);
-    virtual ~OrderBook();
+    virtual ~OrderBook() = default;
 
     const std::string& getSymbol() const;
     Type getType() const;

@@ -36,7 +36,7 @@ namespace strategies {
         m_minimum_dolar_change = *it;
     }
 
-    void ZeroIntelligence::run(std::string username) // override
+    /* virtual */ void ZeroIntelligence::run(std::string username) // override
     {
         cout << "--------------------\n";
         cout << "Begin of Strategy\n";

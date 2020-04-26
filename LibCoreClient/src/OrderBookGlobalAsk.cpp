@@ -13,7 +13,7 @@ shift::OrderBookGlobalAsk::OrderBookGlobalAsk(const std::string& symbol)
  * @brief Method to update the current orderbook.
  * @param entry The entry to be inserted into/updated from the order book.
  */
-void shift::OrderBookGlobalAsk::update(shift::OrderBookEntry&& entry)
+/* virtual */ void shift::OrderBookGlobalAsk::update(shift::OrderBookEntry&& entry) // override
 {
     std::lock_guard<std::mutex> guard(m_mutex);
 

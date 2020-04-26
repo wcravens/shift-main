@@ -529,14 +529,14 @@ bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string da
  *
  */
 
-/*static*/ PSQLManager* PSQLManager::s_pInst = nullptr;
+/* static */ PSQLManager* PSQLManager::s_pInst = nullptr;
 
 PSQLManager::PSQLManager(std::unordered_map<std::string, std::string>&& dbInfo)
     : PSQL(std::move(dbInfo))
 {
 }
 
-/*static*/ PSQLManager& PSQLManager::createInstance(std::unordered_map<std::string, std::string>&& dbLoginInfo)
+/* static */ PSQLManager& PSQLManager::createInstance(std::unordered_map<std::string, std::string>&& dbLoginInfo)
 {
     static PSQLManager s_inst(std::move(dbLoginInfo));
     s_pInst = &s_inst;

@@ -35,7 +35,7 @@ FIXAcceptor::~FIXAcceptor() // override
     disconnectBrokerageCenter();
 }
 
-/*static*/ FIXAcceptor* FIXAcceptor::getInstance()
+/* static */ FIXAcceptor* FIXAcceptor::getInstance()
 {
     static FIXAcceptor s_FIXAccInst;
     return &s_FIXAccInst;

@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 
 /* static */ std::atomic<bool> BCDocuments::s_isSecurityListReady { false };
 
-/*static*/ BCDocuments* BCDocuments::getInstance()
+/* static */ BCDocuments* BCDocuments::getInstance()
 {
     static BCDocuments s_BCDocInst;
     return &s_BCDocInst;

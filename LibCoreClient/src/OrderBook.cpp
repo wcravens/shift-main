@@ -11,13 +11,6 @@ shift::OrderBook::OrderBook(const std::string& symbol, shift::OrderBook::Type ty
 {
 }
 
-/**
- * @brief Default destructor.
- */
-shift::OrderBook::~OrderBook()
-{
-}
-
 const std::string& shift::OrderBook::getSymbol() const
 {
     return m_symbol;

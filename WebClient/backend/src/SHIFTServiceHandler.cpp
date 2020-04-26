@@ -126,7 +126,7 @@ void SHIFTServiceHandler::getAllTraders(std::string& _return)
     }
 
     std::cout << "Hello from shift!" << std::endl;
-    if (DBConnector::b_hasConnected) {
+    if (DBConnector::s_hasConnected) {
         std::cout << "DB has been initialized and is connected!" << std::endl;
     } else {
         std::cout << "Oh no...." << std::endl;

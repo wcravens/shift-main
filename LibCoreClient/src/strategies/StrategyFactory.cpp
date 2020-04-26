@@ -7,7 +7,7 @@ namespace strategies {
 
     // public:
 
-    StrategyFactory& StrategyFactory::Instance()
+    /* static */ StrategyFactory& StrategyFactory::Instance()
     {
         // so called Meyers Singleton implementation:
         // in C++ 11 it is in fact thread-safe,

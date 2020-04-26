@@ -22,7 +22,7 @@
 static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
 static const auto& FIXFIELD_PARTYROLE_EXECUTION_VENUE = FIX::PartyRole(FIX::PartyRole_EXECUTION_VENUE);
 
-/*static*/ std::string FIXAcceptor::s_senderID;
+/* static */ std::string FIXAcceptor::s_senderID;
 
 FIXAcceptor::FIXAcceptor()
 {
@@ -41,7 +41,7 @@ FIXAcceptor::~FIXAcceptor() // override
     // all request processors of all targets (1 for each) are terminated and destroyed here
 }
 
-/*static*/ FIXAcceptor* FIXAcceptor::getInstance()
+/* static */ FIXAcceptor* FIXAcceptor::getInstance()
 {
     static FIXAcceptor s_FIXAcceptor;
     return &s_FIXAcceptor;

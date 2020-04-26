@@ -62,9 +62,9 @@ private:
     void onCreate(const FIX::SessionID&) override;
     void onLogon(const FIX::SessionID&) override;
     void onLogout(const FIX::SessionID&) override;
-    void toAdmin(FIX::Message&, const FIX::SessionID&) override {}
-    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
-    void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
+    void toAdmin(FIX::Message&, const FIX::SessionID&) override { }
+    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
+    void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
     void fromApp(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void onMessage(const FIX50SP2::News&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::Quote&, const FIX::SessionID&) override;

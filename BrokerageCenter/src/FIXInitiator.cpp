@@ -29,7 +29,7 @@ FIXInitiator::~FIXInitiator() // override
     disconnectMatchingEngine();
 }
 
-/*static*/ FIXInitiator* FIXInitiator::getInstance()
+/* static */ FIXInitiator* FIXInitiator::getInstance()
 {
     static FIXInitiator s_FIXInitInst;
     return &s_FIXInitInst;

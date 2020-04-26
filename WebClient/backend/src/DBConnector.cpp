@@ -9,8 +9,8 @@
 
 //----------------------------------------------------------------------------------------------------------------
 
-/*static*/ bool DBConnector::b_hasConnected = false;
-/*static*/ const std::string DBConnector::s_sessionID = shift::crossguid::newGuid().str();
+/* static */ bool DBConnector::s_hasConnected = false;
+/* static */ const std::string DBConnector::s_sessionID = shift::crossguid::newGuid().str();
 
 DBConnector::DBConnector()
     : m_pConn(nullptr)
@@ -33,7 +33,7 @@ std::unique_lock<std::mutex> DBConnector::lockPSQL() const
     return lock; // move()-ed out here
 }
 
-/*static*/ DBConnector* DBConnector::getInstance()
+/* static */ DBConnector* DBConnector::getInstance()
 {
     static DBConnector s_DBInst;
     return &s_DBInst;
@@ -63,10 +63,10 @@ bool DBConnector::connectDB()
         return false;
     } else {
         cout << "CONNECTION IS A-OK" << endl;
-        DBConnector::b_hasConnected = true;
+        DBConnector::s_hasConnected = true;
     }
 
-    return DBConnector::b_hasConnected;
+    return DBConnector::s_hasConnected;
 }
 
 /**
