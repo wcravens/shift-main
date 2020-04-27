@@ -87,13 +87,6 @@ if(APPLE)
     include_directories(/usr/local/include)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
     include_directories(/usr/local/opt/openssl/include)
-
-    # set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,cppcoreguidelines-*,modernize-*,readability-*")
-    # set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY},-cppcoreguidelines-avoid-magic-numbers")
-    # set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY},-cppcoreguidelines-macro-usage")
-    # set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY},-cppcoreguidelines-pro-bounds-array-to-pointer-decay")
-    # set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY},-cppcoreguidelines-pro-bounds-pointer-arithmetic")
-    # set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY},-readability-magic-numbers")
 endif(APPLE)
 
 ### Build Types ################################################################
