@@ -20,8 +20,8 @@ class TRTHAPI {
 public:
     static std::atomic<bool> s_bTRTHLoginJsonExists; // issue #32
 
-    static TRTHAPI* createInstance(const std::string& cryptoKey, const std::string& configDir);
-    static TRTHAPI* getInstance();
+    static auto createInstance(const std::string& cryptoKey, const std::string& configDir) -> TRTHAPI*;
+    static auto getInstance() -> TRTHAPI*;
 
     // prevent copy for singleton
     TRTHAPI(const TRTHAPI&) = delete;
@@ -35,14 +35,14 @@ public:
     void enqueueRequest(TRTHRequest req); // date format: YYYY-MM-DD
 
     void addUnavailableRequest(const TRTHRequest& req);
-    size_t removeUnavailableRICs(std::vector<std::string>& originalRICs);
+    auto removeUnavailableRICs(std::vector<std::string>& originalRICs) -> size_t;
 
 private:
-    TRTHAPI(const std::string& cryptoKey, const std::string& configDir);
+    TRTHAPI(std::string cryptoKey, std::string configDir);
 
     void processRequests();
 
-    int downloadAsCSV(const std::string& symbol, const std::string& requestDate); // date format: YYYY-MM-DD
+    auto downloadAsCSV(const std::string& symbol, const std::string& requestDate) -> int; // date format: YYYY-MM-DD
 
     static TRTHAPI* s_pInst;
 

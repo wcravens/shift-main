@@ -16,7 +16,8 @@
 
 void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= false*/)
 {
-    const char from = reverse ? '_' : '.', to = reverse ? '.' : '_';
+    const char from = reverse ? '_' : '.';
+    const char to = reverse ? '.' : '_';
     std::replace(pCvtThis->begin(), pCvtThis->end(), from, to);
 }
 
@@ -26,7 +27,7 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
  *          SELECT reuters_time, reuters_time_order
  *          FROM public.<a table name here>;
  */
-/* static */ std::string PSQL::s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string* pLastRTime, int* pLastRTimeOrder)
+/* static */ auto PSQL::s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string* pLastRTime, int* pLastRTimeOrder) -> std::string
 {
     if (currReutersTime.length() != pLastRTime->length() // Different size must implies different strings!
         /* Reuters time data are always in increasing order, usually with strides of some microseconds(10^-6s) to some milliseconds.
@@ -48,12 +49,12 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
     return std::to_string(++*pLastRTimeOrder);
 }
 
-/* static */ inline std::string PSQL::s_createTableName(const std::string& symbol, const std::string& yyyymmdd)
+/* static */ inline auto PSQL::s_createTableName(const std::string& symbol, const std::string& yyyymmdd) -> std::string
 {
     return shift::toLower(symbol) + '_' + yyyymmdd;
 }
 
-/* static */ inline std::string PSQL::s_reutersDateToYYYYMMDD(const std::string& reutersDate)
+/* static */ inline auto PSQL::s_reutersDateToYYYYMMDD(const std::string& reutersDate) -> std::string
 {
     return reutersDate.substr(0, 4) + reutersDate.substr(5, 2) + reutersDate.substr(8, 2);
 }
@@ -68,8 +69,9 @@ void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= fa
  *       It shall always use data types in DBFIXDataCarrier.h to transit data from/to FIX-related parts.
  */
 
-PSQL::PSQL(std::unordered_map<std::string, std::string>&& info)
-    : m_loginInfo(std::move(info))
+PSQL::PSQL(std::unordered_map<std::string, std::string>&& loginInfo)
+    : m_pConn { nullptr }
+    , m_loginInfo { std::move(loginInfo) }
 {
 }
 
@@ -81,16 +83,24 @@ PSQL::PSQL(std::unordered_map<std::string, std::string>&& info)
 /**
  * @brief To provide a simpler syntax to lock.
  */
-std::unique_lock<std::mutex> PSQL::lockPSQL()
+auto PSQL::lockPSQL() -> std::unique_lock<std::mutex>
 {
     std::unique_lock<std::mutex> ul(m_mtxPSQL); // std::unique_lock is only move-able!
     return ul; // here it is MOVED(by C++11 mechanism) out in such situation, instead of being copied, hence ul's locked status will be preserved in caller side
 }
 
 /**
+ * @brief Get login information.
+ */
+auto PSQL::getLoginInfo() const -> const std::unordered_map<std::string, std::string>&
+{
+    return m_loginInfo;
+}
+
+/**
  * @brief Establish connection to database.
  */
-bool PSQL::connectDB()
+auto PSQL::connectDB() -> bool
 {
     std::string info = "hostaddr=" + m_loginInfo["DBHost"] + " port=" + m_loginInfo["DBPort"] + " dbname=" + m_loginInfo["DBName"] + " user=" + m_loginInfo["DBUser"] + " password=" + m_loginInfo["DBPassword"];
     const char* c = info.c_str();
@@ -109,9 +119,12 @@ bool PSQL::connectDB()
     return true;
 }
 
-bool PSQL::isConnected() const
+/**
+ * @brief Test connection to database.
+ */
+auto PSQL::isConnected() const -> bool
 {
-    return m_pConn && PQstatus(m_pConn) == CONNECTION_OK;
+    return (nullptr != m_pConn) && (PQstatus(m_pConn) == CONNECTION_OK);
 }
 
 /**
@@ -120,8 +133,9 @@ bool PSQL::isConnected() const
 void PSQL::disconnectDB()
 {
     auto lock { lockPSQL() };
-    if (nullptr == m_pConn)
+    if (nullptr == m_pConn) {
         return;
+    }
 
     PQfinish(m_pConn);
     m_pConn = nullptr;
@@ -139,7 +153,7 @@ void PSQL::init()
     cout << "Connection to database is good." << endl;
 }
 
-bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
+auto PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/) -> bool
 {
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
 }
@@ -148,14 +162,14 @@ bool PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusT
  * @brief Check if the Trade and Quote data for a specific Ric-ReutersDate combination is exist.
  *        If exist, saves the found table name to the parameter 'tableName'.
  */
-shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName)
+auto PSQL::checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName) -> shift::database::TABLE_STATUS
 {
     auto lock { lockPSQL() };
     using TABLE_STATUS = shift::database::TABLE_STATUS;
 
     auto tableName = PSQL::s_createTableName(ric, s_reutersDateToYYYYMMDD(reutersDate));
 
-    PGresult* pRes;
+    PGresult* pRes = nullptr;
     if (!doQuery("SELECT EXISTS ("
                  "SELECT 1 "
                  "FROM pg_tables "
@@ -188,7 +202,7 @@ shift::database::TABLE_STATUS PSQL::checkTableOfTradeAndQuoteRecordsExist(std::s
 /**
  * @brief Create Trade & Quote data table.
  */
-bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
+auto PSQL::createTableOfTradeAndQuoteRecords(std::string tableName) -> bool
 {
     auto lock { lockPSQL() };
     return doQuery("CREATE TABLE " + tableName + shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_colsDefinition, COLOR_ERROR "\tERROR: Create " + tableName + " table failed. (Please make sure that the old TAQ table was dropped.)\t" NO_COLOR);
@@ -197,7 +211,7 @@ bool PSQL::createTableOfTradeAndQuoteRecords(std::string tableName)
 /**
  * @brief Read csv file, Append statement and insert record into table.
  */
-bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName)
+auto PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName) -> bool
 {
     std::ifstream file(csvName); //define input stream
     std::string line;
@@ -226,11 +240,13 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                 if (cell.empty()) {
                     pqQuery += "NULL,";
                 } else {
-                    if (!isNumeric)
+                    if (!isNumeric) {
                         pqQuery += '\'';
+                    }
                     pqQuery += cell;
-                    if (!isNumeric)
+                    if (!isNumeric) {
                         pqQuery += '\'';
+                    }
                     pqQuery += ',';
                 }
             };
@@ -295,7 +311,7 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
 
             // exchange id
             std::getline(lineStream, cell, ',');
-            if (cell.length()) {
+            if (cell.length() > 0) {
                 pqQuery += '\'';
                 pqQuery += cell;
                 pqQuery += "',";
@@ -336,9 +352,9 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                 // const auto fracPos = etNanoSec.find('.') + 1;
                 // const auto& etMicroSec = etNanoSec.substr({}, etNanoSec.find('.') + 1 + 3); // trancated
 
-                if (etNanoSec.empty()) // Exch Time empty in CSV ?
+                if (etNanoSec.empty()) { // Exch Time empty in CSV ?
                     pqQuery += "NULL,NULL";
-                else if (isTrade) {
+                } else if (isTrade) {
                     // set SQL exch. time with blank quote time
                     pqQuery += '\'' + etNanoSec + "',NULL";
                 } else {
@@ -358,16 +374,18 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
             return true;
         }
 
-        if (0 == nVals) // finished processing all lines ?
+        if (0 == nVals) { // finished processing all lines ?
             break;
+        }
 
         pqQuery.back() = ';';
 
         auto lock { lockPSQL() };
         if (!doQuery(pqQuery, COLOR_ERROR "ERROR: Insert into [ " + tableName + " ] failed.\n" NO_COLOR)) {
             std::ofstream of("./PSQL_INSERT_ERROR_DUMP.txt");
-            if (of.good())
+            if (of.good()) {
                 of.write(pqQuery.c_str(), pqQuery.length());
+            }
 
             cout << COLOR_WARNING "The failed SQL query was written into './PSQL_INSERT_ERROR_DUMP.txt'. Please check it by manually executing the query. The table [" << tableName << "] was not created." NO_COLOR << endl;
 
@@ -384,15 +402,16 @@ bool PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
 /**
  * @brief Fetch chunk of Quote and trading records, and send to matching engine.
  */
-bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime)
+auto PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime) -> bool
 {
     const std::string stime = boost::posix_time::to_iso_extended_string(startTime).substr(11, 8);
     const std::string etime = boost::posix_time::to_iso_extended_string(endTime).substr(11, 8);
     const std::string table_name = s_createTableName(symbol, boost::posix_time::to_iso_string(startTime).substr(0, 8)); /*YYYYMMDD*/
     auto lock { lockPSQL() };
 
-    if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR))
+    if (!doQuery("BEGIN", COLOR_ERROR "ERROR: BEGIN command failed.\n" NO_COLOR)) {
         return false;
+    }
 
     std::string pqQuery;
     pqQuery += "DECLARE data CURSOR FOR SELECT " + std::string(shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::sc_recordFormat) + " FROM ";
@@ -410,10 +429,11 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
          << endl;
 #endif
 
-    if (!doQuery(pqQuery, COLOR_ERROR "ERROR: DECLARE CURSOR [ " + table_name + " ] failed. (send_raw_data)\n" NO_COLOR))
+    if (!doQuery(pqQuery, COLOR_ERROR "ERROR: DECLARE CURSOR [ " + table_name + " ] failed. (send_raw_data)\n" NO_COLOR)) {
         return false;
+    }
 
-    PGresult* pRes;
+    PGresult* pRes = nullptr;
     if (!doQuery("FETCH ALL FROM data", COLOR_ERROR "ERROR: FETCH ALL failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pRes)) {
         PQclear(pRes);
         return false;
@@ -429,13 +449,13 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
     queryTime += '\'';
     queryTime += " ORDER BY reuters_time";
 
-    PGresult* pResTime;
+    PGresult* pResTime = nullptr;
     if (!doQuery(queryTime, COLOR_ERROR "ERROR: EXTRACT TIME failed.\n" NO_COLOR, PGRES_TUPLES_OK, &pResTime)) {
         PQclear(pResTime);
         return false;
     }
 
-    double microsecs;
+    double microsecs = 0.0;
     std::vector<RawData> rawData(PQntuples(pRes));
     std::setprecision(15);
 
@@ -444,7 +464,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
         char* pCh {};
         using VAL_IDX = shift::database::PSQLTable<shift::database::TradeAndQuoteRecords>::VAL_IDX;
 
-        rawData[i].secs = std::atol(PQgetvalue(pResTime, i, 0));
+        rawData[i].secs = std::atoi(PQgetvalue(pResTime, i, 0));
         sscanf(PQgetvalue(pResTime, i, 1), "%lf", &microsecs);
         rawData[i].microsecs = microsecs;
 
@@ -483,10 +503,10 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 // /**
 //  * @brief Check if Trade & Quote is empty or not.
 //  */
-// long PSQL::checkEmpty(std::string tableName)
+// auto PSQL::checkEmpty(std::string tableName) -> long
 // {
 //     std::string pqQuery = "SELECT count(*) FROM " + tableName;
-//     auto lock{ lockPSQL() };
+//     auto lock { lockPSQL() };
 
 //     PGresult* pRes = PQexec(m_pConn, pqQuery.c_str());
 //     if ('0' == *PQgetvalue(pRes, 0, 0)) {
@@ -498,7 +518,7 @@ bool PSQL::readSendRawData(std::string targetID, std::string symbol, boost::posi
 //     return 1;
 // }
 
-bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) // date format: YYYY-MM-DD
+auto PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) -> bool // date format: YYYY-MM-DD
 {
     const std::string tableName = s_createTableName(symbol, s_reutersDateToYYYYMMDD(date));
 
@@ -531,14 +551,19 @@ bool PSQL::saveCSVIntoDB(std::string csvName, std::string symbol, std::string da
 
 /* static */ PSQLManager* PSQLManager::s_pInst = nullptr;
 
-PSQLManager::PSQLManager(std::unordered_map<std::string, std::string>&& dbInfo)
-    : PSQL(std::move(dbInfo))
+PSQLManager::PSQLManager(std::unordered_map<std::string, std::string>&& loginInfo)
+    : PSQL { std::move(loginInfo) }
 {
 }
 
-/* static */ PSQLManager& PSQLManager::createInstance(std::unordered_map<std::string, std::string>&& dbLoginInfo)
+/* static */ auto PSQLManager::createInstance(std::unordered_map<std::string, std::string>&& loginInfo) -> PSQLManager&
 {
-    static PSQLManager s_inst(std::move(dbLoginInfo));
+    static PSQLManager s_inst(std::move(loginInfo));
     s_pInst = &s_inst;
     return s_inst;
+}
+
+/* static */ auto PSQLManager::getInstance() -> PSQLManager&
+{
+    return *s_pInst;
 }

@@ -38,7 +38,7 @@ namespace po = boost::program_options;
 /* 'using' is the same as 'typedef' */
 using voh_t = shift::terminal::VerboseOptHelper;
 
-int main(int ac, char* av[])
+auto main(int argc, char** argv) -> int
 {
     char tz[] = "TZ=America/New_York"; // set time zone to New York
     putenv(tz);
@@ -77,7 +77,7 @@ int main(int ac, char* av[])
 
     po::variables_map vm;
     try {
-        po::store(po::parse_command_line(ac, av, desc), vm);
+        po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
     } catch (const boost::program_options::error& e) {
         cerr << COLOR_ERROR "error: " << e.what() << NO_COLOR << endl;
@@ -87,19 +87,19 @@ int main(int ac, char* av[])
         return 2;
     }
 
-    if (vm.count(CSTR_HELP)) {
+    if (vm.count(CSTR_HELP) > 0) {
         cout << '\n'
              << desc << '\n'
              << endl;
         return 0;
     }
 
-    if (vm.count(CSTR_VERBOSE)) {
+    if (vm.count(CSTR_VERBOSE) > 0) {
         params.isVerbose = true;
     }
     voh_t voh(cout, params.isVerbose);
 
-    if (vm.count(CSTR_CONFIG)) {
+    if (vm.count(CSTR_CONFIG) > 0) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
              << vm[CSTR_CONFIG].as<std::string>() << ".\n" NO_COLOR << endl;
@@ -108,18 +108,18 @@ int main(int ac, char* av[])
              << endl;
     }
 
-    if (vm.count(CSTR_KEY)) {
+    if (vm.count(CSTR_KEY) > 0) {
         params.cryptoKey = vm[CSTR_KEY].as<std::string>();
     } else {
         cout << COLOR "The built-in initial key 'SHIFT123' is used for reading encrypted login files." NO_COLOR << '\n'
              << endl;
     }
 
-    if (vm.count(CSTR_TIMEOUT)) {
+    if (vm.count(CSTR_TIMEOUT) > 0) {
         params.timer.minutes = vm[CSTR_TIMEOUT].as<decltype(params.timer)::min_t>();
-        if (params.timer.minutes > 0)
+        if (params.timer.minutes > 0) {
             params.timer.isSet = true;
-        else {
+        } else {
             cout << COLOR "Note: The timeout option is ignored because of the given value." NO_COLOR << '\n'
                  << endl;
         }
@@ -137,11 +137,11 @@ int main(int ac, char* av[])
          << endl;
     TRTHAPI::createInstance(params.cryptoKey, params.configDir)->start();
 
-    FIXAcceptor::getInstance()->connectMatchingEngine(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+    FIXAcceptor::getInstance().connectMatchingEngine(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // create 'done' file in ~/.shift/DatafeedEngine to signalize shell that service is done loading
     // (directory is also created if it does not exist)
-    const char* homeDir;
+    const char* homeDir = nullptr;
     if ((homeDir = getenv("HOME")) == nullptr) {
         homeDir = getpwuid(getuid())->pw_dir;
     }
@@ -177,15 +177,16 @@ int main(int ac, char* av[])
 
                     char cmd = cin.get(); // wait
                     cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
-                    if ('T' == cmd || 't' == cmd)
+                    if ('T' == cmd || 't' == cmd) {
                         return;
+                    }
                 }
             })
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
     // close program
-    FIXAcceptor::getInstance()->disconnectMatchingEngine();
+    FIXAcceptor::getInstance().disconnectMatchingEngine();
     TRTHAPI::getInstance()->stop();
 
     if (params.isVerbose) {

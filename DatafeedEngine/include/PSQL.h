@@ -22,22 +22,23 @@ struct TradingRecord;
  */
 class PSQL {
 public:
-    static std::string s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string* pLastRTime, int* pLastRTimeOrder);
+    static auto s_getUpdateReutersTimeOrder(const std::string& currReutersTime, std::string* pLastRTime, int* pLastRTimeOrder) -> std::string;
 
-    static std::string s_createTableName(const std::string& symbol, const std::string& yyyymmdd);
+    static auto s_createTableName(const std::string& symbol, const std::string& yyyymmdd) -> std::string;
 
-    static std::string s_reutersDateToYYYYMMDD(const std::string& reutersDate);
+    static auto s_reutersDateToYYYYMMDD(const std::string& reutersDate) -> std::string;
 
     /* @brief Locker for SQL transactions. It also provides a simpler syntax to lock. */
-    std::unique_lock<std::mutex> lockPSQL();
+    auto lockPSQL() -> std::unique_lock<std::mutex>;
 
-    const std::unordered_map<std::string, std::string>& getLoginInfo() const { return m_loginInfo; }
+    /* @brief Get login information. */
+    auto getLoginInfo() const -> const std::unordered_map<std::string, std::string>&;
 
     /* @brief Establish connection to database. */
-    bool connectDB();
+    auto connectDB() -> bool;
 
     /* @brief Test connection to database. */
-    bool isConnected() const;
+    auto isConnected() const -> bool;
 
     /* @brief Close connection to database. */
     void disconnectDB();
@@ -46,25 +47,25 @@ public:
     void init();
 
     /* @brief Common PSQL query method wrapper. */
-    bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
+    auto doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr) -> bool;
 
     /* @brief Check if the Trade and Quote data for specific ric and date exist, and if so feeds back the table name. */
-    shift::database::TABLE_STATUS checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName);
+    auto checkTableOfTradeAndQuoteRecordsExist(std::string ric, std::string reutersDate, std::string* pTableName) -> shift::database::TABLE_STATUS;
 
     /* @brief Create new table of Trade & Quote data for one kind of RIC. */
-    bool createTableOfTradeAndQuoteRecords(std::string tableName);
+    auto createTableOfTradeAndQuoteRecords(std::string tableName) -> bool;
 
     /* @brief Read .csv records data file and insert them into table created by createTableOfTradeAndQuoteRecords(). */
-    bool insertTradeAndQuoteRecords(std::string csvName, std::string tableName);
+    auto insertTradeAndQuoteRecords(std::string csvName, std::string tableName) -> bool;
 
     /* @brief Fetch chunk of Trade & Quote records from database and sends them to matching engine via FIXAcceptor. */
-    bool readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime);
+    auto readSendRawData(std::string targetID, std::string symbol, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime) -> bool;
 
     /* @brief Convertor from CSV data to database records. */
-    bool saveCSVIntoDB(std::string csvName, std::string symbol, std::string date);
+    auto saveCSVIntoDB(std::string csvName, std::string symbol, std::string date) -> bool;
 
 protected:
-    PSQL(std::unordered_map<std::string, std::string>&& info);
+    PSQL(std::unordered_map<std::string, std::string>&& loginInfo);
     virtual ~PSQL() = 0; // PSQL becomes an abstract class, hence forces users to access it via PSQLManager
 
 private:
@@ -81,8 +82,8 @@ public:
     PSQLManager(const PSQLManager&) = delete; // forbid copying
     void operator=(const PSQLManager&) = delete; // forbid assigning
 
-    static PSQLManager& createInstance(std::unordered_map<std::string, std::string>&& dbLoginInfo);
-    static PSQLManager& getInstance() { return *s_pInst; }
+    static auto createInstance(std::unordered_map<std::string, std::string>&& loginInfo) -> PSQLManager&;
+    static auto getInstance() -> PSQLManager&;
 
 private:
     PSQLManager(std::unordered_map<std::string, std::string>&& loginInfo);

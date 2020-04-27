@@ -41,17 +41,17 @@ FIXAcceptor::~FIXAcceptor() // override
     // all request processors of all targets (1 for each) are terminated and destroyed here
 }
 
-/* static */ FIXAcceptor* FIXAcceptor::getInstance()
+/* static */ auto FIXAcceptor::getInstance() -> FIXAcceptor&
 {
     static FIXAcceptor s_FIXAcceptor;
-    return &s_FIXAcceptor;
+    return s_FIXAcceptor;
 }
 
 /**
  * @brief Initiates a FIX session as an acceptor.
  * @param configFile The session settings file's full path.
  */
-bool FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
+auto FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile) -> bool
 {
     disconnectMatchingEngine();
 
@@ -69,7 +69,7 @@ bool FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verb
     settings.set(commonDict);
 
     if (commonDict.has("FileLogPath")) { // store all log events into flat files
-        m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
+        m_logFactoryPtr = std::make_unique<FIX::FileLogFactory>(commonDict.getString("FileLogPath"));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLLogDatabase")) { // store all log events into database
         auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
@@ -78,14 +78,14 @@ bool FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verb
         commonDict.setString("PostgreSQLLogHost", loginInfo["DBHost"]);
         commonDict.setString("PostgreSQLLogPort", loginInfo["DBPort"]);
         settings.set(commonDict);
-        m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(settings));
+        m_logFactoryPtr = std::make_unique<FIX::PostgreSQLLogFactory>(settings);
 #endif
     } else { // display all log events onto the standard output
-        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose)); // incoming, outgoing, event
+        m_logFactoryPtr = std::make_unique<FIX::ScreenLogFactory>(false, false, verbose); // incoming, outgoing, event
     }
 
     if (commonDict.has("FileStorePath")) { // store all outgoing messages into flat files
-        m_messageStoreFactoryPtr.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath")));
+        m_messageStoreFactoryPtr = std::make_unique<FIX::FileStoreFactory>(commonDict.getString("FileStorePath"));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLStoreDatabase")) { // store all outgoing messages into database
         auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
@@ -94,16 +94,16 @@ bool FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verb
         commonDict.setString("PostgreSQLStoreHost", loginInfo["DBHost"]);
         commonDict.setString("PostgreSQLStorePort", loginInfo["DBPort"]);
         settings.set(commonDict);
-        m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(settings));
+        m_messageStoreFactoryPtr = std::make_unique<FIX::PostgreSQLStoreFactory>(settings);
 #endif
     } else { // store all outgoing messages in memory
-        m_messageStoreFactoryPtr.reset(new FIX::MemoryStoreFactory());
+        m_messageStoreFactoryPtr = std::make_unique<FIX::MemoryStoreFactory>();
     }
     // } else { // do not store messages
     //     m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
     // }
 
-    m_acceptorPtr.reset(new FIX::SocketAcceptor(*getInstance(), *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
+    m_acceptorPtr = std::make_unique<FIX::SocketAcceptor>(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr);
 
     cout << '\n'
          << COLOR "Acceptor is starting..." NO_COLOR << '\n'
@@ -127,8 +127,9 @@ bool FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verb
  */
 void FIXAcceptor::disconnectMatchingEngine()
 {
-    if (!m_acceptorPtr)
+    if (!m_acceptorPtr) {
         return;
+    }
 
     cout << '\n'
          << COLOR "Acceptor is stopping..." NO_COLOR << '\n'
@@ -140,7 +141,7 @@ void FIXAcceptor::disconnectMatchingEngine()
     m_logFactoryPtr = nullptr;
 }
 
-/* static */ inline double FIXAcceptor::s_roundNearest(double value, double nearest)
+/* static */ inline auto FIXAcceptor::s_roundNearest(double value, double nearest) -> double
 {
     return std::round(value / nearest) * nearest;
 }
@@ -266,7 +267,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 
     std::unique_lock<std::mutex> lockRP(m_mtxReqsProcs);
     if (m_requestsProcessorByTarget.find(targetID) == m_requestsProcessorByTarget.end()) {
-        m_requestsProcessorByTarget[targetID].reset(new RequestsProcessorPerTarget(targetID)); // spawn an unique processing thread for the target
+        m_requestsProcessorByTarget[targetID] = std::make_unique<RequestsProcessorPerTarget>(targetID); // spawn an unique processing thread for the target
     }
     lockRP.unlock();
 
@@ -280,19 +281,20 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
 
     // #pragma GCC diagnostic ignored ....
 
-    FIX::SecurityResponseID* pRequestID;
-    FIX::SecurityListID* pStartTimeString;
-    FIX::SecurityListRefID* pEndTimeString;
-    FIX::SecurityListDesc* pDataChunkPeriod;
+    FIX::SecurityResponseID* pRequestID = nullptr;
+    FIX::SecurityListID* pStartTimeString = nullptr;
+    FIX::SecurityListRefID* pEndTimeString = nullptr;
+    FIX::SecurityListDesc* pDataChunkPeriod = nullptr;
 
-    FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup;
-    FIX::Symbol* pSymbol;
+    FIX50SP2::SecurityList::NoRelatedSym* pRelatedSymGroup = nullptr;
+    FIX::Symbol* pSymbol = nullptr;
 
     static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1)) {
+    }
+
     assert(s_cntAtom > 0);
 
     if (0 == prevCnt) { // sequential case; optimized:
@@ -344,7 +346,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::SecurityList& message, const FIX::Se
     m_requestsProcessorByTarget[targetID]->enqueueMarketDataRequest(std::move(*pRequestID), std::move(symbols), std::move(startTime), std::move(endTime), numSecondsPerDataChunk);
     lockRP.unlock();
 
-    if (prevCnt) { // > 1 threads
+    if (0 != prevCnt) { // > 1 threads
         delete pRequestID;
         delete pStartTimeString;
         delete pEndTimeString;

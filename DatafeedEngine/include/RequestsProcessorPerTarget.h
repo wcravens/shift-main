@@ -25,7 +25,7 @@ enum class REQUEST_TYPE : unsigned char {
  */
 class RequestsProcessorPerTarget {
 public:
-    RequestsProcessorPerTarget(const std::string& targetID);
+    RequestsProcessorPerTarget(std::string targetID);
     ~RequestsProcessorPerTarget();
 
     RequestsProcessorPerTarget(const RequestsProcessorPerTarget&) = delete;
@@ -42,8 +42,8 @@ private:
     std::mutex m_mtxRequest; ///> One per target; for guarding all queues.
     std::condition_variable m_cvQueues; ///> For events of all queues.
 
-    static void s_processNextDataRequest(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const currMarketRequestPtr, const std::string& targetID);
-    static std::future<bool> s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID);
+    static void s_processNextDataRequest(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const lastMarketRequestPtr, const std::string& targetID);
+    static auto s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID) -> std::future<bool>;
 
     const std::string c_targetID;
 

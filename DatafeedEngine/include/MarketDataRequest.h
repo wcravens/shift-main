@@ -13,12 +13,12 @@ public:
     MarketDataRequest() = default;
     MarketDataRequest(std::string&& requestID, std::vector<std::string>&& symbols, boost::posix_time::ptime&& startTime, boost::posix_time::ptime&& endTime, int numSecondsPerDataChunk);
 
-    const std::string& getRequestID() const;
-    const std::vector<std::string>& getSymbols() const;
-    const boost::posix_time::ptime& getStartTime() const;
-    const boost::posix_time::ptime& getEndTime() const;
-    int getNumSecondsPerDataChunk() const;
-    std::string getDate() const;
+    auto getRequestID() const -> const std::string&;
+    auto getSymbols() const -> const std::vector<std::string>&;
+    auto getStartTime() const -> const boost::posix_time::ptime&;
+    auto getEndTime() const -> const boost::posix_time::ptime&;
+    auto getNumSecondsPerDataChunk() const -> int;
+    auto getDate() const -> std::string;
     void updateStartTime(const boost::posix_time::ptime& newStartTime);
 
 private:

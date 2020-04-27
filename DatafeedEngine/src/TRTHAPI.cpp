@@ -30,7 +30,7 @@ using namespace std::chrono_literals;
 /**
  * @brief Formulate a CSV file name.
  */
-static inline std::string s_createCSVName(const std::string& symbol, const std::string& date /*yyyy-mm-dd*/)
+static inline auto s_createCSVName(const std::string& symbol, const std::string& date /*yyyy-mm-dd*/) -> std::string
 {
     return symbol + date + ".csv";
 }
@@ -38,7 +38,7 @@ static inline std::string s_createCSVName(const std::string& symbol, const std::
 /**
  * @brief Unzips a .GZ file (source) as a new file (destination).
  */
-static bool unzip(const char* src, const char* dst, int* errn)
+static auto unzip(const char* src, const char* dst, int* errn) -> bool
 {
     unsigned char buf[GZ_BUF_LEN];
     gzFile in = gzopen(src, "rb");
@@ -47,15 +47,16 @@ static bool unzip(const char* src, const char* dst, int* errn)
     while (true) {
         int len = gzread(in, buf, GZ_BUF_LEN);
         if (len <= 0) {
-            if (len < 0)
+            if (len < 0) {
                 gzerror(in, errn);
+            }
             break;
         }
 
         std::fwrite(buf, sizeof(Bytef), (size_t)len, out);
     }
 
-    return !(std::fclose(out) || gzclose(in) != Z_OK || *errn < 0);
+    return !(std::fclose(out) != 0 || gzclose(in) != Z_OK || *errn < 0);
 }
 
 template <typename _Sink>
@@ -71,9 +72,9 @@ static auto operator>>(utility::ifstream_t&& istrm, _Sink&& s) -> decltype(istrm
 /* static */ TRTHAPI* TRTHAPI::s_pInst = nullptr;
 /* static */ std::atomic<bool> TRTHAPI::s_bTRTHLoginJsonExists { false };
 
-TRTHAPI::TRTHAPI(const std::string& cryptoKey, const std::string& configDir)
-    : m_key(cryptoKey)
-    , m_cfgDir(configDir)
+TRTHAPI::TRTHAPI(std::string cryptoKey, std::string configDir)
+    : m_key { std::move(cryptoKey) }
+    , m_cfgDir { std::move(configDir) }
 {
 }
 
@@ -83,14 +84,14 @@ TRTHAPI::~TRTHAPI()
     s_pInst = nullptr;
 }
 
-TRTHAPI* TRTHAPI::createInstance(const std::string& cryptoKey, const std::string& configDir)
+/* static */ auto TRTHAPI::createInstance(const std::string& cryptoKey, const std::string& configDir) -> TRTHAPI*
 {
     static TRTHAPI s_inst(cryptoKey, configDir);
     s_pInst = &s_inst;
     return s_pInst;
 }
 
-TRTHAPI* TRTHAPI::getInstance()
+/* static */ auto TRTHAPI::getInstance() -> TRTHAPI*
 {
     return s_pInst;
 }
@@ -101,7 +102,7 @@ TRTHAPI* TRTHAPI::getInstance()
 void TRTHAPI::start()
 {
     if (!m_reqProcessorPtr) {
-        m_reqProcessorPtr.reset(new std::thread(&TRTHAPI::processRequests, this));
+        m_reqProcessorPtr = std::make_unique<std::thread>(&TRTHAPI::processRequests, this);
     }
 }
 
@@ -110,8 +111,9 @@ void TRTHAPI::start()
  */
 void TRTHAPI::stop()
 {
-    if (!m_reqProcessorPtr)
+    if (!m_reqProcessorPtr) {
         return;
+    }
 
     cout << '\n'
          << COLOR "TRTH is stopping..." NO_COLOR << '\n'
@@ -143,12 +145,13 @@ void TRTHAPI::addUnavailableRequest(const TRTHRequest& req)
  *        Such behavior is caused by the concurrency contention characteristics.
  * @return Number of removed RICs.
  */
-size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs)
+auto TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs) -> size_t
 {
     std::lock_guard<std::mutex> guard(m_mtxReqsUnavail);
 
-    if (m_requestsUnavailable.empty() || originalRICs.empty())
+    if (m_requestsUnavailable.empty() || originalRICs.empty()) {
         return 0;
+    }
 
     std::sort(originalRICs.begin(), originalRICs.end());
     std::stable_sort(m_requestsUnavailable.begin(), m_requestsUnavailable.end(), [](const TRTHRequest& lhs, const TRTHRequest& rhs) { return lhs.symbol < rhs.symbol; });
@@ -159,8 +162,9 @@ size_t TRTHAPI::removeUnavailableRICs(std::vector<std::string>& originalRICs)
     auto pred = [this, &lastSearchPosInUnavail](const std::string& symbol) {
         lastSearchPosInUnavail = std::lower_bound(lastSearchPosInUnavail, m_requestsUnavailable.cend(), symbol, [](const TRTHRequest& elem, const std::string& symbol) { return elem.symbol < symbol; });
 
-        if (m_requestsUnavailable.cend() == lastSearchPosInUnavail)
+        if (m_requestsUnavailable.cend() == lastSearchPosInUnavail) {
             return false;
+        }
 
         return symbol == lastSearchPosInUnavail->symbol;
     };
@@ -177,13 +181,14 @@ void TRTHAPI::processRequests()
 {
     auto futQuit = m_reqProcQuitFlag.get_future();
     auto& db = PSQLManager::getInstance();
-    std::string tableName = "";
+    std::string tableName;
     int flag = -1;
 
     while (true) {
         std::unique_lock<std::mutex> lock(m_mtxReqs);
-        if (shift::concurrency::quitOrContinueConsumerThread(futQuit, m_cvReqs, lock, [this] { return !m_requests.empty(); }))
+        if (shift::concurrency::quitOrContinueConsumerThread(futQuit, m_cvReqs, lock, [this] { return !m_requests.empty(); })) {
             return; // stopping TRTH was requested, shall terminate current thread
+        }
 
         TRTHRequest req;
         req = std::move(m_requests.front());
@@ -204,8 +209,9 @@ void TRTHAPI::processRequests()
 
         switch (dbFlag) {
         case PTS::NOT_EXIST:
-            if (s_bTRTHLoginJsonExists)
+            if (s_bTRTHLoginJsonExists) {
                 break; // go to download it from TRTH
+            }
 
             // issue #32: DO NOT download if NO trthLogin.json exists on this computer
             req.prom->set_value(true);
@@ -265,7 +271,7 @@ void TRTHAPI::processRequests()
 /**
  * @brief The main method to search, check, request and download data from TRTH. Gives processing status as feedback.
  */
-int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& requestDate) // date format: YYYY-MM-DD
+auto TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& requestDate) -> int // date format: YYYY-MM-DD
 {
     // prepare symbol format for TRTH request
     std::string ric = symbol;
@@ -340,8 +346,9 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
         cout << endl;
         // cout << std::setw(20) << std::right << "Status:  " << extrReqResp.status_code() << endl;
         // cout << std::setw(20) << std::right << "Reason:  " << extrReqResp.reason_phrase() << endl;
-        if (extrReqResp.status_code() >= 400)
+        if (extrReqResp.status_code() >= 400) {
             throw web::http::http_exception(COLOR_ERROR "ERROR: There was connection problem for ExtractRaw!" NO_COLOR);
+        }
 
         // utility::ofstream_t outf("./extracted.html");
         auto jExtrReqRes = extrReqResp.extract_json().get();
@@ -353,8 +360,9 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
         cout << "CODE=" << e.error_code() << endl;
     }
 
-    if (extrJobID.empty())
+    if (extrJobID.empty()) {
         throw web::http::http_exception(COLOR_ERROR "ERROR: Cannot get RawExtractionResults:JobId!" NO_COLOR);
+    }
 
     cout << "Downloading" << flush;
 
@@ -368,8 +376,9 @@ int TRTHAPI::downloadAsCSV(const std::string& symbol, const std::string& request
     req.headers().add(web::http::header_names::connection, U("keep-alive"));
 
     auto gzipStrm = client.request(req).get().body();
-    if (!gzipStrm.is_valid())
+    if (!gzipStrm.is_valid()) {
         throw web::http::http_exception(COLOR_ERROR "ERROR: Cannot retrieve(GET) raw data file!" NO_COLOR);
+    }
 
     auto csvName = ::s_createCSVName(symbol, requestDate);
     auto gzipName = csvName + ".gz";

@@ -17,8 +17,8 @@
  * @brief Constructs a Requests Processor for one unique target.
  * @param targetID: The ID that uniquely identifies the target sending the requests.
  */
-RequestsProcessorPerTarget::RequestsProcessorPerTarget(const std::string& targetID)
-    : c_targetID(targetID)
+RequestsProcessorPerTarget::RequestsProcessorPerTarget(std::string targetID)
+    : c_targetID { std::move(targetID) }
 {
     m_proc = std::thread(&RequestsProcessorPerTarget::processRequests, this); // run only after all other members were already initialized
 }
@@ -69,8 +69,9 @@ void RequestsProcessorPerTarget::processRequests()
 
     while (true) {
         std::unique_lock<std::mutex> oneReqLock(m_mtxRequest);
-        if (shift::concurrency::quitOrContinueConsumerThread(futQuit, m_cvQueues, oneReqLock, [this] { return !m_queueReqTypes.empty(); }))
+        if (shift::concurrency::quitOrContinueConsumerThread(futQuit, m_cvQueues, oneReqLock, [this] { return !m_queueReqTypes.empty(); })) {
             return;
+        }
 
         auto rt = m_queueReqTypes.front();
         m_queueReqTypes.pop();
@@ -78,8 +79,9 @@ void RequestsProcessorPerTarget::processRequests()
         // dispatches and processes:
         switch (rt) {
         case REQUEST_TYPE::MARKET_DATA: {
-            if (futLastMarketReq.valid())
+            if (futLastMarketReq.valid()) {
                 futLastMarketReq.get(); // await last asynchronous downloads finish, if any
+            }
 
             lastProcessedMarketReq = std::move(m_queueMarketReqs.front());
             m_queueMarketReqs.pop();
@@ -121,7 +123,7 @@ void RequestsProcessorPerTarget::processRequests()
  * @param targetID: ID of this target.
  * @return future<bool> for waiting the TRTH downloads finish; bool value indicates whether it was a smooth, successful processing.
  */
-/* static */ std::future<bool> RequestsProcessorPerTarget::s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID)
+/* static */ auto RequestsProcessorPerTarget::s_processMarketDataRequestAsynch(const MarketDataRequest& marketReq, const std::string& targetID) -> std::future<bool>
 {
     auto& db = PSQLManager::getInstance();
     if (!db.isConnected()) {
@@ -196,8 +198,9 @@ void RequestsProcessorPerTarget::processRequests()
             const std::string targetID, const std::string requestID, std::vector<std::string> symbols) {
             bool isPerfect = true;
 
-            for (auto& prom : proms)
+            for (auto& prom : proms) {
                 isPerfect &= prom.get_future().get();
+            }
 
             TRTHAPI::getInstance()->removeUnavailableRICs(symbols);
             s_announceSecurityListRequestComplete(targetID, requestID, symbols.size());
@@ -236,7 +239,7 @@ void RequestsProcessorPerTarget::processRequests()
 
     auto symbols = lastMarketRequestPtr->getSymbols();
     auto remCnt = TRTHAPI::getInstance()->removeUnavailableRICs(symbols);
-    if (warnUnavailSkipped && remCnt) {
+    if (warnUnavailSkipped && (remCnt > 0)) {
         cout << COLOR_WARNING "NOTE: " << remCnt << " unavailable symbol(s) will not be sent.\n" NO_COLOR << endl;
     }
 
@@ -259,8 +262,9 @@ void RequestsProcessorPerTarget::processRequests()
 
     size_t cnt = 0;
     for (const auto& symbol : symbols) {
-        if (db.readSendRawData(targetID, symbol, sendFrom, sendTo))
+        if (db.readSendRawData(targetID, symbol, sendFrom, sendTo)) {
             cout << '(' << ++cnt << '/' << symbols.size() << ")\n";
+        }
     }
 
     FIXAcceptor::sendNotice(targetID, lastMarketRequestPtr->getRequestID(), "SENDFINISH");

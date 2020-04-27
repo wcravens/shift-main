@@ -43,12 +43,12 @@ class FIXAcceptor : public FIX::Application,
 public:
     static std::string s_senderID;
 
-    static FIXAcceptor* getInstance();
+    static auto getInstance() -> FIXAcceptor&;
 
-    bool connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
+    auto connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
     void disconnectMatchingEngine();
 
-    static double s_roundNearest(double value, double nearest);
+    static auto s_roundNearest(double value, double nearest) -> double;
 
     static void sendNotice(const std::string& targetID, const std::string& requestID, const std::string& text);
     static void sendRawData(const std::string& targetID, const std::vector<RawData>& rawData);
@@ -64,9 +64,9 @@ private:
     void onCreate(const FIX::SessionID&) override;
     void onLogon(const FIX::SessionID&) override;
     void onLogout(const FIX::SessionID&) override;
-    void toAdmin(FIX::Message&, const FIX::SessionID&) override { }
-    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
-    void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
+    void toAdmin(FIX::Message&, const FIX::SessionID&) override {}
+    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
+    void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::MarketDataRequest&, const FIX::SessionID&) override;
