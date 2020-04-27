@@ -43,6 +43,8 @@ class FIXAcceptor : public FIX::Application,
 public:
     static std::string s_senderID;
 
+    ~FIXAcceptor() override;
+
     static auto getInstance() -> FIXAcceptor&;
 
     auto connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
@@ -54,11 +56,9 @@ public:
     static void sendRawData(const std::string& targetID, const std::vector<RawData>& rawData);
 
 private:
-    FIXAcceptor();
-    ~FIXAcceptor() override;
-
-    FIXAcceptor(const FIXAcceptor&) = delete;
-    void operator=(const FIXAcceptor&) = delete;
+    FIXAcceptor(); // singleton pattern
+    FIXAcceptor(const FIXAcceptor&) = delete; // forbid copying
+    auto operator=(const FIXAcceptor&) -> FIXAcceptor& = delete; // forbid assigning
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

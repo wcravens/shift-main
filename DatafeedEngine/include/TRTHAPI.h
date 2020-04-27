@@ -20,25 +20,23 @@ class TRTHAPI {
 public:
     static std::atomic<bool> s_bTRTHLoginJsonExists; // issue #32
 
-    static auto createInstance(const std::string& cryptoKey, const std::string& configDir) -> TRTHAPI*;
-    static auto getInstance() -> TRTHAPI*;
-
-    // prevent copy for singleton
-    TRTHAPI(const TRTHAPI&) = delete;
-    TRTHAPI& operator=(const TRTHAPI&) = delete;
-
     ~TRTHAPI();
+
+    static auto createInstance(const std::string& cryptoKey, const std::string& configDir) -> TRTHAPI&;
+    static auto getInstance() -> TRTHAPI&;
 
     void start();
     void stop();
-    // void join();
+
     void enqueueRequest(TRTHRequest req); // date format: YYYY-MM-DD
 
     void addUnavailableRequest(const TRTHRequest& req);
     auto removeUnavailableRICs(std::vector<std::string>& originalRICs) -> size_t;
 
 private:
-    TRTHAPI(std::string cryptoKey, std::string configDir);
+    TRTHAPI(std::string cryptoKey, std::string configDir); // singleton pattern
+    TRTHAPI(const TRTHAPI&) = delete; // forbid copying
+    auto operator=(const TRTHAPI&) -> TRTHAPI& = delete; // forbid assigning
 
     void processRequests();
 

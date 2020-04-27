@@ -41,6 +41,8 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
+    ~FIXInitiator() override;
+
     static auto getInstance() -> FIXInitiator&;
 
     auto connectDatafeedEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
@@ -51,19 +53,17 @@ public:
     static void s_sendNextDataRequest();
 
 private:
-    FIXInitiator() = default;
-    ~FIXInitiator() override;
-
-    FIXInitiator(const FIXInitiator&) = delete;
-    void operator=(const FIXInitiator&) = delete;
+    FIXInitiator() = default; // singleton pattern
+    FIXInitiator(const FIXInitiator&) = delete; // forbid copying
+    auto operator=(const FIXInitiator&) -> FIXInitiator& = delete; // forbid assigning
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;
     void onLogon(const FIX::SessionID&) override;
     void onLogout(const FIX::SessionID&) override;
-    void toAdmin(FIX::Message&, const FIX::SessionID&) override { }
-    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
-    void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
+    void toAdmin(FIX::Message&, const FIX::SessionID&) override {}
+    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
+    void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void onMessage(const FIX50SP2::News&, const FIX::SessionID&) override;
     void onMessage(const FIX50SP2::Quote&, const FIX::SessionID&) override;

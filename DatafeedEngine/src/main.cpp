@@ -135,7 +135,7 @@ auto main(int argc, char** argv) -> int
     cout << '\n'
          << COLOR "TRTH is starting..." NO_COLOR << '\n'
          << endl;
-    TRTHAPI::createInstance(params.cryptoKey, params.configDir)->start();
+    TRTHAPI::createInstance(params.cryptoKey, params.configDir).start();
 
     FIXAcceptor::getInstance().connectMatchingEngine(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
@@ -187,7 +187,7 @@ auto main(int argc, char** argv) -> int
 
     // close program
     FIXAcceptor::getInstance().disconnectMatchingEngine();
-    TRTHAPI::getInstance()->stop();
+    TRTHAPI::getInstance().stop();
 
     if (params.isVerbose) {
         cout.clear();

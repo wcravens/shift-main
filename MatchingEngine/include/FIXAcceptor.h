@@ -38,6 +38,8 @@ class FIXAcceptor
 public:
     static std::string s_senderID;
 
+    ~FIXAcceptor() override;
+
     static auto getInstance() -> FIXAcceptor&;
 
     auto connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
@@ -49,11 +51,9 @@ public:
     void sendExecutionReports(const std::vector<ExecutionReport>& executionReports);
 
 private:
-    FIXAcceptor() = default;
-    ~FIXAcceptor() override;
-
-    FIXAcceptor(const FIXAcceptor&) = delete;
-    void operator=(const FIXAcceptor&) = delete;
+    FIXAcceptor() = default; // singleton pattern
+    FIXAcceptor(const FIXAcceptor&) = delete; // forbid copying
+    auto operator=(const FIXAcceptor&) -> FIXAcceptor& = delete; // forbid assigning
 
     static void s_sendSecurityList(const std::string& targetID);
     static void s_sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation);
@@ -62,9 +62,9 @@ private:
     void onCreate(const FIX::SessionID&) override;
     void onLogon(const FIX::SessionID&) override;
     void onLogout(const FIX::SessionID&) override;
-    void toAdmin(FIX::Message&, const FIX::SessionID&) override { }
-    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
-    void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
+    void toAdmin(FIX::Message&, const FIX::SessionID&) override {}
+    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
+    void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
     void fromApp(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void onMessage(const FIX50SP2::NewOrderSingle&, const FIX::SessionID&) override;
 

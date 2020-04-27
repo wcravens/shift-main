@@ -156,7 +156,7 @@ void RequestsProcessorPerTarget::processRequests()
             if (!TRTHAPI::s_bTRTHLoginJsonExists) {
                 // issue #32: DO NOT download if NO trthLogin.json exists on this computer
                 proms[idx].set_value(true);
-                TRTHAPI::getInstance()->addUnavailableRequest({ symbols[idx], marketReq.getDate(), &proms[idx] });
+                TRTHAPI::getInstance().addUnavailableRequest({ symbols[idx], marketReq.getDate(), &proms[idx] });
                 break; // skip this symbol
             }
         case PTS::DB_ERROR:
@@ -182,7 +182,7 @@ void RequestsProcessorPerTarget::processRequests()
     for (auto idx : requestedSymbolsIndexes) {
         // here relies on the stability of the memory location that proms[idx] locates at!
         TRTHRequest trthReq { symbols[idx], marketReq.getDate(), &proms[idx] };
-        TRTHAPI::getInstance()->enqueueRequest(std::move(trthReq));
+        TRTHAPI::getInstance().enqueueRequest(std::move(trthReq));
     }
 
     /** 
@@ -202,7 +202,7 @@ void RequestsProcessorPerTarget::processRequests()
                 isPerfect &= prom.get_future().get();
             }
 
-            TRTHAPI::getInstance()->removeUnavailableRICs(symbols);
+            TRTHAPI::getInstance().removeUnavailableRICs(symbols);
             s_announceSecurityListRequestComplete(targetID, requestID, symbols.size());
 
             return isPerfect;
@@ -238,7 +238,7 @@ void RequestsProcessorPerTarget::processRequests()
     }
 
     auto symbols = lastMarketRequestPtr->getSymbols();
-    auto remCnt = TRTHAPI::getInstance()->removeUnavailableRICs(symbols);
+    auto remCnt = TRTHAPI::getInstance().removeUnavailableRICs(symbols);
     if (warnUnavailSkipped && (remCnt > 0)) {
         cout << COLOR_WARNING "NOTE: " << remCnt << " unavailable symbol(s) will not be sent.\n" NO_COLOR << endl;
     }

@@ -84,16 +84,16 @@ TRTHAPI::~TRTHAPI()
     s_pInst = nullptr;
 }
 
-/* static */ auto TRTHAPI::createInstance(const std::string& cryptoKey, const std::string& configDir) -> TRTHAPI*
+/* static */ auto TRTHAPI::createInstance(const std::string& cryptoKey, const std::string& configDir) -> TRTHAPI&
 {
     static TRTHAPI s_inst(cryptoKey, configDir);
     s_pInst = &s_inst;
-    return s_pInst;
+    return s_inst;
 }
 
-/* static */ auto TRTHAPI::getInstance() -> TRTHAPI*
+/* static */ auto TRTHAPI::getInstance() -> TRTHAPI&
 {
-    return s_pInst;
+    return *s_pInst;
 }
 
 /**

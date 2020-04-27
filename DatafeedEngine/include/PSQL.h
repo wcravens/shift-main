@@ -79,14 +79,13 @@ private:
  */
 class PSQLManager final : public PSQL {
 public:
-    PSQLManager(const PSQLManager&) = delete; // forbid copying
-    void operator=(const PSQLManager&) = delete; // forbid assigning
-
     static auto createInstance(std::unordered_map<std::string, std::string>&& loginInfo) -> PSQLManager&;
     static auto getInstance() -> PSQLManager&;
 
 private:
-    PSQLManager(std::unordered_map<std::string, std::string>&& loginInfo);
+    PSQLManager(std::unordered_map<std::string, std::string>&& loginInfo); // singleton pattern
+    PSQLManager(const PSQLManager&) = delete; // forbid copying
+    auto operator=(const PSQLManager&) -> PSQLManager& = delete; // forbid assigning
 
     static PSQLManager* s_pInst;
 };
