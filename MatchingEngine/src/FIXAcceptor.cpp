@@ -68,7 +68,7 @@ auto FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
         commonDict.setString("PostgreSQLLogHost", loginInfo["DBHost"]);
         commonDict.setString("PostgreSQLLogPort", loginInfo["DBPort"]);
         settings.set(commonDict);
-        m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(settings));
+        m_logFactoryPtr = std::make_unique<FIX::PostgreSQLLogFactory>(settings);
 #endif
     } else { // display all log events onto the standard output
         m_logFactoryPtr = std::make_unique<FIX::ScreenLogFactory>(false, false, verbose); // incoming, outgoing, event
@@ -84,7 +84,7 @@ auto FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
         commonDict.setString("PostgreSQLStoreHost", loginInfo["DBHost"]);
         commonDict.setString("PostgreSQLStorePort", loginInfo["DBPort"]);
         settings.set(commonDict);
-        m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(settings));
+        m_messageStoreFactoryPtr = std::make_unique<FIX::PostgreSQLStoreFactory>(settings);
 #endif
     } else { // store all outgoing messages in memory
         m_messageStoreFactoryPtr = std::make_unique<FIX::MemoryStoreFactory>();
