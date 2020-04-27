@@ -3,8 +3,6 @@
 namespace shift {
 namespace strategies {
 
-    // public:
-
     //--------------------------------------------------------------------------
 
     StrategyParameter::StrategyParameter()
@@ -241,10 +239,6 @@ namespace strategies {
             throw new StrategyParameter::Invalid {};
         }
     }
-
-    //--------------------------------------------------------------------------
-
-    // private:
 
     //--------------------------------------------------------------------------
 

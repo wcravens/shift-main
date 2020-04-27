@@ -28,13 +28,13 @@ protected:
     LimitOrder::TIME_IN_FORCE m_timeInForce;
 
 protected:
-    LimitOrder* cloneImpl() const override; // clone pattern
+    virtual auto cloneImpl() const -> LimitOrder* override; // clone pattern
 
 public:
     LimitOrder(const LimitOrder&) = default; // copy constructor
-    LimitOrder& operator=(const LimitOrder&) & = default; // copy assignment
+    auto operator=(const LimitOrder&) & -> LimitOrder& = default; // lvalue-only copy assignment
     LimitOrder(LimitOrder&&) = default; // move constructor
-    LimitOrder& operator=(LimitOrder&&) & = default; // move assignment
+    auto operator=(LimitOrder&&) & -> LimitOrder& = default; // lvalue-only move assignment
     virtual ~LimitOrder() = default; // virtual destructor
 
     // Limit Order
@@ -57,9 +57,9 @@ public:
         std::string destination, std::unique_ptr<Instrument> instrument, Order::SIDE side, double orderQuantity,
         boost::posix_time::ptime time, double price, double displayQuantity, LimitOrder::TIME_IN_FORCE timeInForce);
 
-    Order::TYPE getType() const override;
+    virtual auto getType() const -> Order::TYPE override;
 
-    double getPrice() const;
-    double getDisplayQuantity() const;
-    LimitOrder::TIME_IN_FORCE getTimeInForce() const;
+    auto getPrice() const -> double;
+    auto getDisplayQuantity() const -> double;
+    auto getTimeInForce() const -> LimitOrder::TIME_IN_FORCE;
 };

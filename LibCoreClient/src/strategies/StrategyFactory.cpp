@@ -5,8 +5,6 @@
 namespace shift {
 namespace strategies {
 
-    // public:
-
     /* static */ StrategyFactory& StrategyFactory::Instance()
     {
         // so called Meyers Singleton implementation:

@@ -1,51 +1,51 @@
 #include "OrderBookEntry.h"
 
-OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& realTime)
-    : m_type(type)
-    , m_symbol(symbol)
-    , m_price(price)
-    , m_size(size)
-    , m_destination(destination)
-    , m_realTime(realTime)
+OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp realTime)
+    : m_type { type }
+    , m_symbol { std::move(symbol) }
+    , m_price { price }
+    , m_size { size }
+    , m_destination { std::move(destination) }
+    , m_realTime { std::move(realTime) }
 {
 }
 
-OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& realTime)
-    : m_type(type)
-    , m_symbol(symbol)
-    , m_price(price)
-    , m_size(size)
-    , m_destination("SHIFT")
-    , m_realTime(realTime)
+OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, std::string symbol, double price, int size, FIX::UtcTimeStamp realTime)
+    : m_type { type }
+    , m_symbol { std::move(symbol) }
+    , m_price { price }
+    , m_size { size }
+    , m_destination { "SHIFT" }
+    , m_realTime { std::move(realTime) }
 {
 }
 
-OrderBookEntry::Type OrderBookEntry::getType() const
+auto OrderBookEntry::getType() const -> OrderBookEntry::Type
 {
     return m_type;
 }
 
-const std::string& OrderBookEntry::getSymbol() const
+auto OrderBookEntry::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-double OrderBookEntry::getPrice() const
+auto OrderBookEntry::getPrice() const -> double
 {
     return m_price;
 }
 
-int OrderBookEntry::getSize() const
+auto OrderBookEntry::getSize() const -> int
 {
     return m_size;
 }
 
-const std::string& OrderBookEntry::getDestination() const
+auto OrderBookEntry::getDestination() const -> const std::string&
 {
     return m_destination;
 }
 
-const FIX::UtcTimeStamp& OrderBookEntry::getUTCTime() const
+auto OrderBookEntry::getUTCTime() const -> const FIX::UtcTimeStamp&
 {
     return m_realTime;
 }

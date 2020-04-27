@@ -2,7 +2,7 @@
 
 /// Protected /////////////////////////////////////////////////////////////////
 
-CommonStock* CommonStock::cloneImpl() const // override
+/* virtual */ auto CommonStock::cloneImpl() const -> CommonStock* // override
 {
     return new CommonStock(*this);
 }
@@ -14,7 +14,7 @@ CommonStock::CommonStock(std::string symbol)
 {
 }
 
-Instrument::TYPE CommonStock::getType() const // override
+/* virtual */ auto CommonStock::getType() const -> Instrument::TYPE // override
 {
     return Instrument::TYPE::COMMON_STOCK;
 }

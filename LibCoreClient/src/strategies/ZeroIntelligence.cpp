@@ -11,8 +11,6 @@
 namespace shift {
 namespace strategies {
 
-    // public:
-
     static StrategyMaker<ZeroIntelligence> maker("ZeroIntelligence");
 
     ZeroIntelligence::ZeroIntelligence(shift::CoreClient& client, bool verbose, int strategy_duration, int trading_rate, double initial_bid, double initial_ask, double minimum_dolar_change)

@@ -14,15 +14,15 @@ protected:
 
 public:
     PriceLevel(const PriceLevel&) = default; // copy constructor
-    PriceLevel& operator=(const PriceLevel&) & = default; // copy assignment
+    auto operator=(const PriceLevel&) & -> PriceLevel& = default; // lvalue-only copy assignment
     PriceLevel(PriceLevel&&) = default; // move constructor
-    PriceLevel& operator=(PriceLevel&&) & = default; // move assignment
+    auto operator=(PriceLevel&&) & -> PriceLevel& = default; // lvalue-only move assignment
     virtual ~PriceLevel() = default; // virtual destructor
 
     PriceLevel(double price);
 
-    double getPrice() const;
-    double& Quantity();
-    double& DisplayQuantity();
-    std::list<std::unique_ptr<Order>>& Orders();
+    auto getPrice() const -> double;
+    auto Quantity() -> double&;
+    auto DisplayQuantity() -> double&;
+    auto Orders() -> std::list<std::unique_ptr<Order>>&;
 };

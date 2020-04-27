@@ -1,30 +1,32 @@
 #include "Order.h"
 
-Order::Order(const std::string& symbol, double price, int size, Order::Type type, const std::string& destination, const FIX::UtcTimeStamp& simulationTime)
-    : m_symbol(symbol)
-    , m_traderID("TRTH")
-    , m_orderID("TRTH")
-    , m_price(price)
-    , m_size(size)
-    , m_type(type)
-    , m_destination(destination)
-    , m_simulationTime(simulationTime)
+Order::Order(std::string symbol, double price, int size, Order::Type type, std::string destination, FIX::UtcTimeStamp simulationTime)
+    : m_symbol { std::move(symbol) }
+    , m_traderID { "TRTH" }
+    , m_orderID { "TRTH" }
+    , m_milli { 0 }
+    , m_price { price }
+    , m_size { size }
+    , m_type { type }
+    , m_destination { std::move(destination) }
+    , m_simulationTime { std::move(simulationTime) }
 {
 }
 
-Order::Order(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, Order::Type type, const FIX::UtcTimeStamp& simulationTime)
-    : m_symbol(symbol)
-    , m_traderID(traderID)
-    , m_orderID(orderID)
+Order::Order(std::string symbol, std::string traderID, std::string orderID, double price, int size, Order::Type type, FIX::UtcTimeStamp simulationTime)
+    : m_symbol { std::move(symbol) }
+    , m_traderID { std::move(traderID) }
+    , m_orderID { std::move(orderID) }
+    , m_milli { 0 }
     , m_price(price)
     , m_size(size)
     , m_type(type)
     , m_destination("SHIFT")
-    , m_simulationTime(simulationTime)
+    , m_simulationTime { std::move(simulationTime) }
 {
 }
 
-bool Order::operator==(const Order& other)
+auto Order::operator==(const Order& other) -> bool
 {
     return m_symbol == other.m_symbol
         && m_traderID == other.m_traderID
@@ -35,47 +37,47 @@ bool Order::operator==(const Order& other)
         && m_destination == other.m_destination;
 }
 
-const std::string& Order::getSymbol() const
+auto Order::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-const std::string& Order::getTraderID() const
+auto Order::getTraderID() const -> const std::string&
 {
     return m_traderID;
 }
 
-const std::string& Order::getOrderID() const
+auto Order::getOrderID() const -> const std::string&
 {
     return m_orderID;
 }
 
-long Order::getMilli() const
+auto Order::getMilli() const -> long
 {
     return m_milli;
 }
 
-double Order::getPrice() const
+auto Order::getPrice() const -> double
 {
     return m_price;
 }
 
-int Order::getSize() const
+auto Order::getSize() const -> int
 {
     return m_size;
 }
 
-Order::Type Order::getType() const
+auto Order::getType() const -> Order::Type
 {
     return m_type;
 }
 
-const std::string& Order::getDestination() const
+auto Order::getDestination() const -> const std::string&
 {
     return m_destination;
 }
 
-const FIX::UtcTimeStamp& Order::getTime() const
+auto Order::getTime() const -> const FIX::UtcTimeStamp&
 {
     return m_simulationTime;
 }

@@ -2,12 +2,12 @@
 
 namespace markets {
 
-double PriceLevel::getPrice() const
+auto PriceLevel::getPrice() const -> double
 {
     return m_price;
 }
 
-int PriceLevel::getSize() const
+auto PriceLevel::getSize() const -> int
 {
     return m_size;
 }
@@ -22,7 +22,7 @@ void PriceLevel::setSize(int size)
     m_size = size;
 }
 
-bool PriceLevel::empty()
+auto PriceLevel::empty() -> bool
 {
     return m_orders.empty();
 }
@@ -37,17 +37,17 @@ void PriceLevel::push_front(const Order& order)
     m_orders.push_front(order);
 }
 
-std::list<Order>::iterator PriceLevel::begin()
+auto PriceLevel::begin() -> std::list<Order>::iterator
 {
     return m_orders.begin();
 }
 
-std::list<Order>::iterator PriceLevel::end()
+auto PriceLevel::end() -> std::list<Order>::iterator
 {
     return m_orders.end();
 }
 
-std::list<Order>::iterator PriceLevel::erase(std::list<Order>::iterator iter)
+auto PriceLevel::erase(std::list<Order>::iterator iter) -> std::list<Order>::iterator
 {
     return m_orders.erase(iter);
 }

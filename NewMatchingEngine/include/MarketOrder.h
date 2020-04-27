@@ -10,18 +10,18 @@
 class MarketOrder : public Order {
 
 protected:
-    MarketOrder* cloneImpl() const override; // clone pattern
+    virtual auto cloneImpl() const -> MarketOrder* override; // clone pattern
 
 public:
     MarketOrder(const MarketOrder&) = default; // copy constructor
-    MarketOrder& operator=(const MarketOrder&) & = default; // copy assignment
+    auto operator=(const MarketOrder&) & -> MarketOrder& = default; // lvalue-only copy assignment
     MarketOrder(MarketOrder&&) = default; // move constructor
-    MarketOrder& operator=(MarketOrder&&) & = default; // move assignment
+    auto operator=(MarketOrder&&) & -> MarketOrder& = default; // lvalue-only move assignment
     virtual ~MarketOrder() = default; // virtual destructor
 
     MarketOrder(bool isGlobal, std::string orderID, std::string brokerID, std::string traderID,
         std::string destination, std::unique_ptr<Instrument> instrument, Order::SIDE side, double orderQuantity,
         boost::posix_time::ptime time);
 
-    Order::TYPE getType() const override;
+    virtual auto getType() const -> Order::TYPE override;
 };

@@ -41,15 +41,14 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
-    static FIXInitiator* getInstance();
+    static auto getInstance() -> FIXInitiator&;
 
-    bool connectDatafeedEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
+    auto connectDatafeedEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
     void disconnectDatafeedEngine();
 
-    bool sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols, int numSecondsPerDataChunk);
-    void sendNextDataRequest();
+    auto sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols, int numSecondsPerDataChunk) -> bool;
 
-    void storeOrder(const Order& order);
+    static void s_sendNextDataRequest();
 
 private:
     FIXInitiator() = default;

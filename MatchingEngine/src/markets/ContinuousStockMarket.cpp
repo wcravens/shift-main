@@ -11,13 +11,8 @@ using namespace std::chrono_literals;
 
 namespace markets {
 
-ContinuousStockMarket::ContinuousStockMarket(const std::string& symbol)
-    : StockMarket(symbol)
-{
-}
-
-ContinuousStockMarket::ContinuousStockMarket(const ContinuousStockMarket& other)
-    : StockMarket(other)
+ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
+    : StockMarket { std::move(symbol) }
 {
 }
 
@@ -34,121 +29,122 @@ ContinuousStockMarket::ContinuousStockMarket(const ContinuousStockMarket& other)
         if (!getNextOrder(nextOrder)) {
             std::this_thread::sleep_for(10ms);
             continue;
-
-        } else {
-            // spinlock implementation:
-            // it is better than a standard lock in this scenario, since,
-            // most of the time, only this thread needs access to order book data
-            while (m_spinlock.test_and_set())
-                continue;
-
-            switch (nextOrder.getType()) {
-
-            case Order::Type::LIMIT_BUY: {
-                doLocalLimitBuy(nextOrder);
-                if (nextOrder.getSize() != 0) {
-                    insertLocalBid(nextOrder);
-                    cout << "Insert Bid" << endl;
-                }
-                break;
-            }
-
-            case Order::Type::LIMIT_SELL: {
-                doLocalLimitSell(nextOrder);
-                if (nextOrder.getSize() != 0) {
-                    insertLocalAsk(nextOrder);
-                    cout << "Insert Ask" << endl;
-                }
-                break;
-            }
-
-            case Order::Type::MARKET_BUY: {
-                doLocalMarketBuy(nextOrder);
-                if (nextOrder.getSize() != 0) {
-                    insertLocalBid(nextOrder);
-                    cout << "Insert Bid" << endl;
-                }
-                break;
-            }
-
-            case Order::Type::MARKET_SELL: {
-                doLocalMarketSell(nextOrder);
-                if (nextOrder.getSize() != 0) {
-                    insertLocalAsk(nextOrder);
-                    cout << "Insert Ask" << endl;
-                }
-                break;
-            }
-
-            case Order::Type::CANCEL_BID: {
-                doLocalCancelBid(nextOrder);
-                std::cout << "Cancel Bid Done" << endl;
-                break;
-            }
-
-            case Order::Type::CANCEL_ASK: {
-                doLocalCancelAsk(nextOrder);
-                std::cout << "Cancel Ask Done" << endl;
-                break;
-            }
-
-            case Order::Type::TRTH_TRADE: {
-                doGlobalLimitBuy(nextOrder);
-                doGlobalLimitSell(nextOrder);
-                if (nextOrder.getSize() != 0) {
-                    auto now = TimeSetting::getInstance().simulationTimestamp();
-                    addExecutionReport({ nextOrder.getSymbol(),
-                        nextOrder.getPrice(),
-                        nextOrder.getSize(),
-                        "T1",
-                        "T2",
-                        Order::Type::LIMIT_BUY,
-                        Order::Type::LIMIT_SELL,
-                        "O1",
-                        "O2",
-                        '5', // decision '5' means this is a trade update from TRTH
-                        "TRTH",
-                        now,
-                        now });
-                }
-                break;
-            }
-
-            case Order::Type::TRTH_BID: {
-                // if same price, size, and destination, skip
-                if (nextOrder == prevGlobalOrder) {
-                    break;
-                }
-                prevGlobalOrder = nextOrder;
-                doGlobalLimitBuy(nextOrder);
-                if (nextOrder.getSize() != 0)
-                    updateGlobalBids(nextOrder);
-                break;
-            }
-
-            case Order::Type::TRTH_ASK: {
-                // if same price, size, and destination, skip
-                if (nextOrder == prevGlobalOrder) {
-                    break;
-                }
-                prevGlobalOrder = nextOrder;
-                doGlobalLimitSell(nextOrder);
-                if (nextOrder.getSize() != 0)
-                    updateGlobalAsks(nextOrder);
-                break;
-            }
-            }
-
-            // for debugging:
-            // displayGlobalOrderBooks();
-            // displayLocalOrderBooks();
-
-            sendExecutionReports();
-
-            sendOrderBookUpdates();
-
-            m_spinlock.clear();
         }
+
+        // spinlock implementation:
+        // it is better than a standard lock in this scenario, since,
+        // most of the time, only this thread needs access to order book data
+        while (m_spinlock.test_and_set()) {
+        }
+
+        switch (nextOrder.getType()) {
+
+        case Order::Type::LIMIT_BUY: {
+            doLocalLimitBuy(nextOrder);
+            if (nextOrder.getSize() != 0) {
+                insertLocalBid(nextOrder);
+                cout << "Insert Bid" << endl;
+            }
+            break;
+        }
+
+        case Order::Type::LIMIT_SELL: {
+            doLocalLimitSell(nextOrder);
+            if (nextOrder.getSize() != 0) {
+                insertLocalAsk(nextOrder);
+                cout << "Insert Ask" << endl;
+            }
+            break;
+        }
+
+        case Order::Type::MARKET_BUY: {
+            doLocalMarketBuy(nextOrder);
+            if (nextOrder.getSize() != 0) {
+                insertLocalBid(nextOrder);
+                cout << "Insert Bid" << endl;
+            }
+            break;
+        }
+
+        case Order::Type::MARKET_SELL: {
+            doLocalMarketSell(nextOrder);
+            if (nextOrder.getSize() != 0) {
+                insertLocalAsk(nextOrder);
+                cout << "Insert Ask" << endl;
+            }
+            break;
+        }
+
+        case Order::Type::CANCEL_BID: {
+            doLocalCancelBid(nextOrder);
+            std::cout << "Cancel Bid Done" << endl;
+            break;
+        }
+
+        case Order::Type::CANCEL_ASK: {
+            doLocalCancelAsk(nextOrder);
+            std::cout << "Cancel Ask Done" << endl;
+            break;
+        }
+
+        case Order::Type::TRTH_TRADE: {
+            doGlobalLimitBuy(nextOrder);
+            doGlobalLimitSell(nextOrder);
+            if (nextOrder.getSize() != 0) {
+                auto now = TimeSetting::getInstance().simulationTimestamp();
+                addExecutionReport({ nextOrder.getSymbol(),
+                    nextOrder.getPrice(),
+                    nextOrder.getSize(),
+                    "T1",
+                    "T2",
+                    Order::Type::LIMIT_BUY,
+                    Order::Type::LIMIT_SELL,
+                    "O1",
+                    "O2",
+                    '5', // decision '5' means this is a trade update from TRTH
+                    "TRTH",
+                    now,
+                    now });
+            }
+            break;
+        }
+
+        case Order::Type::TRTH_BID: {
+            // if same price, size, and destination, skip
+            if (nextOrder == prevGlobalOrder) {
+                break;
+            }
+            prevGlobalOrder = nextOrder;
+            doGlobalLimitBuy(nextOrder);
+            if (nextOrder.getSize() != 0) {
+                updateGlobalBids(nextOrder);
+            }
+            break;
+        }
+
+        case Order::Type::TRTH_ASK: {
+            // if same price, size, and destination, skip
+            if (nextOrder == prevGlobalOrder) {
+                break;
+            }
+            prevGlobalOrder = nextOrder;
+            doGlobalLimitSell(nextOrder);
+            if (nextOrder.getSize() != 0) {
+                updateGlobalAsks(nextOrder);
+            }
+            break;
+        }
+        }
+
+        // for debugging:
+        // displayGlobalOrderBooks();
+        // displayLocalOrderBooks();
+
+        sendExecutionReports();
+
+        sendOrderBookUpdates();
+
+        m_spinlock.clear();
     }
 }
 
@@ -287,9 +283,8 @@ void ContinuousStockMarket::updateGlobalBids(Order newBestBid)
             if (newBestBid.getDestination() == m_thisGlobalOrder->getDestination()) {
                 m_thisGlobalOrder->setSize(newBestBid.getSize());
                 return;
-            } else {
-                ++m_thisGlobalOrder;
             }
+            ++m_thisGlobalOrder;
 
         } else if (newBestBid.getPrice() > m_thisGlobalOrder->getPrice()) {
             m_globalBids.insert(m_thisGlobalOrder, std::move(newBestBid));
@@ -316,9 +311,8 @@ void ContinuousStockMarket::updateGlobalAsks(Order newBestAsk)
             if (newBestAsk.getDestination() == m_thisGlobalOrder->getDestination()) {
                 m_thisGlobalOrder->setSize(newBestAsk.getSize());
                 return;
-            } else {
-                ++m_thisGlobalOrder;
             }
+            ++m_thisGlobalOrder;
 
         } else if (newBestAsk.getPrice() < m_thisGlobalOrder->getPrice()) {
             m_globalAsks.insert(m_thisGlobalOrder, std::move(newBestAsk));
@@ -358,28 +352,30 @@ void ContinuousStockMarket::doLocalLimitBuy(Order& orderRef)
                 ++m_thisPriceLevel;
                 m_thisLocalOrder = m_thisPriceLevel->begin();
                 continue;
-            } else {
-                if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
-                    // skip order from same trader
-                    ++m_thisLocalOrder;
-                    continue;
-                } else if (m_thisLocalOrder->getType() == Order::Type::MARKET_SELL) {
-                    // if the next order in line is an unfulfilled market order
-                    // we should use the next price level as the order price
-                    // (if available and better than the matching limit order price),
-                    // otherwise we should use the matching limit order price
-                    auto nextPriceLevel = m_thisPriceLevel;
-                    ++nextPriceLevel;
-                    if ((nextPriceLevel != m_localAsks.end()) && (nextPriceLevel->getPrice() < orderRef.getPrice())) {
-                        localBestAsk = nextPriceLevel->getPrice();
-                    } else {
-                        localBestAsk = orderRef.getPrice();
-                    }
-                    update = false;
+            }
+
+            if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
+                // skip order from same trader
+                ++m_thisLocalOrder;
+                continue;
+            }
+
+            if (m_thisLocalOrder->getType() == Order::Type::MARKET_SELL) {
+                // if the next order in line is an unfulfilled market order
+                // we should use the next price level as the order price
+                // (if available and better than the matching limit order price),
+                // otherwise we should use the matching limit order price
+                auto nextPriceLevel = m_thisPriceLevel;
+                ++nextPriceLevel;
+                if ((nextPriceLevel != m_localAsks.end()) && (nextPriceLevel->getPrice() < orderRef.getPrice())) {
+                    localBestAsk = nextPriceLevel->getPrice();
                 } else {
-                    localBestAsk = m_thisLocalOrder->getPrice();
-                    update = true;
+                    localBestAsk = orderRef.getPrice();
                 }
+                update = false;
+            } else {
+                localBestAsk = m_thisLocalOrder->getPrice();
+                update = true;
             }
         }
 
@@ -472,28 +468,30 @@ void ContinuousStockMarket::doLocalLimitSell(Order& orderRef)
                 ++m_thisPriceLevel;
                 m_thisLocalOrder = m_thisPriceLevel->begin();
                 continue;
-            } else {
-                if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
-                    // skip order from same trader
-                    ++m_thisLocalOrder;
-                    continue;
-                } else if (m_thisLocalOrder->getType() == Order::Type::MARKET_BUY) {
-                    // if the next order in line is an unfulfilled market order
-                    // we should use the next price level as the order price
-                    // (if available and better than the matching limit order price),
-                    // otherwise we should use the matching limit order price
-                    auto nextPriceLevel = m_thisPriceLevel;
-                    ++nextPriceLevel;
-                    if ((nextPriceLevel != m_localBids.end()) && (nextPriceLevel->getPrice() > orderRef.getPrice())) {
-                        localBestBid = nextPriceLevel->getPrice();
-                    } else {
-                        localBestBid = orderRef.getPrice();
-                    }
-                    update = false;
+            }
+
+            if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
+                // skip order from same trader
+                ++m_thisLocalOrder;
+                continue;
+            }
+
+            if (m_thisLocalOrder->getType() == Order::Type::MARKET_BUY) {
+                // if the next order in line is an unfulfilled market order
+                // we should use the next price level as the order price
+                // (if available and better than the matching limit order price),
+                // otherwise we should use the matching limit order price
+                auto nextPriceLevel = m_thisPriceLevel;
+                ++nextPriceLevel;
+                if ((nextPriceLevel != m_localBids.end()) && (nextPriceLevel->getPrice() > orderRef.getPrice())) {
+                    localBestBid = nextPriceLevel->getPrice();
                 } else {
-                    localBestBid = m_thisLocalOrder->getPrice();
-                    update = true;
+                    localBestBid = orderRef.getPrice();
                 }
+                update = false;
+            } else {
+                localBestBid = m_thisLocalOrder->getPrice();
+                update = true;
             }
         }
 
@@ -583,28 +581,30 @@ void ContinuousStockMarket::doLocalMarketBuy(Order& orderRef)
                 ++m_thisPriceLevel;
                 m_thisLocalOrder = m_thisPriceLevel->begin();
                 continue;
-            } else {
-                if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
-                    // skip order from same trader
-                    ++m_thisLocalOrder;
-                    continue;
-                } else if (m_thisLocalOrder->getType() == Order::Type::MARKET_SELL) {
-                    // if the next order in line is an unfulfilled market order
-                    // we should use the next price level as the order price
-                    // (if available)
-                    auto nextPriceLevel = m_thisPriceLevel;
-                    ++nextPriceLevel;
-                    if (nextPriceLevel != m_localAsks.end()) {
-                        localBestAsk = nextPriceLevel->getPrice();
-                        update = false;
-                    } else {
-                        m_thisPriceLevel = m_localAsks.end();
-                        continue;
-                    }
+            }
+
+            if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
+                // skip order from same trader
+                ++m_thisLocalOrder;
+                continue;
+            }
+
+            if (m_thisLocalOrder->getType() == Order::Type::MARKET_SELL) {
+                // if the next order in line is an unfulfilled market order
+                // we should use the next price level as the order price
+                // (if available)
+                auto nextPriceLevel = m_thisPriceLevel;
+                ++nextPriceLevel;
+                if (nextPriceLevel != m_localAsks.end()) {
+                    localBestAsk = nextPriceLevel->getPrice();
+                    update = false;
                 } else {
-                    localBestAsk = m_thisLocalOrder->getPrice();
-                    update = true;
+                    m_thisPriceLevel = m_localAsks.end();
+                    continue;
                 }
+            } else {
+                localBestAsk = m_thisLocalOrder->getPrice();
+                update = true;
             }
         }
 
@@ -686,28 +686,30 @@ void ContinuousStockMarket::doLocalMarketSell(Order& orderRef)
                 ++m_thisPriceLevel;
                 m_thisLocalOrder = m_thisPriceLevel->begin();
                 continue;
-            } else {
-                if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
-                    // skip order from same trader
-                    ++m_thisLocalOrder;
-                    continue;
-                } else if (m_thisLocalOrder->getType() == Order::Type::MARKET_BUY) {
-                    // if the next order in line is an unfulfilled market order
-                    // we should use the next price level as the order price
-                    // (if available)
-                    auto nextPriceLevel = m_thisPriceLevel;
-                    ++nextPriceLevel;
-                    if (nextPriceLevel != m_localBids.end()) {
-                        localBestBid = nextPriceLevel->getPrice();
-                        update = false;
-                    } else {
-                        m_thisPriceLevel = m_localBids.end();
-                        continue;
-                    }
+            }
+
+            if (m_thisLocalOrder->getTraderID() == orderRef.getTraderID()) {
+                // skip order from same trader
+                ++m_thisLocalOrder;
+                continue;
+            }
+
+            if (m_thisLocalOrder->getType() == Order::Type::MARKET_BUY) {
+                // if the next order in line is an unfulfilled market order
+                // we should use the next price level as the order price
+                // (if available)
+                auto nextPriceLevel = m_thisPriceLevel;
+                ++nextPriceLevel;
+                if (nextPriceLevel != m_localBids.end()) {
+                    localBestBid = nextPriceLevel->getPrice();
+                    update = false;
                 } else {
-                    localBestBid = m_thisLocalOrder->getPrice();
-                    update = true;
+                    m_thisPriceLevel = m_localBids.end();
+                    continue;
                 }
+            } else {
+                localBestBid = m_thisLocalOrder->getPrice();
+                update = true;
             }
         }
 

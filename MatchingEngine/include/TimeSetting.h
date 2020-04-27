@@ -10,14 +10,14 @@
 class TimeSetting {
 
 public:
-    static TimeSetting& getInstance();
-    static boost::posix_time::ptime getUTCPTime(const boost::posix_time::ptime& localPtime);
+    static auto getInstance() -> TimeSetting&;
+    static auto getUTCPTime(const boost::posix_time::ptime& localPtime) -> boost::posix_time::ptime;
 
     void initiate(const boost::posix_time::ptime& localPtime, int speed = false);
     void setStartTime();
-    long pastMilli(bool simTime = false);
-    long pastMilli(const FIX::UtcTimeStamp& utc, bool simTime = false);
-    FIX::UtcTimeStamp simulationTimestamp();
+    auto pastMilli(bool simTime = false) const -> long;
+    auto pastMilli(const FIX::UtcTimeStamp& utc, bool simTime = false) const -> long;
+    auto simulationTimestamp() -> FIX::UtcTimeStamp;
 
 private:
     boost::posix_time::ptime m_utcDateTime;

@@ -1,28 +1,28 @@
 #include "PriceLevel.h"
 
 PriceLevel::PriceLevel(double price)
-    : m_price(price)
-    , m_quantity(0.0)
-    , m_displayQuantity(0.0)
+    : m_price { price }
+    , m_quantity { 0.0 }
+    , m_displayQuantity { 0.0 }
 {
 }
 
-double PriceLevel::getPrice() const
+auto PriceLevel::getPrice() const -> double
 {
     return m_price;
 }
 
-double& PriceLevel::Quantity()
+auto PriceLevel::Quantity() -> double&
 {
     return m_quantity;
 }
 
-double& PriceLevel::DisplayQuantity()
+auto PriceLevel::DisplayQuantity() -> double&
 {
     return m_displayQuantity;
 }
 
-std::list<std::unique_ptr<Order>>& PriceLevel::Orders()
+auto PriceLevel::Orders() -> std::list<std::unique_ptr<Order>>&
 {
     return m_orders;
 }

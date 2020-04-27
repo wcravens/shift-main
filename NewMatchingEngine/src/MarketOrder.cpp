@@ -2,7 +2,7 @@
 
 /// Protected /////////////////////////////////////////////////////////////////
 
-MarketOrder* MarketOrder::cloneImpl() const // override
+/* virtual */ auto MarketOrder::cloneImpl() const -> MarketOrder* // override
 {
     return new MarketOrder(*this);
 }
@@ -18,7 +18,7 @@ MarketOrder::MarketOrder(bool isGlobal, std::string orderID, std::string brokerI
 {
 }
 
-Order::TYPE MarketOrder::getType() const // override
+/* virtual */ auto MarketOrder::getType() const -> Order::TYPE // override
 {
     return Order::TYPE::MARKET;
 }

@@ -38,12 +38,13 @@ class FIXAcceptor
 public:
     static std::string s_senderID;
 
-    static FIXAcceptor* getInstance();
+    static auto getInstance() -> FIXAcceptor&;
 
-    bool connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
+    auto connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
     void disconnectBrokerageCenter();
 
-    void sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook);
+    static void s_sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook);
+
     void sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderBookUpdates);
     void sendExecutionReports(const std::vector<ExecutionReport>& executionReports);
 
@@ -54,8 +55,8 @@ private:
     FIXAcceptor(const FIXAcceptor&) = delete;
     void operator=(const FIXAcceptor&) = delete;
 
-    void sendSecurityList(const std::string& targetID);
-    void sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation);
+    static void s_sendSecurityList(const std::string& targetID);
+    static void s_sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation);
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

@@ -12,17 +12,17 @@ using namespace std::chrono_literals;
 
 namespace markets {
 
-StockMarket::StockMarket(const std::string& symbol)
-    : m_symbol(symbol)
+StockMarket::StockMarket(std::string symbol)
+    : m_symbol { std::move(symbol) }
 {
 }
 
 StockMarket::StockMarket(const StockMarket& other)
-    : m_symbol(other.m_symbol)
+    : m_symbol { other.m_symbol }
 {
 }
 
-const std::string& StockMarket::getSymbol() const
+auto StockMarket::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
@@ -41,8 +41,8 @@ void StockMarket::displayGlobalOrderBooks()
          << "Global Ask:"
          << endl;
 
-    for (auto it = m_globalAsks.begin(); it != m_globalAsks.end(); ++it) {
-        cout << it->getPrice() << '\t' << it->getSize() << '\t' << it->getDestination() << endl;
+    for (const auto& globalAsk : m_globalAsks) {
+        cout << globalAsk.getPrice() << '\t' << globalAsk.getSize() << '\t' << globalAsk.getDestination() << endl;
     }
 
     cout << endl
@@ -50,8 +50,8 @@ void StockMarket::displayGlobalOrderBooks()
          << "Global Bid:"
          << endl;
 
-    for (auto it = m_globalBids.begin(); it != m_globalBids.end(); ++it) {
-        cout << it->getPrice() << '\t' << it->getSize() << '\t' << it->getDestination() << endl;
+    for (const auto& globalBid : m_globalBids) {
+        cout << globalBid.getPrice() << '\t' << globalBid.getSize() << '\t' << globalBid.getDestination() << endl;
     }
 
     cout << endl;
@@ -66,8 +66,8 @@ void StockMarket::displayLocalOrderBooks()
          << "Local Ask:"
          << endl;
 
-    for (auto it = m_localAsks.begin(); it != m_localAsks.end(); ++it) {
-        cout << it->getPrice() << '\t' << it->getSize() << endl;
+    for (const auto& localAsk : m_localAsks) {
+        cout << localAsk.getPrice() << '\t' << localAsk.getSize() << endl;
     }
 
     cout << endl
@@ -75,8 +75,8 @@ void StockMarket::displayLocalOrderBooks()
          << "Local Bid:"
          << endl;
 
-    for (auto it = m_localBids.begin(); it != m_localBids.end(); ++it) {
-        cout << it->getPrice() << '\t' << it->getSize() << endl;
+    for (const auto& localBid : m_localBids) {
+        cout << localBid.getPrice() << '\t' << localBid.getSize() << endl;
     }
 
     cout << endl;
@@ -93,8 +93,8 @@ void StockMarket::sendOrderBookDataToTarget(const std::string& targetID)
     // spinlock implementation:
     // it is better than a standard lock in this scenario, since
     // this function will only be executed a couple of times during a simulation
-    while (m_spinlock.test_and_set())
-        continue;
+    while (m_spinlock.test_and_set()) {
+    }
 
     // requirements:
     // - the first order book entry must have a price <= 0.0. This will signal the BC it
@@ -104,30 +104,30 @@ void StockMarket::sendOrderBookDataToTarget(const std::string& targetID)
 
     auto now = TimeSetting::getInstance().simulationTimestamp();
 
-    globalBids.push_back({ OrderBookEntry::Type::GLB_BID, m_symbol, 0.0, 0, now });
+    globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, 0.0, 0, now);
     for (auto rit = m_globalBids.rbegin(); rit != m_globalBids.rend(); ++rit) {
-        globalBids.push_back({ OrderBookEntry::Type::GLB_BID, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now });
+        globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
     }
 
-    globalAsks.push_back({ OrderBookEntry::Type::GLB_ASK, m_symbol, 0.0, 0, now });
+    globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, 0.0, 0, now);
     for (auto rit = m_globalAsks.rbegin(); rit != m_globalAsks.rend(); ++rit) {
-        globalAsks.push_back({ OrderBookEntry::Type::GLB_ASK, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now });
+        globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
     }
 
-    localBids.push_back({ OrderBookEntry::Type::LOC_BID, m_symbol, 0.0, 0, now });
+    localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, 0.0, 0, now);
     for (auto rit = m_localBids.rbegin(); rit != m_localBids.rend(); ++rit) {
-        localBids.push_back({ OrderBookEntry::Type::LOC_BID, m_symbol, rit->getPrice(), rit->getSize(), now });
+        localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, rit->getPrice(), rit->getSize(), now);
     }
 
-    localAsks.push_back({ OrderBookEntry::Type::LOC_ASK, m_symbol, 0.0, 0, now });
+    localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, 0.0, 0, now);
     for (auto rit = m_localAsks.rbegin(); rit != m_localAsks.rend(); ++rit) {
-        localAsks.push_back({ OrderBookEntry::Type::LOC_ASK, m_symbol, rit->getPrice(), rit->getSize(), now });
+        localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, rit->getPrice(), rit->getSize(), now);
     }
 
-    FIXAcceptor::getInstance()->sendOrderBook(targetID, globalBids);
-    FIXAcceptor::getInstance()->sendOrderBook(targetID, globalAsks);
-    FIXAcceptor::getInstance()->sendOrderBook(targetID, localBids);
-    FIXAcceptor::getInstance()->sendOrderBook(targetID, localAsks);
+    FIXAcceptor::s_sendOrderBook(targetID, globalBids);
+    FIXAcceptor::s_sendOrderBook(targetID, globalAsks);
+    FIXAcceptor::s_sendOrderBook(targetID, localBids);
+    FIXAcceptor::s_sendOrderBook(targetID, localAsks);
 
     m_spinlock.clear();
 }
@@ -152,7 +152,7 @@ void StockMarket::bufNewLocalOrder(Order&& newOrder)
     }
 }
 
-bool StockMarket::getNextOrder(Order& orderRef)
+auto StockMarket::getNextOrder(Order& orderRef) -> bool
 {
     bool good = false;
     long now = TimeSetting::getInstance().pastMilli(true);
@@ -171,8 +171,9 @@ bool StockMarket::getNextOrder(Order& orderRef)
             if (orderRef.getMilli() >= nextLocalOrder->getMilli()) {
                 orderRef = *nextLocalOrder;
                 m_newLocalOrders.pop();
-            } else
+            } else {
                 m_newGlobalOrders.pop();
+            }
         } else if (nextLocalOrder->getMilli() < now) {
             good = true;
             orderRef = *nextLocalOrder;
@@ -244,7 +245,7 @@ void StockMarket::executeLocalOrder(Order& orderRef, int size, double price, cha
 
 /* static */ std::atomic<bool> StockMarketList::s_isTimeout { false };
 
-/* static */ StockMarketList::stock_market_list_t& StockMarketList::getInstance()
+/* static */ auto StockMarketList::getInstance() -> StockMarketList::stock_market_list_t&
 {
     static stock_market_list_t data;
     return data;

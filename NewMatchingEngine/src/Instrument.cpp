@@ -7,17 +7,17 @@ Instrument::Instrument(std::string symbol)
 {
 }
 
-std::unique_ptr<Instrument> Instrument::clone() const
+auto Instrument::clone() const -> std::unique_ptr<Instrument>
 {
     return std::unique_ptr<Instrument>(cloneImpl());
 }
 
-std::string Instrument::getTypeString() const
+auto Instrument::getTypeString() const -> std::string
 {
     return instrumentTypeToString(getType());
 }
 
-const std::string& Instrument::getSymbol() const
+auto Instrument::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }

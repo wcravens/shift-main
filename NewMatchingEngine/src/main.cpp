@@ -10,7 +10,7 @@
 
 #include <shift/miscutils/terminal/Common.h>
 
-int main(int ac, char* av[])
+auto main(int argc, char** argv) -> int
 {
     /* Order Class Test */
     // std::vector<std::unique_ptr<Order>> order_list;
@@ -64,7 +64,7 @@ int main(int ac, char* av[])
     three = two;
 
     /* Wait Keyboard Input */
-    int t;
+    int t = 0;
     cin >> t;
 
     return 0;

@@ -5,11 +5,11 @@
 
 #include <shift/miscutils/terminal/Common.h>
 
-bool fileConfigMode(std::string filePath, std::string& date, std::string& startTime, std::string& endTime, int& experimentSpeed, std::vector<std::string>& symbols)
+auto fileConfigMode(std::string filePath, std::string& date, std::string& startTime, std::string& endTime, int& experimentSpeed, std::vector<std::string>& symbols) -> bool
 {
-    std::string line = "";
-    std::string key = "";
-    std::string value = "";
+    std::string line;
+    std::string key;
+    std::string value;
 
     std::ifstream inputFile(filePath);
 
@@ -18,19 +18,21 @@ bool fileConfigMode(std::string filePath, std::string& date, std::string& startT
         while (std::getline(inputFile, line)) {
             std::istringstream inputLine(line);
             if (std::getline(inputLine, key, '=')) {
-                if (key[0] == '#')
+                if (key[0] == '#') {
                     continue;
+                }
                 if (std::getline(inputLine, value)) {
-                    if (key == "stock")
+                    if (key == "stock") {
                         symbols.push_back(value);
-                    else if (key == "date")
+                    } else if (key == "date") {
                         date = value;
-                    else if (key == "starttime")
+                    } else if (key == "starttime") {
                         startTime = value;
-                    else if (key == "endtime")
+                    } else if (key == "endtime") {
                         endTime = value;
-                    else if (key == "speed")
+                    } else if (key == "speed") {
                         experimentSpeed = stoi(value);
+                    }
                     cout << value << endl;
                 }
             }
@@ -64,15 +66,16 @@ void inputConfigMode(std::string& date, std::string& startTime, std::string& end
     cout << "Please refer to http://www.reuters.com/finance/stocks/lookup for stock tickers." << endl;
 
     int numStocks = 1; // record the number of inputted stocks
-    std::string symbol = "";
+    std::string symbol;
 
-    while (1) {
+    while (true) {
         cout << endl
              << "Please input stock number " << numStocks << " (to stop input, please type '0'):" << endl;
         cin >> symbol;
         // exit when input is "0":
-        if (symbol == "0")
+        if (symbol == "0") {
             break;
+        }
         symbols.push_back(symbol);
         ++numStocks;
     }

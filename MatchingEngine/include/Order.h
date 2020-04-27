@@ -19,21 +19,21 @@ public:
     };
 
     Order() = default;
-    Order(const std::string& symbol, double price, int size, Type type, const std::string& destination, const FIX::UtcTimeStamp& time);
-    Order(const std::string& symbol, const std::string& traderID, const std::string& orderID, double price, int size, Type type, const FIX::UtcTimeStamp& time);
+    Order(std::string symbol, double price, int size, Order::Type type, std::string destination, FIX::UtcTimeStamp simulationTime);
+    Order(std::string symbol, std::string traderID, std::string orderID, double price, int size, Order::Type type, FIX::UtcTimeStamp simulationTime);
 
-    bool operator==(const Order& other);
+    auto operator==(const Order& other) -> bool;
 
     // getters
-    const std::string& getSymbol() const;
-    const std::string& getTraderID() const;
-    const std::string& getOrderID() const;
-    long getMilli() const;
-    double getPrice() const;
-    int getSize() const;
-    Type getType() const;
-    const std::string& getDestination() const;
-    const FIX::UtcTimeStamp& getTime() const;
+    auto getSymbol() const -> const std::string&;
+    auto getTraderID() const -> const std::string&;
+    auto getOrderID() const -> const std::string&;
+    auto getMilli() const -> long;
+    auto getPrice() const -> double;
+    auto getSize() const -> int;
+    auto getType() const -> Type;
+    auto getDestination() const -> const std::string&;
+    auto getTime() const -> const FIX::UtcTimeStamp&;
 
     // setters
     void setSymbol(const std::string& symbol);

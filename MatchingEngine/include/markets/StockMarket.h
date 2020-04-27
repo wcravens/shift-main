@@ -21,11 +21,11 @@ namespace markets {
 class StockMarket {
 public:
     StockMarket() = default;
-    StockMarket(const std::string& symbol);
+    StockMarket(std::string symbol);
     StockMarket(const StockMarket& other);
     virtual ~StockMarket() = default;
 
-    const std::string& getSymbol() const;
+    auto getSymbol() const -> const std::string&;
     void setSymbol(const std::string& symbol);
 
     void displayGlobalOrderBooks();
@@ -62,7 +62,7 @@ protected:
     std::list<PriceLevel>::iterator m_thisPriceLevel;
     std::list<Order>::iterator m_thisLocalOrder;
 
-    bool getNextOrder(Order& orderRef);
+    auto getNextOrder(Order& orderRef) -> bool;
 
     void executeGlobalOrder(Order& orderRef, int size, double price, char decision);
     void executeLocalOrder(Order& orderRef, int size, double price, char decision);
@@ -74,7 +74,7 @@ protected:
 
     inline void sendExecutionReports()
     {
-        FIXAcceptor::getInstance()->sendExecutionReports(m_executionReports);
+        FIXAcceptor::getInstance().sendExecutionReports(m_executionReports);
         m_executionReports.clear();
     }
 
@@ -85,7 +85,7 @@ protected:
 
     inline void sendOrderBookUpdates()
     {
-        FIXAcceptor::getInstance()->sendOrderBookUpdates(m_orderBookUpdates);
+        FIXAcceptor::getInstance().sendOrderBookUpdates(m_orderBookUpdates);
         m_orderBookUpdates.clear();
     };
 
@@ -101,7 +101,7 @@ public:
 
     static std::atomic<bool> s_isTimeout;
 
-    static stock_market_list_t& getInstance();
+    static auto getInstance() -> stock_market_list_t&;
 
 private:
     StockMarketList() = default;

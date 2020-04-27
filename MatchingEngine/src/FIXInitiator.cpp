@@ -36,13 +36,13 @@ FIXInitiator::~FIXInitiator() // override
     disconnectDatafeedEngine();
 }
 
-/* static */ FIXInitiator* FIXInitiator::getInstance()
+/* static */ auto FIXInitiator::getInstance() -> FIXInitiator&
 {
     static FIXInitiator s_FIXInitInst;
-    return &s_FIXInitInst;
+    return s_FIXInitInst;
 }
 
-bool FIXInitiator::connectDatafeedEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
+auto FIXInitiator::connectDatafeedEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile) -> bool
 {
     disconnectDatafeedEngine();
 
@@ -60,7 +60,7 @@ bool FIXInitiator::connectDatafeedEngine(const std::string& configFile, bool ver
     settings.set(commonDict);
 
     if (commonDict.has("FileLogPath")) { // store all log events into flat files
-        m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
+        m_logFactoryPtr = std::make_unique<FIX::FileLogFactory>(commonDict.getString("FileLogPath"));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLLogDatabase")) { // store all log events into database
         auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
@@ -72,11 +72,11 @@ bool FIXInitiator::connectDatafeedEngine(const std::string& configFile, bool ver
         m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(settings));
 #endif
     } else { // display all log events onto the standard output
-        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose)); // incoming, outgoing, event
+        m_logFactoryPtr = std::make_unique<FIX::ScreenLogFactory>(false, false, verbose); // incoming, outgoing, event
     }
 
     if (commonDict.has("FileStorePath")) { // store all outgoing messages into flat files
-        m_messageStoreFactoryPtr.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath")));
+        m_messageStoreFactoryPtr = std::make_unique<FIX::FileStoreFactory>(commonDict.getString("FileStorePath"));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLStoreDatabase")) { // store all outgoing messages into database
         auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
@@ -88,13 +88,13 @@ bool FIXInitiator::connectDatafeedEngine(const std::string& configFile, bool ver
         m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(settings));
 #endif
     } else { // store all outgoing messages in memory
-        m_messageStoreFactoryPtr.reset(new FIX::MemoryStoreFactory());
+        m_messageStoreFactoryPtr = std::make_unique<FIX::MemoryStoreFactory>();
     }
     // } else { // do not store messages
     //     m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
     // }
 
-    m_initiatorPtr.reset(new FIX::SocketInitiator(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
+    m_initiatorPtr = std::make_unique<FIX::SocketInitiator>(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr);
 
     cout << '\n'
          << COLOR "Initiator is starting..." NO_COLOR << '\n'
@@ -115,8 +115,9 @@ bool FIXInitiator::connectDatafeedEngine(const std::string& configFile, bool ver
 
 void FIXInitiator::disconnectDatafeedEngine()
 {
-    if (!m_initiatorPtr)
+    if (!m_initiatorPtr) {
         return;
+    }
 
     cout << '\n'
          << COLOR "Initiator is stopping..." NO_COLOR << '\n'
@@ -131,7 +132,7 @@ void FIXInitiator::disconnectDatafeedEngine()
 /**
  * @brief Send security list and timestamps to Datafeed Engine.
  */
-bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols, int numSecondsPerDataChunk)
+auto FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols, int numSecondsPerDataChunk) -> bool
 {
     FIX::Message message;
 
@@ -146,9 +147,9 @@ bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
     message.setField(FIX::SecurityListRefID(boost::posix_time::to_iso_string(endTime)));
     message.setField(FIX::SecurityListDesc(std::to_string(numSecondsPerDataChunk)));
 
-    for (size_t i = 0; i < symbols.size(); ++i) {
+    for (const auto& symbol : symbols) {
         shift::fix::addFIXGroup<FIX50SP2::SecurityList::NoRelatedSym>(message,
-            FIX::Symbol(symbols[i]));
+            FIX::Symbol(symbol));
     }
 
     FIX::Session::sendToTarget(message);
@@ -177,7 +178,7 @@ bool FIXInitiator::sendSecurityListRequestAwait(const std::string& requestID, co
 /**
  * @brief Send market data request to Datafeed Engine.
  */
-void FIXInitiator::sendNextDataRequest()
+/* static */ void FIXInitiator::s_sendNextDataRequest()
 {
     FIX::Message message;
 
@@ -194,34 +195,6 @@ void FIXInitiator::sendNextDataRequest()
     shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(message, ::FIXFIELD_MDENTRYTYPE_BID);
     shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoMDEntryTypes>(message, ::FIXFIELD_MDENTRYTYPE_OFFER);
     shift::fix::addFIXGroup<FIX50SP2::MarketDataRequest::NoRelatedSym>(message, ::FIXFIELD_FAKE_SYMBOL); // empty, not used
-
-    FIX::Session::sendToTarget(message);
-}
-
-/**
- * @brief Store order in Database Engine after confirmed.
- */
-void FIXInitiator::storeOrder(const Order& order) // FIXME: not used
-{
-    FIX::Message message;
-
-    FIX::Header& header = message.getHeader();
-    header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
-    header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(s_targetID));
-    header.setField(FIX::MsgType(FIX::MsgType_NewOrderSingle));
-
-    message.setField(FIX::ClOrdID(order.getOrderID()));
-    message.setField(FIX::Symbol(order.getSymbol()));
-    message.setField(FIX::Side(order.getType()));
-    message.setField(FIX::TransactTime(6));
-    message.setField(FIX::OrderQty(order.getSize()));
-    message.setField(FIX::OrdType(order.getType()));
-    message.setField(FIX::Price(order.getPrice()));
-
-    shift::fix::addFIXGroup<FIX50SP2::NewOrderSingle::NoPartyIDs>(message,
-        ::FIXFIELD_PARTYROLE_CLIENTID,
-        FIX::PartyID(order.getTraderID()));
 
     FIX::Session::sendToTarget(message);
 }
@@ -252,7 +225,7 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
 /**
  * @brief Receive notification that the requested work has been done.
  */
-void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID&) // override
+void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID& sessionID) // override
 {
     FIX::NoLinesOfText numOfGroups;
     message.getField(numOfGroups);
@@ -268,16 +241,17 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
 
     // #pragma GCC diagnostic ignored ....
 
-    FIX::Headline* pRequestID;
+    FIX::Headline* pRequestID = nullptr;
 
-    FIX50SP2::News::NoLinesOfText* pTextGroup;
-    FIX::Text* pText;
+    FIX50SP2::News::NoLinesOfText* pTextGroup = nullptr;
+    FIX::Text* pText = nullptr;
 
     static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1)) {
+    }
+
     assert(s_cntAtom > 0);
 
     if (0 == prevCnt) { // sequential case; optimized:
@@ -310,7 +284,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
         m_cvMarketDataReady.notify_all();
     }
 
-    if (prevCnt) { // > 1 threads
+    if (0 != prevCnt) { // > 1 threads
         delete pRequestID;
         delete pTextGroup;
         delete pText;
@@ -323,7 +297,7 @@ void FIXInitiator::onMessage(const FIX50SP2::News& message, const FIX::SessionID
 /**
  * @brief Receive raw data from Datafeed Engine.
  */
-void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID&) // override
+void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionID& sessionID) // override
 {
     FIX::QuoteType ordType; // 0 for Quote / 1 for Trade
     message.getField(ordType);
@@ -349,22 +323,23 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
 
     // #pragma GCC diagnostic ignored ....
 
-    FIX::Symbol* pSymbol;
-    FIX::BidPx* pBidPrice;
-    FIX::OfferPx* pAskPrice;
-    FIX::BidSize* pBidSize;
-    FIX::OfferSize* pAskSize;
-    FIX::TransactTime* pTransactTime;
+    FIX::Symbol* pSymbol = nullptr;
+    FIX::BidPx* pBidPrice = nullptr;
+    FIX::OfferPx* pAskPrice = nullptr;
+    FIX::BidSize* pBidSize = nullptr;
+    FIX::OfferSize* pAskSize = nullptr;
+    FIX::TransactTime* pTransactTime = nullptr;
 
-    FIX50SP2::Quote::NoPartyIDs* pIDGroup;
-    FIX::PartyID* pBuyerID;
-    FIX::PartyID* pSellerID;
+    FIX50SP2::Quote::NoPartyIDs* pIDGroup = nullptr;
+    FIX::PartyID* pBuyerID = nullptr;
+    FIX::PartyID* pSellerID = nullptr;
 
     static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1)) {
+    }
+
     assert(s_cntAtom > 0);
 
     if (0 == prevCnt) { // sequential case; optimized:
@@ -424,7 +399,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
     }
     stockMarketIt->second->bufNewGlobalOrder(std::move(order));
 
-    if (prevCnt) { // > 1 threads
+    if (0 != prevCnt) { // > 1 threads
         delete pSymbol;
         delete pBidPrice;
         delete pAskPrice;

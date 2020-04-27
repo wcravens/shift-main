@@ -57,15 +57,15 @@ static std::atomic<bool> s_isRequestingData { true };
  */
 static void s_requestDatafeedEngineData(std::string configFile, bool verbose, std::string cryptoKey, std::string dbConfigFile, std::string requestID, boost::posix_time::ptime startTime, boost::posix_time::ptime endTime, std::vector<std::string> symbols, int numSecondsPerDataChunk, int experimentSpeed)
 {
-    if (!FIXInitiator::getInstance()->connectDatafeedEngine(configFile, verbose, cryptoKey, dbConfigFile)) {
+    if (!FIXInitiator::getInstance().connectDatafeedEngine(configFile, verbose, cryptoKey, dbConfigFile)) {
         // cout << "DEBUG: s_requestDatafeedEngineData cannot connect DE!" << endl;
         return;
     }
 
     // send request to Datafeed Engine for TRTH data and *wait* until data is ready
-    if (FIXInitiator::getInstance()->sendSecurityListRequestAwait(requestID, startTime, endTime, symbols, numSecondsPerDataChunk)) {
+    if (FIXInitiator::getInstance().sendSecurityListRequestAwait(requestID, startTime, endTime, symbols, numSecondsPerDataChunk)) {
         auto requestOnce = [](auto* pStartTime) {
-            FIXInitiator::getInstance()->sendNextDataRequest();
+            FIXInitiator::s_sendNextDataRequest();
             *pStartTime += boost::posix_time::seconds(::DURATION_PER_DATA_CHUNK.count());
         };
 
@@ -75,8 +75,9 @@ static void s_requestDatafeedEngineData(std::string configFile, bool verbose, st
         auto adjustedDPDC = std::chrono::duration_cast<decltype(elapsedSimlTime)>(::DURATION_PER_DATA_CHUNK); // unify the time units
         if (elapsedSimlTime.count() > (adjustedDPDC.count() / 2)) { // it's called "considerably" lagged iff. lag at least half of the duration per chunk
             auto numChunksToCoverElapsedTime = static_cast<long>(elapsedSimlTime.count() / adjustedDPDC.count()) + 1;
-            while (numChunksToCoverElapsedTime--)
+            while (numChunksToCoverElapsedTime-- > 0) {
                 requestOnce(&startTime);
+            }
         }
 
         // to guarentee a smooth data streaming: supplier shall always keep some safe amount of data ahead of consumer in buffer
@@ -89,10 +90,10 @@ static void s_requestDatafeedEngineData(std::string configFile, bool verbose, st
         } while (s_isRequestingData && startTime < endTime);
     }
 
-    FIXInitiator::getInstance()->disconnectDatafeedEngine();
+    FIXInitiator::getInstance().disconnectDatafeedEngine();
 }
 
-int main(int ac, char* av[])
+auto main(int argc, char** argv) -> int
 {
     char tz[] = "TZ=America/New_York"; // set time zone to New York
     putenv(tz);
@@ -143,7 +144,7 @@ int main(int ac, char* av[])
 
     po::variables_map vm;
     try {
-        po::store(po::parse_command_line(ac, av, desc), vm);
+        po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
     } catch (const boost::program_options::error& e) {
         cerr << COLOR_ERROR "ERROR: " << e.what() << NO_COLOR << endl;
@@ -153,19 +154,19 @@ int main(int ac, char* av[])
         return 2;
     }
 
-    if (vm.count(CSTR_HELP)) {
+    if (vm.count(CSTR_HELP) > 0) {
         cout << '\n'
              << desc << '\n'
              << endl;
         return 0;
     }
 
-    if (vm.count(CSTR_VERBOSE)) {
+    if (vm.count(CSTR_VERBOSE) > 0) {
         params.isVerbose = true;
     }
     voh_t voh(cout, params.isVerbose);
 
-    if (vm.count(CSTR_CONFIG)) {
+    if (vm.count(CSTR_CONFIG) > 0) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
              << params.configDir << ".\n" NO_COLOR << endl;
@@ -174,36 +175,36 @@ int main(int ac, char* av[])
              << endl;
     }
 
-    if (vm.count(CSTR_KEY)) {
+    if (vm.count(CSTR_KEY) > 0) {
         params.cryptoKey = vm[CSTR_KEY].as<std::string>();
     } else {
         cout << COLOR "The built-in initial key 'SHIFT123' is used for reading encrypted login files." NO_COLOR << '\n'
              << endl;
     }
 
-    if (vm.count(CSTR_DATE)) {
+    if (vm.count(CSTR_DATE) > 0) {
         params.simulationDate = vm[CSTR_DATE].as<std::string>();
     }
 
-    if (vm.count(CSTR_STARTTIME)) {
+    if (vm.count(CSTR_STARTTIME) > 0) {
         params.simulationStartTime = vm[CSTR_STARTTIME].as<std::string>();
     }
 
-    if (vm.count(CSTR_ENDTIME)) {
+    if (vm.count(CSTR_ENDTIME) > 0) {
         params.simulationEndTime = vm[CSTR_ENDTIME].as<std::string>();
     }
 
-    if (vm.count(CSTR_TIMEOUT)) {
+    if (vm.count(CSTR_TIMEOUT) > 0) {
         params.timer.minutes = vm[CSTR_TIMEOUT].as<decltype(params.timer)::min_t>();
-        if (params.timer.minutes > 0)
+        if (params.timer.minutes > 0) {
             params.timer.isSet = true;
-        else {
+        } else {
             cout << COLOR "Note: The timeout option is ignored because of the given value." NO_COLOR << '\n'
                  << endl;
         }
     }
 
-    if (vm.count(CSTR_MANUAL)) {
+    if (vm.count(CSTR_MANUAL) > 0) {
         params.isManualInput = true;
     }
 
@@ -240,7 +241,7 @@ int main(int ac, char* av[])
 
     // create Stock Market List and Stock Market objects
     for (auto& symbol : symbols) {
-        markets::StockMarketList::getInstance().insert(std::pair<std::string, std::unique_ptr<markets::StockMarket>>(symbol, new markets::ContinuousStockMarket { symbol }));
+        markets::StockMarketList::getInstance().insert(std::pair<std::string, std::unique_ptr<markets::StockMarket>>(symbol, std::make_unique<markets::ContinuousStockMarket>(symbol)));
     }
 
     if (markets::StockMarketList::getInstance().size() != symbols.size()) {
@@ -272,11 +273,11 @@ int main(int ac, char* av[])
     std::thread dataRequester(&::s_requestDatafeedEngineData, params.configDir + "initiator.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT, std::move(requestID), std::move(startTime), std::move(endTime), std::move(symbols), ::DURATION_PER_DATA_CHUNK.count(), experimentSpeed);
 
     // initiate Brokerage Center connection
-    FIXAcceptor::getInstance()->connectBrokerageCenter(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+    FIXAcceptor::getInstance().connectBrokerageCenter(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // create 'done' file in ~/.shift/MatchingEngine to signalize shell that service is done loading
     // (directory is also created if it does not exist)
-    const char* homeDir;
+    const char* homeDir = nullptr;
     if ((homeDir = getenv("HOME")) == nullptr) {
         homeDir = getpwuid(getuid())->pw_dir;
     }
@@ -312,19 +313,21 @@ int main(int ac, char* av[])
 
                     char cmd = cin.get(); // wait
                     cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
-                    if ('T' == cmd || 't' == cmd)
+                    if ('T' == cmd || 't' == cmd) {
                         return;
+                    }
                 }
             })
             .get(); // this_thread will wait for user terminating acceptor.
     }
 
     // close program
-    FIXAcceptor::getInstance()->disconnectBrokerageCenter();
+    FIXAcceptor::getInstance().disconnectBrokerageCenter();
 
     ::s_isRequestingData = false; // to terminate data requester
-    if (dataRequester.joinable())
+    if (dataRequester.joinable()) {
         dataRequester.join(); // wait for termination
+    }
 
     markets::StockMarketList::s_isTimeout = true;
     for (int i = 0; i < numOfStockMarkets; ++i) {

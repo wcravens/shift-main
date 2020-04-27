@@ -19,8 +19,8 @@ namespace markets {
 class ContinuousStockMarket : public StockMarket {
 public:
     ContinuousStockMarket() = default;
-    ContinuousStockMarket(const std::string& symbol);
-    ContinuousStockMarket(const ContinuousStockMarket& other);
+    ContinuousStockMarket(std::string symbol);
+    ContinuousStockMarket(const ContinuousStockMarket& other) = default;
     virtual ~ContinuousStockMarket() = default;
 
     // function to start one stock matching engine, for stock market thread

@@ -15,16 +15,16 @@ public:
         OTHER = 'e'
     };
 
-    OrderBookEntry(Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcTimeStamp& time);
-    OrderBookEntry(Type type, const std::string& symbol, double price, int size, const FIX::UtcTimeStamp& time);
+    OrderBookEntry(Type type, std::string symbol, double price, int size, std::string destination, FIX::UtcTimeStamp realTime);
+    OrderBookEntry(Type type, std::string symbol, double price, int size, FIX::UtcTimeStamp realTime);
 
     // getters
-    Type getType() const;
-    const std::string& getSymbol() const;
-    double getPrice() const;
-    int getSize() const;
-    const std::string& getDestination() const;
-    const FIX::UtcTimeStamp& getUTCTime() const;
+    auto getType() const -> Type;
+    auto getSymbol() const -> const std::string&;
+    auto getPrice() const -> double;
+    auto getSize() const -> int;
+    auto getDestination() const -> const std::string&;
+    auto getUTCTime() const -> const FIX::UtcTimeStamp&;
 
 private:
     Type m_type;

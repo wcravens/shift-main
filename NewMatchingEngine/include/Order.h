@@ -45,34 +45,34 @@ protected:
     boost::posix_time::ptime m_time;
 
 protected:
-    virtual Order* cloneImpl() const = 0; // clone pattern
+    virtual auto cloneImpl() const -> Order* = 0; // clone pattern
 
 public:
     Order(const Order& other); // copy constructor
-    Order& operator=(const Order& other) &; // copy assignment
+    auto operator=(const Order& other) & -> Order&; // lvalue-only copy assignment
 
     Order(Order&&) = default; // move constructor
-    Order& operator=(Order&&) & = default; // move assignment
+    auto operator=(Order&&) & -> Order& = default; // lvalue-only move assignment
     virtual ~Order() = default; // virtual destructor
 
     Order(bool isGlobal, std::string orderID, std::string brokerID, std::string traderID,
         std::string destination, std::unique_ptr<Instrument> instrument, Order::SIDE side, double orderQuantity,
         boost::posix_time::ptime time);
 
-    std::unique_ptr<Order> clone() const; // clone pattern
+    auto clone() const -> std::unique_ptr<Order>; // clone pattern
 
     virtual Order::TYPE getType() const = 0;
 
-    bool getIsGlobal() const;
-    const std::string& getOrderID() const;
-    const std::string& getBrokerID() const;
-    const std::string& getTraderID() const;
-    const std::string& getDestination() const;
-    const Instrument* getInstrument() const;
-    Order::SIDE getSide() const;
-    Order::STATUS getStatus() const;
-    double getOrderQuantity() const;
-    double getLeavesQuantity() const;
-    double getCumulativeQuantity() const;
-    const boost::posix_time::ptime& getTime() const;
+    auto getIsGlobal() const -> bool;
+    auto getOrderID() const -> const std::string&;
+    auto getBrokerID() const -> const std::string&;
+    auto getTraderID() const -> const std::string&;
+    auto getDestination() const -> const std::string&;
+    auto getInstrument() const -> const Instrument*;
+    auto getSide() const -> Order::SIDE;
+    auto getStatus() const -> Order::STATUS;
+    auto getOrderQuantity() const -> double;
+    auto getLeavesQuantity() const -> double;
+    auto getCumulativeQuantity() const -> double;
+    auto getTime() const -> const boost::posix_time::ptime&;
 };

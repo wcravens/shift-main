@@ -3,22 +3,22 @@
 /// Public ////////////////////////////////////////////////////////////////////
 
 Order::Order(const Order& other)
-    : m_isGlobal(other.getIsGlobal())
-    , m_orderID(other.getOrderID())
-    , m_brokerID(other.getBrokerID())
-    , m_traderID(other.getTraderID())
-    , m_destination(other.getDestination())
-    , m_upInstrument(other.getInstrument()->clone())
-    , m_side(other.getSide())
-    , m_status(other.getStatus())
-    , m_orderQuantity(other.getOrderQuantity())
-    , m_leavesQuantity(other.getLeavesQuantity())
-    , m_cumulativeQuantity(other.getCumulativeQuantity())
-    , m_time(other.getTime())
+    : m_isGlobal { other.getIsGlobal() }
+    , m_orderID { other.getOrderID() }
+    , m_brokerID { other.getBrokerID() }
+    , m_traderID { other.getTraderID() }
+    , m_destination { other.getDestination() }
+    , m_upInstrument { other.getInstrument()->clone() }
+    , m_side { other.getSide() }
+    , m_status { other.getStatus() }
+    , m_orderQuantity { other.getOrderQuantity() }
+    , m_leavesQuantity { other.getLeavesQuantity() }
+    , m_cumulativeQuantity { other.getCumulativeQuantity() }
+    , m_time { other.getTime() }
 {
 }
 
-Order& Order::operator=(const Order& other) &
+auto Order::operator=(const Order& other) & -> Order&
 {
     m_isGlobal = other.getIsGlobal();
     m_orderID = other.getOrderID();
@@ -39,82 +39,82 @@ Order& Order::operator=(const Order& other) &
 Order::Order(bool isGlobal, std::string orderID, std::string brokerID, std::string traderID,
     std::string destination, std::unique_ptr<Instrument> instrument, Order::SIDE side, double orderQuantity,
     boost::posix_time::ptime time)
-    : m_isGlobal(isGlobal)
-    , m_orderID(std::move(orderID))
-    , m_brokerID(std::move(brokerID))
-    , m_traderID(std::move(traderID))
-    , m_destination(std::move(destination))
-    , m_upInstrument(std::move(instrument))
-    , m_side(side)
-    , m_status(Order::STATUS::NEW)
-    , m_orderQuantity(orderQuantity)
-    , m_leavesQuantity(orderQuantity)
-    , m_cumulativeQuantity(0)
-    , m_time(std::move(time))
+    : m_isGlobal { isGlobal }
+    , m_orderID { std::move(orderID) }
+    , m_brokerID { std::move(brokerID) }
+    , m_traderID { std::move(traderID) }
+    , m_destination { std::move(destination) }
+    , m_upInstrument { std::move(instrument) }
+    , m_side { side }
+    , m_status { Order::STATUS::NEW }
+    , m_orderQuantity { orderQuantity }
+    , m_leavesQuantity { orderQuantity }
+    , m_cumulativeQuantity { 0 }
+    , m_time { std::move(time) }
 {
 }
 
-std::unique_ptr<Order> Order::clone() const
+auto Order::clone() const -> std::unique_ptr<Order>
 {
     return std::unique_ptr<Order>(cloneImpl());
 }
 
-bool Order::getIsGlobal() const
+auto Order::getIsGlobal() const -> bool
 {
     return m_isGlobal;
 }
 
-const std::string& Order::getOrderID() const
+auto Order::getOrderID() const -> const std::string&
 {
     return m_orderID;
 }
 
-const std::string& Order::getBrokerID() const
+auto Order::getBrokerID() const -> const std::string&
 {
     return m_brokerID;
 }
 
-const std::string& Order::getTraderID() const
+auto Order::getTraderID() const -> const std::string&
 {
     return m_traderID;
 }
 
-const std::string& Order::getDestination() const
+auto Order::getDestination() const -> const std::string&
 {
     return m_destination;
 }
 
-const Instrument* Order::getInstrument() const
+auto Order::getInstrument() const -> const Instrument*
 {
     return m_upInstrument.get();
 }
 
-Order::SIDE Order::getSide() const
+auto Order::getSide() const -> Order::SIDE
 {
     return m_side;
 }
 
-Order::STATUS Order::getStatus() const
+auto Order::getStatus() const -> Order::STATUS
 {
     return m_status;
 }
 
-double Order::getOrderQuantity() const
+auto Order::getOrderQuantity() const -> double
 {
     return m_orderQuantity;
 }
 
-double Order::getLeavesQuantity() const
+auto Order::getLeavesQuantity() const -> double
 {
     return m_leavesQuantity;
 }
 
-double Order::getCumulativeQuantity() const
+auto Order::getCumulativeQuantity() const -> double
 {
     return m_cumulativeQuantity;
 }
 
-const boost::posix_time::ptime& Order::getTime() const
+auto Order::getTime() const -> const boost::posix_time::ptime&
 {
     return m_time;
 }

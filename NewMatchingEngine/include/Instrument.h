@@ -38,21 +38,21 @@ protected:
     std::string m_symbol;
 
 protected:
-    virtual Instrument* cloneImpl() const = 0; // clone pattern
+    virtual auto cloneImpl() const -> Instrument* = 0; // clone pattern
 
 public:
     Instrument(const Instrument&) = default; // copy constructor
-    Instrument& operator=(const Instrument&) & = default; // copy assignment
+    auto operator=(const Instrument&) & -> Instrument& = default; // lvalue-only copy assignment
     Instrument(Instrument&&) = default; // move constructor
-    Instrument& operator=(Instrument&&) & = default; // move assignment
+    auto operator=(Instrument&&) & -> Instrument& = default; // lvalue-only move assignment
     virtual ~Instrument() = default; // virtual destructor
 
     Instrument(std::string symbol);
 
-    std::unique_ptr<Instrument> clone() const; // clone pattern
+    auto clone() const -> std::unique_ptr<Instrument>; // clone pattern
 
-    virtual Instrument::TYPE getType() const = 0;
-    std::string getTypeString() const;
+    virtual auto getType() const -> Instrument::TYPE = 0;
+    auto getTypeString() const -> std::string;
 
-    const std::string& getSymbol() const;
+    auto getSymbol() const -> const std::string&;
 };

@@ -35,13 +35,13 @@ FIXAcceptor::~FIXAcceptor() // override
     disconnectBrokerageCenter();
 }
 
-/* static */ FIXAcceptor* FIXAcceptor::getInstance()
+/* static */ auto FIXAcceptor::getInstance() -> FIXAcceptor&
 {
     static FIXAcceptor s_FIXAccInst;
-    return &s_FIXAccInst;
+    return s_FIXAccInst;
 }
 
-bool FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
+auto FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile) -> bool
 {
     disconnectBrokerageCenter();
 
@@ -59,7 +59,7 @@ bool FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
     settings.set(commonDict);
 
     if (commonDict.has("FileLogPath")) { // store all log events into flat files
-        m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
+        m_logFactoryPtr = std::make_unique<FIX::FileLogFactory>(commonDict.getString("FileLogPath"));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLLogDatabase")) { // store all log events into database
         auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
@@ -71,11 +71,11 @@ bool FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
         m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(settings));
 #endif
     } else { // display all log events onto the standard output
-        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose)); // incoming, outgoing, event
+        m_logFactoryPtr = std::make_unique<FIX::ScreenLogFactory>(false, false, verbose); // incoming, outgoing, event
     }
 
     if (commonDict.has("FileStorePath")) { // store all outgoing messages into flat files
-        m_messageStoreFactoryPtr.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath")));
+        m_messageStoreFactoryPtr = std::make_unique<FIX::FileStoreFactory>(commonDict.getString("FileStorePath"));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLStoreDatabase")) { // store all outgoing messages into database
         auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
@@ -87,13 +87,13 @@ bool FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
         m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(settings));
 #endif
     } else { // store all outgoing messages in memory
-        m_messageStoreFactoryPtr.reset(new FIX::MemoryStoreFactory());
+        m_messageStoreFactoryPtr = std::make_unique<FIX::MemoryStoreFactory>();
     }
     // } else { // do not store messages
     //     m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
     // }
 
-    m_acceptorPtr.reset(new FIX::SocketAcceptor(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
+    m_acceptorPtr = std::make_unique<FIX::SocketAcceptor>(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr);
 
     cout << '\n'
          << COLOR "Acceptor is starting..." NO_COLOR << '\n'
@@ -114,8 +114,9 @@ bool FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool ver
 
 void FIXAcceptor::disconnectBrokerageCenter()
 {
-    if (!m_acceptorPtr)
+    if (!m_acceptorPtr) {
         return;
+    }
 
     cout << '\n'
          << COLOR "Acceptor is stopping..." NO_COLOR << '\n'
@@ -130,7 +131,7 @@ void FIXAcceptor::disconnectBrokerageCenter()
 /*
  * @brief Send complete order book to brokers.
  */
-void FIXAcceptor::sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook)
+/* static */ void FIXAcceptor::s_sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook)
 {
     FIX::Message message;
 
@@ -249,7 +250,7 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
 /*
  * @brief Send security list to broker.
  */
-void FIXAcceptor::sendSecurityList(const std::string& targetID)
+/* static */ void FIXAcceptor::s_sendSecurityList(const std::string& targetID)
 {
     FIX50SP2::SecurityList message;
 
@@ -272,7 +273,7 @@ void FIXAcceptor::sendSecurityList(const std::string& targetID)
 /**
  * @brief Send order confirmation to broker.
  */
-void FIXAcceptor::sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation)
+/* static */ void FIXAcceptor::s_sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation)
 {
     FIX::Message message;
 
@@ -316,7 +317,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     const auto& targetID = sessionID.getTargetCompID().getValue();
     cout << COLOR_PROMPT "\nLogon:\n[Target] " NO_COLOR << targetID << endl;
 
-    sendSecurityList(targetID);
+    s_sendSecurityList(targetID);
 
     // send current order book data of all securities to connecting target
     for (auto& [symbol, marketPtr] : markets::StockMarketList::getInstance()) {
@@ -371,20 +372,21 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 
     // #pragma GCC diagnostic ignored ....
 
-    FIX::ClOrdID* pOrderID;
-    FIX::Symbol* pSymbol;
-    FIX::OrderQty* pSize;
-    FIX::OrdType* pOrderType;
-    FIX::Price* pPrice;
+    FIX::ClOrdID* pOrderID = nullptr;
+    FIX::Symbol* pSymbol = nullptr;
+    FIX::OrderQty* pSize = nullptr;
+    FIX::OrdType* pOrderType = nullptr;
+    FIX::Price* pPrice = nullptr;
 
-    FIX50SP2::NewOrderSingle::NoPartyIDs* pIDGroup;
-    FIX::PartyID* pTraderID;
+    FIX50SP2::NewOrderSingle::NoPartyIDs* pIDGroup = nullptr;
+    FIX::PartyID* pTraderID = nullptr;
 
     static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1)) {
+    }
+
     assert(s_cntAtom > 0);
 
     if (0 == prevCnt) { // sequential case; optimized:
@@ -430,9 +432,9 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 
     // send confirmation to client
     cout << "Sending confirmation: " << pOrderID->getValue() << endl;
-    sendOrderConfirmation(sessionID.getTargetCompID().getValue(), { pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue() });
+    s_sendOrderConfirmation(sessionID.getTargetCompID().getValue(), { pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue() });
 
-    if (prevCnt) { // > 1 threads
+    if (0 != prevCnt) { // > 1 threads
         delete pOrderID;
         delete pSymbol;
         delete pSize;

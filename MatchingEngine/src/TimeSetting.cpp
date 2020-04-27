@@ -2,7 +2,7 @@
 
 #include <shift/miscutils/terminal/Common.h>
 
-/* static */ TimeSetting& TimeSetting::getInstance()
+/* static */ auto TimeSetting::getInstance() -> TimeSetting&
 {
     static TimeSetting s_timeSettingInst;
     return s_timeSettingInst;
@@ -11,7 +11,7 @@
 /**
  * @brief Convert local ptime to UTC ptime.
  */
-/* static */ boost::posix_time::ptime TimeSetting::getUTCPTime(const boost::posix_time::ptime& localPtime)
+/* static */ auto TimeSetting::getUTCPTime(const boost::posix_time::ptime& localPtime) -> boost::posix_time::ptime
 {
     // std::time_t is always assumed to be UTC,
     // but boost's ptime does not have time zone information,
@@ -47,17 +47,15 @@ void TimeSetting::initiate(const boost::posix_time::ptime& localPtime, int speed
  */
 void TimeSetting::setStartTime()
 {
-    std::chrono::high_resolution_clock highRezClock; // initiate a high resolution clock
-    m_startTimePoint = highRezClock.now();
+    m_startTimePoint = std::chrono::high_resolution_clock::now();
 }
 
 /**
  * @brief Get total millisecond from now.
  */
-long TimeSetting::pastMilli(bool simTime) // FIXME: can be replaced by microsecond
+auto TimeSetting::pastMilli(bool simTime) const -> long // FIXME: can be replaced with microsecond version
 {
-    std::chrono::high_resolution_clock highRezClock; // initiate a high resolution clock
-    std::chrono::high_resolution_clock::time_point localNow = highRezClock.now(); // initiate a high resolution time point
+    std::chrono::high_resolution_clock::time_point localNow = std::chrono::high_resolution_clock::now();
     long milli = std::chrono::duration_cast<std::chrono::milliseconds>(localNow - m_startTimePoint).count();
 
     return simTime ? (m_speed * milli) : milli;
@@ -66,7 +64,7 @@ long TimeSetting::pastMilli(bool simTime) // FIXME: can be replaced by microseco
 /**
  * @ brief Get total millisecond from FIX::UtcTimeStamp.
  */
-long TimeSetting::pastMilli(const FIX::UtcTimeStamp& utc, bool simTime)
+auto TimeSetting::pastMilli(const FIX::UtcTimeStamp& utc, bool simTime) const -> long // FIXME: can be replaced with microsecond version
 {
     long milli = (utc.getHour() * 3600 + utc.getMinute() * 60 + utc.getSecond() - m_hhmmss) * 1000 + utc.getMillisecond();
 
@@ -76,10 +74,9 @@ long TimeSetting::pastMilli(const FIX::UtcTimeStamp& utc, bool simTime)
 /**
  * @brief Get FIX::UtcTimeStamp from now.
  */
-FIX::UtcTimeStamp TimeSetting::simulationTimestamp()
+auto TimeSetting::simulationTimestamp() -> FIX::UtcTimeStamp
 {
-    std::chrono::high_resolution_clock highRezClock;
-    std::chrono::high_resolution_clock::time_point timeNow = highRezClock.now();
+    std::chrono::high_resolution_clock::time_point timeNow = std::chrono::high_resolution_clock::now();
     boost::posix_time::microseconds micro(std::chrono::duration_cast<std::chrono::microseconds>(timeNow - m_startTimePoint).count() * m_speed);
     auto tmUtcSec = boost::posix_time::to_tm(m_utcDateTime + micro);
     auto timestampUtc = FIX::UtcTimeStamp(&tmUtcSec, (int)micro.fractional_seconds(), 6);

@@ -8,21 +8,25 @@ namespace markets {
 
 class PriceLevel {
 public:
+    PriceLevel() = default;
+    PriceLevel(const PriceLevel& other) = default;
+    virtual ~PriceLevel() = default;
+
     // getters
-    double getPrice() const;
-    int getSize() const;
+    auto getPrice() const -> double;
+    auto getSize() const -> int;
 
     // setters
     void setPrice(double price);
     void setSize(int size);
 
-    bool empty();
+    auto empty() -> bool;
     void push_back(const Order& order);
     void push_front(const Order& order);
 
-    std::list<Order>::iterator begin();
-    std::list<Order>::iterator end();
-    std::list<Order>::iterator erase(std::list<Order>::iterator iter);
+    auto begin() -> std::list<Order>::iterator;
+    auto end() -> std::list<Order>::iterator;
+    auto erase(std::list<Order>::iterator iter) -> std::list<Order>::iterator;
 
 private:
     double m_price;
