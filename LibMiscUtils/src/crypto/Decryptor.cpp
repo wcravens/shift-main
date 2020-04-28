@@ -29,12 +29,12 @@ Decryptor::operator std::istream &()
 
 // these functions are inline-declared as 'friend', hence shall be present within the same namespace
 
-auto operator>>(std::istream& is, Decryptor& dec) -> std::istream&
+/* friend */ auto operator>>(std::istream& is, Decryptor& dec) -> std::istream&
 {
     return dec.m_impl->apply(is, false);
 }
 
-auto operator<<(std::ostream& os, Decryptor& dec) -> std::ostream&
+/* friend */ auto operator<<(std::ostream& os, Decryptor& dec) -> std::ostream&
 {
     return dec.m_impl->out(os);
 }

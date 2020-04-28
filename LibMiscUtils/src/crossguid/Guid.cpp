@@ -41,7 +41,7 @@ THE SOFTWARE.
 namespace shift::crossguid {
 
 // overload << so that it's easy to convert to a string
-auto operator<<(std::ostream& s, const Guid& guid) -> std::ostream&
+/* friend */ auto operator<<(std::ostream& s, const Guid& guid) -> std::ostream&
 {
     return s << std::hex << std::setfill('0')
              << std::setw(2) << (int)guid._bytes[0]

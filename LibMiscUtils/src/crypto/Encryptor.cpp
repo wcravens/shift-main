@@ -36,7 +36,7 @@ Encryptor::operator std::istream &()
 
 // these functions are inline-declared as 'friend', hence shall be present within the same namespace
 
-auto operator>>(std::istream& is, Encryptor& enc) -> std::istream&
+/* friend */ auto operator>>(std::istream& is, Encryptor& enc) -> std::istream&
 {
     if (enc.m_impl->m_useSHA1) {
         return enc.m_impl->apply(is);
@@ -44,7 +44,7 @@ auto operator>>(std::istream& is, Encryptor& enc) -> std::istream&
     return enc.m_impl->apply(is, true);
 }
 
-auto operator<<(std::ostream& os, Encryptor& enc) -> std::ostream&
+/* friend */ auto operator<<(std::ostream& os, Encryptor& enc) -> std::ostream&
 {
     return enc.m_impl->out(os);
 }
