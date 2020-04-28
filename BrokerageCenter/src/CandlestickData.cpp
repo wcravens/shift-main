@@ -29,18 +29,13 @@
 #define DEBUG_PERFORMANCE_COUNTER_S(_NAME, _LABEL, _STRIDE)
 #endif
 
-CandlestickData::CandlestickData()
-    : CandlestickData("", .0, .0, .0, .0, .0, std::time_t {})
-{
-}
-
-CandlestickData::CandlestickData(const std::string& symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
-    : m_symbol(symbol)
-    , m_lastOpenPrice(currOpenPrice)
-    , m_lastClosePrice(currClosePrice)
-    , m_lastHighPrice(currHighPrice)
-    , m_lastLowPrice(currLowPrice)
-    , m_lastOpenTime(currOpenTime)
+CandlestickData::CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
+    : m_symbol { std::move(symbol) }
+    , m_lastOpenPrice { currOpenPrice }
+    , m_lastClosePrice { currClosePrice }
+    , m_lastHighPrice { currHighPrice }
+    , m_lastLowPrice { currLowPrice }
+    , m_lastOpenTime { currOpenTime }
 {
 }
 
@@ -53,10 +48,11 @@ CandlestickData::~CandlestickData() // override
 void CandlestickData::sendPoint(const CandlestickDataPoint& cdPoint)
 {
     auto targetList = getTargetList();
-    if (targetList.empty())
+    if (targetList.empty()) {
         return;
+    }
 
-    FIXAcceptor::getInstance()->sendCandlestickData(targetList, cdPoint);
+    FIXAcceptor::s_sendCandlestickData(targetList, cdPoint);
 }
 
 void CandlestickData::sendHistory(std::string targetID)
@@ -69,26 +65,26 @@ void CandlestickData::sendHistory(std::string targetID)
     const std::vector<std::string> targetList { std::move(targetID) };
 
     for (const auto& i : histCopy) {
-        FIXAcceptor::getInstance()->sendCandlestickData(targetList, i.second);
+        FIXAcceptor::s_sendCandlestickData(targetList, i.second);
     }
 }
 
-const std::string& CandlestickData::getSymbol() const
+auto CandlestickData::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-/* static */ std::time_t CandlestickData::s_nowUnixTimestamp() noexcept
+/* static */ auto CandlestickData::s_nowUnixTimestamp() noexcept -> std::time_t
 {
     auto tnow = boost::posix_time::to_tm(boost::posix_time::microsec_clock::local_time());
     return std::mktime(&tnow);
 }
 
-/* static */ std::time_t CandlestickData::s_toUnixTimestamp(const std::string& time) noexcept
+/* static */ auto CandlestickData::s_toUnixTimestamp(const std::string& time) noexcept -> std::time_t
 {
-    struct std::tm tm;
-    ::strptime(time.c_str(), CSTR_TIME_FORMAT_YMDHMS, &tm);
-    std::time_t t = std::mktime(&tm);
+    struct tm c_tm;
+    ::strptime(time.c_str(), CSTR_TIME_FORMAT_YMDHMS, &c_tm);
+    std::time_t t = std::mktime(&c_tm);
     return t;
 }
 
@@ -123,8 +119,9 @@ void CandlestickData::process()
 
     while (true) {
         std::unique_lock<std::mutex> lock(m_mtxTransacBuff);
-        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvCD, lock, [this] { return !m_transacBuff.empty(); }))
+        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvCD, lock, [this] { return !m_transacBuff.empty(); })) {
             return;
+        }
 
         const auto transac = m_transacBuff.front();
         m_transacBuff.pop();
@@ -179,7 +176,7 @@ void CandlestickData::process()
 
 void CandlestickData::spawn()
 {
-    m_th.reset(new std::thread(&CandlestickData::process, this));
+    m_th = std::make_unique<std::thread>(&CandlestickData::process, this);
 }
 
 #undef CSTR_TIME_FORMAT_YMDHMS

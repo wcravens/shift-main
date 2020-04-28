@@ -6,14 +6,14 @@
 class CandlestickDataPoint {
 public:
     CandlestickDataPoint() = default;
-    CandlestickDataPoint(const std::string& symbol, double openPrice, double closePrice, double highPrice, double lowPrice, std::time_t timeFrom);
+    CandlestickDataPoint(std::string symbol, double openPrice, double closePrice, double highPrice, double lowPrice, std::time_t timeFrom);
 
-    const std::string& getSymbol() const;
-    double getOpenPrice() const;
-    double getClosePrice() const;
-    double getHighPrice() const;
-    double getLowPrice() const;
-    std::time_t getTimeFrom() const;
+    auto getSymbol() const -> const std::string&;
+    auto getOpenPrice() const -> double;
+    auto getClosePrice() const -> double;
+    auto getHighPrice() const -> double;
+    auto getLowPrice() const -> double;
+    auto getTimeFrom() const -> std::time_t;
 
 private:
     std::string m_symbol;

@@ -6,7 +6,7 @@
 
 class ITargetsInfo {
 public:
-    std::vector<std::string> getTargetList() const;
+    auto getTargetList() const -> std::vector<std::string>;
 
 protected:
     virtual ~ITargetsInfo() = 0;

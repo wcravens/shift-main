@@ -11,8 +11,8 @@
  * @brief Constructs OrderBook instance with stock name.
  * @param name The stock name.
  */
-OrderBook::OrderBook(const std::string& name)
-    : m_symbol(name)
+OrderBook::OrderBook(std::string symbol)
+    : m_symbol { std::move(symbol) }
 {
 }
 
@@ -44,8 +44,9 @@ void OrderBook::process()
 
     while (true) {
         std::unique_lock<std::mutex> buffLock(m_mtxOBEBuff);
-        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOBEBuff, buffLock, [this] { return !m_obeBuff.empty(); }))
+        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOBEBuff, buffLock, [this] { return !m_obeBuff.empty(); })) {
             return;
+        }
 
         switch (m_obeBuff.front().getType()) {
         case OrderBookEntry::Type::GLB_BID:
@@ -74,7 +75,7 @@ void OrderBook::process()
  */
 void OrderBook::spawn()
 {
-    m_th.reset(new std::thread(&OrderBook::process, this));
+    m_th = std::make_unique<std::thread>(&OrderBook::process, this);
 }
 
 /**
@@ -99,7 +100,6 @@ void OrderBook::onUnsubscribeOrderBook(const std::string& targetID)
  */
 void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
 {
-    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     const std::vector<std::string> targetList { targetID };
 
     std::lock_guard<std::mutex> guard_B(m_mtxGlobalBidOrderBook);
@@ -107,14 +107,18 @@ void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
     std::lock_guard<std::mutex> guard_b(m_mtxLocalBidOrderBook);
     std::lock_guard<std::mutex> guard_a(m_mtxLocalAskOrderBook);
 
-    if (!m_globalBidOrderBook.empty())
-        toWCPtr->sendOrderBook(targetList, m_globalBidOrderBook);
-    if (!m_globalAskOrderBook.empty())
-        toWCPtr->sendOrderBook(targetList, m_globalAskOrderBook);
-    if (!m_localBidOrderBook.empty())
-        toWCPtr->sendOrderBook(targetList, m_localBidOrderBook);
-    if (!m_localAskOrderBook.empty())
-        toWCPtr->sendOrderBook(targetList, m_localAskOrderBook);
+    if (!m_globalBidOrderBook.empty()) {
+        FIXAcceptor::s_sendOrderBook(targetList, m_globalBidOrderBook);
+    }
+    if (!m_globalAskOrderBook.empty()) {
+        FIXAcceptor::s_sendOrderBook(targetList, m_globalAskOrderBook);
+    }
+    if (!m_localBidOrderBook.empty()) {
+        FIXAcceptor::s_sendOrderBook(targetList, m_localBidOrderBook);
+    }
+    if (!m_localAskOrderBook.empty()) {
+        FIXAcceptor::s_sendOrderBook(targetList, m_localAskOrderBook);
+    }
 }
 
 /**
@@ -122,24 +126,28 @@ void OrderBook::broadcastWholeOrderBookToOne(const std::string& targetID)
  */
 void OrderBook::broadcastWholeOrderBookToAll()
 {
-    FIXAcceptor* toWCPtr = FIXAcceptor::getInstance();
     auto targetList = getTargetList();
-    if (targetList.empty())
+    if (targetList.empty()) {
         return;
+    }
 
     std::lock_guard<std::mutex> guard_B(m_mtxGlobalBidOrderBook);
     std::lock_guard<std::mutex> guard_A(m_mtxGlobalAskOrderBook);
     std::lock_guard<std::mutex> guard_b(m_mtxLocalBidOrderBook);
     std::lock_guard<std::mutex> guard_a(m_mtxLocalAskOrderBook);
 
-    if (!m_globalBidOrderBook.empty())
-        toWCPtr->sendOrderBook(targetList, m_globalBidOrderBook);
-    if (!m_globalAskOrderBook.empty())
-        toWCPtr->sendOrderBook(targetList, m_globalAskOrderBook);
-    if (!m_localBidOrderBook.empty())
-        toWCPtr->sendOrderBook(targetList, m_localBidOrderBook);
-    if (!m_localAskOrderBook.empty())
-        toWCPtr->sendOrderBook(targetList, m_localAskOrderBook);
+    if (!m_globalBidOrderBook.empty()) {
+        FIXAcceptor::s_sendOrderBook(targetList, m_globalBidOrderBook);
+    }
+    if (!m_globalAskOrderBook.empty()) {
+        FIXAcceptor::s_sendOrderBook(targetList, m_globalAskOrderBook);
+    }
+    if (!m_localBidOrderBook.empty()) {
+        FIXAcceptor::s_sendOrderBook(targetList, m_localBidOrderBook);
+    }
+    if (!m_localAskOrderBook.empty()) {
+        FIXAcceptor::s_sendOrderBook(targetList, m_localAskOrderBook);
+    }
 }
 
 /**
@@ -149,8 +157,9 @@ void OrderBook::broadcastWholeOrderBookToAll()
 void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
 {
     auto targetList = getTargetList();
-    if (targetList.empty())
+    if (targetList.empty()) {
         return;
+    }
 
     using ulock_t = std::unique_lock<std::mutex>;
     ulock_t lock;
@@ -176,7 +185,7 @@ void OrderBook::broadcastSingleUpdateToAll(const OrderBookEntry& update)
         return;
     }
 
-    FIXAcceptor::getInstance()->sendOrderBookUpdate(targetList, update);
+    FIXAcceptor::s_sendOrderBookUpdate(targetList, update);
 }
 
 /**
@@ -258,38 +267,46 @@ inline void OrderBook::saveLocalAskOrderBookUpdate(const OrderBookEntry& update)
     s_saveLocalOrderBookUpdate(update, m_mtxLocalAskOrderBook, m_localAskOrderBook);
 }
 
-double OrderBook::getGlobalBidOrderBookFirstPrice() const
+auto OrderBook::getGlobalBidOrderBookFirstPrice() const -> double
 {
     std::lock_guard<std::mutex> guard(m_mtxGlobalBidOrderBook);
-    if (!m_globalBidOrderBook.empty())
-        return (--m_globalBidOrderBook.end())->first;
-    else
+
+    if (m_globalBidOrderBook.empty()) {
         return 0.0;
+    }
+
+    return (--m_globalBidOrderBook.end())->first;
 }
 
-double OrderBook::getGlobalAskOrderBookFirstPrice() const
+auto OrderBook::getGlobalAskOrderBookFirstPrice() const -> double
 {
     std::lock_guard<std::mutex> guard(m_mtxGlobalAskOrderBook);
-    if (!m_globalAskOrderBook.empty())
-        return m_globalAskOrderBook.begin()->first;
-    else
+
+    if (m_globalAskOrderBook.empty()) {
         return 0.0;
+    }
+
+    return m_globalAskOrderBook.begin()->first;
 }
 
-double OrderBook::getLocalBidOrderBookFirstPrice() const
+auto OrderBook::getLocalBidOrderBookFirstPrice() const -> double
 {
     std::lock_guard<std::mutex> guard(m_mtxLocalBidOrderBook);
-    if (!m_localBidOrderBook.empty())
-        return (--m_localBidOrderBook.end())->first;
-    else
+
+    if (m_localBidOrderBook.empty()) {
         return 0.0;
+    }
+
+    return (--m_localBidOrderBook.end())->first;
 }
 
-double OrderBook::getLocalAskOrderBookFirstPrice() const
+auto OrderBook::getLocalAskOrderBookFirstPrice() const -> double
 {
     std::lock_guard<std::mutex> guard(m_mtxLocalAskOrderBook);
-    if (!m_localAskOrderBook.empty())
-        return m_localAskOrderBook.begin()->first;
-    else
+
+    if (m_localAskOrderBook.empty()) {
         return 0.0;
+    }
+
+    return m_localAskOrderBook.begin()->first;
 }

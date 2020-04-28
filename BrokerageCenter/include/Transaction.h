@@ -11,16 +11,16 @@ struct Transaction {
     std::string destination;
     FIX::UtcTimeStamp simulationTime;
 
-    Transaction(const std::string& symbol,
+    Transaction(std::string symbol,
         int size,
         double price,
-        const std::string& destination,
-        const FIX::UtcTimeStamp& simulationTime)
-        : symbol(symbol)
-        , size(size)
-        , price(price)
-        , destination(destination)
-        , simulationTime(simulationTime)
+        std::string destination,
+        FIX::UtcTimeStamp simulationTime)
+        : symbol { std::move(symbol) }
+        , size { size }
+        , price { price }
+        , destination { std::move(destination) }
+        , simulationTime { std::move(simulationTime) }
     {
     }
 };

@@ -16,19 +16,19 @@ public:
 
     ~DBConnector();
 
-    std::unique_lock<std::mutex> lockPSQL() const;
+    auto lockPSQL() const -> std::unique_lock<std::mutex>;
 
-    static DBConnector* getInstance();
-    bool init(const std::string& cryptoKey, const std::string& fileName);
+    static auto getInstance() -> DBConnector&;
+    auto init(const std::string& cryptoKey, const std::string& fileName) -> bool;
 
     PGconn* getConn() { return m_pConn; } // establish connection to database
-    bool connectDB();
+    auto connectDB() -> bool;
     void disconnectDB();
 
-    bool doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr);
+    auto doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch = PGRES_COMMAND_OK, PGresult** ppRes = nullptr) -> bool;
 
     /*@ brief Inserts trade history into the table used to save the trading records. */
-    bool insertTradingRecord(const TradingRecord& trade);
+    auto insertTradingRecord(const TradingRecord& trade) -> bool;
 
 protected:
     PGconn* m_pConn;
@@ -36,5 +36,8 @@ protected:
 
 private:
     DBConnector(); // singleton pattern
+    DBConnector(const DBConnector&) = delete; // forbid copying
+    auto operator=(const DBConnector&) -> DBConnector& = delete; // forbid assigning
+
     std::unordered_map<std::string, std::string> m_loginInfo;
 };

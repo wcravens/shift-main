@@ -1,19 +1,14 @@
 #include "PortfolioItem.h"
 
-PortfolioItem::PortfolioItem()
-    : PortfolioItem("", 0.0, 0.0, 0.0, 0.0, 0, 0)
+PortfolioItem::PortfolioItem(std::string symbol)
+    : PortfolioItem { std::move(symbol), 0.0, 0.0, 0.0, 0.0, 0, 0 }
 {
 }
 
-PortfolioItem::PortfolioItem(const std::string& symbol)
-    : PortfolioItem(symbol, 0.0, 0.0, 0.0, 0.0, 0, 0)
-{
-}
-
-PortfolioItem::PortfolioItem(const std::string& symbol, int shares, double price)
-    : m_symbol(symbol)
-    , m_borrowedBalance(0.0)
-    , m_pl(0.0)
+PortfolioItem::PortfolioItem(std::string symbol, int shares, double price)
+    : m_symbol { std::move(symbol) }
+    , m_borrowedBalance { 0.0 }
+    , m_pl { 0.0 }
 {
     if (shares >= 0) {
         m_longPrice = price;
@@ -28,14 +23,14 @@ PortfolioItem::PortfolioItem(const std::string& symbol, int shares, double price
     }
 }
 
-PortfolioItem::PortfolioItem(const std::string& symbol, double borrowedBalace, double pl, double longPrice, double shortPrice, int longShares, int shortShares)
-    : m_symbol(symbol)
-    , m_borrowedBalance(borrowedBalace)
-    , m_pl(pl)
-    , m_longPrice(longPrice)
-    , m_shortPrice(shortPrice)
-    , m_longShares(longShares)
-    , m_shortShares(shortShares)
+PortfolioItem::PortfolioItem(std::string symbol, double borrowedBalace, double pl, double longPrice, double shortPrice, int longShares, int shortShares)
+    : m_symbol { std::move(symbol) }
+    , m_borrowedBalance { borrowedBalace }
+    , m_pl { pl }
+    , m_longPrice { longPrice }
+    , m_shortPrice { shortPrice }
+    , m_longShares { longShares }
+    , m_shortShares { shortShares }
 {
 }
 
@@ -103,53 +98,57 @@ void PortfolioItem::resetBorrowedBalance()
     m_borrowedBalance = 0.0;
 }
 
-const std::string& PortfolioItem::getSymbol() const
+auto PortfolioItem::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-int PortfolioItem::getSummaryShares() const
+auto PortfolioItem::getSummaryShares() const -> int
 {
     return m_longShares - m_shortShares;
 }
 
-int PortfolioItem::getLongShares() const
+auto PortfolioItem::getLongShares() const -> int
 {
     return m_longShares;
 }
 
-int PortfolioItem::getShortShares() const
+auto PortfolioItem::getShortShares() const -> int
 {
     return m_shortShares;
 }
 
-double PortfolioItem::getSummaryPrice() const
+auto PortfolioItem::getSummaryPrice() const -> double
 {
-    if (getSummaryShares() == 0) {
-        return 0.0;
-    } else if (getSummaryShares() > 0.0) {
+    int shares = getSummaryShares();
+
+    if (shares > 0) {
         return m_longPrice;
-    } else {
+    }
+
+    if (shares < 0) {
         return m_shortPrice;
     }
+
+    return 0.0;
 }
 
-double PortfolioItem::getLongPrice() const
+auto PortfolioItem::getLongPrice() const -> double
 {
     return m_longPrice;
 }
 
-double PortfolioItem::getShortPrice() const
+auto PortfolioItem::getShortPrice() const -> double
 {
     return m_shortPrice;
 }
 
-double PortfolioItem::getPL() const
+auto PortfolioItem::getPL() const -> double
 {
     return m_pl;
 }
 
-double PortfolioItem::getBorrowedBalance() const
+auto PortfolioItem::getBorrowedBalance() const -> double
 {
     return m_borrowedBalance;
 }

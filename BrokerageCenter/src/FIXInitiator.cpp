@@ -29,13 +29,13 @@ FIXInitiator::~FIXInitiator() // override
     disconnectMatchingEngine();
 }
 
-/* static */ FIXInitiator* FIXInitiator::getInstance()
+/* static */ auto FIXInitiator::getInstance() -> FIXInitiator&
 {
     static FIXInitiator s_FIXInitInst;
-    return &s_FIXInitInst;
+    return s_FIXInitInst;
 }
 
-bool FIXInitiator::connectMatchingEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile)
+auto FIXInitiator::connectMatchingEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile) -> bool
 {
     disconnectMatchingEngine();
 
@@ -53,7 +53,7 @@ bool FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
     settings.set(commonDict);
 
     if (commonDict.has("FileLogPath")) { // store all log events into flat files
-        m_logFactoryPtr.reset(new FIX::FileLogFactory(commonDict.getString("FileLogPath")));
+        m_logFactoryPtr = std::make_unique<FIX::FileLogFactory>(commonDict.getString("FileLogPath"));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLLogDatabase")) { // store all log events into database
         auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
@@ -62,14 +62,14 @@ bool FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
         commonDict.setString("PostgreSQLLogHost", loginInfo["DBHost"]);
         commonDict.setString("PostgreSQLLogPort", loginInfo["DBPort"]);
         settings.set(commonDict);
-        m_logFactoryPtr.reset(new FIX::PostgreSQLLogFactory(settings));
+        m_logFactoryPtr = std::make_unique<FIX::PostgreSQLLogFactory>(settings);
 #endif
     } else { // display all log events onto the standard output
-        m_logFactoryPtr.reset(new FIX::ScreenLogFactory(false, false, verbose)); // incoming, outgoing, event
+        m_logFactoryPtr = std::make_unique<FIX::ScreenLogFactory>(false, false, verbose); // incoming, outgoing, event
     }
 
     if (commonDict.has("FileStorePath")) { // store all outgoing messages into flat files
-        m_messageStoreFactoryPtr.reset(new FIX::FileStoreFactory(commonDict.getString("FileStorePath")));
+        m_messageStoreFactoryPtr = std::make_unique<FIX::FileStoreFactory>(commonDict.getString("FileStorePath"));
 #if HAVE_POSTGRESQL
     } else if (commonDict.has("PostgreSQLStoreDatabase")) { // store all outgoing messages into database
         auto loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, dbConfigFile);
@@ -78,16 +78,16 @@ bool FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
         commonDict.setString("PostgreSQLStoreHost", loginInfo["DBHost"]);
         commonDict.setString("PostgreSQLStorePort", loginInfo["DBPort"]);
         settings.set(commonDict);
-        m_messageStoreFactoryPtr.reset(new FIX::PostgreSQLStoreFactory(settings));
+        m_messageStoreFactoryPtr = std::make_unique<FIX::PostgreSQLStoreFactory>(settings);
 #endif
     } else { // store all outgoing messages in memory
-        m_messageStoreFactoryPtr.reset(new FIX::MemoryStoreFactory());
+        m_messageStoreFactoryPtr = std::make_unique<FIX::MemoryStoreFactory>();
     }
     // } else { // do not store messages
     //     m_messageStoreFactoryPtr.reset(new FIX::NullStoreFactory());
     // }
 
-    m_initiatorPtr.reset(new FIX::SocketInitiator(*getInstance(), *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr));
+    m_initiatorPtr = std::make_unique<FIX::SocketInitiator>(*this, *m_messageStoreFactoryPtr, settings, *m_logFactoryPtr);
 
     cout << '\n'
          << COLOR "Initiator is starting..." NO_COLOR << '\n'
@@ -108,8 +108,9 @@ bool FIXInitiator::connectMatchingEngine(const std::string& configFile, bool ver
 
 void FIXInitiator::disconnectMatchingEngine()
 {
-    if (!m_initiatorPtr)
+    if (!m_initiatorPtr) {
         return;
+    }
 
     cout << '\n'
          << COLOR "Initiator is stopping..." NO_COLOR << '\n'
@@ -124,7 +125,7 @@ void FIXInitiator::disconnectMatchingEngine()
 /**
  * @brief Sending the order to the server.
  */
-void FIXInitiator::sendOrder(const Order& order)
+/* static */ void FIXInitiator::s_sendOrder(const Order& order)
 {
     FIX::Message message;
 
@@ -180,12 +181,13 @@ void FIXInitiator::fromApp(const FIX::Message& message, const FIX::SessionID& se
 /*
  * @brief Receive security list from ME.
  */
-void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID&) // override
+void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::SessionID& sessionID) // override
 {
     // this test is required because if there is a disconnection between ME and BC,
     // the ME will send the security list again during the reconnection procedure
-    if (BCDocuments::s_isSecurityListReady)
+    if (BCDocuments::s_isSecurityListReady) {
         return;
+    }
 
     FIX::NoRelatedSym numOfGroups;
     message.getField(numOfGroups);
@@ -197,14 +199,14 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
     FIX50SP2::SecurityList::NoRelatedSym relatedSymGroup;
     FIX::Symbol symbol;
 
-    auto* docs = BCDocuments::getInstance();
+    auto& docs = BCDocuments::getInstance();
     for (int i = 1; i <= numOfGroups.getValue(); ++i) {
         message.getGroup(static_cast<unsigned int>(i), relatedSymGroup);
         relatedSymGroup.getField(symbol);
 
-        docs->addSymbol(symbol.getValue());
-        docs->attachOrderBookToSymbol(symbol.getValue());
-        docs->attachCandlestickDataToSymbol(symbol.getValue());
+        docs.addSymbol(symbol.getValue());
+        docs.attachOrderBookToSymbol(symbol.getValue());
+        docs.attachCandlestickDataToSymbol(symbol.getValue());
     }
 
     // now, it's safe to advance all routines that *read* permanent data structures created above:
@@ -214,7 +216,7 @@ void FIXInitiator::onMessage(const FIX50SP2::SecurityList& message, const FIX::S
 /**
  * @brief Receive complete order book
  */
-void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID&) // override
+void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& message, const FIX::SessionID& sessionID) // override
 {
     FIX::NoMDEntries numOfEntries;
     message.getField(numOfEntries);
@@ -235,21 +237,22 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
 
     // #pragma GCC diagnostic ignored ....
 
-    FIX::Symbol* pSymbol;
+    FIX::Symbol* pSymbol = nullptr;
 
-    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries* pEntryGroup;
-    FIX::MDEntryType* pBookType;
-    FIX::MDEntryPx* pPrice;
-    FIX::MDEntrySize* pSize;
-    FIX::MDEntryDate* pSimulationDate;
-    FIX::MDEntryTime* pSimulationTime;
-    FIX::MDMkt* pDestination;
+    FIX50SP2::MarketDataSnapshotFullRefresh::NoMDEntries* pEntryGroup = nullptr;
+    FIX::MDEntryType* pBookType = nullptr;
+    FIX::MDEntryPx* pPrice = nullptr;
+    FIX::MDEntrySize* pSize = nullptr;
+    FIX::MDEntryDate* pSimulationDate = nullptr;
+    FIX::MDEntryTime* pSimulationTime = nullptr;
+    FIX::MDMkt* pDestination = nullptr;
 
     static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1)) {
+    }
+
     assert(s_cntAtom > 0);
 
     if (0 == prevCnt) { // sequential case; optimized:
@@ -298,10 +301,10 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
         // order book object that the targeted order book type must first be cleared.
         // - the following entries will be in such order so that the standard update
         // procedure for a given order book type may be used without information loss
-        BCDocuments::getInstance()->onNewOBUpdateForOrderBook(pSymbol->getValue(), std::move(entry));
+        BCDocuments::getInstance().onNewOBUpdateForOrderBook(pSymbol->getValue(), std::move(entry));
     }
 
-    if (prevCnt) { // > 1 threads
+    if (0 != prevCnt) { // > 1 threads
         delete pSymbol;
         delete pEntryGroup;
         delete pBookType;
@@ -339,7 +342,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
  * initializes their own (local) fields only if there are
  * multiple onMessage threads running at the same time.
  */
-void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID&) // override
+void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& message, const FIX::SessionID& sessionID) // override
 {
     FIX::NoMDEntries numOfEntries;
     message.getField(numOfEntries);
@@ -359,20 +362,21 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 
     // #pragma GCC diagnostic ignored ....
 
-    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries* pEntryGroup;
-    FIX::MDEntryType* pBookType;
-    FIX::Symbol* pSymbol;
-    FIX::MDEntryPx* pPrice;
-    FIX::MDEntrySize* pSize;
-    FIX::MDEntryDate* pSimulationDate;
-    FIX::MDEntryTime* pSimulationTime;
-    FIX::MDMkt* pDestination;
+    FIX50SP2::MarketDataIncrementalRefresh::NoMDEntries* pEntryGroup = nullptr;
+    FIX::MDEntryType* pBookType = nullptr;
+    FIX::Symbol* pSymbol = nullptr;
+    FIX::MDEntryPx* pPrice = nullptr;
+    FIX::MDEntrySize* pSize = nullptr;
+    FIX::MDEntryDate* pSimulationDate = nullptr;
+    FIX::MDEntryTime* pSimulationTime = nullptr;
+    FIX::MDMkt* pDestination = nullptr;
 
     static std::atomic<unsigned int> s_cntAtom { 0 };
     unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
-    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-        continue;
+    while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1)) {
+    }
+
     assert(s_cntAtom > 0);
 
     if (0 == prevCnt) { // sequential case; optimized:
@@ -414,9 +418,9 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
         pSimulationTime->getValue()
     };
 
-    BCDocuments::getInstance()->onNewOBUpdateForOrderBook(pSymbol->getValue(), std::move(entry));
+    BCDocuments::getInstance().onNewOBUpdateForOrderBook(pSymbol->getValue(), std::move(entry));
 
-    if (prevCnt) { // > 1 threads
+    if (0 != prevCnt) { // > 1 threads
         delete pEntryGroup;
         delete pBookType;
         delete pSymbol;
@@ -434,7 +438,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataIncrementalRefresh& messa
 /**
  * @brief Deal with incoming messages which type is Execution Report.
  */
-void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID&) // override
+void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX::SessionID& sessionID) // override
 {
     FIX::ExecType execType;
     message.getField(execType);
@@ -462,24 +466,25 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
         // #pragma GCC diagnostic ignored ....
 
-        FIX::OrderID* pOrderID;
-        FIX::OrdStatus* pStatus;
-        FIX::Symbol* pSymbol;
-        FIX::Side* pOrderType;
-        FIX::Price* pPrice;
-        FIX::EffectiveTime* pConfirmTime;
-        FIX::LastMkt* pDestination;
-        FIX::LeavesQty* pCurrentSize;
-        FIX::TransactTime* pServerTime;
+        FIX::OrderID* pOrderID = nullptr;
+        FIX::OrdStatus* pStatus = nullptr;
+        FIX::Symbol* pSymbol = nullptr;
+        FIX::Side* pOrderType = nullptr;
+        FIX::Price* pPrice = nullptr;
+        FIX::EffectiveTime* pConfirmTime = nullptr;
+        FIX::LastMkt* pDestination = nullptr;
+        FIX::LeavesQty* pCurrentSize = nullptr;
+        FIX::TransactTime* pServerTime = nullptr;
 
-        FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
-        FIX::PartyID* pUserID;
+        FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup = nullptr;
+        FIX::PartyID* pUserID = nullptr;
 
         static std::atomic<unsigned int> s_cntAtom { 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
-        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-            continue;
+        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1)) {
+        }
+
         assert(s_cntAtom > 0);
 
         if (0 == prevCnt) { // sequential case; optimized:
@@ -547,9 +552,9 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
             pServerTime->getValue()
         };
 
-        BCDocuments::getInstance()->onNewExecutionReportForUserRiskManagement(pUserID->getValue(), std::move(report));
+        BCDocuments::getInstance().onNewExecutionReportForUserRiskManagement(pUserID->getValue(), std::move(report));
 
-        if (prevCnt) { // > 1 threads
+        if (0 != prevCnt) { // > 1 threads
             delete pOrderID;
             delete pStatus;
             delete pSymbol;
@@ -596,31 +601,32 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
 
         // #pragma GCC diagnostic ignored ....
 
-        FIX::OrderID* pOrderID1;
-        FIX::SecondaryOrderID* pOrderID2;
-        FIX::OrdStatus* pStatus;
-        FIX::Symbol* pSymbol;
-        FIX::Side* pOrderType1;
-        FIX::OrdType* pOrderType2;
-        FIX::Price* pPrice;
-        FIX::EffectiveTime* pExecTime;
-        FIX::LastMkt* pDestination;
-        FIX::CumQty* pExecutedSize;
-        FIX::TransactTime* pServerTime;
+        FIX::OrderID* pOrderID1 = nullptr;
+        FIX::SecondaryOrderID* pOrderID2 = nullptr;
+        FIX::OrdStatus* pStatus = nullptr;
+        FIX::Symbol* pSymbol = nullptr;
+        FIX::Side* pOrderType1 = nullptr;
+        FIX::OrdType* pOrderType2 = nullptr;
+        FIX::Price* pPrice = nullptr;
+        FIX::EffectiveTime* pExecTime = nullptr;
+        FIX::LastMkt* pDestination = nullptr;
+        FIX::CumQty* pExecutedSize = nullptr;
+        FIX::TransactTime* pServerTime = nullptr;
 
-        FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup;
-        FIX::PartyID* pUserID1;
-        FIX::PartyID* pUserID2;
+        FIX50SP2::ExecutionReport::NoPartyIDs* pIDGroup = nullptr;
+        FIX::PartyID* pUserID1 = nullptr;
+        FIX::PartyID* pUserID2 = nullptr;
 
-        FIX50SP2::ExecutionReport::NoTrdRegTimestamps* pTimeGroup;
-        FIX::TrdRegTimestamp* pUTCTime1;
-        FIX::TrdRegTimestamp* pUTCTime2;
+        FIX50SP2::ExecutionReport::NoTrdRegTimestamps* pTimeGroup = nullptr;
+        FIX::TrdRegTimestamp* pUTCTime1 = nullptr;
+        FIX::TrdRegTimestamp* pUTCTime2 = nullptr;
 
         static std::atomic<unsigned int> s_cntAtom { 0 };
         unsigned int prevCnt = s_cntAtom.load(std::memory_order_relaxed);
 
-        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1))
-            continue;
+        while (!s_cntAtom.compare_exchange_strong(prevCnt, prevCnt + 1)) {
+        }
+
         assert(s_cntAtom > 0);
 
         if (0 == prevCnt) { // sequential case; optimized:
@@ -716,7 +722,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pUTCTime2->getValue()
             };
 
-            DBConnector::getInstance()->insertTradingRecord(record);
+            DBConnector::getInstance().insertTradingRecord(record);
         }
 
         switch (pStatus->getValue()) {
@@ -730,7 +736,7 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pExecTime->getValue()
             };
 
-            FIXAcceptor::getInstance()->sendLastPrice2All(transac);
+            FIXAcceptor::s_sendLastPrice2All(transac);
 
             if (FIX::OrdStatus_FILLED == pStatus->getValue()) { // trade
                 printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
@@ -764,12 +770,12 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     pServerTime->getValue()
                 };
 
-                auto* docs = BCDocuments::getInstance();
-                docs->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
-                docs->onNewExecutionReportForUserRiskManagement(pUserID1->getValue(), std::move(report1));
-                docs->onNewExecutionReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
+                auto& docs = BCDocuments::getInstance();
+                docs.onNewTransacForCandlestickData(pSymbol->getValue(), transac);
+                docs.onNewExecutionReportForUserRiskManagement(pUserID1->getValue(), std::move(report1));
+                docs.onNewExecutionReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
             } else { // FIX::OrdStatus_REPLACED: TRTH trade
-                BCDocuments::getInstance()->onNewTransacForCandlestickData(pSymbol->getValue(), transac);
+                BCDocuments::getInstance().onNewTransacForCandlestickData(pSymbol->getValue(), transac);
             }
         } break;
         case FIX::OrdStatus_CANCELED: { // cancellation
@@ -790,11 +796,11 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pServerTime->getValue()
             };
 
-            BCDocuments::getInstance()->onNewExecutionReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
+            BCDocuments::getInstance().onNewExecutionReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
         } break;
         } // switch
 
-        if (prevCnt) { // > 1 threads
+        if (0 != prevCnt) { // > 1 threads
             delete pOrderID1;
             delete pOrderID2;
             delete pStatus;

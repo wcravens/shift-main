@@ -29,29 +29,29 @@ DBConnector::~DBConnector()
 /**
  * @brief To provide a simpler syntax to lock.
  */
-std::unique_lock<std::mutex> DBConnector::lockPSQL() const
+auto DBConnector::lockPSQL() const -> std::unique_lock<std::mutex>
 {
     std::unique_lock<std::mutex> lock(m_mtxPSQL);
     return lock; // move()-ed out here
 }
 
-/* static */ DBConnector* DBConnector::getInstance()
+/* static */ auto DBConnector::getInstance() -> DBConnector&
 {
     static DBConnector s_DBInst;
-    return &s_DBInst;
+    return s_DBInst;
 }
 
-bool DBConnector::init(const std::string& cryptoKey, const std::string& fileName)
+auto DBConnector::init(const std::string& cryptoKey, const std::string& fileName) -> bool
 {
     m_loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
-    return m_loginInfo.size();
+    return !m_loginInfo.empty();
 }
 
 /**
  * @brief Establish connection to database.
  * @return Whether the connection had been built.
  */
-bool DBConnector::connectDB()
+auto DBConnector::connectDB() -> bool
 {
     disconnectDB();
 
@@ -74,14 +74,15 @@ bool DBConnector::connectDB()
  */
 void DBConnector::disconnectDB()
 {
-    if (!m_pConn)
+    if (nullptr == m_pConn) {
         return;
+    }
 
     PQfinish(m_pConn);
     m_pConn = nullptr;
 }
 
-bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
+auto DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/) -> bool
 {
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
 }
@@ -89,7 +90,7 @@ bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, Exec
 /**
  * @brief Convert FIX::UtcTimeStamp to string used for date field in DB.
  */
-static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
+static auto s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime) -> std::string
 {
     std::ostringstream os;
 
@@ -108,7 +109,7 @@ static std::string s_utcToString(const FIX::UtcTimeStamp& ts, bool localTime)
     return os.str();
 }
 
-bool DBConnector::insertTradingRecord(const TradingRecord& trade)
+auto DBConnector::insertTradingRecord(const TradingRecord& trade) -> bool
 {
     std::ostringstream queryStrm;
     queryStrm << "INSERT INTO " << shift::database::PSQLTable<shift::database::TradingRecords>::name << " VALUES ('"

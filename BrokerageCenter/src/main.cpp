@@ -65,11 +65,11 @@ static void s_broadcastOrderBooks()
     while (::s_isBroadcasting) {
         // broadcast the full order book of every stock every BROADCAST_ORDERBOOK_PERIOD (forcing a refresh in the client side)
         std::this_thread::sleep_for(::BROADCAST_ORDERBOOK_PERIOD);
-        BCDocuments::getInstance()->broadcastOrderBooks();
+        BCDocuments::getInstance().broadcastOrderBooks();
     }
 }
 
-int main(int ac, char* av[])
+auto main(int argc, char** argv) -> int
 {
     char tz[] = "TZ=America/New_York"; // set time zone to New York
     putenv(tz);
@@ -83,13 +83,13 @@ int main(int ac, char* av[])
      * - hard limit = maximum number of open files a process may request
      *   (4096 in Ubuntu 18.04; unlimited in macOS 10.15)
      */
-    struct rlimit rlim;
-    if (getrlimit(RLIMIT_NOFILE, &rlim) == 0) {
-        rlim.rlim_cur = 4096; // soft limit = 4096
-        if (rlim.rlim_cur > rlim.rlim_max) {
-            rlim.rlim_cur = rlim.rlim_max; // soft limit = hard limit
+    struct rlimit c_rlimit;
+    if (getrlimit(RLIMIT_NOFILE, &c_rlimit) == 0) {
+        c_rlimit.rlim_cur = 4096; // soft limit = 4096
+        if (c_rlimit.rlim_cur > c_rlimit.rlim_max) {
+            c_rlimit.rlim_cur = c_rlimit.rlim_max; // soft limit = hard limit
         }
-        setrlimit(RLIMIT_NOFILE, &rlim);
+        setrlimit(RLIMIT_NOFILE, &c_rlimit);
     }
 
     /**
@@ -138,7 +138,7 @@ int main(int ac, char* av[])
 
     po::variables_map vm;
     try {
-        po::store(po::parse_command_line(ac, av, desc), vm);
+        po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
     } catch (const boost::program_options::error& e) {
         cerr << COLOR_ERROR "ERROR: " << e.what() << NO_COLOR << endl;
@@ -148,19 +148,19 @@ int main(int ac, char* av[])
         return 2;
     }
 
-    if (vm.count(CSTR_HELP)) {
+    if (vm.count(CSTR_HELP) > 0) {
         cout << '\n'
              << desc << '\n'
              << endl;
         return 0;
     }
 
-    if (vm.count(CSTR_VERBOSE)) {
+    if (vm.count(CSTR_VERBOSE) > 0) {
         params.isVerbose = true;
     }
     voh_t voh(cout, params.isVerbose);
 
-    if (vm.count(CSTR_CONFIG)) {
+    if (vm.count(CSTR_CONFIG) > 0) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
              << params.configDir << ".\n" NO_COLOR << endl;
@@ -169,18 +169,18 @@ int main(int ac, char* av[])
              << endl;
     }
 
-    if (vm.count(CSTR_KEY)) {
+    if (vm.count(CSTR_KEY) > 0) {
         params.cryptoKey = vm[CSTR_KEY].as<std::string>();
     } else {
         cout << COLOR "The built-in initial key 'SHIFT123' is used for reading encrypted login files." NO_COLOR << '\n'
              << endl;
     }
 
-    if (vm.count(CSTR_TIMEOUT)) {
+    if (vm.count(CSTR_TIMEOUT) > 0) {
         params.timer.minutes = vm[CSTR_TIMEOUT].as<decltype(params.timer)::min_t>();
-        if (params.timer.minutes > 0)
+        if (params.timer.minutes > 0) {
             params.timer.isSet = true;
-        else {
+        } else {
             cout << COLOR "Note: The timeout option is ignored because of the given value." NO_COLOR << '\n'
                  << endl;
         }
@@ -189,11 +189,11 @@ int main(int ac, char* av[])
     const auto optsUPI = { CSTR_USERNAME, CSTR_PASSWORD, CSTR_INFO };
     auto isProvided = [&vm](auto* opt) { return vm.count(opt); };
 
-    if (!vm.count(CSTR_CHANGE_PSW)
-        && (std::any_of(optsUPI.begin(), optsUPI.end(), isProvided) || vm.count(CSTR_SUPER))) {
+    if (vm.count(CSTR_CHANGE_PSW) == 0
+        && (std::any_of(optsUPI.begin(), optsUPI.end(), isProvided) || vm.count(CSTR_SUPER) > 0)) {
         if (!std::all_of(optsUPI.begin(), optsUPI.end(), isProvided)) {
             cout << COLOR_ERROR "ERROR: The new "
-                 << (vm.count(CSTR_SUPER) ? "super " : "")
+                 << (vm.count(CSTR_SUPER) > 0 ? "super " : "")
                  << "user's options are not sufficient. Please provide -u, -p, and -i at the same time." NO_COLOR
                  << '\n'
                  << endl;
@@ -216,10 +216,10 @@ int main(int ac, char* av[])
 
     DBConnector::s_isPortfolioDBReadOnly = vm.count(CSTR_PFDBREADONLY) > 0;
 
-    DBConnector::getInstance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+    DBConnector::getInstance().init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     while (true) {
-        if (!DBConnector::getInstance()->connectDB()) {
+        if (!DBConnector::getInstance().connectDB()) {
             cout.clear();
             cout << COLOR_ERROR "DB ERROR: Failed to connect database." NO_COLOR << endl;
             cout << "\tRetry ('Y') connection to database ? : ";
@@ -227,14 +227,15 @@ int main(int ac, char* av[])
 
             char cmd = cin.get();
             cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
-            if ('Y' != cmd && 'y' != cmd)
+            if ('Y' != cmd && 'y' != cmd) {
                 return 5;
+            }
         } else {
             cout << "DB connection OK.\n"
                  << endl;
 
-            if (vm.count(CSTR_CHANGE_PSW)) {
-                if (!vm.count(CSTR_USERNAME) || !vm.count(CSTR_PASSWORD)) {
+            if (vm.count(CSTR_CHANGE_PSW) > 0) {
+                if (vm.count(CSTR_USERNAME) == 0 || vm.count(CSTR_PASSWORD) == 0) {
                     cout << COLOR_ERROR "ERROR: The password changing options are not sufficient."
                                         " Please provide -u, -p at the same time." NO_COLOR
                          << '\n'
@@ -248,30 +249,31 @@ int main(int ac, char* av[])
                 shift::crypto::Encryptor enc;
                 iss >> enc >> params.user.password;
 
-                if (!DBConnector::getInstance()->doQuery("UPDATE traders SET password = '" + params.user.password + "' WHERE username = '" + params.user.username + "';", COLOR_ERROR "ERROR: Failed to change the user [" + params.user.username + "]'s password!\n" NO_COLOR))
+                if (!DBConnector::getInstance().doQuery("UPDATE traders SET password = '" + params.user.password + "' WHERE username = '" + params.user.username + "';", COLOR_ERROR "ERROR: Failed to change the user [" + params.user.username + "]'s password!\n" NO_COLOR)) {
                     return 7;
+                }
 
                 cout << COLOR "Password changed." NO_COLOR << endl;
                 return 0;
             }
 
-            if (vm.count(CSTR_RESET)) {
+            if (vm.count(CSTR_RESET) > 0) {
                 vm.erase(CSTR_RESET);
 
                 cout << COLOR_WARNING "Resetting the databases..." NO_COLOR << endl;
-                DBConnector::getInstance()->doQuery("DROP TABLE trading_records CASCADE", COLOR_ERROR "ERROR: Failed to drop [ trading_records ]." NO_COLOR);
-                DBConnector::getInstance()->doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_summary ]." NO_COLOR);
-                DBConnector::getInstance()->doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
+                DBConnector::getInstance().doQuery("DROP TABLE trading_records CASCADE", COLOR_ERROR "ERROR: Failed to drop [ trading_records ]." NO_COLOR);
+                DBConnector::getInstance().doQuery("DROP TABLE portfolio_summary CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_summary ]." NO_COLOR);
+                DBConnector::getInstance().doQuery("DROP TABLE portfolio_items CASCADE", COLOR_ERROR "ERROR: Failed to drop [ portfolio_items ]." NO_COLOR);
                 continue;
             }
 
-            if (vm.count(CSTR_USERNAME)) { // add user ?
+            if (vm.count(CSTR_USERNAME) > 0) { // add user ?
                 const auto& fname = params.user.info[0];
                 const auto& lname = params.user.info[1];
                 const auto& email = params.user.info[2];
 
-                const auto res = shift::database::readRowsOfField(DBConnector::getInstance()->getConn(), "SELECT id FROM traders WHERE username = '" + params.user.username + "';");
-                if (res.size()) {
+                const auto res = shift::database::readRowsOfField(DBConnector::getInstance().getConn(), "SELECT id FROM traders WHERE username = '" + params.user.username + "';");
+                if (!res.empty()) {
                     cout << COLOR_WARNING "The user " << params.user.username << " already exists!" NO_COLOR << endl;
                     return 0;
                 }
@@ -281,7 +283,7 @@ int main(int ac, char* av[])
                     + params.user.password + "','"
                     + fname + "','" + lname + "','" + email // info
                     + (vm.count(CSTR_SUPER) > 0 ? "',TRUE);" : "',FALSE);");
-                if (DBConnector::getInstance()->doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!\n" NO_COLOR)) {
+                if (DBConnector::getInstance().doQuery(insert, COLOR_ERROR "ERROR: Failed to insert user into DB!\n" NO_COLOR)) {
                     cout << COLOR "User " << params.user.username << " was successfully inserted." NO_COLOR << endl;
                     return 0;
                 }
@@ -294,21 +296,22 @@ int main(int ac, char* av[])
     }
 
     // try to connect to Matching Engine
-    FIXInitiator::getInstance()->connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+    FIXInitiator::getInstance().connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // wait for complete security list
-    while (!BCDocuments::s_isSecurityListReady)
+    while (!BCDocuments::s_isSecurityListReady) {
         std::this_thread::sleep_for(500ms);
+    }
 
     // try to connect to clients
-    FIXAcceptor::getInstance()->connectClients(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+    FIXAcceptor::getInstance().connectClients(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // create a broadcaster to broadcast all order books
     std::thread broadcaster(&::s_broadcastOrderBooks);
 
     // create 'done' file in ~/.shift/BrokerageCenter to signalize shell that service is done loading
     // (directory is also created if it does not exist)
-    const char* homeDir;
+    const char* homeDir = nullptr;
     if ((homeDir = getenv("HOME")) == nullptr) {
         homeDir = getpwuid(getuid())->pw_dir;
     }
@@ -344,8 +347,9 @@ int main(int ac, char* av[])
 
                     char cmd = cin.get(); // wait
                     cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
-                    if ('T' == cmd || 't' == cmd)
+                    if ('T' == cmd || 't' == cmd) {
                         return;
+                    }
                 }
             })
             .get(); // this_thread will wait for user terminating acceptor.
@@ -353,11 +357,12 @@ int main(int ac, char* av[])
 
     // close program
     ::s_isBroadcasting = false; // to terminate broadcaster
-    if (broadcaster.joinable())
+    if (broadcaster.joinable()) {
         broadcaster.join(); // wait for termination
+    }
 
-    FIXAcceptor::getInstance()->disconnectClients();
-    FIXInitiator::getInstance()->disconnectMatchingEngine();
+    FIXAcceptor::getInstance().disconnectClients();
+    FIXInitiator::getInstance().disconnectMatchingEngine();
 
     if (params.isVerbose) {
         cout.clear();

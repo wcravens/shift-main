@@ -18,7 +18,7 @@
 class OrderBook : public ITargetsInfo {
 public:
     OrderBook() = default;
-    OrderBook(const std::string& name);
+    OrderBook(std::string symbol);
     ~OrderBook() override;
 
     void enqueueOrderBookUpdate(OrderBookEntry&& update);
@@ -26,10 +26,10 @@ public:
     void spawn();
     // void stop();
 
-    void onSubscribeOrderBook(const std::string& userID);
-    void onUnsubscribeOrderBook(const std::string& userID);
+    void onSubscribeOrderBook(const std::string& targetID);
+    void onUnsubscribeOrderBook(const std::string& targetID);
 
-    void broadcastWholeOrderBookToOne(const std::string& userID);
+    void broadcastWholeOrderBookToOne(const std::string& targetID);
     void broadcastWholeOrderBookToAll();
     void broadcastSingleUpdateToAll(const OrderBookEntry& update);
 
@@ -40,10 +40,10 @@ public:
     void saveLocalBidOrderBookUpdate(const OrderBookEntry& update);
     void saveLocalAskOrderBookUpdate(const OrderBookEntry& update);
 
-    double getGlobalBidOrderBookFirstPrice() const;
-    double getGlobalAskOrderBookFirstPrice() const;
-    double getLocalBidOrderBookFirstPrice() const;
-    double getLocalAskOrderBookFirstPrice() const;
+    auto getGlobalBidOrderBookFirstPrice() const -> double;
+    auto getGlobalAskOrderBookFirstPrice() const -> double;
+    auto getLocalBidOrderBookFirstPrice() const -> double;
+    auto getLocalAskOrderBookFirstPrice() const -> double;
 
 private:
     std::string m_symbol; ///> The stock name of this OrderBook instance.

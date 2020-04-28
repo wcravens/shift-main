@@ -10,19 +10,19 @@
 #include <shift/miscutils/concurrency/Consumer.h>
 #include <shift/miscutils/terminal/Common.h>
 
-/* static */ inline void RiskManagement::s_sendOrderToME(const Order& order)
+/* static */ inline void RiskManagement::s_sendOrderToMatchingEngine(const Order& order)
 {
-    FIXInitiator::getInstance()->sendOrder(order);
+    FIXInitiator::s_sendOrder(order);
 }
 
 /* static */ inline void RiskManagement::s_sendPortfolioSummaryToUser(const std::string& userID, const PortfolioSummary& summary)
 {
-    FIXAcceptor::getInstance()->sendPortfolioSummary(userID, summary);
+    FIXAcceptor::s_sendPortfolioSummary(userID, summary);
 }
 
 /* static */ inline void RiskManagement::s_sendPortfolioItemToUser(const std::string& userID, const PortfolioItem& item)
 {
-    FIXAcceptor::getInstance()->sendPortfolioItem(userID, item);
+    FIXAcceptor::s_sendPortfolioItem(userID, item);
 }
 
 RiskManagement::RiskManagement(const std::string& userID, double buyingPower)
@@ -57,18 +57,18 @@ RiskManagement::~RiskManagement()
 
 void RiskManagement::spawn()
 {
-    m_orderThread.reset(new std::thread(&RiskManagement::processOrder, this));
-    m_execRptThread.reset(new std::thread(&RiskManagement::processExecRpt, this));
+    m_orderThread = std::make_unique<std::thread>(&RiskManagement::processOrder, this);
+    m_execRptThread = std::make_unique<std::thread>(&RiskManagement::processExecRpt, this);
 }
 
-inline double RiskManagement::getMarketBuyPrice(const std::string& symbol)
+/* static */ inline auto RiskManagement::s_getMarketBuyPrice(const std::string& symbol) -> double
 {
-    return BCDocuments::getInstance()->getOrderBookMarketFirstPrice(true, symbol);
+    return BCDocuments::getInstance().getOrderBookMarketFirstPrice(true, symbol);
 }
 
-inline double RiskManagement::getMarketSellPrice(const std::string& symbol)
+/* static */ inline auto RiskManagement::s_getMarketSellPrice(const std::string& symbol) -> double
 {
-    return BCDocuments::getInstance()->getOrderBookMarketFirstPrice(false, symbol);
+    return BCDocuments::getInstance().getOrderBookMarketFirstPrice(false, symbol);
 }
 
 void RiskManagement::insertPortfolioItem(const std::string& symbol, const PortfolioItem& portfolioItem)
@@ -84,8 +84,9 @@ void RiskManagement::sendPortfolioHistory()
 
     s_sendPortfolioSummaryToUser(m_userID, m_porfolioSummary);
 
-    for (auto& i : m_portfolioItems)
-        s_sendPortfolioItemToUser(m_userID, i.second);
+    for (const auto& [symbol, item] : m_portfolioItems) {
+        s_sendPortfolioItemToUser(m_userID, item);
+    }
 }
 
 void RiskManagement::updateWaitingList(const ExecutionReport& report)
@@ -93,8 +94,9 @@ void RiskManagement::updateWaitingList(const ExecutionReport& report)
     std::lock_guard<std::mutex> guard(m_mtxWaitingList);
 
     auto it = m_waitingList.find(report.orderID);
-    if (m_waitingList.end() == it)
+    if (m_waitingList.end() == it) {
         return;
+    }
 
     auto& order = it->second;
     order.setExecutedSize(order.getExecutedSize() + report.executedSize);
@@ -112,8 +114,9 @@ void RiskManagement::updateWaitingList(const ExecutionReport& report)
 void RiskManagement::sendWaitingList() const
 {
     std::lock_guard<std::mutex> guard(m_mtxWaitingList);
-    if (!m_waitingList.empty())
-        FIXAcceptor::getInstance()->sendWaitingList(m_userID, m_waitingList);
+    if (!m_waitingList.empty()) {
+        FIXAcceptor::s_sendWaitingList(m_userID, m_waitingList);
+    }
 }
 
 void RiskManagement::enqueueOrder(Order&& order)
@@ -131,17 +134,18 @@ void RiskManagement::processOrder()
 
     while (true) {
         std::unique_lock<std::mutex> lock(m_mtxOrder);
-        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOrder, lock, [this] { return !m_orderBuffer.empty(); }))
+        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvOrder, lock, [this] { return !m_orderBuffer.empty(); })) {
             return;
+        }
 
-        auto orderPtr = &m_orderBuffer.front();
+        auto* orderPtr = &m_orderBuffer.front();
 
         if (m_portfolioItems.find(orderPtr->getSymbol()) == m_portfolioItems.end()) { // add new portfolio item ?
             insertPortfolioItem(orderPtr->getSymbol(), orderPtr->getSymbol());
 
             if (!DBConnector::s_isPortfolioDBReadOnly) {
-                auto lock { DBConnector::getInstance()->lockPSQL() };
-                DBConnector::getInstance()->doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ('" + m_userID + "','" + orderPtr->getSymbol() + "');", "");
+                auto lock { DBConnector::getInstance().lockPSQL() };
+                DBConnector::getInstance().doQuery("INSERT INTO portfolio_items (id, symbol) VALUES ('" + m_userID + "','" + orderPtr->getSymbol() + "');", "");
             }
         }
 
@@ -176,10 +180,11 @@ void RiskManagement::processExecRpt()
 
     while (true) {
         std::unique_lock<std::mutex> lock(m_mtxExecRpt);
-        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvExecRpt, lock, [this] { return !m_execRptBuffer.empty(); }))
+        if (shift::concurrency::quitOrContinueConsumerThread(quitFut, m_cvExecRpt, lock, [this] { return !m_execRptBuffer.empty(); })) {
             return;
+        }
 
-        auto reportPtr = &m_execRptBuffer.front();
+        auto* reportPtr = &m_execRptBuffer.front();
 
         // if it is not a confirmation report
         if (reportPtr->orderStatus != Order::Status::NEW && reportPtr->orderStatus != Order::Status::PENDING_CANCEL) {
@@ -210,7 +215,7 @@ void RiskManagement::processExecRpt()
                             m_porfolioSummary.returnBalance(item.getBorrowedBalance());
                             item.resetBorrowedBalance();
 
-                            double rem = buyShares - item.getShortShares();
+                            int rem = buyShares - item.getShortShares();
                             item.addLongPrice(price, rem);
                             item.addLongShares(rem);
                             item.resetShortShares();
@@ -289,7 +294,7 @@ void RiskManagement::processExecRpt()
                             // update buying power for selling long shares
                             m_porfolioSummary.addBuyingPower(m_pendingAskOrders[reportPtr->orderID].second * price);
 
-                            double rem = sellShares - m_pendingAskOrders[reportPtr->orderID].second;
+                            int rem = sellShares - m_pendingAskOrders[reportPtr->orderID].second;
                             m_porfolioSummary.borrowBalance(price * rem); // the remainder of the shares need to be borrowed
                             item.addBorrowedBalance(price * rem);
                             m_pendingShortCashAmount -= m_pendingAskOrders[reportPtr->orderID].first.getPrice() * rem;
@@ -367,9 +372,9 @@ void RiskManagement::processExecRpt()
             }
             if (!DBConnector::s_isPortfolioDBReadOnly && wasPortfolioSent) {
                 const auto& item = m_portfolioItems[reportPtr->orderSymbol];
-                auto lock { DBConnector::getInstance()->lockPSQL() };
+                auto lock { DBConnector::getInstance().lockPSQL() };
 
-                DBConnector::getInstance()->doQuery(
+                DBConnector::getInstance().doQuery(
                     "UPDATE portfolio_items" // presume that we have got the user's uuid already in it
                     "\n"
                     "SET borrowed_balance = "
@@ -385,7 +390,7 @@ void RiskManagement::processExecRpt()
                         + m_userID + "';",
                     COLOR_WARNING "WARNING: UPDATE portfolio_items failed for user [" + m_userID + "]!\n" NO_COLOR);
 
-                DBConnector::getInstance()->doQuery(
+                DBConnector::getInstance().doQuery(
                     "UPDATE portfolio_summary" // presume that we have got the user's uuid already in it
                     "\n"
                     "SET buying_power = "
@@ -403,14 +408,14 @@ void RiskManagement::processExecRpt()
 
         updateWaitingList(*reportPtr);
         sendWaitingList();
-        FIXAcceptor::getInstance()->sendConfirmationReport(*reportPtr);
+        FIXAcceptor::s_sendConfirmationReport(*reportPtr);
 
         reportPtr = nullptr;
         m_execRptBuffer.pop();
     } // while
 }
 
-bool RiskManagement::verifyAndSendOrder(const Order& order)
+auto RiskManagement::verifyAndSendOrder(const Order& order) -> bool
 {
     bool success = false;
     double price = order.getPrice();
@@ -425,11 +430,12 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
 
     switch (order.getType()) {
     case Order::Type::MARKET_BUY: {
-        price = getMarketSellPrice(order.getSymbol()); // use market price
+        price = s_getMarketSellPrice(order.getSymbol()); // use market price
     } // the rest is the same as in limit orders
     case Order::Type::LIMIT_BUY: {
-        if (price == 0.0)
+        if (price == 0.0) {
             break;
+        }
 
         std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
         std::lock_guard<std::mutex> qpGuard(m_mtxOrderProcessing);
@@ -444,11 +450,12 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
         }
     } break;
     case Order::Type::MARKET_SELL: {
-        price = getMarketBuyPrice(order.getSymbol()); // use market price
+        price = s_getMarketBuyPrice(order.getSymbol()); // use market price
     } // the rest is the same as in limit orders
     case Order::Type::LIMIT_SELL: {
-        if (price == 0.0)
+        if (price == 0.0) {
             break;
+        }
 
         std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
         std::lock_guard<std::mutex> piGuard(m_mtxPortfolioItems);
@@ -478,25 +485,31 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
     case Order::Type::CANCEL_BID: {
         std::lock_guard<std::mutex> guard(m_mtxWaitingList);
         auto it = m_waitingList.find(order.getID());
-        if (m_waitingList.end() != it) // found order id
-            if ((it->second.getType() == Order::Type::LIMIT_BUY) || (it->second.getType() == Order::Type::MARKET_BUY))
-                if (it->second.getPrice() == order.getPrice())
+        if (m_waitingList.end() != it) { // found order id
+            if ((it->second.getType() == Order::Type::LIMIT_BUY) || (it->second.getType() == Order::Type::MARKET_BUY)) {
+                if (it->second.getPrice() == order.getPrice()) {
                     success = true;
+                }
+            }
+        }
     } break;
     case Order::Type::CANCEL_ASK: {
         std::lock_guard<std::mutex> guard(m_mtxWaitingList);
         auto it = m_waitingList.find(order.getID());
-        if (m_waitingList.end() != it) // found order id
-            if ((it->second.getType() == Order::Type::LIMIT_SELL) || (it->second.getType() == Order::Type::MARKET_SELL))
-                if (it->second.getPrice() == order.getPrice())
+        if (m_waitingList.end() != it) { // found order id
+            if ((it->second.getType() == Order::Type::LIMIT_SELL) || (it->second.getType() == Order::Type::MARKET_SELL)) {
+                if (it->second.getPrice() == order.getPrice()) {
                     success = true;
+                }
+            }
+        }
     } break;
     default: {
     } break;
     }
 
     if (success) {
-        s_sendOrderToME(order);
+        s_sendOrderToMatchingEngine(order);
     } else {
         ExecutionReport report {
             m_userID,
@@ -509,7 +522,7 @@ bool RiskManagement::verifyAndSendOrder(const Order& order)
             Order::Status::REJECTED,
             "BC" // destination (rejected at the Brokerage Center)
         };
-        FIXAcceptor::getInstance()->sendConfirmationReport(report);
+        FIXAcceptor::s_sendConfirmationReport(report);
     }
 
     return success;

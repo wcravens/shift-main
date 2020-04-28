@@ -18,15 +18,15 @@ public:
     };
 
     OrderBookEntry() = default;
-    OrderBookEntry(Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& simulationDate, const FIX::UtcTimeOnly& simulationTime);
+    OrderBookEntry(OrderBookEntry::Type type, std::string symbol, double price, int size, std::string destination, FIX::UtcDateOnly simulationDate, FIX::UtcTimeOnly simulationTime);
 
-    Type getType() const;
-    const std::string& getSymbol() const;
-    double getPrice() const;
-    int getSize() const;
-    const std::string& getDestination() const;
-    const FIX::UtcDateOnly& getDate() const;
-    const FIX::UtcTimeOnly& getTime() const;
+    auto getType() const -> Type;
+    auto getSymbol() const -> const std::string&;
+    auto getPrice() const -> double;
+    auto getSize() const -> int;
+    auto getDestination() const -> const std::string&;
+    auto getDate() const -> const FIX::UtcDateOnly&;
+    auto getTime() const -> const FIX::UtcTimeOnly&;
 
 private:
     Type m_type;

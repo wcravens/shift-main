@@ -7,10 +7,10 @@
  */
 class PortfolioItem {
 public:
-    PortfolioItem();
-    PortfolioItem(const std::string& symbol);
-    PortfolioItem(const std::string& symbol, int shares, double price);
-    PortfolioItem(const std::string& symbol, double borrowedBalace, double pl, double longPrice, double shortPrice, int longShares, int shortShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio item.
+    PortfolioItem() = default;
+    PortfolioItem(std::string symbol);
+    PortfolioItem(std::string symbol, int shares, double price);
+    PortfolioItem(std::string symbol, double borrowedBalace, double pl, double longPrice, double shortPrice, int longShares, int shortShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio item.
 
     void addLongShares(int value);
     void addShortShares(int value);
@@ -26,15 +26,15 @@ public:
     void resetPL();
     void resetBorrowedBalance();
 
-    const std::string& getSymbol() const;
-    int getSummaryShares() const;
-    int getLongShares() const;
-    int getShortShares() const;
-    double getSummaryPrice() const;
-    double getLongPrice() const;
-    double getShortPrice() const;
-    double getPL() const;
-    double getBorrowedBalance() const;
+    auto getSymbol() const -> const std::string&;
+    auto getSummaryShares() const -> int;
+    auto getLongShares() const -> int;
+    auto getShortShares() const -> int;
+    auto getSummaryPrice() const -> double;
+    auto getLongPrice() const -> double;
+    auto getShortPrice() const -> double;
+    auto getPL() const -> double;
+    auto getBorrowedBalance() const -> double;
 
 private:
     std::string m_symbol;

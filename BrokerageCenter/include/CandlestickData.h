@@ -14,17 +14,17 @@
 
 class CandlestickData : public ITargetsInfo {
 public:
-    CandlestickData(); //> This will postpone initializing of valid startup status (e.g. symbol is not empty and open time is not 0) to first time processing a transaction.
-    CandlestickData(const std::string& symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime);
+    CandlestickData() = default; //> This will postpone initializing of valid startup status (e.g. symbol is not empty and open time is not 0) to first time processing a transaction.
+    CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime);
     ~CandlestickData() override;
 
     void sendPoint(const CandlestickDataPoint& cdPoint);
     void sendHistory(std::string targetID);
 
-    const std::string& getSymbol() const;
+    auto getSymbol() const -> const std::string&;
 
-    static std::time_t s_nowUnixTimestamp() noexcept;
-    static std::time_t s_toUnixTimestamp(const std::string& time) noexcept;
+    static auto s_nowUnixTimestamp() noexcept -> std::time_t;
+    static auto s_toUnixTimestamp(const std::string& time) noexcept -> std::time_t;
 
     void registerUserInCandlestickData(const std::string& targetID);
     void unregisterUserInCandlestickData(const std::string& targetID);

@@ -19,11 +19,11 @@ public:
     void addTotalPL(double value);
     void addTotalShares(int value);
 
-    double getBuyingPower() const;
-    double getHoldingBalance() const;
-    double getBorrowedBalance() const;
-    double getTotalPL() const;
-    int getTotalShares() const;
+    auto getBuyingPower() const -> double;
+    auto getHoldingBalance() const -> double;
+    auto getBorrowedBalance() const -> double;
+    auto getTotalPL() const -> double;
+    auto getTotalShares() const -> int;
 
 private:
     double m_buyingPower;

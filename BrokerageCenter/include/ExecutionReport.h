@@ -19,51 +19,51 @@ struct ExecutionReport {
     FIX::UtcTimeStamp simulationTime;
     FIX::UtcTimeStamp realTime;
 
-    ExecutionReport(const std::string& userID,
-        const std::string& orderID,
+    ExecutionReport(std::string userID,
+        std::string orderID,
         Order::Type orderType,
-        const std::string& orderSymbol,
+        std::string orderSymbol,
         int currentSize,
         int executedSize,
         double orderPrice,
         Order::Status orderStatus,
-        const std::string& destination,
-        const FIX::UtcTimeStamp& simulationTime,
-        const FIX::UtcTimeStamp& realTime)
-        : userID(userID)
-        , orderID(orderID)
-        , orderType(orderType)
-        , orderSymbol(orderSymbol)
-        , currentSize(currentSize)
-        , executedSize(executedSize)
-        , orderPrice(orderPrice)
-        , orderStatus(orderStatus)
-        , destination(destination)
-        , simulationTime(simulationTime)
-        , realTime(realTime)
+        std::string destination,
+        FIX::UtcTimeStamp simulationTime,
+        FIX::UtcTimeStamp realTime)
+        : userID { std::move(userID) }
+        , orderID { std::move(orderID) }
+        , orderType { orderType }
+        , orderSymbol { std::move(orderSymbol) }
+        , currentSize { currentSize }
+        , executedSize { executedSize }
+        , orderPrice { orderPrice }
+        , orderStatus { orderStatus }
+        , destination { std::move(destination) }
+        , simulationTime { std::move(simulationTime) }
+        , realTime { std::move(realTime) }
     {
     }
 
-    ExecutionReport(const std::string& userID,
-        const std::string& orderID,
+    ExecutionReport(std::string userID,
+        std::string orderID,
         Order::Type orderType,
-        const std::string& orderSymbol,
+        std::string orderSymbol,
         int currentSize,
         int executedSize,
         double orderPrice,
         Order::Status orderStatus,
-        const std::string& destination)
-        : userID(userID)
-        , orderID(orderID)
-        , orderType(orderType)
-        , orderSymbol(orderSymbol)
-        , currentSize(currentSize)
-        , executedSize(executedSize)
-        , orderPrice(orderPrice)
-        , orderStatus(orderStatus)
-        , destination(destination)
-        , simulationTime()
-        , realTime()
+        std::string destination)
+        : userID { std::move(userID) }
+        , orderID { std::move(orderID) }
+        , orderType { orderType }
+        , orderSymbol { std::move(orderSymbol) }
+        , currentSize { currentSize }
+        , executedSize { executedSize }
+        , orderPrice { orderPrice }
+        , orderStatus { orderStatus }
+        , destination { std::move(destination) }
+        , simulationTime {}
+        , realTime {}
     {
     }
 };

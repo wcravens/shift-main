@@ -29,17 +29,18 @@ struct Order {
     };
 
     Order() = default;
-    Order(Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& userID);
+    Order(Order::Type type, std::string symbol, int size, double price, std::string id, std::string userID);
+
+    static auto s_typeToString(Type type) -> std::string;
 
     Type getType() const;
-    static const std::string s_typeToString(Type type);
-    const std::string& getSymbol() const;
-    int getSize() const;
-    int getExecutedSize() const;
-    double getPrice() const;
-    const std::string& getID() const;
-    const std::string& getUserID() const;
-    Status getStatus() const;
+    auto getSymbol() const -> const std::string&;
+    auto getSize() const -> int;
+    auto getExecutedSize() const -> int;
+    auto getPrice() const -> double;
+    auto getID() const -> const std::string&;
+    auto getUserID() const -> const std::string&;
+    auto getStatus() const -> Status;
 
     // Setters
     void setType(Type type);

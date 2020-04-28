@@ -1,23 +1,18 @@
 #include "Order.h"
 
-Order::Order(Order::Type type, const std::string& symbol, int size, double price, const std::string& id, const std::string& userID)
-    : m_type(type)
-    , m_symbol(symbol)
-    , m_size(size)
-    , m_executedSize(0)
-    , m_price(price)
-    , m_id(id)
-    , m_userID(userID)
-    , m_status(Order::Status::PENDING_NEW)
+Order::Order(Order::Type type, std::string symbol, int size, double price, std::string id, std::string userID)
+    : m_type { type }
+    , m_symbol { std::move(symbol) }
+    , m_size { size }
+    , m_executedSize { 0 }
+    , m_price { price }
+    , m_id { std::move(id) }
+    , m_userID { std::move(userID) }
+    , m_status { Order::Status::PENDING_NEW }
 {
 }
 
-Order::Type Order::getType() const
-{
-    return m_type;
-}
-
-/* static */ const std::string Order::s_typeToString(Type type)
+/* static */ auto Order::s_typeToString(Type type) -> std::string
 {
     switch (type) {
     case Type::LIMIT_BUY:
@@ -43,37 +38,42 @@ Order::Type Order::getType() const
     return "UNKNOWN";
 }
 
-const std::string& Order::getSymbol() const
+auto Order::getType() const -> Order::Type
+{
+    return m_type;
+}
+
+auto Order::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-int Order::getSize() const
+auto Order::getSize() const -> int
 {
     return m_size;
 }
 
-int Order::getExecutedSize() const
+auto Order::getExecutedSize() const -> int
 {
     return m_executedSize;
 }
 
-double Order::getPrice() const
+auto Order::getPrice() const -> double
 {
     return m_price;
 }
 
-const std::string& Order::getID() const
+auto Order::getID() const -> const std::string&
 {
     return m_id;
 }
 
-const std::string& Order::getUserID() const
+auto Order::getUserID() const -> const std::string&
 {
     return m_userID;
 }
 
-Order::Status Order::getStatus() const
+auto Order::getStatus() const -> Order::Status
 {
     return m_status;
 }

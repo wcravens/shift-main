@@ -9,7 +9,7 @@ class TokenPool {
 public:
     TokenPool(const int& size);
 
-    Uuid take();
+    auto take() -> Uuid;
     void use(const Uuid& t);
     void recycle(const Uuid& t);
 
@@ -24,12 +24,13 @@ private:
 template <typename Uuid>
 TokenPool<Uuid>::TokenPool(const int& size)
 {
-    for (int i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i) {
         m_unusedTokens.insert(shift::crossguid::newGuid());
+    }
 }
 
 template <typename Uuid>
-Uuid TokenPool<Uuid>::take()
+auto TokenPool<Uuid>::take() -> Uuid
 {
     Uuid t = *m_unusedTokens.begin();
     move(&m_unusedTokens, &m_takenTokens, t);

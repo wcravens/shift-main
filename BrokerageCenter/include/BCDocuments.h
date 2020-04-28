@@ -26,28 +26,28 @@ class BCDocuments : public ITargetsInfo {
 public:
     static std::atomic<bool> s_isSecurityListReady;
 
-    static BCDocuments* getInstance();
+    static auto getInstance() -> BCDocuments&;
 
     void addSymbol(const std::string& symbol);
-    bool hasSymbol(const std::string& symbol) const;
-    const std::unordered_set<std::string>& getSymbols() const; // symbols list
+    auto hasSymbol(const std::string& symbol) const -> bool;
+    auto getSymbols() const -> const std::unordered_set<std::string>&; // symbols list
 
     void attachOrderBookToSymbol(const std::string& symbol);
     void attachCandlestickDataToSymbol(const std::string& symbol);
 
     void registerUserInDoc(const std::string& targetID, const std::string& userID); // for connection
     void unregisterTargetFromDoc(const std::string& targetID); // for disconnection; will unregister all connected users of this target
-    std::string getTargetIDByUserID(const std::string& userID) const;
+    auto getTargetIDByUserID(const std::string& userID) const -> std::string;
 
     void unregisterTargetFromOrderBooks(const std::string& targetID);
     void unregisterTargetFromCandles(const std::string& targetID);
 
-    bool manageSubscriptionInOrderBook(bool isSubscribe, const std::string& symbol, const std::string& targetID);
-    bool manageSubscriptionInCandlestickData(bool isSubscribe, const std::string& symbol, const std::string& targetID);
+    auto manageSubscriptionInOrderBook(bool isSubscribe, const std::string& symbol, const std::string& targetID) -> bool;
+    auto manageSubscriptionInCandlestickData(bool isSubscribe, const std::string& symbol, const std::string& targetID) -> bool;
 
-    int sendHistoryToUser(const std::string& userID);
+    auto sendHistoryToUser(const std::string& userID) -> int;
 
-    double getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const;
+    auto getOrderBookMarketFirstPrice(bool isBuy, const std::string& symbol) const -> double;
 
     void onNewOBUpdateForOrderBook(const std::string& symbol, OrderBookEntry&& update);
     void onNewTransacForCandlestickData(const std::string& symbol, const Transaction& transac);
@@ -57,7 +57,11 @@ public:
     void broadcastOrderBooks() const;
 
 private:
-    std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator addRiskManagementToUserNoLock(const std::string& userID);
+    BCDocuments() = default; // singleton pattern
+    BCDocuments(const BCDocuments&) = delete; // forbid copying
+    auto operator=(const BCDocuments&) -> BCDocuments& = delete; // forbid assigning
+
+    auto addRiskManagementToUserNoLock(const std::string& userID) -> std::unordered_map<std::string, std::unique_ptr<RiskManagement>>::iterator;
 
     std::unordered_set<std::string> m_symbols;
     std::unordered_map<std::string, std::unique_ptr<OrderBook>> m_orderBookBySymbol; // symbol, OrderBook; contains 4 types of order book for each stock

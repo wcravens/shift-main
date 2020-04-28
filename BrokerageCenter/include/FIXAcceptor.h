@@ -49,37 +49,37 @@ class FIXAcceptor : public FIX::Application,
 public:
     static std::string s_senderID;
 
-    static FIXAcceptor* getInstance();
-
-    bool connectClients(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
-    void disconnectClients();
-
-    void sendLastPrice2All(const Transaction& transac);
-    void sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBook);
-    void sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update);
-    void sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
-
-    void sendConfirmationReport(const ExecutionReport& report);
-    void sendPortfolioSummary(const std::string& userID, const PortfolioSummary& summary);
-    void sendPortfolioItem(const std::string& userID, const PortfolioItem& item);
-    void sendWaitingList(const std::string& userID, const std::unordered_map<std::string, Order>& orders);
-
-private:
-    FIXAcceptor() = default;
     ~FIXAcceptor() override;
 
-    FIXAcceptor(const FIXAcceptor&) = delete;
-    void operator=(const FIXAcceptor&) = delete;
+    static auto getInstance() -> FIXAcceptor&;
 
-    void sendSecurityList(const std::string& targetID, const std::unordered_set<std::string>& symbols);
-    void sendUserIDResponse(const std::string& targetID, const std::string& userReqID, const std::string& username, const std::string& userID);
+    auto connectClients(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
+    void disconnectClients();
+
+    static void s_sendLastPrice2All(const Transaction& transac);
+    static void s_sendOrderBook(const std::vector<std::string>& targetList, const std::map<double, std::map<std::string, OrderBookEntry>>& orderBook);
+    static void s_sendOrderBookUpdate(const std::vector<std::string>& targetList, const OrderBookEntry& update);
+    static void s_sendCandlestickData(const std::vector<std::string>& targetList, const CandlestickDataPoint& cdPoint);
+
+    static void s_sendConfirmationReport(const ExecutionReport& report);
+    static void s_sendPortfolioSummary(const std::string& userID, const PortfolioSummary& summary);
+    static void s_sendPortfolioItem(const std::string& userID, const PortfolioItem& item);
+    static void s_sendWaitingList(const std::string& userID, const std::unordered_map<std::string, Order>& orders);
+
+private:
+    FIXAcceptor() = default; // singleton pattern
+    FIXAcceptor(const FIXAcceptor&) = delete; // forbid copying
+    auto operator=(const FIXAcceptor&) -> FIXAcceptor& = delete; // forbid assigning
+
+    static void s_sendSecurityList(const std::string& targetID, const std::unordered_set<std::string>& symbols);
+    static void s_sendUserIDResponse(const std::string& targetID, const std::string& userReqID, const std::string& username, const std::string& userID);
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;
     void onLogon(const FIX::SessionID&) override;
     void onLogout(const FIX::SessionID&) override;
-    void toAdmin(FIX::Message&, const FIX::SessionID&) override { }
-    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
+    void toAdmin(FIX::Message&, const FIX::SessionID&) override {}
+    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void fromApp(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void onMessage(const FIX50SP2::UserRequest&, const FIX::SessionID&) override;

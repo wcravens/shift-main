@@ -1,47 +1,47 @@
 #include "OrderBookEntry.h"
 
-OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, const std::string& symbol, double price, int size, const std::string& destination, const FIX::UtcDateOnly& simulationDate, const FIX::UtcTimeOnly& simulationTime)
-    : m_type(type)
-    , m_symbol(symbol)
-    , m_price(price)
-    , m_size(size)
-    , m_destination(destination)
-    , m_simulationDate(simulationDate)
-    , m_simulationTime(simulationTime)
+OrderBookEntry::OrderBookEntry(OrderBookEntry::Type type, std::string symbol, double price, int size, std::string destination, FIX::UtcDateOnly simulationDate, FIX::UtcTimeOnly simulationTime)
+    : m_type { type }
+    , m_symbol { std::move(symbol) }
+    , m_price { price }
+    , m_size { size }
+    , m_destination { std::move(destination) }
+    , m_simulationDate { std::move(simulationDate) }
+    , m_simulationTime { std::move(simulationTime) }
 {
 }
 
-OrderBookEntry::Type OrderBookEntry::getType() const
+auto OrderBookEntry::getType() const -> OrderBookEntry::Type
 {
     return m_type;
 }
 
-const std::string& OrderBookEntry::getSymbol() const
+auto OrderBookEntry::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-double OrderBookEntry::getPrice() const
+auto OrderBookEntry::getPrice() const -> double
 {
     return m_price;
 }
 
-int OrderBookEntry::getSize() const
+auto OrderBookEntry::getSize() const -> int
 {
     return m_size;
 }
 
-const std::string& OrderBookEntry::getDestination() const
+auto OrderBookEntry::getDestination() const -> const std::string&
 {
     return m_destination;
 }
 
-const FIX::UtcDateOnly& OrderBookEntry::getDate() const
+auto OrderBookEntry::getDate() const -> const FIX::UtcDateOnly&
 {
     return m_simulationDate;
 }
 
-const FIX::UtcTimeOnly& OrderBookEntry::getTime() const
+auto OrderBookEntry::getTime() const -> const FIX::UtcTimeOnly&
 {
     return m_simulationTime;
 }

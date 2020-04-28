@@ -34,19 +34,19 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
-    static FIXInitiator* getInstance();
-
-    bool connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "");
-    void disconnectMatchingEngine();
-
-    void sendOrder(const Order& order); // send order to ME
-
-private:
-    FIXInitiator() = default;
     ~FIXInitiator() override;
 
-    FIXInitiator(const FIXInitiator&) = delete;
-    void operator=(const FIXInitiator&) = delete;
+    static auto getInstance() -> FIXInitiator&;
+
+    auto connectMatchingEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
+    void disconnectMatchingEngine();
+
+    static void s_sendOrder(const Order& order); // send order to Matching Engine
+
+private:
+    FIXInitiator() = default; // singleton pattern
+    FIXInitiator(const FIXInitiator&) = delete; // forbid copying
+    auto operator=(const FIXInitiator&) -> FIXInitiator& = delete; // forbid assigning
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

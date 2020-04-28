@@ -17,7 +17,7 @@
 
 class RiskManagement {
 public:
-    static void s_sendOrderToME(const Order& order);
+    static void s_sendOrderToMatchingEngine(const Order& order);
     static void s_sendPortfolioSummaryToUser(const std::string& userID, const PortfolioSummary& summary);
     static void s_sendPortfolioItemToUser(const std::string& userID, const PortfolioItem& item);
 
@@ -28,8 +28,8 @@ public:
 
     void spawn();
 
-    double getMarketBuyPrice(const std::string& symbol);
-    double getMarketSellPrice(const std::string& symbol);
+    static auto s_getMarketBuyPrice(const std::string& symbol) -> double;
+    static auto s_getMarketSellPrice(const std::string& symbol) -> double;
 
     void insertPortfolioItem(const std::string& symbol, const PortfolioItem& portfolioItem);
     void sendPortfolioHistory();
@@ -41,7 +41,7 @@ public:
     void enqueueExecRpt(ExecutionReport&& report);
     void processExecRpt();
 
-    bool verifyAndSendOrder(const Order& order);
+    auto verifyAndSendOrder(const Order& order) -> bool;
 
 private:
     std::string m_userID;

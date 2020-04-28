@@ -1,29 +1,29 @@
 #include "PortfolioSummary.h"
 
 PortfolioSummary::PortfolioSummary(double buyingPower)
-    : m_buyingPower(buyingPower)
-    , m_holdingBalance(0.0)
-    , m_borrowedBalance(0.0)
-    , m_totalPL(0.0)
-    , m_totalShares(0)
+    : m_buyingPower { buyingPower }
+    , m_holdingBalance { 0.0 }
+    , m_borrowedBalance { 0.0 }
+    , m_totalPL { 0.0 }
+    , m_totalShares { 0 }
 {
 }
 
 PortfolioSummary::PortfolioSummary(double buyingPower, int totalShares)
-    : m_buyingPower(buyingPower)
-    , m_holdingBalance(0.0)
-    , m_borrowedBalance(0.0)
-    , m_totalPL(0.0)
-    , m_totalShares(totalShares)
+    : m_buyingPower { buyingPower }
+    , m_holdingBalance { 0.0 }
+    , m_borrowedBalance { 0.0 }
+    , m_totalPL { 0.0 }
+    , m_totalShares { totalShares }
 {
 }
 
 PortfolioSummary::PortfolioSummary(double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares)
-    : m_buyingPower(buyingPower)
-    , m_holdingBalance(holdingBalance)
-    , m_borrowedBalance(borrowedBalance)
-    , m_totalPL(totalPL)
-    , m_totalShares(totalShares)
+    : m_buyingPower { buyingPower }
+    , m_holdingBalance { holdingBalance }
+    , m_borrowedBalance { borrowedBalance }
+    , m_totalPL { totalPL }
+    , m_totalShares { totalShares }
 {
 }
 
@@ -66,27 +66,27 @@ void PortfolioSummary::addTotalShares(int value)
     m_totalShares += value;
 }
 
-double PortfolioSummary::getBuyingPower() const
+auto PortfolioSummary::getBuyingPower() const -> double
 {
     return m_buyingPower;
 }
 
-double PortfolioSummary::getHoldingBalance() const
+auto PortfolioSummary::getHoldingBalance() const -> double
 {
     return m_holdingBalance;
 }
 
-double PortfolioSummary::getBorrowedBalance() const
+auto PortfolioSummary::getBorrowedBalance() const -> double
 {
     return m_borrowedBalance;
 }
 
-double PortfolioSummary::getTotalPL() const
+auto PortfolioSummary::getTotalPL() const -> double
 {
     return m_totalPL;
 }
 
-int PortfolioSummary::getTotalShares() const
+auto PortfolioSummary::getTotalShares() const -> int
 {
     return m_totalShares;
 }
