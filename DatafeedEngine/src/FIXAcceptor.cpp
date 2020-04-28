@@ -51,7 +51,7 @@ FIXAcceptor::~FIXAcceptor() // override
  * @brief Initiates a FIX session as an acceptor.
  * @param configFile The session settings file's full path.
  */
-auto FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verbose /* = false */, const std::string& cryptoKey /* = "" */, const std::string& dbConfigFile /* = "" */)) -> bool
+auto FIXAcceptor::connectMatchingEngine(const std::string& configFile, bool verbose /* = false */, const std::string& cryptoKey /* = "" */, const std::string& dbConfigFile /* = "" */) -> bool
 {
     disconnectMatchingEngine();
 
