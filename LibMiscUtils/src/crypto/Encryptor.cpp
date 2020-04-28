@@ -2,11 +2,13 @@
 
 #include "Cryptor.h"
 
-struct shift::crypto::Encryptor::Impl : shift::crypto::Cryptor {
+namespace shift::crypto {
+
+struct Encryptor::Impl : Cryptor {
     // using shift::crypto::Cryptor::Cryptor;
-    Impl(const std::string& cryptoKey)
-        : Cryptor(cryptoKey)
-        , m_useSHA1(false)
+    Impl(std::string cryptoKey)
+        : Cryptor { std::move(cryptoKey) }
+        , m_useSHA1 { false }
     {
     }
 
@@ -15,38 +17,36 @@ struct shift::crypto::Encryptor::Impl : shift::crypto::Cryptor {
     bool m_useSHA1 = true;
 };
 
-shift::crypto::Encryptor::Encryptor(const std::string& cryptoKey)
-    : m_impl(new Encryptor::Impl(cryptoKey))
+Encryptor::Encryptor(std::string cryptoKey)
+    : m_impl { std::make_unique<Encryptor::Impl>(std::move(cryptoKey)) }
 {
 }
 
-shift::crypto::Encryptor::Encryptor()
-    : m_impl(new Encryptor::Impl)
+Encryptor::Encryptor()
+    : m_impl { std::make_unique<Encryptor::Impl>() }
 {
 }
 
-shift::crypto::Encryptor::~Encryptor() = default;
+Encryptor::~Encryptor() = default;
 
-shift::crypto::Encryptor::operator std::istream &()
+Encryptor::operator std::istream &()
 {
     return m_impl->get();
 }
 
 // these functions are inline-declared as 'friend', hence shall be present within the same namespace
-namespace shift {
-namespace crypto {
 
-    std::istream& operator>>(std::istream& is, Encryptor& enc)
-    {
-        if (enc.m_impl->m_useSHA1)
-            return enc.m_impl->apply(is);
-        return enc.m_impl->apply(is, true);
+auto operator>>(std::istream& is, Encryptor& enc) -> std::istream&
+{
+    if (enc.m_impl->m_useSHA1) {
+        return enc.m_impl->apply(is);
     }
+    return enc.m_impl->apply(is, true);
+}
 
-    std::ostream& operator<<(std::ostream& os, Encryptor& enc)
-    {
-        return enc.m_impl->out(os);
-    }
+auto operator<<(std::ostream& os, Encryptor& enc) -> std::ostream&
+{
+    return enc.m_impl->out(os);
+}
 
-} // crypto
-} // shift
+} // shift::crypto

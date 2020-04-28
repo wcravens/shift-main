@@ -5,42 +5,31 @@
 #include <ctime>
 #include <string>
 
-namespace shift {
-namespace clock {
+namespace shift::clock {
 
-    class MISCUTILS_EXPORTS Timestamp {
-    public:
-        Timestamp();
-        Timestamp(const std::time_t& sec, int usec = 0);
-        Timestamp(const std::string& dateTime, const std::string& format);
+class MISCUTILS_EXPORTS Timestamp {
+public:
+    Timestamp();
+    Timestamp(std::time_t sec, int usec = 0);
+    Timestamp(const std::string& dateTime, const std::string& format);
 
-        // getters
-        const std::time_t& getSeconds() const;
-        int getMicroseconds() const;
+    // getters
+    auto getSeconds() const -> const std::time_t&;
+    auto getMicroseconds() const -> int;
 
-        // setters
-        void setSeconds(const std::time_t& sec);
-        void setMicroseconds(int usec);
+    // setters
+    void setSeconds(const std::time_t& sec);
+    void setMicroseconds(int usec);
 
-        bool operator==(const Timestamp& t);
-        bool operator==(const Timestamp& t) const;
+    auto operator==(const Timestamp& t) const -> bool;
+    auto operator<(const Timestamp& t) const -> bool;
+    auto operator<=(const Timestamp& t) const -> bool;
+    auto operator>(const Timestamp& t) const -> bool;
+    auto operator>=(const Timestamp& t) const -> bool;
 
-        bool operator<(const Timestamp& t);
-        bool operator<(const Timestamp& t) const;
+private:
+    std::time_t m_sec;
+    int m_usec;
+};
 
-        bool operator<=(const Timestamp& t);
-        bool operator<=(const Timestamp& t) const;
-
-        bool operator>(const Timestamp& t);
-        bool operator>(const Timestamp& t) const;
-
-        bool operator>=(const Timestamp& t);
-        bool operator>=(const Timestamp& t) const;
-
-    private:
-        std::time_t m_sec;
-        int m_usec;
-    };
-
-} // clock
-} // shift
+} // shift::clock

@@ -39,12 +39,12 @@ static void reset(uint32_t digest[], std::string& buffer, uint64_t& transforms)
     transforms = 0;
 }
 
-static uint32_t rol(const uint32_t value, const size_t bits)
+static auto rol(const uint32_t value, const size_t bits) -> uint32_t
 {
     return (value << bits) | (value >> (32 - bits));
 }
 
-static uint32_t blk(const uint32_t block[BLOCK_INTS], const size_t i)
+static auto blk(const uint32_t block[BLOCK_INTS], const size_t i) -> uint32_t
 {
     return rol(block[(i + 13) & 15] ^ block[(i + 8) & 15] ^ block[(i + 2) & 15] ^ block[i], 1);
 }
@@ -236,7 +236,7 @@ void SHA1::update(std::istream& is)
  * Add padding and return the message digest.
  */
 
-std::string SHA1::final()
+auto SHA1::final() -> std::string
 {
     /* Total number of hashed bits */
     uint64_t total_bits = (transforms * BLOCK_BYTES + buffer.size()) * 8;
@@ -276,7 +276,7 @@ std::string SHA1::final()
     return result.str();
 }
 
-std::string SHA1::from_file(const std::string& filename)
+/* static */ auto SHA1::from_file(const std::string& filename) -> std::string
 {
     std::ifstream stream(filename.c_str(), std::ios::binary);
     SHA1 checksum;

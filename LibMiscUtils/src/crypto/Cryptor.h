@@ -4,27 +4,25 @@
 #include <sstream>
 #include <string>
 
-namespace shift {
-namespace crypto {
+namespace shift::crypto {
 
-    /**
-     * @brief The delegated implementation class for class Encryptor and class Decryptor.
-     */
-    struct Cryptor {
-        const std::string c_key; ///> User provided key for cryption.
-        std::string m_crypted; ///> Intermediate buffer for the implementation.
-        std::istringstream m_iss; ///> Hold the cryption result.
+/**
+ * @brief The delegated implementation class for class Encryptor and class Decryptor.
+ */
+struct Cryptor {
+    const std::string c_key; ///> User provided key for cryption.
+    std::string m_crypted; ///> Intermediate buffer for the implementation.
+    std::istringstream m_iss; ///> Hold the cryption result.
 
-        Cryptor(const std::string& key); ///> For files alike.
-        Cryptor(); ///> Using SHA1 for passwords alike.
+    Cryptor(std::string cryptoKey); ///> For files alike.
+    Cryptor() = default; ///> Using SHA1 for passwords alike.
 
-        std::istream& apply(std::istream& is, bool isEncrypt);
-        std::istream& apply(std::istream& is); ///> SHA1.
+    auto apply(std::istream& is, bool isEncrypt) -> std::istream&;
+    auto apply(std::istream& is) -> std::istream&; ///> SHA1.
 
-        std::ostream& out(std::ostream& os);
+    auto out(std::ostream& os) -> std::ostream&;
 
-        std::istream& get();
-    };
+    auto get() -> std::istream&;
+};
 
-} // crypto
-} // shift
+} // shift::crypto

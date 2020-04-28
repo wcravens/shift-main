@@ -26,7 +26,7 @@ THE SOFTWARE.
 
 #include <iostream>
 
-int test(std::ostream& outStream)
+auto test(std::ostream& outStream) -> int
 {
     int failed = 0;
 
@@ -160,16 +160,16 @@ int test(std::ostream& outStream)
         ++failed;
     }
 
-    if (failed == 0) {
-        outStream << "All tests passed!" << std::endl;
-        return 0;
-    } else {
+    if (failed > 0) {
         outStream << failed << " tests failed." << std::endl;
         return 1;
     }
+
+    outStream << "All tests passed!" << std::endl;
+    return 0;
 }
 
-int main()
+auto main(int argc, char** argv) -> int
 {
     return test(std::cout);
 }

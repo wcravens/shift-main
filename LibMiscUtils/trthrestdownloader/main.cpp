@@ -42,7 +42,7 @@ using namespace std::chrono_literals;
 #define CSTR_UNZIP \
     "unzip"
 
-static bool unzip(const char* src, const char* dst, int* errn)
+static auto unzip(const char* src, const char* dst, int* errn) -> bool
 {
     unsigned char buf[GZ_BUF_LEN];
     gzFile in = gzopen(src, "rb");
@@ -59,10 +59,10 @@ static bool unzip(const char* src, const char* dst, int* errn)
         std::fwrite(buf, sizeof(Bytef), (size_t)len, out);
     }
 
-    return !(std::fclose(out) || gzclose(in) != Z_OK || *errn < 0);
+    return !(std::fclose(out) != 0 || gzclose(in) != Z_OK || *errn < 0);
 }
 
-int main(int argc, char* argv[])
+auto main(int argc, char** argv) -> int
 {
     namespace po = boost::program_options;
     po::options_description desc("\nUSAGE: ./TRTHRESTDownloader [options] <args>\n\n\tThis is the TRTH Downloader utility application.\n\t"
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if (vm.count(CSTR_HELP)) {
+    if (vm.count(CSTR_HELP) > 0) {
         cout << desc << endl;
         return 0;
     }
@@ -95,14 +95,15 @@ int main(int argc, char* argv[])
     cout << endl;
 
     std::string strJsonDir = "./";
-    if (vm.count(CSTR_JSONDIR)) {
+    if (vm.count(CSTR_JSONDIR) > 0) {
         strJsonDir = vm[CSTR_JSONDIR].as<std::string>();
-        if (strJsonDir.back() != '/')
+        if (strJsonDir.back() != '/') {
             strJsonDir.push_back('/');
+        }
     }
 
     std::string cryptoKey = "SHIFT123";
-    if (vm.count(CSTR_KEY)) {
+    if (vm.count(CSTR_KEY) > 0) {
         cryptoKey = vm[CSTR_KEY].as<std::string>();
     } else {
         cout << COLOR "The built-in initial key 'SHIFT123' is used for reading encrypted json file." NO_COLOR << endl;
@@ -110,12 +111,12 @@ int main(int argc, char* argv[])
     }
 
     std::string strOutput = "raw_data";
-    if (vm.count(CSTR_OUTPUT)) {
+    if (vm.count(CSTR_OUTPUT) > 0) {
         strOutput = vm[CSTR_OUTPUT].as<std::string>();
     }
 
     bool doUnzip = false;
-    if (vm.count(CSTR_UNZIP)) {
+    if (vm.count(CSTR_UNZIP) > 0) {
         doUnzip = true;
     }
 
@@ -251,10 +252,11 @@ int main(int argc, char* argv[])
         int errn = Z_OK;
         bool bRes = unzip((strOutput + ".gz").c_str(), (strOutput + ".csv").c_str(), &errn);
         cout << std::setw(20) << std::right << "Status:  " << (bRes ? "OK" : "ERR=");
-        if (!bRes)
+        if (!bRes) {
             cout << errn;
-        else
+        } else {
             std::remove((strOutput + ".gz").c_str());
+        }
         cout << endl;
         cout << endl;
     }

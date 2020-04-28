@@ -2,17 +2,17 @@
 
 #include "SHA1.h"
 
-shift::crypto::Cryptor::Cryptor(const std::string& key)
-    : c_key(key)
+namespace shift::crypto {
+
+Cryptor::Cryptor(std::string cryptoKey)
+    : c_key { std::move(cryptoKey) }
 {
 }
-
-shift::crypto::Cryptor::Cryptor() = default;
 
 /**
  * @brief Do encryption or decryption, depending on isEncrypt, against the input stream, and output the operation results as input stream.
  */
-std::istream& shift::crypto::Cryptor::apply(std::istream& is, bool isEncrypt)
+auto Cryptor::apply(std::istream& is, bool isEncrypt) -> std::istream&
 {
     if (!is.good()) {
         std::cerr << "The input of Encryptor object is not available." << std::endl;
@@ -40,7 +40,7 @@ std::istream& shift::crypto::Cryptor::apply(std::istream& is, bool isEncrypt)
 /**
  * @brief Do encryption using SHA1 against the input stream, and output the operation results as input stream.
  */
-std::istream& shift::crypto::Cryptor::apply(std::istream& is)
+auto Cryptor::apply(std::istream& is) -> std::istream&
 {
     SHA1 sha1;
     sha1.update(is);
@@ -52,7 +52,7 @@ std::istream& shift::crypto::Cryptor::apply(std::istream& is)
     return m_iss;
 }
 
-std::ostream& shift::crypto::Cryptor::out(std::ostream& os)
+auto Cryptor::out(std::ostream& os) -> std::ostream&
 {
     if (m_iss.good()) {
         os << m_iss.str();
@@ -60,7 +60,9 @@ std::ostream& shift::crypto::Cryptor::out(std::ostream& os)
     return os;
 }
 
-std::istream& shift::crypto::Cryptor::get()
+auto Cryptor::get() -> std::istream&
 {
     return m_iss;
 }
+
+} // shift::crypto

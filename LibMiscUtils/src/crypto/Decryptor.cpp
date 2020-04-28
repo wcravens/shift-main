@@ -5,64 +5,63 @@
 
 #include <fstream>
 
-struct shift::crypto::Decryptor::Impl : shift::crypto::Cryptor {
+namespace shift::crypto {
+
+struct Decryptor::Impl : Cryptor {
     // using shift::crypto::Cryptor::Cryptor;
-    Impl(const std::string& cryptoKey)
-        : Cryptor(cryptoKey)
+    Impl(std::string cryptoKey)
+        : Cryptor { std::move(cryptoKey) }
     {
     }
 };
 
-shift::crypto::Decryptor::Decryptor(const std::string& cryptoKey)
-    : m_impl(new Decryptor::Impl(cryptoKey))
+Decryptor::Decryptor(std::string cryptoKey)
+    : m_impl { std::make_unique<Decryptor::Impl>(std::move(cryptoKey)) }
 {
 }
 
-shift::crypto::Decryptor::~Decryptor() = default;
+Decryptor::~Decryptor() = default;
 
-shift::crypto::Decryptor::operator std::istream &()
+Decryptor::operator std::istream &()
 {
     return m_impl->get();
 }
 
 // these functions are inline-declared as 'friend', hence shall be present within the same namespace
-namespace shift {
-namespace crypto {
 
-    std::istream& operator>>(std::istream& is, Decryptor& dec)
-    {
-        return dec.m_impl->apply(is, false);
+auto operator>>(std::istream& is, Decryptor& dec) -> std::istream&
+{
+    return dec.m_impl->apply(is, false);
+}
+
+auto operator<<(std::ostream& os, Decryptor& dec) -> std::ostream&
+{
+    return dec.m_impl->out(os);
+}
+
+auto readEncryptedConfigFile(const std::string& cryptoKey, const std::string& fileName, const char keyValDelim /*= '='*/) -> std::unordered_map<std::string, std::string>
+{
+    Decryptor dec(cryptoKey);
+    std::ifstream inf(fileName);
+    if (inf.good()) {
+        inf >> dec;
+    } else {
+        cerr << '\n'
+             << COLOR_ERROR "Cannot read login file!" NO_COLOR << '\n'
+             << endl;
+        return {};
     }
 
-    std::ostream& operator<<(std::ostream& os, Decryptor& dec)
-    {
-        return dec.m_impl->out(os);
+    std::unordered_map<std::string, std::string> info;
+
+    auto& strm = static_cast<std::istream&>(dec); // explicitly-typed-initializer idiom
+    std::string line;
+    while (std::getline(strm, line)) {
+        info.emplace(
+            std::string(line.begin(), line.begin() + line.find(keyValDelim)), std::string(line.begin() + line.find(keyValDelim) + 1, line.end()));
     }
 
-    std::unordered_map<std::string, std::string> readEncryptedConfigFile(const std::string& cryptoKey, const std::string& fileName, const char keyValDelim /*= '='*/)
-    {
-        Decryptor dec(cryptoKey);
-        std::ifstream inf(fileName);
-        if (inf.good())
-            inf >> dec;
-        else {
-            cerr << '\n'
-                 << COLOR_ERROR "Cannot read login file!" NO_COLOR << '\n'
-                 << endl;
-            return {};
-        }
+    return info;
+}
 
-        std::unordered_map<std::string, std::string> info;
-
-        auto& strm = static_cast<std::istream&>(dec); // explicitly-typed-initializer idiom
-        std::string line;
-        while (std::getline(strm, line)) {
-            info.emplace(
-                std::string(line.begin(), line.begin() + line.find(keyValDelim)), std::string(line.begin() + line.find(keyValDelim) + 1, line.end()));
-        }
-
-        return info;
-    }
-
-} // crypto
-} // shift
+} // shift::crypto

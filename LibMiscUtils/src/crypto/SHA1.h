@@ -28,8 +28,8 @@ public:
     SHA1();
     void update(const std::string& s);
     void update(std::istream& is);
-    std::string final();
-    static std::string from_file(const std::string& filename);
+    auto final() -> std::string;
+    static auto from_file(const std::string& filename) -> std::string;
 
 private:
     uint32_t digest[5];

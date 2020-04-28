@@ -38,44 +38,42 @@ THE SOFTWARE.
 #include <string>
 #include <utility>
 
-namespace shift {
-namespace crossguid {
+namespace shift::crossguid {
 
-    // class to represent a GUID/UUID. Each instance acts as a wrapper around a
-    // 16 byte value that can be passed around by value. It also supports
-    // conversion to string (via the stream operator <<) and conversion from a
-    // string via constructor.
-    class MISCUTILS_EXPORTS Guid {
-    public:
-        Guid(const std::array<unsigned char, 16>& bytes);
-        Guid(const unsigned char* bytes);
-        Guid(const std::string& fromString);
-        Guid();
-        Guid(const Guid& other);
-        Guid& operator=(const Guid& other);
-        bool operator==(const Guid& other) const;
-        bool operator!=(const Guid& other) const;
+// class to represent a GUID/UUID. Each instance acts as a wrapper around a
+// 16 byte value that can be passed around by value. It also supports
+// conversion to string (via the stream operator <<) and conversion from a
+// string via constructor.
+class MISCUTILS_EXPORTS Guid {
+public:
+    Guid(const std::array<unsigned char, 16>& bytes);
+    Guid(const unsigned char* bytes);
+    Guid(const std::string& fromString);
+    Guid();
+    Guid(const Guid& other) = default;
+    auto operator=(const Guid& other) -> Guid&;
+    auto operator==(const Guid& other) const -> bool;
+    auto operator!=(const Guid& other) const -> bool;
 
-        std::string str() const;
-        operator std::string() const;
-        const std::array<unsigned char, 16>& bytes() const;
-        void swap(Guid& other);
-        bool isValid() const;
+    auto str() const -> std::string;
+    operator std::string() const;
+    auto bytes() const -> const std::array<unsigned char, 16>&;
+    void swap(Guid& other);
+    auto isValid() const -> bool;
 
-    private:
-        void zeroify();
+private:
+    void zeroify();
 
-        // actual data
-        std::array<unsigned char, 16> _bytes;
+    // actual data
+    std::array<unsigned char, 16> _bytes;
 
-        // make the << operator a friend so it can access _bytes
-        friend std::ostream& operator<<(std::ostream& s, const Guid& guid);
-    };
+    // make the << operator a friend so it can access _bytes
+    friend auto operator<<(std::ostream& s, const Guid& guid) -> std::ostream&;
+};
 
-    Guid newGuid();
+Guid newGuid();
 
-} // crossguid
-} // shift
+} // shift::crossguid
 
 namespace std {
 
@@ -92,7 +90,7 @@ struct hash<shift::crossguid::Guid> {
     typedef shift::crossguid::Guid argument_type;
     typedef std::size_t result_type;
 
-    result_type operator()(argument_type const& guid) const
+    auto operator()(argument_type const& guid) const -> result_type
     {
         std::hash<std::string> hasher;
         return static_cast<result_type>(hasher(guid.str()));

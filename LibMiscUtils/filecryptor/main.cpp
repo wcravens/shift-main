@@ -25,12 +25,13 @@
  * @param outputOptionName: The output option name used for this program, e.g. 'output'.
  * @return outf, if the outf is openned already; otherwise, use outf to open the user-specified file indicated by the output option(e.g. --output FileName.txt) and return this stream; otherwise, creates a file and generates a random 10 characters as name, then open and return as file stream.
  */
-std::ofstream& openCryptOutputStream(std::ofstream& outf, const boost::program_options::variables_map& vm, const char* outputOptionName = CSTR_OUT)
+auto openCryptOutputStream(std::ofstream& outf, const boost::program_options::variables_map& vm, const char* outputOptionName = CSTR_OUT) -> std::ofstream&
 {
-    if (outf.is_open())
+    if (outf.is_open()) {
         return outf;
+    }
 
-    if (outputOptionName && vm.count(outputOptionName)) {
+    if (outputOptionName != nullptr && vm.count(outputOptionName) > 0) {
         outf.open(vm[outputOptionName].as<std::string>());
     } else // no output file option specified, create a random named file and write.
     {
@@ -61,22 +62,25 @@ std::ofstream& openCryptOutputStream(std::ofstream& outf, const boost::program_o
  * @return true if the file was successfuly read, encrypted/decrypted and wrote to output file, otherwise false.
  */
 template <typename _Cryptor>
-bool cryptOut(const std::string& key, const std::string& inFileName, const boost::program_options::variables_map& vm, const char* outputOptionName = CSTR_OUT)
+auto cryptOut(const std::string& key, const std::string& inFileName, const boost::program_options::variables_map& vm, const char* outputOptionName = CSTR_OUT) -> bool
 {
-    if (key.length() * inFileName.length() == 0)
+    if (key.length() * inFileName.length() == 0) {
         return false;
+    }
 
     _Cryptor cr(key);
 
     std::ifstream inf(inFileName, std::ios_base::in);
-    if (!inf.good())
+    if (!inf.good()) {
         return false;
+    }
     inf >> cr;
     inf.close();
 
     std::ofstream outf;
-    if (!openCryptOutputStream(outf, vm, outputOptionName).good())
+    if (!openCryptOutputStream(outf, vm, outputOptionName).good()) {
         return false;
+    }
     outf << cr;
     outf.close();
 
@@ -86,7 +90,7 @@ bool cryptOut(const std::string& key, const std::string& inFileName, const boost
 /**
  * @brief The test program of LibMiscUtils::crypto. Usage: $./FileCryptor --help
  */
-int main(int argc, char* argv[])
+auto main(int argc, char** argv) -> int
 {
     namespace po = boost::program_options;
 
@@ -110,7 +114,7 @@ int main(int argc, char* argv[])
              << "Warning: There was at least one invalid option given." << endl;
     }
 
-    if (vm.count(CSTR_HELP)) {
+    if (vm.count(CSTR_HELP) > 0) {
         cout << odsc << endl;
         return 0;
     }
@@ -125,7 +129,7 @@ int main(int argc, char* argv[])
     }
 
     std::string key;
-    if (vm.count(CSTR_KEY)) {
+    if (vm.count(CSTR_KEY) > 0) {
         key = vm[CSTR_KEY].as<std::string>();
     } else {
         key = "SHIFT123"; // this is the default key value
