@@ -11,7 +11,7 @@ Timestamp::Timestamp()
 {
 }
 
-Timestamp::Timestamp(std::time_t sec, int usec)
+Timestamp::Timestamp(std::time_t sec, int usec /* = 0 */)
     : m_sec { sec }
     , m_usec { usec }
 {

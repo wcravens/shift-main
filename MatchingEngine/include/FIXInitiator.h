@@ -45,7 +45,7 @@ public:
 
     static auto getInstance() -> FIXInitiator&;
 
-    auto connectDatafeedEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
+    auto connectDatafeedEngine(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
     void disconnectDatafeedEngine();
 
     auto sendSecurityListRequestAwait(const std::string& requestID, const boost::posix_time::ptime& startTime, const boost::posix_time::ptime& endTime, const std::vector<std::string>& symbols, int numSecondsPerDataChunk) -> bool;

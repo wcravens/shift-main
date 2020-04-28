@@ -39,7 +39,7 @@ Decryptor::operator std::istream &()
     return dec.m_impl->out(os);
 }
 
-auto readEncryptedConfigFile(const std::string& cryptoKey, const std::string& fileName, const char keyValDelim /*= '='*/) -> std::unordered_map<std::string, std::string>
+auto readEncryptedConfigFile(const std::string& cryptoKey, const std::string& fileName, const char keyValDelim /* = '=' */) -> std::unordered_map<std::string, std::string>
 {
     Decryptor dec(cryptoKey);
     std::ifstream inf(fileName);

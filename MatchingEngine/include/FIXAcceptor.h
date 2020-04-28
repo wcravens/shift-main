@@ -42,7 +42,7 @@ public:
 
     static auto getInstance() -> FIXAcceptor&;
 
-    auto connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
+    auto connectBrokerageCenter(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
     void disconnectBrokerageCenter();
 
     static void s_sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook);

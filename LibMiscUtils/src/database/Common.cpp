@@ -15,7 +15,7 @@ namespace shift::database {
  *        @NOTE: If you want to execute a result that returns tuples, use the flag PGRES_TUPLES_OK
  * @param ppRes: double pointer to the target PGresult object. call like (&pRes)
  */
-auto doQuery(PGconn* const pConn, const std::string query, const std::string msgIfStatMismatch, const ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/) -> bool
+auto doQuery(PGconn* const pConn, const std::string query, const std::string msgIfStatMismatch, const ExecStatusType statToMatch /* = PGRES_COMMAND_OK */, PGresult** ppRes /* = nullptr */) -> bool
 {
     bool isMatch = true;
 
@@ -81,7 +81,7 @@ auto checkTableExist(PGconn* const pConn, const std::string& tableName) -> TABLE
  * 
  * Will return: [B,E,H]
  */
-auto readRowsOfField(PGconn* const pConn, const std::string& query, int fieldIndex /*= 0*/) -> std::vector<std::string>
+auto readRowsOfField(PGconn* const pConn, const std::string& query, int fieldIndex /* = 0 */) -> std::vector<std::string>
 {
     std::vector<std::string> vs;
     PGresult* pRes = nullptr;
@@ -108,7 +108,7 @@ auto readRowsOfField(PGconn* const pConn, const std::string& query, int fieldInd
  * 
  * Will return: [G,H]
  */
-auto readFieldsOfRow(PGconn* const pConn, const std::string& query, int numFields, int rowIndex /*= 0*/) -> std::vector<std::string>
+auto readFieldsOfRow(PGconn* const pConn, const std::string& query, int numFields, int rowIndex /* = 0 */) -> std::vector<std::string>
 {
     std::vector<std::string> vs;
     PGresult* pRes = nullptr;

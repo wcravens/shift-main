@@ -14,7 +14,7 @@
 
 #define __DBG_DUMP_PQCMD false
 
-void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /*= false*/)
+void cvtRICToDEInternalRepresentation(std::string* pCvtThis, bool reverse /* = false */)
 {
     const char from = reverse ? '_' : '.';
     const char to = reverse ? '.' : '_';
@@ -153,7 +153,7 @@ void PSQL::init()
     cout << "Connection to database is good." << endl;
 }
 
-auto PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/) -> bool
+auto PSQL::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /* = PGRES_COMMAND_OK */, PGresult** ppRes /* = nullptr */) -> bool
 {
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
 }

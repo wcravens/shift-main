@@ -41,7 +41,7 @@ FIXAcceptor::~FIXAcceptor() // override
     return s_FIXAccInst;
 }
 
-auto FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile) -> bool
+auto FIXAcceptor::connectBrokerageCenter(const std::string& configFile, bool verbose /* = false */, const std::string& cryptoKey /* = "" */, const std::string& dbConfigFile /* = "" */)) -> bool
 {
     disconnectBrokerageCenter();
 

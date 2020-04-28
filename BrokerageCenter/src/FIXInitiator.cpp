@@ -35,7 +35,7 @@ FIXInitiator::~FIXInitiator() // override
     return s_FIXInitInst;
 }
 
-auto FIXInitiator::connectMatchingEngine(const std::string& configFile, bool verbose, const std::string& cryptoKey, const std::string& dbConfigFile) -> bool
+auto FIXInitiator::connectMatchingEngine(const std::string& configFile, bool verbose /* = false */, const std::string& cryptoKey /* = "" */, const std::string& dbConfigFile /* = "" */) -> bool
 {
     disconnectMatchingEngine();
 
