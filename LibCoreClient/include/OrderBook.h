@@ -46,7 +46,7 @@ protected:
     std::string m_symbol;
     Type m_type;
 
-    std::mutex m_mutex;
+    mutable std::mutex m_mutex;
     std::list<shift::OrderBookEntry> m_entries;
 };
 

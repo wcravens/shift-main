@@ -25,7 +25,7 @@ private:
     zmq::context_t m_context;
     zmq::socket_t m_otherall_socket;
     zmq::socket_t m_responder;
-    std::mutex m_mutex_pushpull;
-    std::mutex m_mutex_reqrep;
+    mutable std::mutex m_mutex_pushpull;
+    mutable std::mutex m_mutex_reqrep;
     int m_num = 0;
 };

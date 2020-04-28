@@ -77,6 +77,6 @@ private:
     std::unique_ptr<FIX::MessageStoreFactory> m_messageStoreFactoryPtr;
     std::unique_ptr<FIX::Acceptor> m_acceptorPtr; ///> Underlying FIX protocal acceptor instance.
 
-    std::mutex m_mtxReqsProcs; ///> To guard m_requestsProcessorByTarget.
+    mutable std::mutex m_mtxReqsProcs; ///> To guard m_requestsProcessorByTarget.
     std::unordered_map<std::string /*Target ID*/, std::unique_ptr<RequestsProcessorPerTarget>> m_requestsProcessorByTarget; ///> Collection of currently running Requests Processors for their targets. Each unique target (distinguished by Target ID) has its own independant processor.
 };

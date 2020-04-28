@@ -115,12 +115,12 @@ protected:
     void storeWaitingList(std::vector<shift::Order>&& waitingList);
 
     // FIXInitiator callback methods
-    virtual void receiveLastPrice(const std::string& symbol) { }
-    virtual void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) { }
-    virtual void receiveExecution(const std::string& orderID) { }
-    virtual void receivePortfolioSummary() { }
-    virtual void receivePortfolioItem(const std::string& symbol) { }
-    virtual void receiveWaitingList() { }
+    virtual void receiveLastPrice(const std::string& symbol) {}
+    virtual void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) {}
+    virtual void receiveExecution(const std::string& orderID) {}
+    virtual void receivePortfolioSummary() {}
+    virtual void receivePortfolioItem(const std::string& symbol) {}
+    virtual void receiveWaitingList() {}
 
     // sample prices
     void calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow);
@@ -131,12 +131,12 @@ private:
     std::string m_userID;
     bool m_verbose;
 
-    std::mutex m_mutex_portfolioSummary;
-    std::mutex m_mutex_symbol_portfolioItem;
-    std::mutex m_mutex_orders;
-    std::mutex m_mutex_waitingList;
-    std::mutex m_mutex_samplePricesFlags;
-    std::mutex m_mutex_samplePrices;
+    mutable std::mutex m_mutex_portfolioSummary;
+    mutable std::mutex m_mutex_symbol_portfolioItem;
+    mutable std::mutex m_mutex_orders;
+    mutable std::mutex m_mutex_waitingList;
+    mutable std::mutex m_mutex_samplePricesFlags;
+    mutable std::mutex m_mutex_samplePrices;
 
     PortfolioSummary m_portfolioSummary;
     std::map<std::string, PortfolioItem> m_symbol_portfolioItem;

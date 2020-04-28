@@ -53,8 +53,8 @@ private:
     std::unique_ptr<std::thread> m_reqProcessorPtr; ///> Pointer to the unique Requests Processor.
     std::promise<void> m_reqProcQuitFlag; ///> To terminate the Requests Processor.
 
-    std::mutex m_mtxReqs; ///> One per target; for guarding requests queue.
+    mutable std::mutex m_mtxReqs; ///> One per target; for guarding requests queue.
     std::condition_variable m_cvReqs; ///> For events of requests queue.
 
-    std::mutex m_mtxReqsUnavail; ///> One per target; for guarding list of unavailable/unrecognizable requests.
+    mutable std::mutex m_mtxReqsUnavail; ///> One per target; for guarding list of unavailable/unrecognizable requests.
 };

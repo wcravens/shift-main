@@ -39,7 +39,7 @@ private:
 
     static void s_announceSecurityListRequestComplete(const std::string& targetID, const std::string& requestID, int numAvailableSecurities);
 
-    std::mutex m_mtxRequest; ///> One per target; for guarding all queues.
+    mutable std::mutex m_mtxRequest; ///> One per target; for guarding all queues.
     std::condition_variable m_cvQueues; ///> For events of all queues.
 
     static void s_processNextDataRequest(std::future<bool>* const lastDownloadFutPtr, MarketDataRequest* const lastMarketRequestPtr, const std::string& targetID);

@@ -98,7 +98,7 @@ protected:
     void onLogon(const FIX::SessionID&) override;
     void onLogout(const FIX::SessionID&) override;
     void toAdmin(FIX::Message&, const FIX::SessionID&) override;
-    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
+    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void fromApp(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
@@ -160,36 +160,36 @@ private:
     std::atomic<bool> m_connected;
     std::atomic<bool> m_verbose;
     std::atomic<bool> m_logonSuccess;
-    std::mutex m_mtxLogon;
+    mutable std::mutex m_mtxLogon;
     std::condition_variable m_cvLogon;
 
     // FIXInitiator - subscriber management
-    std::mutex m_mtxClientByUserID;
+    mutable std::mutex m_mtxClientByUserID;
     std::unordered_map<std::string, CoreClient*> m_clientByUserID;
 
     std::atomic<bool> m_openPricesReady;
-    std::mutex m_mtxOpenPrices;
+    mutable std::mutex m_mtxOpenPrices;
     std::unordered_map<std::string, double> m_openPrices; //!< Map with stock symbol as key and open price as value.
     std::unordered_map<std::string, std::pair<double, int>> m_lastTrades; //!< Map with stock symbol as key and a pair with their last price and size as value.
     std::chrono::system_clock::time_point m_lastTradeTime;
 
     std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
 
-    std::mutex m_mtxUserIDByUsername;
+    mutable std::mutex m_mtxUserIDByUsername;
     std::condition_variable m_cvUserIDByUsername;
     std::unordered_map<std::string, std::string> m_userIDByUsername;
 
-    std::mutex m_mtxStockList;
+    mutable std::mutex m_mtxStockList;
     std::condition_variable m_cvStockList;
     std::vector<std::string> m_stockList; //!< Vector of string saved names of all requested stock.
     std::unordered_map<std::string, std::string> m_originalName_symbol;
     std::unordered_map<std::string, std::string> m_symbol_originalName;
-    std::mutex m_mtxCompanyNames;
+    mutable std::mutex m_mtxCompanyNames;
     std::map<std::string, std::string> m_companyNames;
 
-    std::mutex m_mtxSubscribedOrderBookSet; //!< Mutex for the subscribed order book list.
+    mutable std::mutex m_mtxSubscribedOrderBookSet; //!< Mutex for the subscribed order book list.
     std::set<std::string> m_subscribedOrderBookSet; //!< Set of stock symbols whose orderbook has been subscribed.
-    std::mutex m_mtxSubscribedCandleStickSet; //!< Mutex for the subscribed candle stick list.
+    mutable std::mutex m_mtxSubscribedCandleStickSet; //!< Mutex for the subscribed candle stick list.
     std::set<std::string> m_subscribedCandleStickSet; //!< Set of stock symbols whose candlestick data has been subscribed.
 };
 

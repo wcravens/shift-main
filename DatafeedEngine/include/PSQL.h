@@ -69,7 +69,7 @@ protected:
     virtual ~PSQL() = 0; // PSQL becomes an abstract class, hence forces users to access it via PSQLManager
 
 private:
-    std::mutex m_mtxPSQL; // to mutual-exclusively access db
+    mutable std::mutex m_mtxPSQL; // to mutual-exclusively access db
     PGconn* m_pConn;
     std::unordered_map<std::string, std::string> m_loginInfo;
 };

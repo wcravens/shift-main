@@ -44,7 +44,7 @@ protected:
     std::atomic_flag m_spinlock = ATOMIC_FLAG_INIT;
 
     // buffer new quotes & trades received from DE
-    std::mutex m_mtxNewGlobalOrders;
+    mutable std::mutex m_mtxNewGlobalOrders;
     std::queue<Order> m_newGlobalOrders;
 
     std::list<Order> m_globalBids;
@@ -53,7 +53,7 @@ protected:
     std::list<Order>::iterator m_thisGlobalOrder;
 
     // buffer new orders received from clients
-    std::mutex m_mtxNewLocalOrders;
+    mutable std::mutex m_mtxNewLocalOrders;
     std::queue<Order> m_newLocalOrders;
 
     std::list<PriceLevel> m_localBids;
