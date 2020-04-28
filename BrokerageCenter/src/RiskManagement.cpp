@@ -150,13 +150,18 @@ void RiskManagement::processOrder()
         }
 
         if (verifyAndSendOrder(*orderPtr)) {
+            // buying power may have been updated after call to verifyAndSendOrder
+            {
+                std::lock_guard<std::mutex> psGuard(m_mtxPortfolioSummary);
+                s_sendPortfolioSummaryToUser(m_userID, m_porfolioSummary);
+            }
+
             {
                 std::lock_guard<std::mutex> guard(m_mtxWaitingList);
                 if (orderPtr->getType() != Order::Type::CANCEL_BID && orderPtr->getType() != Order::Type::CANCEL_ASK) {
                     m_waitingList[orderPtr->getID()] = *orderPtr;
                 }
             }
-
             sendWaitingList();
         }
 
