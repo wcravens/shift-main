@@ -82,7 +82,7 @@ auto CandlestickData::getSymbol() const -> const std::string&
 
 /* static */ auto CandlestickData::s_toUnixTimestamp(const std::string& time) noexcept -> std::time_t
 {
-    struct tm c_tm;
+    struct std::tm c_tm;
     ::strptime(time.c_str(), CSTR_TIME_FORMAT_YMDHMS, &c_tm);
     std::time_t t = std::mktime(&c_tm);
     return t;

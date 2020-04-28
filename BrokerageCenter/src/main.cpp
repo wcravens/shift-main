@@ -83,13 +83,13 @@ auto main(int argc, char** argv) -> int
      * - hard limit = maximum number of open files a process may request
      *   (4096 in Ubuntu 18.04; unlimited in macOS 10.15)
      */
-    struct rlimit c_rlimit;
-    if (getrlimit(RLIMIT_NOFILE, &c_rlimit) == 0) {
+    struct ::rlimit c_rlimit;
+    if (::getrlimit(RLIMIT_NOFILE, &c_rlimit) == 0) {
         c_rlimit.rlim_cur = 4096; // soft limit = 4096
         if (c_rlimit.rlim_cur > c_rlimit.rlim_max) {
             c_rlimit.rlim_cur = c_rlimit.rlim_max; // soft limit = hard limit
         }
-        setrlimit(RLIMIT_NOFILE, &c_rlimit);
+        ::setrlimit(RLIMIT_NOFILE, &c_rlimit);
     }
 
     /**
