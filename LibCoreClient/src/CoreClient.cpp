@@ -579,57 +579,57 @@ auto CoreClient::getSubscribedOrderBookList() -> std::vector<std::string>
     return m_fixInitiator->getSubscribedOrderBookList();
 }
 
-auto CoreClient::subCandleData(const std::string& symbol) -> bool
+auto CoreClient::subCandlestickData(const std::string& symbol) -> bool
 {
     if (!isConnected()) {
         return false;
     }
 
-    m_fixInitiator->subCandleData(symbol);
+    m_fixInitiator->subCandlestickData(symbol);
 
     return true;
 }
 
-auto CoreClient::unsubCandleData(const std::string& symbol) -> bool
+auto CoreClient::unsubCandlestickData(const std::string& symbol) -> bool
 {
     if (!isConnected()) {
         return false;
     }
 
-    m_fixInitiator->unsubCandleData(symbol);
+    m_fixInitiator->unsubCandlestickData(symbol);
 
     return true;
 }
 
-auto CoreClient::subAllCandleData() -> bool
+auto CoreClient::subAllCandlestickData() -> bool
 {
     if (!isConnected()) {
         return false;
     }
 
-    m_fixInitiator->subAllCandleData();
+    m_fixInitiator->subAllCandlestickData();
 
     return true;
 }
 
-auto CoreClient::unsubAllCandleData() -> bool
+auto CoreClient::unsubAllCandlestickData() -> bool
 {
     if (!isConnected()) {
         return false;
     }
 
-    m_fixInitiator->unsubAllCandleData();
+    m_fixInitiator->unsubAllCandlestickData();
 
     return true;
 }
 
-auto CoreClient::getSubscribedCandlestickList() -> std::vector<std::string>
+auto CoreClient::getSubscribedCandlestickDataList() -> std::vector<std::string>
 {
     if (!isConnected()) {
         return std::vector<std::string>();
     }
 
-    return m_fixInitiator->getSubscribedCandlestickList();
+    return m_fixInitiator->getSubscribedCandlestickDataList();
 }
 
 /**

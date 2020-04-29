@@ -94,7 +94,7 @@ protected:
 
     // FIXInitiator - QuickFIX methods
     static void s_sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
-    static void s_sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
+    static void s_sendCandlestickDataRequest(const std::string& symbol, bool isSubscribed);
 
     void submitOrder(const Order&, const std::string& userID = "");
 
@@ -139,11 +139,11 @@ protected:
     void subAllOrderBook();
     void unsubAllOrderBook();
     auto getSubscribedOrderBookList() -> std::vector<std::string>;
-    void subCandleData(const std::string& symbol);
-    void unsubCandleData(const std::string& symbol);
-    void subAllCandleData();
-    void unsubAllCandleData();
-    auto getSubscribedCandlestickList() -> std::vector<std::string>;
+    void subCandlestickData(const std::string& symbol);
+    void unsubCandlestickData(const std::string& symbol);
+    void subAllCandlestickData();
+    void unsubAllCandlestickData();
+    auto getSubscribedCandlestickDataList() -> std::vector<std::string>;
 
 private:
     FIXInitiator() = default; // singleton pattern
@@ -191,8 +191,8 @@ private:
 
     mutable std::mutex m_mtxSubscribedOrderBookSet; //!< Mutex for the subscribed order book list.
     std::set<std::string> m_subscribedOrderBookSet; //!< Set of stock symbols whose orderbook has been subscribed.
-    mutable std::mutex m_mtxSubscribedCandleStickSet; //!< Mutex for the subscribed candle stick list.
-    std::set<std::string> m_subscribedCandleStickSet; //!< Set of stock symbols whose candlestick data has been subscribed.
+    mutable std::mutex m_mtxSubscribedCandlestickDataSet; //!< Mutex for the subscribed candle stick list.
+    std::set<std::string> m_subscribedCandlestickDataSet; //!< Set of stock symbols whose candlestick data has been subscribed.
 };
 
 } // shift

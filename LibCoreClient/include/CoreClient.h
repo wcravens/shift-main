@@ -99,11 +99,11 @@ public:
     auto subAllOrderBook() -> bool;
     auto unsubAllOrderBook() -> bool;
     auto getSubscribedOrderBookList() -> std::vector<std::string>;
-    auto subCandleData(const std::string& symbol) -> bool;
-    auto unsubCandleData(const std::string& symbol) -> bool;
-    auto subAllCandleData() -> bool;
-    auto unsubAllCandleData() -> bool;
-    auto getSubscribedCandlestickList() -> std::vector<std::string>;
+    auto subCandlestickData(const std::string& symbol) -> bool;
+    auto unsubCandlestickData(const std::string& symbol) -> bool;
+    auto subAllCandlestickData() -> bool;
+    auto unsubAllCandlestickData() -> bool;
+    auto getSubscribedCandlestickDataList() -> std::vector<std::string>;
 
 protected:
     // inline methods

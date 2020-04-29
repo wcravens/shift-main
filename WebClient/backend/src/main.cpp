@@ -167,7 +167,7 @@ int main(int ac, char* av[])
     std::thread tRecReq(&MainClient::receiveRequestFromPHP, pMClient);
 
     pMClient->subAllOrderBook();
-    pMClient->subAllCandleData();
+    pMClient->subAllCandlestickData();
     pMClient->sendStockListToFront();
 
     // start thread of WebClient::checkEverySecond function

@@ -26,7 +26,7 @@ $redirect_url = '/orderbook.php';
             echo '<script src="/scripts/keymapping.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/lastprice.js?version='.$SHIFT_version.'"></script>';
             echo '<script src="/scripts/orderbook.js?version='.$SHIFT_version.'"></script>';
-            echo '<script src="/scripts/candledata.js?version='.$SHIFT_version.'"></script>';
+            echo '<script src="/scripts/candlestickdata.js?version='.$SHIFT_version.'"></script>';
         ?> 
     </head>
     <body>

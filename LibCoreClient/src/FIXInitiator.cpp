@@ -240,8 +240,8 @@ void FIXInitiator::disconnectBrokerageCenter()
         m_subscribedOrderBookSet.clear();
     }
     {
-        std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
-        m_subscribedCandleStickSet.clear();
+        std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandlestickDataSet);
+        m_subscribedCandlestickDataSet.clear();
     }
 }
 
@@ -444,7 +444,7 @@ inline void FIXInitiator::initializeOrderBooks()
 /*
  * @brief Send candle data request to BC.
  */
-/* static */ void FIXInitiator::s_sendCandleDataRequest(const std::string& symbol, bool isSubscribed)
+/* static */ void FIXInitiator::s_sendCandlestickDataRequest(const std::string& symbol, bool isSubscribed)
 {
     FIX::Message message;
 
@@ -1640,39 +1640,39 @@ auto FIXInitiator::getSubscribedOrderBookList() -> std::vector<std::string>
     return subscriptionList;
 }
 
-void FIXInitiator::subCandleData(const std::string& symbol)
+void FIXInitiator::subCandlestickData(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
+    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandlestickDataSet);
 
     // WARNING: the following is not a requirement anymore
     // it's ok to send repeated subscription requests:
     // a test to see if it is already included in the set here is bad because
     // it would cause resubscription attempts during reconnections to fail.
-    m_subscribedCandleStickSet.insert(symbol);
-    s_sendCandleDataRequest(m_symbol_originalName[symbol], true);
+    m_subscribedCandlestickDataSet.insert(symbol);
+    s_sendCandlestickDataRequest(m_symbol_originalName[symbol], true);
 }
 
-void FIXInitiator::unsubCandleData(const std::string& symbol)
+void FIXInitiator::unsubCandlestickData(const std::string& symbol)
 {
-    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
+    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandlestickDataSet);
 
-    if (m_subscribedCandleStickSet.find(symbol) != m_subscribedCandleStickSet.end()) {
-        m_subscribedCandleStickSet.erase(symbol);
-        s_sendCandleDataRequest(m_symbol_originalName[symbol], false);
+    if (m_subscribedCandlestickDataSet.find(symbol) != m_subscribedCandlestickDataSet.end()) {
+        m_subscribedCandlestickDataSet.erase(symbol);
+        s_sendCandlestickDataRequest(m_symbol_originalName[symbol], false);
     }
 }
 
-void FIXInitiator::subAllCandleData()
+void FIXInitiator::subAllCandlestickData()
 {
     for (const auto& symbol : getStockList()) {
-        subCandleData(symbol);
+        subCandlestickData(symbol);
     }
 }
 
-void FIXInitiator::unsubAllCandleData()
+void FIXInitiator::unsubAllCandlestickData()
 {
     for (const auto& symbol : getStockList()) {
-        unsubCandleData(symbol);
+        unsubCandlestickData(symbol);
     }
 }
 
@@ -1680,13 +1680,13 @@ void FIXInitiator::unsubAllCandleData()
  * @brief Method to get the list of symbols who currently subscribed their candle data.
  * @return A vector of symbols who subscribed their candle data.
  */
-auto FIXInitiator::getSubscribedCandlestickList() -> std::vector<std::string>
+auto FIXInitiator::getSubscribedCandlestickDataList() -> std::vector<std::string>
 {
-    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandleStickSet);
+    std::lock_guard<std::mutex> scslGuard(m_mtxSubscribedCandlestickDataSet);
 
     std::vector<std::string> subscriptionList;
 
-    for (std::string symbol : m_subscribedCandleStickSet) {
+    for (std::string symbol : m_subscribedCandlestickDataSet) {
         subscriptionList.push_back(symbol);
     }
 

@@ -188,7 +188,7 @@ void MainClient::sendCompanyNamesToFront()
 void MainClient::receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) // override
 {
     std::ostringstream out;
-    out << "{ \"category\": \"candleData_" << symbol << "\", \"data\":{ "
+    out << "{ \"category\": \"candlestickData_" << symbol << "\", \"data\":{ "
         << "\"symbol\": "
         << "\"" << symbol << "\","
         << "\"open\": "

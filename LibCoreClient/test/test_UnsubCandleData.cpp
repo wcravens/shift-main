@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE test_UnsubCandleData
+#define BOOST_TEST_MODULE test_UnsubCandlestickData
 #define BOOST_TEST_DYN_LINK
 
 #include "testUtils.h"
@@ -7,7 +7,7 @@
 #include <string>
 #include <type_traits>
 
-BOOST_AUTO_TEST_CASE(UNSUBCANDLEDATATEST)
+BOOST_AUTO_TEST_CASE(UNSUBCANDLESTICKDATATEST)
 {
     auto& initiator = FIXInitiator::getInstance();
 
@@ -16,17 +16,17 @@ BOOST_AUTO_TEST_CASE(UNSUBCANDLEDATATEST)
 
     const std::string stockName = testClient.getStockList()[0];
 
-    testClient.subCandleData(stockName);
+    testClient.subCandlestickData(stockName);
     sleep(5);
 
     // get previous size of subscribed candlestick data list
-    auto prevSize = testClient.getSubscribedCandlestickList().size();
+    auto prevSize = testClient.getSubscribedCandlestickDataList().size();
 
-    testClient.unsubCandleData(stockName);
+    testClient.unsubCandlestickData(stockName);
     sleep(5);
 
     // get after size of subscribed candlestick data list
-    auto afterSize = testClient.getSubscribedCandlestickList().size();
+    auto afterSize = testClient.getSubscribedCandlestickDataList().size();
 
     initiator.disconnectBrokerageCenter();
     BOOST_CHECK_EQUAL(afterSize, prevSize - 1);

@@ -111,7 +111,7 @@ class pusher implements WampServerInterface
             $this->storedData[$entryData['category']] = $entryData;
         }
 
-        if (strpos($entryData['category'], 'candleData_') !== false) {
+        if (strpos($entryData['category'], 'candlestickData_') !== false) {
             // push to end of that array
             $this->storedData[$entryData['category']][] = $entryData;
         }

@@ -408,7 +408,7 @@ $(document).ready(function () {
 
     let conn = new ab.Session('ws://' + php_server_ip + ':8080',
         function () {
-            conn.subscribe('candleData_' + localStorage.getItem("cur_symbol"), function (topic, data) {
+            conn.subscribe('candlestickData_' + localStorage.getItem("cur_symbol"), function (topic, data) {
                 if (data.length && data.length > 0) {
                     for (var i = 0; i < data.length; i++) {
                         var mydata = data[i];

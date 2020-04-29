@@ -19,9 +19,9 @@ set(TESTS
     # test_MarketBuy
     # test_MarketSell
     # test_Strategy
-    # test_SubCandleData
+    # test_SubCandlestickData
     # test_SubOrderBook
-    # test_UnsubCandleData
+    # test_UnsubCandlestickData
     # test_UnsubOrderBook
 )
 

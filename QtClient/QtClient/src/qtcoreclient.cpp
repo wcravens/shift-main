@@ -32,7 +32,7 @@ void QtCoreClient::adaptStocklist()
 
     if (is_first_time) {
         this->subAllOrderBook();
-        this->subAllCandleData();
+        this->subAllCandlestickData();
 
         is_first_time = false;
     }
