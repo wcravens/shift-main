@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cassert>
 #include <cmath>
+#include <future>
 #include <list>
 #include <regex>
 #include <thread>
@@ -65,12 +66,6 @@ namespace shift {
  */
 FIXInitiator::~FIXInitiator() // override
 {
-    for (auto [symbol, orderBookSet] : m_orderBooks) {
-        for (auto [type, orderBook] : orderBookSet) {
-            delete orderBook;
-        }
-    }
-
     {
         std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
         m_clientByUserID.clear();
@@ -387,25 +382,10 @@ inline void FIXInitiator::initializePrices()
 inline void FIXInitiator::initializeOrderBooks()
 {
     for (const auto& symbol : m_stockList) {
-        if (m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK] != nullptr) {
-            delete m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK];
-        }
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK] = new OrderBookGlobalAsk(symbol);
-
-        if (m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID] != nullptr) {
-            delete m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID];
-        }
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID] = new OrderBookGlobalBid(symbol);
-
-        if (m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK] != nullptr) {
-            delete m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK];
-        }
-        m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK] = new OrderBookLocalAsk(symbol);
-
-        if (m_orderBooks[symbol][OrderBook::Type::LOCAL_BID] != nullptr) {
-            delete m_orderBooks[symbol][OrderBook::Type::LOCAL_BID];
-        }
-        m_orderBooks[symbol][OrderBook::Type::LOCAL_BID] = new OrderBookLocalBid(symbol);
+        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK] = std::make_unique<OrderBookGlobalAsk>(symbol);
+        m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID] = std::make_unique<OrderBookGlobalBid>(symbol);
+        m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK] = std::make_unique<OrderBookLocalAsk>(symbol);
+        m_orderBooks[symbol][OrderBook::Type::LOCAL_BID] = std::make_unique<OrderBookLocalBid>(symbol);
     }
 }
 
@@ -1449,22 +1429,23 @@ auto FIXInitiator::getLastTradeTime() -> std::chrono::system_clock::time_point
  */
 auto FIXInitiator::getBestPrice(const std::string& symbol) -> BestPrice
 {
+    auto globalBidBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID].get());
+    auto globalAskBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK].get());
+    auto localBidBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::LOCAL_BID].get());
+    auto localAskBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK].get());
+
     return {
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestPrice(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestSize(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK]->getBestPrice(),
-        m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK]->getBestSize(),
-        m_orderBooks[symbol][OrderBook::Type::LOCAL_BID]->getBestPrice(),
-        m_orderBooks[symbol][OrderBook::Type::LOCAL_BID]->getBestSize(),
-        m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK]->getBestPrice(),
-        m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK]->getBestSize()
+        globalBidBestValues.get().first, globalBidBestValues.get().second,
+        globalAskBestValues.get().first, globalAskBestValues.get().second,
+        localBidBestValues.get().first, localBidBestValues.get().second,
+        localAskBestValues.get().first, localAskBestValues.get().second
     };
 }
 
 /**
  * @brief Method to get the corresponding order book by symbol name and entry type.
  * @param symbol The target symbol to find from the order book map.
- * @param type The target entry type (Global bid "B"/ask "A", local bid "b"/ask "a")
+ * @param type The target entry type (GLOBAL_BID, GLOBAL_ASK, LOCAL_BID, LOCAL_ASK)
  */
 auto FIXInitiator::getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel) -> std::vector<OrderBookEntry>
 {
@@ -1472,9 +1453,10 @@ auto FIXInitiator::getOrderBook(const std::string& symbol, OrderBook::Type type,
         throw "There is no Order Book for symbol " + symbol;
     }
 
-    if (m_orderBooks[symbol].find(type) == m_orderBooks[symbol].end()) {
-        throw "Order Book type is invalid";
-    }
+    // this test is not necessary anymore since using an enum OrderBook::Type
+    // if (m_orderBooks[symbol].find(type) == m_orderBooks[symbol].end()) {
+    //     throw "Order Book type is invalid";
+    // }
 
     return m_orderBooks[symbol][type]->getOrderBook(maxLevel);
 }
@@ -1482,16 +1464,18 @@ auto FIXInitiator::getOrderBook(const std::string& symbol, OrderBook::Type type,
 /**
  * @brief Method to get the corresponding order book with destination by symbol name and entry type.
  * @param symbol The target symbol to find from the order book map.
- * @param type The target entry type (Global bid "B"/ask "A", local bid "b"/ask "a")
+ * @param type The target entry type (GLOBAL_BID, GLOBAL_ASK, LOCAL_BID, LOCAL_ASK)
  */
 auto FIXInitiator::getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type) -> std::vector<OrderBookEntry>
 {
     if (m_orderBooks.find(symbol) == m_orderBooks.end()) {
         throw "There is no Order Book for symbol " + symbol;
     }
-    if (m_orderBooks[symbol].find(type) == m_orderBooks[symbol].end()) {
-        throw "Order Book type is invalid";
-    }
+
+    // this test is not necessary anymore since using an enum OrderBook::Type
+    // if (m_orderBooks[symbol].find(type) == m_orderBooks[symbol].end()) {
+    //     throw "Order Book type is invalid";
+    // }
 
     return m_orderBooks[symbol][type]->getOrderBookWithDestination();
 }

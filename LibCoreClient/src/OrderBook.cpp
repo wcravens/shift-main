@@ -24,12 +24,41 @@ auto OrderBook::getType() const -> OrderBook::Type
 }
 
 /**
+ * @brief Method to get the current best price and size.
+ * @return pair<double, int> with the value of the current best price and its total available size.
+ */
+auto OrderBook::getBestValues() -> std::pair<double, int>
+{
+    std::lock_guard<std::mutex> guard(m_mutex);
+    double bestPrice = 0.0;
+    int bestSize = 0;
+
+    if (!m_entries.empty()) {
+        bestPrice = m_entries.begin()->getPrice();
+
+        // add up the size of all entries with the same price
+        for (OrderBookEntry entry : m_entries) {
+            if (entry.getPrice() == bestPrice) {
+                bestSize += entry.getSize();
+            } else {
+                break;
+            }
+        }
+    }
+
+    return std::make_pair(bestPrice, bestSize);
+}
+
+/**
  * @brief Method to get the current best price.
  * @return double value of the current best price.
  */
 auto OrderBook::getBestPrice() -> double
 {
+    // if only the best price is required,
+    // this faster than calling getBestValues()
     std::lock_guard<std::mutex> guard(m_mutex);
+
     if (!m_entries.empty()) {
         return m_entries.begin()->getPrice();
     }
@@ -43,23 +72,7 @@ auto OrderBook::getBestPrice() -> double
  */
 auto OrderBook::getBestSize() -> int
 {
-    std::lock_guard<std::mutex> guard(m_mutex);
-    int bestSize = 0;
-    double bestPrice = 0.0;
-
-    if (!m_entries.empty()) {
-        bestPrice = m_entries.begin()->getPrice();
-
-        // Add up the size of all entries with the same price.
-        for (OrderBookEntry entry : m_entries) {
-            if (entry.getPrice() == bestPrice) {
-                bestSize += entry.getSize();
-            } else {
-                return bestSize;
-            }
-        }
-    }
-    return bestSize;
+    return getBestValues().second;
 }
 
 /**

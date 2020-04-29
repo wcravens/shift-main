@@ -175,7 +175,7 @@ private:
     std::unordered_map<std::string, std::pair<double, int>> m_lastTrades; //!< Map with stock symbol as key and a pair with their last price and size as value.
     std::chrono::system_clock::time_point m_lastTradeTime;
 
-    std::unordered_map<std::string, std::map<OrderBook::Type, OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
+    std::unordered_map<std::string, std::map<OrderBook::Type, std::unique_ptr<OrderBook>>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
 
     mutable std::mutex m_mtxUserIDByUsername;
     std::condition_variable m_cvUserIDByUsername;

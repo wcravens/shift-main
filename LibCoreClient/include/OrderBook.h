@@ -29,6 +29,7 @@ public:
     auto getSymbol() const -> const std::string&;
     auto getType() const -> Type;
 
+    auto getBestValues() -> std::pair<double, int>;
     auto getBestPrice() -> double;
     auto getBestSize() -> int;
     auto getOrderBook(int maxLevel) -> std::vector<shift::OrderBookEntry>;
