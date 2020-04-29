@@ -49,6 +49,7 @@ namespace shift {
  * @brief FIX Initiator for LibCoreClient to communicate with Brokerage Center.
  */
 class CORECLIENT_EXPORTS CoreClient;
+
 class CORECLIENT_EXPORTS FIXInitiator
     : public FIX::Application,
       public FIX::MessageCracker {
@@ -60,45 +61,48 @@ public:
     static std::string s_senderID;
     static std::string s_targetID;
 
-    static std::chrono::system_clock::time_point s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time);
+    static auto s_convertToTimePoint(const FIX::UtcDateOnly& date, const FIX::UtcTimeOnly& time) -> std::chrono::system_clock::time_point;
 
-    static FIXInitiator& getInstance();
+    ~FIXInitiator() override;
 
-    bool connectBrokerageCenter(const std::string& configFile, CoreClient* client, const std::string& password, bool verbose = false, int timeout = 10);
+    static auto getInstance() -> FIXInitiator&;
+
+    auto connectBrokerageCenter(const std::string& configFile, CoreClient* client, const std::string& password, bool verbose = false, int timeout = 10) -> bool;
     void disconnectBrokerageCenter();
 
     // call this function to attach both ways
-    bool attachClient(shift::CoreClient* client, const std::string& password = "NA");
+    auto attachClient(CoreClient* client, const std::string& password = "NA") -> bool;
 
     // call this function to send webClient username to and register at BC, with a userID as response, if any, for LC internal use
     // returns true if user is resolved in BC
-    bool registerUserInBCWaitResponse(shift::CoreClient* client);
+    auto registerUserInBCWaitResponse(CoreClient* client) -> bool;
 
-    std::vector<CoreClient*> getAttachedClients();
-    CoreClient* getSuperUser();
-    CoreClient* getClient(const std::string& name); // for end-clients compatibility use
+    auto getAttachedClients() -> std::vector<CoreClient*>;
+    auto getSuperUser() -> CoreClient*;
+    auto getClient(const std::string& name) -> CoreClient*; // for end-clients compatibility use
 
 protected:
-    CoreClient* getClientByUserID(const std::string& userID); // for core-client internal use
+    auto getClientByUserID(const std::string& userID) -> CoreClient*; // for core-client internal use
 
-    bool isConnected();
+    auto isConnected() const -> bool;
 
     // inline methods
-    void debugDump(const std::string& message);
+    void debugDump(const std::string& message) const;
     void createSymbolMap();
     void initializePrices();
     void initializeOrderBooks();
 
     // FIXInitiator - QuickFIX methods
-    void sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
-    void sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
-    void submitOrder(const shift::Order&, const std::string& userID = "");
+    static void s_sendOrderBookRequest(const std::string& symbol, bool isSubscribed);
+    static void s_sendCandleDataRequest(const std::string& symbol, bool isSubscribed);
+
+    void submitOrder(const Order&, const std::string& userID = "");
 
     void onCreate(const FIX::SessionID&) override;
     void onLogon(const FIX::SessionID&) override;
     void onLogout(const FIX::SessionID&) override;
     void toAdmin(FIX::Message&, const FIX::SessionID&) override;
-    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
+    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void fromApp(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
@@ -112,41 +116,39 @@ protected:
     void onMessage(const FIX50SP2::NewOrderList&, const FIX::SessionID&) override;
 
     // price methods
-    double getOpenPrice(const std::string& symbol);
-    double getLastPrice(const std::string& symbol);
-    int getLastSize(const std::string& symbol);
-    std::chrono::system_clock::time_point getLastTradeTime();
+    auto getOpenPrice(const std::string& symbol) -> double;
+    auto getLastPrice(const std::string& symbol) -> double;
+    auto getLastSize(const std::string& symbol) -> int;
+    auto getLastTradeTime() -> std::chrono::system_clock::time_point;
 
     // order book methods
-    shift::BestPrice getBestPrice(const std::string& symbol);
-    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel);
-    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type);
+    auto getBestPrice(const std::string& symbol) -> BestPrice;
+    auto getOrderBook(const std::string& symbol, OrderBook::Type type, int maxLevel) -> std::vector<OrderBookEntry>;
+    auto getOrderBookWithDestination(const std::string& symbol, OrderBook::Type type) -> std::vector<OrderBookEntry>;
 
     // symbols list and company names
-    std::vector<std::string> getStockList();
+    auto getStockList() -> std::vector<std::string>;
     void fetchCompanyName(std::string tickerName);
     void requestCompanyNames();
-    std::map<std::string, std::string> getCompanyNames();
-    std::string getCompanyName(const std::string& symbol);
+    auto getCompanyNames() -> std::map<std::string, std::string>;
+    auto getCompanyName(const std::string& symbol) -> std::string;
 
     // subscription methods
     void subOrderBook(const std::string& symbol);
     void unsubOrderBook(const std::string& symbol);
     void subAllOrderBook();
     void unsubAllOrderBook();
-    std::vector<std::string> getSubscribedOrderBookList();
+    auto getSubscribedOrderBookList() -> std::vector<std::string>;
     void subCandleData(const std::string& symbol);
     void unsubCandleData(const std::string& symbol);
     void subAllCandleData();
     void unsubAllCandleData();
-    std::vector<std::string> getSubscribedCandlestickList();
+    auto getSubscribedCandlestickList() -> std::vector<std::string>;
 
 private:
-    FIXInitiator();
-    ~FIXInitiator() override;
-
-    FIXInitiator(const FIXInitiator&) = delete;
-    void operator=(const FIXInitiator&) = delete;
+    FIXInitiator() = default; // singleton pattern
+    FIXInitiator(const FIXInitiator& other) = delete; // forbid copying
+    auto operator=(const FIXInitiator& other) -> FIXInitiator& = delete; // forbid assigning
 
     // DO NOT change order of these unique_ptrs:
     std::unique_ptr<FIX::LogFactory> m_pLogFactory;
@@ -173,7 +175,7 @@ private:
     std::unordered_map<std::string, std::pair<double, int>> m_lastTrades; //!< Map with stock symbol as key and a pair with their last price and size as value.
     std::chrono::system_clock::time_point m_lastTradeTime;
 
-    std::unordered_map<std::string, std::map<OrderBook::Type, shift::OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
+    std::unordered_map<std::string, std::map<OrderBook::Type, OrderBook*>> m_orderBooks; //!< Map for orderbook: key is stock symbol, value is another map with type as key and order book as value.
 
     mutable std::mutex m_mtxUserIDByUsername;
     std::condition_variable m_cvUserIDByUsername;

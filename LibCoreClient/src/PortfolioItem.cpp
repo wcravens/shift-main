@@ -1,63 +1,71 @@
 #include "PortfolioItem.h"
 
-shift::PortfolioItem::PortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL)
-    : m_symbol(symbol)
-    , m_longShares(longShares)
-    , m_shortShares(shortShares)
-    , m_longPrice(longPrice)
-    , m_shortPrice(shortPrice)
-    , m_realizedPL(realizedPL)
-    , m_timestamp(std::chrono::system_clock::now())
+namespace shift {
+
+PortfolioItem::PortfolioItem(std::string symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL)
+    : m_symbol { std::move(symbol) }
+    , m_longShares { longShares }
+    , m_shortShares { shortShares }
+    , m_longPrice { longPrice }
+    , m_shortPrice { shortPrice }
+    , m_realizedPL { realizedPL }
+    , m_timestamp { std::chrono::system_clock::now() }
 {
 }
 
-const std::string& shift::PortfolioItem::getSymbol() const
+auto PortfolioItem::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-int shift::PortfolioItem::getShares() const
+auto PortfolioItem::getShares() const -> int
 {
     return m_longShares - m_shortShares;
 }
 
-int shift::PortfolioItem::getLongShares() const
+auto PortfolioItem::getLongShares() const -> int
 {
     return m_longShares;
 }
 
-int shift::PortfolioItem::getShortShares() const
+auto PortfolioItem::getShortShares() const -> int
 {
     return m_shortShares;
 }
 
-double shift::PortfolioItem::getPrice() const
+auto PortfolioItem::getPrice() const -> double
 {
-    if (getShares() == 0) {
-        return 0.0;
-    } else if (getShares() > 0) {
+    int shares = getShares();
+
+    if (shares > 0) {
         return m_longPrice;
-    } else {
+    }
+
+    if (shares < 0) {
         return m_shortPrice;
     }
+
+    return 0.0;
 }
 
-double shift::PortfolioItem::getLongPrice() const
+auto PortfolioItem::getLongPrice() const -> double
 {
     return m_longPrice;
 }
 
-double shift::PortfolioItem::getShortPrice() const
+auto PortfolioItem::getShortPrice() const -> double
 {
     return m_shortPrice;
 }
 
-double shift::PortfolioItem::getRealizedPL() const
+auto PortfolioItem::getRealizedPL() const -> double
 {
     return m_realizedPL;
 }
 
-const std::chrono::system_clock::time_point& shift::PortfolioItem::getTimestamp() const
+auto PortfolioItem::getTimestamp() const -> const std::chrono::system_clock::time_point&
 {
     return m_timestamp;
 }
+
+} // shift

@@ -7,20 +7,20 @@ BOOST_AUTO_TEST_CASE(SUBORDERBOOKTEST)
 {
     auto& initiator = FIXInitiator::getInstance();
 
-    CoreClient* testClient = new CoreClient("test010");
-    initiator.connectBrokerageCenter("initiator.cfg", testClient, "password", 1000);
+    CoreClient testClient { "test010" };
+    initiator.connectBrokerageCenter("initiator.cfg", &testClient, "password");
 
-    const std::string stockName = testClient->getStockList()[0];
+    const std::string stockName = testClient.getStockList()[0];
 
-    // get previous size of subscribed orderbook data list
-    auto prev_size = testClient->getSubscribedOrderBookList().size();
+    // get previous size of subscribed order book data list
+    int prevSize = testClient.getSubscribedOrderBookList().size();
 
-    testClient->subOrderBook(stockName);
+    testClient.subOrderBook(stockName);
     sleep(5);
 
-    // get after size of subscribed orderbook data list
-    auto after_size = testClient->getSubscribedOrderBookList().size();
+    // get after size of subscribed order book data list
+    int afterSize = testClient.getSubscribedOrderBookList().size();
 
     initiator.disconnectBrokerageCenter();
-    BOOST_CHECK_EQUAL(after_size, prev_size + 1);
+    BOOST_CHECK_EQUAL(afterSize, prevSize + 1);
 }

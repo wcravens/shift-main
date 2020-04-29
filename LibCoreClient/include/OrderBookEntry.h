@@ -16,21 +16,20 @@ namespace shift {
 class CORECLIENT_EXPORTS OrderBookEntry {
 
 public:
-    OrderBookEntry();
-
-    OrderBookEntry(double price, int size, const std::string& destination, std::chrono::system_clock::time_point time);
+    OrderBookEntry() = default;
+    OrderBookEntry(double price, int size, std::string destination, std::chrono::system_clock::time_point time);
 
     // Getters
-    double getPrice() const;
-    int getSize() const;
-    const std::string& getDestination() const;
-    const std::chrono::system_clock::time_point getTime() const;
+    auto getPrice() const -> double;
+    auto getSize() const -> int;
+    auto getDestination() const -> const std::string&;
+    auto getTime() const -> const std::chrono::system_clock::time_point&;
 
     // Setters
     void setPrice(double price);
     void setSize(int size);
     void setDestination(const std::string& destination);
-    void setTime(std::chrono::system_clock::time_point time);
+    void setTime(const std::chrono::system_clock::time_point& time);
 
 private:
     double m_price;

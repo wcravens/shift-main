@@ -7,12 +7,12 @@
 namespace shift {
 
 /**
- * @brief A child class from OrderBook, which specifically used for GlobalAsk OrderBook.
+ * @brief A child class from OrderBook, which specifically used for Global Ask Order Book.
  */
 class CORECLIENT_EXPORTS OrderBookGlobalAsk : public OrderBook {
 
 public:
-    OrderBookGlobalAsk(const std::string& symbol);
+    OrderBookGlobalAsk(std::string symbol);
 
     virtual void update(shift::OrderBookEntry&& entry) override;
 };

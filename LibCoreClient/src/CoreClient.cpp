@@ -17,62 +17,56 @@
 
 using namespace std::chrono_literals;
 
-shift::CoreClient::CoreClient()
-    : m_fixInitiator(nullptr)
-    , m_verbose(false)
-    , m_submittedOrdersSize(0)
-    , m_waitingListSize(0)
+namespace shift {
+
+CoreClient::CoreClient(std::string username)
+    : m_fixInitiator { nullptr }
+    , m_username { std::move(username) }
+    , m_verbose { false }
+    , m_submittedOrdersSize { 0 }
+    , m_waitingListSize { 0 }
 {
 }
 
-shift::CoreClient::CoreClient(const std::string& username)
-    : m_fixInitiator(nullptr)
-    , m_username(username)
-    , m_verbose(false)
-    , m_submittedOrdersSize(0)
-    , m_waitingListSize(0)
-{
-}
-
-void shift::CoreClient::setVerbose(bool verbose)
+void CoreClient::setVerbose(bool verbose)
 {
     m_verbose = verbose;
 }
 
-bool shift::CoreClient::isVerbose()
+auto CoreClient::isVerbose() const -> bool
 {
     return m_verbose;
 }
 
-bool shift::CoreClient::isConnected()
+auto CoreClient::isConnected() const -> bool
 {
-    return (m_fixInitiator && m_fixInitiator->isConnected());
+    return (m_fixInitiator != nullptr && m_fixInitiator->isConnected());
 }
 
-std::string shift::CoreClient::getUsername() const
+auto CoreClient::getUsername() const -> const std::string&
 {
     return m_username;
 }
 
-void shift::CoreClient::setUsername(const std::string& username)
+void CoreClient::setUsername(const std::string& username)
 {
     m_username = username;
 }
 
-std::string shift::CoreClient::getUserID() const
+auto CoreClient::getUserID() const -> const std::string&
 {
     return m_userID;
 }
 
-void shift::CoreClient::setUserID(const std::string& userID)
+void CoreClient::setUserID(const std::string& userID)
 {
     m_userID = userID;
 }
 
-std::vector<shift::CoreClient*> shift::CoreClient::getAttachedClients()
+auto CoreClient::getAttachedClients() -> std::vector<CoreClient*>
 {
     if (!isConnected()) {
-        return std::vector<shift::CoreClient*>();
+        return std::vector<CoreClient*>();
     }
 
     return m_fixInitiator->getAttachedClients();
@@ -80,15 +74,15 @@ std::vector<shift::CoreClient*> shift::CoreClient::getAttachedClients()
 
 /**
  * @brief Method to submit orders from Core Client to Brokerage Center.
- * @param order as a shift::Order object contains all required information.
+ * @param order as a Order object contains all required information.
  */
-void shift::CoreClient::submitOrder(const shift::Order& order)
+void CoreClient::submitOrder(const Order& order)
 {
     if (!isConnected()) {
         return;
     }
 
-    if (order.getType() != shift::Order::Type::CANCEL_BID && order.getType() != shift::Order::Type::CANCEL_ASK) {
+    if (order.getType() != Order::Type::CANCEL_BID && order.getType() != Order::Type::CANCEL_ASK) {
         std::lock_guard<std::mutex> lk(m_mutex_orders);
         m_submittedOrdersIDs.push_back(order.getID());
         m_submittedOrders[order.getID()] = order;
@@ -100,18 +94,18 @@ void shift::CoreClient::submitOrder(const shift::Order& order)
 
 /**
  * @brief Method to submit cancel orders from Core Client to Brokerage Center.
- * @param order as a shift::Order object contains all required information.
+ * @param order as a Order object contains all required information.
  */
-void shift::CoreClient::submitCancellation(shift::Order order)
+void CoreClient::submitCancellation(Order order)
 {
     if (!isConnected()) {
         return;
     }
 
-    if ((order.getType() == shift::Order::Type::LIMIT_BUY) || (order.getType() == shift::Order::Type::MARKET_BUY)) {
-        order.setType(shift::Order::Type::CANCEL_BID);
-    } else if ((order.getType() == shift::Order::Type::LIMIT_SELL) || (order.getType() == shift::Order::Type::MARKET_SELL)) {
-        order.setType(shift::Order::Type::CANCEL_ASK);
+    if ((order.getType() == Order::Type::LIMIT_BUY) || (order.getType() == Order::Type::MARKET_BUY)) {
+        order.setType(Order::Type::CANCEL_BID);
+    } else if ((order.getType() == Order::Type::LIMIT_SELL) || (order.getType() == Order::Type::MARKET_SELL)) {
+        order.setType(Order::Type::CANCEL_ASK);
     }
 
     order.setSize(order.getSize() - order.getExecutedSize());
@@ -119,25 +113,25 @@ void shift::CoreClient::submitCancellation(shift::Order order)
     return m_fixInitiator->submitOrder(order, getUserID());
 }
 
-shift::PortfolioSummary shift::CoreClient::getPortfolioSummary()
+auto CoreClient::getPortfolioSummary() -> PortfolioSummary
 {
     std::lock_guard<std::mutex> lk(m_mutex_portfolioSummary);
     return m_portfolioSummary;
 }
 
-std::map<std::string, shift::PortfolioItem> shift::CoreClient::getPortfolioItems()
+auto CoreClient::getPortfolioItems() -> std::map<std::string, PortfolioItem>
 {
     std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
     return m_symbol_portfolioItem;
 }
 
-shift::PortfolioItem shift::CoreClient::getPortfolioItem(const std::string& symbol)
+auto CoreClient::getPortfolioItem(const std::string& symbol) -> PortfolioItem
 {
     std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
     return m_symbol_portfolioItem[symbol];
 }
 
-double shift::CoreClient::getUnrealizedPL(const std::string& symbol)
+auto CoreClient::getUnrealizedPL(const std::string& symbol /* = "" */) -> double
 {
     if (!isConnected()) {
         return 0.0;
@@ -145,7 +139,7 @@ double shift::CoreClient::getUnrealizedPL(const std::string& symbol)
 
     double unrealizedPL = 0.0;
 
-    if (symbol != "") {
+    if (!symbol.empty()) {
         auto portfolioItem = getPortfolioItem(symbol);
         unrealizedPL = (getClosePrice(symbol) - portfolioItem.getPrice()) * portfolioItem.getShares();
     } else {
@@ -157,14 +151,14 @@ double shift::CoreClient::getUnrealizedPL(const std::string& symbol)
     return unrealizedPL;
 }
 
-int shift::CoreClient::getSubmittedOrdersSize()
+auto CoreClient::getSubmittedOrdersSize() -> int
 {
     return m_submittedOrdersSize;
 }
 
-std::vector<shift::Order> shift::CoreClient::getSubmittedOrders()
+auto CoreClient::getSubmittedOrders() -> std::vector<Order>
 {
-    std::vector<shift::Order> submittedOrders;
+    std::vector<Order> submittedOrders;
 
     std::lock_guard<std::mutex> lk(m_mutex_orders);
     for (const std::string& id : m_submittedOrdersIDs) {
@@ -174,15 +168,15 @@ std::vector<shift::Order> shift::CoreClient::getSubmittedOrders()
     return submittedOrders;
 }
 
-shift::Order shift::CoreClient::getOrder(const std::string& orderID)
+auto CoreClient::getOrder(const std::string& orderID) -> Order
 {
     std::lock_guard<std::mutex> lk(m_mutex_orders);
     return m_submittedOrders[orderID];
 }
 
-std::vector<shift::Order> shift::CoreClient::getExecutedOrders(const std::string& orderID)
+auto CoreClient::getExecutedOrders(const std::string& orderID) -> std::vector<Order>
 {
-    std::vector<shift::Order> executedOrders;
+    std::vector<Order> executedOrders;
 
     std::lock_guard<std::mutex> lk(m_mutex_orders);
     auto range = m_executedOrders.equal_range(orderID);
@@ -193,18 +187,18 @@ std::vector<shift::Order> shift::CoreClient::getExecutedOrders(const std::string
     return executedOrders;
 }
 
-int shift::CoreClient::getWaitingListSize()
+auto CoreClient::getWaitingListSize() -> int
 {
     return m_waitingListSize;
 }
 
-std::vector<shift::Order> shift::CoreClient::getWaitingList()
+auto CoreClient::getWaitingList() -> std::vector<Order>
 {
     std::lock_guard<std::mutex> lk(m_mutex_waitingList);
     return m_waitingList;
 }
 
-void shift::CoreClient::cancelAllPendingOrders()
+void CoreClient::cancelAllPendingOrders()
 {
     for (auto order : getWaitingList()) {
         submitCancellation(order);
@@ -216,7 +210,7 @@ void shift::CoreClient::cancelAllPendingOrders()
     }
 }
 
-double shift::CoreClient::getOpenPrice(const std::string& symbol)
+auto CoreClient::getOpenPrice(const std::string& symbol) -> double
 {
     if (!isConnected()) {
         return 0.0;
@@ -225,14 +219,14 @@ double shift::CoreClient::getOpenPrice(const std::string& symbol)
     return m_fixInitiator->getOpenPrice(symbol);
 }
 
-double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int size)
+auto CoreClient::getClosePrice(const std::string& symbol, bool buy, int size) -> double
 {
     if (!isConnected()) {
         return 0.0;
     }
 
-    auto global = (buy) ? getOrderBookWithDestination(symbol, shift::OrderBook::Type::GLOBAL_ASK) : getOrderBookWithDestination(symbol, shift::OrderBook::Type::GLOBAL_BID);
-    auto local = (buy) ? getOrderBookWithDestination(symbol, shift::OrderBook::Type::LOCAL_ASK) : getOrderBookWithDestination(symbol, shift::OrderBook::Type::LOCAL_BID);
+    auto global = (buy) ? getOrderBookWithDestination(symbol, OrderBook::Type::GLOBAL_ASK) : getOrderBookWithDestination(symbol, OrderBook::Type::GLOBAL_BID);
+    auto local = (buy) ? getOrderBookWithDestination(symbol, OrderBook::Type::LOCAL_ASK) : getOrderBookWithDestination(symbol, OrderBook::Type::LOCAL_BID);
     int buySign = ((buy) ? 1 : -1);
 
     double closePrice = 0.0;
@@ -296,31 +290,33 @@ double shift::CoreClient::getClosePrice(const std::string& symbol, bool buy, int
         }
     }
 
-    if (prices.size() > 0) {
+    if (!prices.empty()) {
         closePrice = std::inner_product(prices.begin(), prices.end(), sizes.begin(), 0.0) / std::accumulate(sizes.begin(), sizes.end(), 0.0);
     }
 
     return closePrice;
 }
 
-double shift::CoreClient::getClosePrice(const std::string& symbol)
+auto CoreClient::getClosePrice(const std::string& symbol) -> double
 {
     if (!isConnected()) {
         return 0.0;
     }
 
-    auto portfolioItem = getPortfolioItem(symbol);
+    int shares = getPortfolioItem(symbol).getShares();
 
-    if (portfolioItem.getShares() > 0) {
-        return getClosePrice(symbol, false, portfolioItem.getShares() / 100);
-    } else if (portfolioItem.getShares() < 0) {
-        return getClosePrice(symbol, true, portfolioItem.getShares() / 100);
-    } else {
-        return 0.0;
+    if (shares > 0) {
+        return getClosePrice(symbol, false, shares / 100);
     }
+
+    if (shares < 0) {
+        return getClosePrice(symbol, true, shares / 100);
+    }
+
+    return 0.0;
 }
 
-double shift::CoreClient::getLastPrice(const std::string& symbol)
+auto CoreClient::getLastPrice(const std::string& symbol) -> double
 {
     if (!isConnected()) {
         return 0.0;
@@ -329,7 +325,7 @@ double shift::CoreClient::getLastPrice(const std::string& symbol)
     return m_fixInitiator->getLastPrice(symbol);
 }
 
-int shift::CoreClient::getLastSize(const std::string& symbol)
+auto CoreClient::getLastSize(const std::string& symbol) -> int
 {
     if (!isConnected()) {
         return 0;
@@ -338,7 +334,7 @@ int shift::CoreClient::getLastSize(const std::string& symbol)
     return m_fixInitiator->getLastSize(symbol);
 }
 
-std::chrono::system_clock::time_point shift::CoreClient::getLastTradeTime()
+auto CoreClient::getLastTradeTime() -> std::chrono::system_clock::time_point
 {
     if (!isConnected()) {
         return std::chrono::system_clock::time_point();
@@ -347,34 +343,34 @@ std::chrono::system_clock::time_point shift::CoreClient::getLastTradeTime()
     return m_fixInitiator->getLastTradeTime();
 }
 
-shift::BestPrice shift::CoreClient::getBestPrice(const std::string& symbol)
+auto CoreClient::getBestPrice(const std::string& symbol) -> BestPrice
 {
     if (!isConnected()) {
-        return shift::BestPrice();
+        return BestPrice();
     }
 
     return m_fixInitiator->getBestPrice(symbol);
 }
 
-std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel)
+auto CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel) -> std::vector<OrderBookEntry>
 {
     if (!isConnected()) {
-        return std::vector<shift::OrderBookEntry>();
+        return std::vector<OrderBookEntry>();
     }
 
     return m_fixInitiator->getOrderBook(symbol, type, maxLevel);
 }
 
-std::vector<shift::OrderBookEntry> shift::CoreClient::getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type)
+auto CoreClient::getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type) -> std::vector<OrderBookEntry>
 {
     if (!isConnected()) {
-        return std::vector<shift::OrderBookEntry>();
+        return std::vector<OrderBookEntry>();
     }
 
     return m_fixInitiator->getOrderBookWithDestination(symbol, type);
 }
 
-std::vector<std::string> shift::CoreClient::getStockList()
+auto CoreClient::getStockList() -> std::vector<std::string>
 {
     if (!isConnected()) {
         return std::vector<std::string>();
@@ -383,7 +379,7 @@ std::vector<std::string> shift::CoreClient::getStockList()
     return m_fixInitiator->getStockList();
 }
 
-void shift::CoreClient::requestCompanyNames()
+void CoreClient::requestCompanyNames()
 {
     if (!isConnected()) {
         return;
@@ -392,7 +388,7 @@ void shift::CoreClient::requestCompanyNames()
     return m_fixInitiator->requestCompanyNames();
 }
 
-std::map<std::string, std::string> shift::CoreClient::getCompanyNames()
+auto CoreClient::getCompanyNames() -> std::map<std::string, std::string>
 {
     if (!isConnected()) {
         return std::map<std::string, std::string>();
@@ -401,7 +397,7 @@ std::map<std::string, std::string> shift::CoreClient::getCompanyNames()
     return m_fixInitiator->getCompanyNames();
 }
 
-std::string shift::CoreClient::getCompanyName(const std::string& symbol)
+auto CoreClient::getCompanyName(const std::string& symbol) -> std::string
 {
     if (!isConnected()) {
         return std::string();
@@ -410,7 +406,7 @@ std::string shift::CoreClient::getCompanyName(const std::string& symbol)
     return m_fixInitiator->getCompanyName(symbol);
 }
 
-bool shift::CoreClient::requestSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)
+auto CoreClient::requestSamplePrices(std::vector<std::string> symbols, double samplingFrequency /* = 1 */, unsigned int samplingWindow /* = 31 */) -> bool
 {
     if (!isConnected()) {
         return false;
@@ -430,24 +426,24 @@ bool shift::CoreClient::requestSamplePrices(std::vector<std::string> symbols, do
         }
     }
 
-    if (symbols.begin() != symbols.end()) {
-        m_samplePriceThreads.push_back(std::thread(&shift::CoreClient::calculateSamplePrices, this, symbols, samplingFrequency, samplingWindow));
-        return true;
-    } else {
+    if (symbols.begin() == symbols.end()) {
         return false;
     }
+
+    m_samplePriceThreads.emplace_back(&CoreClient::calculateSamplePrices, this, symbols, samplingFrequency, samplingWindow);
+    return true;
 }
 
-bool shift::CoreClient::cancelSamplePricesRequest(const std::vector<std::string>& symbols)
+auto CoreClient::cancelSamplePricesRequest(const std::vector<std::string>& symbols) -> bool
 {
     bool success = false;
 
     {
         std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
 
-        for (auto it = symbols.begin(); it != symbols.end(); ++it) {
-            if (m_samplePricesFlags[*it]) {
-                m_samplePricesFlags[*it] = false;
+        for (const auto& symbol : symbols) {
+            if (m_samplePricesFlags[symbol]) {
+                m_samplePricesFlags[symbol] = false;
                 success = true;
             }
         }
@@ -456,7 +452,7 @@ bool shift::CoreClient::cancelSamplePricesRequest(const std::vector<std::string>
     return success;
 }
 
-bool shift::CoreClient::cancelAllSamplePricesRequests()
+auto CoreClient::cancelAllSamplePricesRequests() -> bool
 {
     bool success = false;
 
@@ -480,7 +476,7 @@ bool shift::CoreClient::cancelAllSamplePricesRequests()
     return success;
 }
 
-int shift::CoreClient::getSamplePricesSize(const std::string& symbol)
+auto CoreClient::getSamplePricesSize(const std::string& symbol) -> int
 {
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
@@ -488,49 +484,49 @@ int shift::CoreClient::getSamplePricesSize(const std::string& symbol)
     return static_cast<int>(m_sampleLastPrices[symbol].size());
 }
 
-std::list<double> shift::CoreClient::getSamplePrices(const std::string& symbol, bool midPrices)
+auto CoreClient::getSamplePrices(const std::string& symbol, bool midPrices /* = false */) -> std::list<double>
 {
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
-    if (!midPrices) {
-        return m_sampleLastPrices[symbol];
-    } else {
+    if (midPrices) {
         return m_sampleMidPrices[symbol];
     }
+
+    return m_sampleLastPrices[symbol];
 }
 
-int shift::CoreClient::getLogReturnsSize(const std::string& symbol)
+auto CoreClient::getLogReturnsSize(const std::string& symbol) -> int
 {
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
     // m_sampleLastPrices[sym].size() == m_sampleMidPrices[sym].size()
-    return static_cast<int>((m_sampleLastPrices[symbol].size() == 0) ? 0 : (m_sampleLastPrices[symbol].size() - 1));
+    return static_cast<int>(m_sampleLastPrices[symbol].empty() ? 0 : (m_sampleLastPrices[symbol].size() - 1));
 }
 
-std::list<double> shift::CoreClient::getLogReturns(const std::string& symbol, bool midPrices)
+auto CoreClient::getLogReturns(const std::string& symbol, bool midPrices /* = false */) -> std::list<double>
 {
     std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
 
-    if (m_sampleLastPrices[symbol].size() > 1) {
-        // m_sampleLastPrices[sym].size() == m_sampleMidPrices[sym].size()
-        std::list<double> logReturns(m_sampleLastPrices[symbol].size());
-
-        if (!midPrices) {
-            std::transform(m_sampleLastPrices[symbol].begin(), m_sampleLastPrices[symbol].end(), logReturns.begin(), [](double x) { return std::log(x); });
-        } else {
-            std::transform(m_sampleMidPrices[symbol].begin(), m_sampleMidPrices[symbol].end(), logReturns.begin(), [](double x) { return std::log(x); });
-        }
-
-        std::adjacent_difference(logReturns.begin(), logReturns.end(), logReturns.begin());
-        logReturns.pop_front();
-
-        return logReturns;
-    } else {
+    if (m_sampleLastPrices[symbol].size() < 2) {
         return std::list<double>();
     }
+
+    // m_sampleLastPrices[sym].size() == m_sampleMidPrices[sym].size()
+    std::list<double> logReturns(m_sampleLastPrices[symbol].size());
+
+    if (midPrices) {
+        std::transform(m_sampleMidPrices[symbol].begin(), m_sampleMidPrices[symbol].end(), logReturns.begin(), [](double x) { return std::log(x); });
+    } else {
+        std::transform(m_sampleLastPrices[symbol].begin(), m_sampleLastPrices[symbol].end(), logReturns.begin(), [](double x) { return std::log(x); });
+    }
+
+    std::adjacent_difference(logReturns.begin(), logReturns.end(), logReturns.begin());
+    logReturns.pop_front();
+
+    return logReturns;
 }
 
-bool shift::CoreClient::subOrderBook(const std::string& symbol)
+auto CoreClient::subOrderBook(const std::string& symbol) -> bool
 {
     if (!isConnected()) {
         return false;
@@ -541,7 +537,7 @@ bool shift::CoreClient::subOrderBook(const std::string& symbol)
     return true;
 }
 
-bool shift::CoreClient::unsubOrderBook(const std::string& symbol)
+auto CoreClient::unsubOrderBook(const std::string& symbol) -> bool
 {
     if (!isConnected()) {
         return false;
@@ -552,7 +548,7 @@ bool shift::CoreClient::unsubOrderBook(const std::string& symbol)
     return true;
 }
 
-bool shift::CoreClient::subAllOrderBook()
+auto CoreClient::subAllOrderBook() -> bool
 {
     if (!isConnected()) {
         return false;
@@ -563,7 +559,7 @@ bool shift::CoreClient::subAllOrderBook()
     return true;
 }
 
-bool shift::CoreClient::unsubAllOrderBook()
+auto CoreClient::unsubAllOrderBook() -> bool
 {
     if (!isConnected()) {
         return false;
@@ -574,7 +570,7 @@ bool shift::CoreClient::unsubAllOrderBook()
     return true;
 }
 
-std::vector<std::string> shift::CoreClient::getSubscribedOrderBookList()
+auto CoreClient::getSubscribedOrderBookList() -> std::vector<std::string>
 {
     if (!isConnected()) {
         return std::vector<std::string>();
@@ -583,7 +579,7 @@ std::vector<std::string> shift::CoreClient::getSubscribedOrderBookList()
     return m_fixInitiator->getSubscribedOrderBookList();
 }
 
-bool shift::CoreClient::subCandleData(const std::string& symbol)
+auto CoreClient::subCandleData(const std::string& symbol) -> bool
 {
     if (!isConnected()) {
         return false;
@@ -594,7 +590,7 @@ bool shift::CoreClient::subCandleData(const std::string& symbol)
     return true;
 }
 
-bool shift::CoreClient::unsubCandleData(const std::string& symbol)
+auto CoreClient::unsubCandleData(const std::string& symbol) -> bool
 {
     if (!isConnected()) {
         return false;
@@ -605,7 +601,7 @@ bool shift::CoreClient::unsubCandleData(const std::string& symbol)
     return true;
 }
 
-bool shift::CoreClient::subAllCandleData()
+auto CoreClient::subAllCandleData() -> bool
 {
     if (!isConnected()) {
         return false;
@@ -616,7 +612,7 @@ bool shift::CoreClient::subAllCandleData()
     return true;
 }
 
-bool shift::CoreClient::unsubAllCandleData()
+auto CoreClient::unsubAllCandleData() -> bool
 {
     if (!isConnected()) {
         return false;
@@ -627,7 +623,7 @@ bool shift::CoreClient::unsubAllCandleData()
     return true;
 }
 
-std::vector<std::string> shift::CoreClient::getSubscribedCandlestickList()
+auto CoreClient::getSubscribedCandlestickList() -> std::vector<std::string>
 {
     if (!isConnected()) {
         return std::vector<std::string>();
@@ -640,7 +636,7 @@ std::vector<std::string> shift::CoreClient::getSubscribedCandlestickList()
  * @brief Method to print debug messages.
  * @param message as a string contains content to be print.
  */
-inline void shift::CoreClient::debugDump(const std::string& message)
+inline void CoreClient::debugDump(const std::string& message) const
 {
     if (m_verbose) {
         cout << "CoreClient:" << endl;
@@ -648,14 +644,14 @@ inline void shift::CoreClient::debugDump(const std::string& message)
     }
 }
 
-bool shift::CoreClient::attachInitiator(FIXInitiator& initiator)
+auto CoreClient::attachInitiator(FIXInitiator& initiator) -> bool
 {
     // will attach one way
     m_fixInitiator = &initiator;
-    return m_fixInitiator;
+    return (m_fixInitiator != nullptr);
 }
 
-void shift::CoreClient::storeExecution(const std::string& orderID, shift::Order::Type orderType, int executedSize, double executedPrice, shift::Order::Status newStatus)
+void CoreClient::storeExecution(const std::string& orderID, Order::Type orderType, int executedSize, double executedPrice, Order::Status newStatus)
 {
     std::lock_guard<std::mutex> lk(m_mutex_orders);
 
@@ -679,24 +675,24 @@ void shift::CoreClient::storeExecution(const std::string& orderID, shift::Order:
     // before FILLED status is received, possibly originating:
     // - PENDING_CANCEL status from the Matching Engine
     // - REJECTED status from the Brokerage Center
-    if (order.getStatus() != shift::Order::Status::FILLED) {
+    if (order.getStatus() != Order::Status::FILLED) {
         order.setStatus(newStatus);
     }
 
-    if (newStatus == shift::Order::Status::CANCELED) {
+    if (newStatus == Order::Status::CANCELED) {
         // not everything was canceled -> there is still volume to be executed
         if (order.getSize() > newExecutedSize) {
-            order.setStatus(shift::Order::Status::PARTIALLY_FILLED);
+            order.setStatus(Order::Status::PARTIALLY_FILLED);
         }
         // there is nothing else to be executed, but some was executed before the cancellation
         else if (newExecutedPrice > 0.0) {
-            order.setStatus(shift::Order::Status::FILLED);
+            order.setStatus(Order::Status::FILLED);
         }
     }
 
-    if ((newStatus == shift::Order::Status::PARTIALLY_FILLED)
-        || (newStatus == shift::Order::Status::FILLED)
-        || (newStatus == shift::Order::Status::CANCELED)) {
+    if ((newStatus == Order::Status::PARTIALLY_FILLED)
+        || (newStatus == Order::Status::FILLED)
+        || (newStatus == Order::Status::CANCELED)) {
         auto executedOrder = order;
         executedOrder.setType(orderType);
         executedOrder.setExecutedSize(executedSize);
@@ -705,7 +701,7 @@ void shift::CoreClient::storeExecution(const std::string& orderID, shift::Order:
     }
 }
 
-void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)
+void CoreClient::storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)
 {
     std::lock_guard<std::mutex> lk(m_mutex_portfolioSummary);
 
@@ -719,23 +715,23 @@ void shift::CoreClient::storePortfolioSummary(double totalBP, int totalShares, d
     m_portfolioSummary.setTimestamp(); // current time
 }
 
-void shift::CoreClient::storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL)
+void CoreClient::storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL)
 {
     std::lock_guard<std::mutex> lock(m_mutex_symbol_portfolioItem);
     m_symbol_portfolioItem[symbol] = PortfolioItem { symbol, longShares, shortShares, longPrice, shortPrice, realizedPL };
 }
 
-void shift::CoreClient::storeWaitingList(std::vector<shift::Order>&& waitingList)
+void CoreClient::storeWaitingList(std::vector<Order>&& waitingList)
 {
     std::lock_guard<std::mutex> lock(m_mutex_waitingList);
     m_waitingList = std::move(waitingList);
     m_waitingListSize = m_waitingList.size();
 }
 
-void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)
+void CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)
 {
     size_t ready = 0;
-    BestPrice bp;
+    BestPrice bp {};
     std::unordered_map<std::string, double> lastPrice;
     std::unordered_map<std::string, double> bestBid;
     std::unordered_map<std::string, double> bestAsk;
@@ -794,3 +790,5 @@ void shift::CoreClient::calculateSamplePrices(std::vector<std::string> symbols, 
         }
     }
 }
+
+} // shift

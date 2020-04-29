@@ -7,8 +7,8 @@ BOOST_AUTO_TEST_CASE(CONNECTTEST)
 {
     auto& initiator = FIXInitiator::getInstance();
 
-    CoreClient* testClient = new CoreClient("test010");
-    bool logonResult = initiator.connectBrokerageCenter("initiator.cfg", testClient, "password");
+    CoreClient testClient { "test010" };
+    bool logonResult = initiator.connectBrokerageCenter("initiator.cfg", &testClient, "password");
 
     initiator.disconnectBrokerageCenter();
     BOOST_CHECK(logonResult);

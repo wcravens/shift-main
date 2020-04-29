@@ -2,44 +2,46 @@
 
 #include <cmath>
 
-/* static */ inline double shift::Order::s_roundNearest(double value, double nearest)
+namespace shift {
+
+/* static */ inline auto Order::s_roundNearest(double value, double nearest) -> double
 {
     return std::round(value / nearest) * nearest;
 }
 
-shift::Order::Order(shift::Order::Type type, const std::string& symbol, int size, double price, const std::string& id)
-    : m_type(type)
-    , m_symbol(symbol)
-    , m_size(size)
-    , m_executedSize(0)
-    , m_price(price)
-    , m_executedPrice(0.0)
-    , m_id(id)
-    , m_status(shift::Order::Status::PENDING_NEW)
-    , m_timestamp(std::chrono::system_clock::now())
+Order::Order(Order::Type type, std::string symbol, int size, double price /* = 0.0 */, std::string id /* = "" */)
+    : m_type { type }
+    , m_symbol { std::move(symbol) }
+    , m_size { size }
+    , m_executedSize { 0 }
+    , m_price { price }
+    , m_executedPrice { 0.0 }
+    , m_id { std::move(id) }
+    , m_status { Order::Status::PENDING_NEW }
+    , m_timestamp { std::chrono::system_clock::now() }
 {
     if (m_price <= 0.0) {
         m_price = 0.0;
-        if (m_type == shift::Order::Type::LIMIT_BUY) {
-            m_type = shift::Order::Type::MARKET_BUY;
-        } else if (m_type == shift::Order::Type::LIMIT_SELL) {
-            m_type = shift::Order::Type::MARKET_SELL;
+        if (m_type == Order::Type::LIMIT_BUY) {
+            m_type = Order::Type::MARKET_BUY;
+        } else if (m_type == Order::Type::LIMIT_SELL) {
+            m_type = Order::Type::MARKET_SELL;
         }
     } else {
         m_price = s_roundNearest(m_price, 0.01);
     }
 
     if (m_id.empty()) {
-        m_id = shift::crossguid::newGuid().str();
+        m_id = crossguid::newGuid().str();
     }
 }
 
-shift::Order::Type shift::Order::getType() const
+auto Order::getType() const -> Order::Type
 {
     return m_type;
 }
 
-std::string shift::Order::getTypeString() const
+auto Order::getTypeString() const -> std::string
 {
     switch (m_type) {
     case LIMIT_BUY: {
@@ -64,42 +66,42 @@ std::string shift::Order::getTypeString() const
     return "N/A";
 }
 
-const std::string& shift::Order::getSymbol() const
+auto Order::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-int shift::Order::getSize() const
+auto Order::getSize() const -> int
 {
     return m_size;
 }
 
-int shift::Order::getExecutedSize() const
+auto Order::getExecutedSize() const -> int
 {
     return m_executedSize;
 }
 
-double shift::Order::getPrice() const
+auto Order::getPrice() const -> double
 {
     return m_price;
 }
 
-double shift::Order::getExecutedPrice() const
+auto Order::getExecutedPrice() const -> double
 {
     return m_executedPrice;
 }
 
-const std::string& shift::Order::getID() const
+auto Order::getID() const -> const std::string&
 {
     return m_id;
 }
 
-shift::Order::Status shift::Order::getStatus() const
+auto Order::getStatus() const -> Order::Status
 {
     return m_status;
 }
 
-std::string shift::Order::getStatusString() const
+auto Order::getStatusString() const -> std::string
 {
     switch (m_status) {
     case PENDING_NEW: {
@@ -127,52 +129,54 @@ std::string shift::Order::getStatusString() const
     return "N/A";
 }
 
-const std::chrono::system_clock::time_point& shift::Order::getTimestamp() const
+auto Order::getTimestamp() const -> const std::chrono::system_clock::time_point&
 {
     return m_timestamp;
 }
 
-void shift::Order::setType(shift::Order::Type type)
+void Order::setType(Order::Type type)
 {
     m_type = type;
 }
 
-void shift::Order::setSymbol(const std::string& symbol)
+void Order::setSymbol(const std::string& symbol)
 {
     m_symbol = symbol;
 }
 
-void shift::Order::setSize(int size)
+void Order::setSize(int size)
 {
     m_size = size;
 }
 
-void shift::Order::setExecutedSize(int executedSize)
+void Order::setExecutedSize(int executedSize)
 {
     m_executedSize = executedSize;
 }
 
-void shift::Order::setPrice(double price)
+void Order::setPrice(double price)
 {
     m_price = s_roundNearest(price, 0.01);
 }
 
-void shift::Order::setExecutedPrice(double executedPrice)
+void Order::setExecutedPrice(double executedPrice)
 {
     m_executedPrice = executedPrice;
 }
 
-void shift::Order::setID(const std::string& id)
+void Order::setID(const std::string& id)
 {
     m_id = id;
 }
 
-void shift::Order::setStatus(shift::Order::Status status)
+void Order::setStatus(Order::Status status)
 {
     m_status = status;
 }
 
-void shift::Order::setTimestamp()
+void Order::setTimestamp()
 {
     m_timestamp = std::chrono::system_clock::now();
 }
+
+} // shift

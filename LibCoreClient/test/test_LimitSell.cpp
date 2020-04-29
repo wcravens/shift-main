@@ -7,30 +7,30 @@ BOOST_AUTO_TEST_CASE(LIMITSELLTEST)
 {
     auto& initiator = FIXInitiator::getInstance();
 
-    CoreClient* testClient = new CoreClient("test010");
-    initiator.connectBrokerageCenter("initiator.cfg", testClient, "password");
+    CoreClient testClient { "test010" };
+    initiator.connectBrokerageCenter("initiator.cfg", &testClient, "password");
 
-    const std::string stockName = testClient->getStockList()[0];
-    testClient->subOrderBook(stockName);
+    const std::string stockName = testClient.getStockList()[0];
+    testClient.subOrderBook(stockName);
     sleep(5);
 
-    BestPrice bestPrice = testClient->getBestPriceBySymbol(stockName);
-    double limitSellPrice = bestPrice.getAskPrice() + 1;
+    BestPrice bestPrice = testClient.getBestPrice(stockName);
+    double limitSellPrice = bestPrice.getAskPrice() + 1.00;
     std::cout << "limitSellPrice: " << limitSellPrice << std::endl;
 
-    auto prev_size = testClient->getWaitingListSize();
-    std::cout << "previous size should be: " << prev_size << std::endl;
+    int prevSize = testClient.getWaitingListSize();
+    std::cout << "previous size should be: " << prevSize << std::endl;
 
-    Order order(stockName, limitSellPrice, TESTSIZE, shift::Order::Type::LIMIT_SELL);
-    testClient->submitOrder(order);
+    Order limitSell(shift::Order::Type::LIMIT_SELL, stockName, TESTSIZE, limitSellPrice);
+    testClient.submitOrder(limitSell);
     sleep(5);
 
-    auto after_size = testClient->getWaitingListSize();
-    std::cout << "after size should be: " << after_size << std::endl;
+    int afterSize = testClient.getWaitingListSize();
+    std::cout << "after size should be: " << afterSize << std::endl;
 
-    testClient->unsubOrderBook(stockName);
+    testClient.unsubOrderBook(stockName);
     sleep(5);
 
     initiator.disconnectBrokerageCenter();
-    BOOST_CHECK_EQUAL(after_size, prev_size + TESTSIZE);
+    BOOST_CHECK_EQUAL(afterSize, prevSize + TESTSIZE);
 }

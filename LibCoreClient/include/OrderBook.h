@@ -23,16 +23,16 @@ public:
         LOCAL_ASK = 'a'
     };
 
-    OrderBook(const std::string& symbol, Type type);
+    OrderBook(std::string symbol, Type type);
     virtual ~OrderBook() = default;
 
-    const std::string& getSymbol() const;
-    Type getType() const;
+    auto getSymbol() const -> const std::string&;
+    auto getType() const -> Type;
 
-    double getBestPrice();
-    int getBestSize();
-    std::vector<shift::OrderBookEntry> getOrderBook(int maxLevel);
-    std::vector<shift::OrderBookEntry> getOrderBookWithDestination();
+    auto getBestPrice() -> double;
+    auto getBestSize() -> int;
+    auto getOrderBook(int maxLevel) -> std::vector<shift::OrderBookEntry>;
+    auto getOrderBookWithDestination() -> std::vector<shift::OrderBookEntry>;
 
     void setOrderBook(std::list<shift::OrderBookEntry>&& entries);
     void resetOrderBook();
@@ -41,7 +41,7 @@ public:
     virtual void update(shift::OrderBookEntry&& entry) = 0;
 
 protected:
-    std::list<shift::OrderBookEntry>::iterator findEntry(double price, const std::string& destination);
+    auto findEntry(double price, const std::string& destination) -> std::list<shift::OrderBookEntry>::iterator;
 
     std::string m_symbol;
     Type m_type;

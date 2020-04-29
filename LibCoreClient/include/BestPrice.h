@@ -10,30 +10,30 @@ namespace shift {
 class CORECLIENT_EXPORTS BestPrice {
 
 public:
-    BestPrice();
+    BestPrice() = default;
 
     BestPrice(double globalBidPrice, int globalBidSize, double globalAskPrice, int globalAskSize,
         double localBidPrice, int localBidSize, double localAskPrice, int localAskSize);
 
     ~BestPrice() = default;
 
-    double getBidPrice() const;
-    int getBidSize() const;
+    auto getBidPrice() const -> double;
+    auto getBidSize() const -> int;
 
-    double getAskPrice() const;
-    int getAskSize() const;
+    auto getAskPrice() const -> double;
+    auto getAskSize() const -> int;
 
-    double getGlobalBidPrice() const;
-    int getGlobalBidSize() const;
+    auto getGlobalBidPrice() const -> double;
+    auto getGlobalBidSize() const -> int;
 
-    double getGlobalAskPrice() const;
-    int getGlobalAskSize() const;
+    auto getGlobalAskPrice() const -> double;
+    auto getGlobalAskSize() const -> int;
 
-    double getLocalBidPrice() const;
-    int getLocalBidSize() const;
+    auto getLocalBidPrice() const -> double;
+    auto getLocalBidSize() const -> int;
 
-    double getLocalAskPrice() const;
-    int getLocalAskSize() const;
+    auto getLocalAskPrice() const -> double;
+    auto getLocalAskSize() const -> int;
 
 private:
     double m_globalBidPrice;

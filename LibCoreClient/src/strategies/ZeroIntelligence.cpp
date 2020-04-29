@@ -8,47 +8,45 @@
 #include <shift/miscutils/terminal/Common.h>
 #endif
 
-namespace shift {
-namespace strategies {
+namespace shift::strategies {
 
-    static StrategyMaker<ZeroIntelligence> maker("ZeroIntelligence");
+static StrategyMaker<ZeroIntelligence> maker("ZeroIntelligence");
 
-    ZeroIntelligence::ZeroIntelligence(shift::CoreClient& client, bool verbose, int strategy_duration, int trading_rate, double initial_bid, double initial_ask, double minimum_dolar_change)
-        : IStrategy(client, verbose)
-        , m_strategy_duration(strategy_duration)
-        , m_trading_rate(trading_rate)
-        , m_initial_bid(initial_bid)
-        , m_initial_ask(initial_ask)
-        , m_minimum_dolar_change(minimum_dolar_change)
-    {
-    }
+ZeroIntelligence::ZeroIntelligence(shift::CoreClient& client, bool verbose, std::string stockTicker, double simulationDuration, double tradingRate, double initialPrice, double initialVolatility)
+    : IStrategy { client, verbose }
+    , m_stockTicker { std::move(stockTicker) }
+    , m_simulationDuration { simulationDuration }
+    , m_tradingRate { tradingRate }
+    , m_initialPrice { initialPrice }
+    , m_initialVolatility { initialVolatility }
+{
+}
 
-    ZeroIntelligence::ZeroIntelligence(shift::CoreClient& client, bool verbose, const std::initializer_list<StrategyParameter>& parameters)
-        : IStrategy(client, verbose)
-    {
-        std::initializer_list<StrategyParameter>::iterator it = parameters.begin();
-        m_strategy_duration = *it++;
-        m_trading_rate = *it++;
-        m_initial_bid = *it++;
-        m_initial_ask = *it++;
-        m_minimum_dolar_change = *it;
-    }
+ZeroIntelligence::ZeroIntelligence(shift::CoreClient& client, bool verbose, const std::initializer_list<StrategyParameter>& parameters)
+    : IStrategy { client, verbose }
+{
+    std::initializer_list<StrategyParameter>::iterator it = parameters.begin();
+    m_stockTicker = std::string(*it++);
+    m_simulationDuration = *it++;
+    m_tradingRate = *it++;
+    m_initialPrice = *it++;
+    m_initialVolatility = *it;
+}
 
-    /* virtual */ void ZeroIntelligence::run(std::string username) // override
-    {
-        cout << "--------------------\n";
-        cout << "Begin of Strategy\n";
-        cout << "--------------------\n";
-        cout << "Strategy ID: " << m_id << '\n';
-        cout << "Strategy duration: " << m_strategy_duration << '\n';
-        cout << "Trading rate: " << m_trading_rate << '\n';
-        cout << "Initial bid: " << m_initial_bid << '\n';
-        cout << "Initial ask: " << m_initial_ask << '\n';
-        cout << "Minimum dolar change: " << m_minimum_dolar_change << '\n';
-        cout << "--------------------\n";
-        cout << "End of Strategy\n";
-        cout << "--------------------\n";
-    }
+/* virtual */ void ZeroIntelligence::run(std::string username /* = "" */) // override
+{
+    cout << "--------------------\n";
+    cout << "Begin of Strategy\n";
+    cout << "--------------------\n";
+    cout << "Strategy ID: " << m_id << '\n';
+    cout << "Stock ticker: " << m_stockTicker << '\n';
+    cout << "Strategy duration: " << m_simulationDuration << '\n';
+    cout << "Trading rate: " << m_tradingRate << '\n';
+    cout << "Initial price: " << m_initialPrice << '\n';
+    cout << "Initial volatility: " << m_initialVolatility << '\n';
+    cout << "--------------------\n";
+    cout << "End of Strategy\n";
+    cout << "--------------------\n";
+}
 
-} // strategies
-} // shift
+} // shift::strategies

@@ -7,16 +7,15 @@ namespace shift {
 class PortfolioSummary {
 
 public:
-    PortfolioSummary();
-
+    PortfolioSummary() = default;
     PortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
 
-    bool isOpenBPReady() const;
-    double getOpenBP() const;
-    double getTotalBP() const;
-    int getTotalShares() const;
-    double getTotalRealizedPL() const;
-    const std::chrono::system_clock::time_point& getTimestamp() const;
+    auto isOpenBPReady() const -> bool;
+    auto getOpenBP() const -> double;
+    auto getTotalBP() const -> double;
+    auto getTotalShares() const -> int;
+    auto getTotalRealizedPL() const -> double;
+    auto getTimestamp() const -> const std::chrono::system_clock::time_point&;
 
     void setOpenBP(double openBP);
     void setTotalBP(double totalBP);

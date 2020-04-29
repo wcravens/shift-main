@@ -7,47 +7,42 @@ BOOST_AUTO_TEST_CASE(MARKETBUYTEST)
 {
     auto& initiator = FIXInitiator::getInstance();
 
-    CoreClient* testClient = new CoreClient("test010");
-    initiator.connectBrokerageCenter("initiator.cfg", testClient, "password", 1000);
+    CoreClient testClient { "test010" };
+    initiator.connectBrokerageCenter("initiator.cfg", &testClient, "password");
 
-    const std::string stockName = testClient->getStockList()[0];
-    testClient->subOrderBook(stockName);
+    const std::string stockName = testClient.getStockList()[0];
+    testClient.subOrderBook(stockName);
     sleep(5);
 
-    auto prev_size = testClient->getPortfolioSummary().getTotalShares();
-    std::cout << "previous size should be: " << prev_size << std::endl;
+    int prevSize = testClient.getPortfolioSummary().getTotalShares();
+    std::cout << "previous size should be: " << prevSize << std::endl;
 
-    Order order(stockName, 0.0, TESTSIZE, shift::Order::Type::MARKET_BUY);
-    testClient->submitOrder(order);
+    Order marketBuy(shift::Order::Type::MARKET_BUY, stockName, TESTSIZE);
+    testClient.submitOrder(marketBuy);
     sleep(5);
 
-    auto after_size = testClient->getPortfolioSummary().getTotalShares();
-    std::cout << "after size should be: " << after_size << std::endl;
+    auto afterSize = testClient.getPortfolioSummary().getTotalShares();
+    std::cout << "after size should be: " << afterSize << std::endl;
 
-    // test multiple clients works in muntiple threads
-    std::vector<CoreClient*> clients;
+    // test multiple clients working in multiple threads
+    std::vector<std::unique_ptr<CoreClient>> clients;
     for (int i = 0; i < 9; ++i) {
-        std::string clientUsername = "test01" + std::to_string(i + 1);
-        CoreClient* pc = new CoreClient(clientUsername); // pointer client
-        if (!FIXInitiator::getInstance().attachClient(pc))
-            continue;
-        pc->subOrderBook(stockName);
-        clients.push_back(pc);
+        clients.push_back(std::make_unique<CoreClient>("test00" + std::to_string(i + 1))); // pointer clients
+        initiator.attachClient(clients[i].get());
     }
     sleep(5);
 
-    std::vector<size_t> before_shares;
-    std::vector<std::thread*> threads;
+    std::vector<int> beforeShares;
+    std::vector<std::unique_ptr<std::thread>> threads;
     for (int i = 0; i < 9; ++i) {
+        beforeShares.push_back(clients[i]->getPortfolioSummary().getTotalShares());
 
-        before_shares.push_back(clients[i]->getPortfolioSummary().getTotalShares());
+        // this part should not be a problem, since FIX::Session::sendToTarget(message) is already thread-safe
+        threads.push_back(std::make_unique<std::thread>(&CoreClient::submitOrder, clients[i].get(), marketBuy));
 
-        // this part should not be a problem, since FIX::session::sendMessage is already thread safe
-        std::thread* pt = new std::thread(&CoreClient::submitOrder, clients[i], order);
-        threads.push_back(pt);
         sleep(1);
     }
-    //sleep(5);
+    // sleep(5);
 
     for (auto& pt : threads) {
         pt->join();
@@ -55,13 +50,12 @@ BOOST_AUTO_TEST_CASE(MARKETBUYTEST)
 
     int i = 0;
     for (auto& pc : clients) {
-        BOOST_CHECK_EQUAL(pc->getPortfolioSummary().getTotalShares(), before_shares[i++] + TESTSIZE * 100);
-        pc->unsubOrderBook(stockName);
+        BOOST_CHECK_EQUAL(pc->getPortfolioSummary().getTotalShares(), beforeShares[i++] + TESTSIZE * 100);
     }
 
-    testClient->unsubOrderBook(stockName);
+    testClient.unsubOrderBook(stockName);
     sleep(5);
 
     initiator.disconnectBrokerageCenter();
-    BOOST_CHECK_EQUAL(after_size, prev_size + TESTSIZE * 100);
+    BOOST_CHECK_EQUAL(afterSize, prevSize + TESTSIZE * 100);
 }

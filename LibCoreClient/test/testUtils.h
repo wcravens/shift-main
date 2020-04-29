@@ -8,12 +8,6 @@
 #include <thread>
 
 #include <boost/test/unit_test.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
-#include <quickfix/FileStore.h>
-#include <quickfix/SocketInitiator.h>
 
 using namespace shift;
 

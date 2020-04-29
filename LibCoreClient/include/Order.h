@@ -38,23 +38,23 @@ public:
         REJECTED = '8',
     };
 
-    static double s_roundNearest(double value, double nearest);
+    static auto s_roundNearest(double value, double nearest) -> double;
 
     Order() = default;
-    Order(Type type, const std::string& symbol, int size, double price = 0.0, const std::string& id = "");
+    Order(Type type, std::string symbol, int size, double price = 0.0, std::string id = "");
 
     // Getters
-    Type getType() const;
-    std::string getTypeString() const;
-    const std::string& getSymbol() const;
-    int getSize() const;
-    int getExecutedSize() const;
-    double getPrice() const;
-    double getExecutedPrice() const;
-    const std::string& getID() const;
-    Status getStatus() const;
-    std::string getStatusString() const;
-    const std::chrono::system_clock::time_point& getTimestamp() const;
+    auto getType() const -> Type;
+    auto getTypeString() const -> std::string;
+    auto getSymbol() const -> const std::string&;
+    auto getSize() const -> int;
+    auto getExecutedSize() const -> int;
+    auto getPrice() const -> double;
+    auto getExecutedPrice() const -> double;
+    auto getID() const -> const std::string&;
+    auto getStatus() const -> Status;
+    auto getStatusString() const -> std::string;
+    auto getTimestamp() const -> const std::chrono::system_clock::time_point&;
 
     // Setters
     void setType(Type type);

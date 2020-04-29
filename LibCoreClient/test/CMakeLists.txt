@@ -9,19 +9,19 @@ set(TEST_PROJECT_NAME "TestClient")
 ### List of Files #############################################################
 
 set(TESTS
-    # test_Connect
-    # test_CompanyList
-    # test_CreateSymbolMap
-
-    # test_LimitBuy
-    # test_CancelBid
-    # test_LimitSell
     # test_CancelAsk
+    # test_CancelBid
+    # test_CompanyList
+    # test_Connect
+    # test_CreateSymbolMap
+    # test_LimitBuy
+    # test_LimitSell
     # test_MarketBuy
     # test_MarketSell
+    # test_Strategy
     # test_SubCandleData
-    # test_UnsubCandleData
     # test_SubOrderBook
+    # test_UnsubCandleData
     # test_UnsubOrderBook
 )
 

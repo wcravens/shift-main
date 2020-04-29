@@ -11,17 +11,17 @@ class PortfolioItem {
 public:
     PortfolioItem() = default; // required for map
 
-    PortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);
+    PortfolioItem(std::string symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);
 
-    const std::string& getSymbol() const;
-    int getShares() const;
-    int getLongShares() const;
-    int getShortShares() const;
-    double getPrice() const;
-    double getLongPrice() const;
-    double getShortPrice() const;
-    double getRealizedPL() const;
-    const std::chrono::system_clock::time_point& getTimestamp() const;
+    auto getSymbol() const -> const std::string&;
+    auto getShares() const -> int;
+    auto getLongShares() const -> int;
+    auto getShortShares() const -> int;
+    auto getPrice() const -> double;
+    auto getLongPrice() const -> double;
+    auto getShortPrice() const -> double;
+    auto getRealizedPL() const -> double;
+    auto getTimestamp() const -> const std::chrono::system_clock::time_point&;
 
 private:
     std::string m_symbol;

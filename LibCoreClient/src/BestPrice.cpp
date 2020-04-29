@@ -1,27 +1,17 @@
 #include "BestPrice.h"
 
-shift::BestPrice::BestPrice()
-    : m_globalBidPrice(0.0)
-    , m_globalBidSize(0)
-    , m_globalAskPrice(0.0)
-    , m_globalAskSize(0)
-    , m_localBidPrice(0.0)
-    , m_localBidSize(0)
-    , m_localAskPrice(0.0)
-    , m_localAskSize(0)
-{
-}
+namespace shift {
 
-shift::BestPrice::BestPrice(double globalBidPrice, int globalBidSize, double globalAskPrice, int globalAskSize,
+BestPrice::BestPrice(double globalBidPrice, int globalBidSize, double globalAskPrice, int globalAskSize,
     double localBidPrice, int localBidSize, double localAskPrice, int localAskSize)
-    : m_globalBidPrice(globalBidPrice)
-    , m_globalBidSize(globalBidSize)
-    , m_globalAskPrice(globalAskPrice)
-    , m_globalAskSize(globalAskSize)
-    , m_localBidPrice(localBidPrice)
-    , m_localBidSize(localBidSize)
-    , m_localAskPrice(localAskPrice)
-    , m_localAskSize(localAskSize)
+    : m_globalBidPrice { globalBidPrice }
+    , m_globalBidSize { globalBidSize }
+    , m_globalAskPrice { globalAskPrice }
+    , m_globalAskSize { globalAskSize }
+    , m_localBidPrice { localBidPrice }
+    , m_localBidSize { localBidSize }
+    , m_localAskPrice { localAskPrice }
+    , m_localAskSize { localAskSize }
 {
 }
 
@@ -29,14 +19,16 @@ shift::BestPrice::BestPrice(double globalBidPrice, int globalBidSize, double glo
  * @brief Getter to get the current best bid price.
  * @return Current best bid price as double.
  */
-double shift::BestPrice::getBidPrice() const
+auto BestPrice::getBidPrice() const -> double
 {
     // pick the highest between global bid price and local bid price
-    if (m_globalBidPrice > m_localBidPrice)
+    if (m_globalBidPrice > m_localBidPrice) {
         return m_globalBidPrice;
+    }
 
-    if (m_globalBidPrice < m_localBidPrice)
+    if (m_globalBidPrice < m_localBidPrice) {
         return m_localBidPrice;
+    }
 
     return m_globalBidPrice;
 }
@@ -45,13 +37,15 @@ double shift::BestPrice::getBidPrice() const
  * @brief Getter to get size for orders with the current best bid.
  * @return Size for orders with the current best bid price as int.
  */
-int shift::BestPrice::getBidSize() const
+auto BestPrice::getBidSize() const -> int
 {
-    if (m_globalBidPrice > m_localBidPrice)
+    if (m_globalBidPrice > m_localBidPrice) {
         return m_globalBidSize;
+    }
 
-    if (m_globalBidPrice < m_localBidPrice)
+    if (m_globalBidPrice < m_localBidPrice) {
         return m_localBidSize;
+    }
 
     return m_globalBidSize + m_localBidSize;
 }
@@ -60,14 +54,16 @@ int shift::BestPrice::getBidSize() const
  * @brief Getter to get the current best ask price.
  * @return Current best ask price as double.
  */
-double shift::BestPrice::getAskPrice() const
+auto BestPrice::getAskPrice() const -> double
 {
     // pick the lowest between global ask price and local ask price
-    if ((m_globalAskPrice && m_globalAskPrice < m_localAskPrice) || !m_localAskPrice)
+    if ((m_globalAskPrice > 0.0 && m_globalAskPrice < m_localAskPrice) || (m_localAskPrice == 0.0)) {
         return m_globalAskPrice;
+    }
 
-    if ((m_localAskPrice && m_globalAskPrice > m_localAskPrice) || !m_globalAskPrice)
+    if ((m_localAskPrice > 0.0 && m_globalAskPrice > m_localAskPrice) || (m_globalAskPrice == 0.0)) {
         return m_localAskPrice;
+    }
 
     return m_globalAskPrice;
 }
@@ -76,53 +72,57 @@ double shift::BestPrice::getAskPrice() const
  * @brief Getter to get size for orders with the current best ask.
  * @return Size for orders with the current best ask price as int.
  */
-int shift::BestPrice::getAskSize() const
+auto BestPrice::getAskSize() const -> int
 {
-    if ((m_globalAskPrice && m_globalAskPrice < m_localAskPrice) || !m_localAskPrice)
+    if ((m_globalAskPrice > 0.0 && m_globalAskPrice < m_localAskPrice) || (m_localAskPrice == 0.0)) {
         return m_globalAskSize;
+    }
 
-    if ((m_localAskPrice && m_globalAskPrice > m_localAskPrice) || !m_globalAskPrice)
+    if ((m_localAskPrice > 0.0 && m_globalAskPrice > m_localAskPrice) || (m_globalAskPrice == 0.0)) {
         return m_localAskSize;
+    }
 
     return m_globalAskSize + m_localAskSize;
 }
 
-double shift::BestPrice::getGlobalBidPrice() const
+auto BestPrice::getGlobalBidPrice() const -> double
 {
     return m_globalBidPrice;
 }
 
-int shift::BestPrice::getGlobalBidSize() const
+auto BestPrice::getGlobalBidSize() const -> int
 {
     return m_globalBidSize;
 }
 
-double shift::BestPrice::getGlobalAskPrice() const
+auto BestPrice::getGlobalAskPrice() const -> double
 {
     return m_globalAskPrice;
 }
 
-int shift::BestPrice::getGlobalAskSize() const
+auto BestPrice::getGlobalAskSize() const -> int
 {
     return m_globalAskSize;
 }
 
-double shift::BestPrice::getLocalBidPrice() const
+auto BestPrice::getLocalBidPrice() const -> double
 {
     return m_localBidPrice;
 }
 
-int shift::BestPrice::getLocalBidSize() const
+auto BestPrice::getLocalBidSize() const -> int
 {
     return m_localBidSize;
 }
 
-double shift::BestPrice::getLocalAskPrice() const
+auto BestPrice::getLocalAskPrice() const -> double
 {
     return m_localAskPrice;
 }
 
-int shift::BestPrice::getLocalAskSize() const
+auto BestPrice::getLocalAskSize() const -> int
 {
     return m_localAskSize;
 }
+
+} // shift

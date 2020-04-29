@@ -7,23 +7,21 @@
 #include <initializer_list>
 #include <string>
 
-namespace shift {
-namespace strategies {
+namespace shift::strategies {
 
-    class ZeroIntelligence : public IStrategy {
-    public:
-        ZeroIntelligence(shift::CoreClient& client, bool verbose, int strategy_duration, int trading_rate, double initial_bid, double initial_ask, double minimum_dolar_change);
-        ZeroIntelligence(shift::CoreClient& client, bool verbose, const std::initializer_list<StrategyParameter>& v);
+class ZeroIntelligence : public IStrategy {
+public:
+    ZeroIntelligence(shift::CoreClient& client, bool verbose, std::string stockTicker, double simulationDuration, double tradingRate, double initialPrice, double initialVolatility);
+    ZeroIntelligence(shift::CoreClient& client, bool verbose, const std::initializer_list<StrategyParameter>& parameters);
 
-        virtual void run(std::string username = "") override;
+    virtual void run(std::string username = "") override;
 
-    private:
-        int m_strategy_duration;
-        int m_trading_rate;
-        double m_initial_bid;
-        double m_initial_ask;
-        double m_minimum_dolar_change;
-    };
+private:
+    std::string m_stockTicker;
+    double m_simulationDuration;
+    double m_tradingRate;
+    double m_initialPrice;
+    double m_initialVolatility;
+};
 
-} // strategies
-} // shift
+} // shift::strategies

@@ -10,10 +10,10 @@ BOOST_AUTO_TEST_CASE(STRATEGYTEST) //strategy is no long used right?
 {
     auto& initiator = shift::FIXInitiator::getInstance();
 
-    CoreClient* testClient = new CoreClient("test010");
-    initiator.connectBrokerageCenter("initiator.cfg", testClient, "password", 1000);
+    CoreClient testClient { "test010" };
+    initiator.connectBrokerageCenter("initiator.cfg", &testClient, "password");
 
-    // shift::strategies::StrategyParameter sp{ false };
+    // shift::strategies::StrategyParameter sp { false };
     // sp = 3.4;
     // std::cout << "double? " << (sp.isDouble() ? "true" : "false") << "\n";
     // std::cout << "value: " << sp << "\n";
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(STRATEGYTEST) //strategy is no long used right?
     // std::cout << "std::string? " << (sp.isString() ? "true" : "false") << "\n";
     // std::cout << "value: " << sp << "\n";
 
-    auto strategy = shift::strategies::StrategyFactory::Instance().Create("ZeroIntelligence", *testClient, false, { 380, 190, 99.95, 100.05, 0.05 });
+    auto* strategy = shift::strategies::StrategyFactory::Instance().Create("ZeroIntelligence", testClient, false, { "CS1", 23100.0, 385.0, 100.00, 0.10 });
     strategy->run();
 
     initiator.disconnectBrokerageCenter();

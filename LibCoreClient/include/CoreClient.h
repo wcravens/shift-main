@@ -28,91 +28,93 @@ namespace shift {
  * @brief Core class for LibCoreClient including all core functions.
  */
 class CORECLIENT_EXPORTS FIXInitiator;
+
 class CORECLIENT_EXPORTS CoreClient {
 
+    //! The source of all evils
     friend class FIXInitiator;
 
 public:
-    CoreClient();
-    CoreClient(const std::string& username);
+    CoreClient() = default;
+    CoreClient(std::string username);
     virtual ~CoreClient() = default;
 
     void setVerbose(bool verbose);
-    bool isVerbose();
-    bool isConnected();
+    auto isVerbose() const -> bool;
+    auto isConnected() const -> bool;
 
-    std::string getUsername() const;
+    auto getUsername() const -> const std::string&;
     void setUsername(const std::string& username);
-    std::string getUserID() const;
+    auto getUserID() const -> const std::string&;
     void setUserID(const std::string& userID);
-    std::vector<CoreClient*> getAttachedClients();
+    auto getAttachedClients() -> std::vector<CoreClient*>;
 
-    void submitOrder(const shift::Order& order);
-    void submitCancellation(shift::Order order);
+    void submitOrder(const Order& order);
+    void submitCancellation(Order order);
 
     // portfolio methods
-    PortfolioSummary getPortfolioSummary();
-    std::map<std::string, PortfolioItem> getPortfolioItems();
-    PortfolioItem getPortfolioItem(const std::string& symbol);
-    double getUnrealizedPL(const std::string& symbol = "");
-    int getSubmittedOrdersSize();
-    std::vector<shift::Order> getSubmittedOrders();
-    shift::Order getOrder(const std::string& orderID);
-    std::vector<shift::Order> getExecutedOrders(const std::string& orderID);
-    int getWaitingListSize();
-    std::vector<shift::Order> getWaitingList();
+    auto getPortfolioSummary() -> PortfolioSummary;
+    auto getPortfolioItems() -> std::map<std::string, PortfolioItem>;
+    auto getPortfolioItem(const std::string& symbol) -> PortfolioItem;
+    auto getUnrealizedPL(const std::string& symbol = "") -> double;
+    auto getSubmittedOrdersSize() -> int;
+    auto getSubmittedOrders() -> std::vector<Order>;
+    auto getOrder(const std::string& orderID) -> Order;
+    auto getExecutedOrders(const std::string& orderID) -> std::vector<Order>;
+    auto getWaitingListSize() -> int;
+    auto getWaitingList() -> std::vector<Order>;
     void cancelAllPendingOrders();
 
     // price methods
-    double getOpenPrice(const std::string& symbol);
-    double getClosePrice(const std::string& symbol, bool buy, int size);
-    double getClosePrice(const std::string& symbol);
-    double getLastPrice(const std::string& symbol);
-    int getLastSize(const std::string& symbol);
-    std::chrono::system_clock::time_point getLastTradeTime();
+    auto getOpenPrice(const std::string& symbol) -> double;
+    auto getClosePrice(const std::string& symbol, bool buy, int size) -> double;
+    auto getClosePrice(const std::string& symbol) -> double;
+    auto getLastPrice(const std::string& symbol) -> double;
+    auto getLastSize(const std::string& symbol) -> int;
+    auto getLastTradeTime() -> std::chrono::system_clock::time_point;
 
     // order book methods
-    shift::BestPrice getBestPrice(const std::string& symbol);
-    std::vector<shift::OrderBookEntry> getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel = 99);
-    std::vector<shift::OrderBookEntry> getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type);
+    auto getBestPrice(const std::string& symbol) -> BestPrice;
+    auto getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel = 99) -> std::vector<OrderBookEntry>;
+    auto getOrderBookWithDestination(const std::string& symbol, const OrderBook::Type& type) -> std::vector<OrderBookEntry>;
 
     // symbols list and company names
-    std::vector<std::string> getStockList();
+    auto getStockList() -> std::vector<std::string>;
     void requestCompanyNames();
-    std::map<std::string, std::string> getCompanyNames();
-    std::string getCompanyName(const std::string& symbol);
+    auto getCompanyNames() -> std::map<std::string, std::string>;
+    auto getCompanyName(const std::string& symbol) -> std::string;
 
     // sample prices
-    bool requestSamplePrices(std::vector<std::string> symbols, double samplingFrequency = 1, unsigned int samplingWindow = 31);
-    bool cancelSamplePricesRequest(const std::vector<std::string>& symbols);
-    bool cancelAllSamplePricesRequests();
-    int getSamplePricesSize(const std::string& symbol);
-    std::list<double> getSamplePrices(const std::string& symbol, bool midPrices = false);
-    int getLogReturnsSize(const std::string& symbol);
-    std::list<double> getLogReturns(const std::string& symbol, bool midPrices = false);
+    auto requestSamplePrices(std::vector<std::string> symbols, double samplingFrequency = 1, unsigned int samplingWindow = 31) -> bool;
+    auto cancelSamplePricesRequest(const std::vector<std::string>& symbols) -> bool;
+    auto cancelAllSamplePricesRequests() -> bool;
+    auto getSamplePricesSize(const std::string& symbol) -> int;
+    auto getSamplePrices(const std::string& symbol, bool midPrices = false) -> std::list<double>;
+    auto getLogReturnsSize(const std::string& symbol) -> int;
+    auto getLogReturns(const std::string& symbol, bool midPrices = false) -> std::list<double>;
 
     // subscription methods
-    bool subOrderBook(const std::string& symbol);
-    bool unsubOrderBook(const std::string& symbol);
-    bool subAllOrderBook();
-    bool unsubAllOrderBook();
-    std::vector<std::string> getSubscribedOrderBookList();
-    bool subCandleData(const std::string& symbol);
-    bool unsubCandleData(const std::string& symbol);
-    bool subAllCandleData();
-    bool unsubAllCandleData();
-    std::vector<std::string> getSubscribedCandlestickList();
+    auto subOrderBook(const std::string& symbol) -> bool;
+    auto unsubOrderBook(const std::string& symbol) -> bool;
+    auto subAllOrderBook() -> bool;
+    auto unsubAllOrderBook() -> bool;
+    auto getSubscribedOrderBookList() -> std::vector<std::string>;
+    auto subCandleData(const std::string& symbol) -> bool;
+    auto unsubCandleData(const std::string& symbol) -> bool;
+    auto subAllCandleData() -> bool;
+    auto unsubAllCandleData() -> bool;
+    auto getSubscribedCandlestickList() -> std::vector<std::string>;
 
 protected:
     // inline methods
-    void debugDump(const std::string& message);
+    void debugDump(const std::string& message) const;
 
     // FIXInitiator interface
     bool attachInitiator(FIXInitiator& initiator);
-    void storeExecution(const std::string& orderID, shift::Order::Type orderType, int executedSize, double executedPrice, shift::Order::Status newStatus);
+    void storeExecution(const std::string& orderID, Order::Type orderType, int executedSize, double executedPrice, Order::Status newStatus);
     void storePortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
     void storePortfolioItem(const std::string& symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);
-    void storeWaitingList(std::vector<shift::Order>&& waitingList);
+    void storeWaitingList(std::vector<Order>&& waitingList);
 
     // FIXInitiator callback methods
     virtual void receiveLastPrice(const std::string& symbol) {}
@@ -141,10 +143,10 @@ private:
     PortfolioSummary m_portfolioSummary;
     std::map<std::string, PortfolioItem> m_symbol_portfolioItem;
     std::vector<std::string> m_submittedOrdersIDs;
-    std::unordered_map<std::string, shift::Order> m_submittedOrders;
+    std::unordered_map<std::string, Order> m_submittedOrders;
     std::atomic<int> m_submittedOrdersSize;
-    std::unordered_multimap<std::string, shift::Order> m_executedOrders;
-    std::vector<shift::Order> m_waitingList;
+    std::unordered_multimap<std::string, Order> m_executedOrders;
+    std::vector<Order> m_waitingList;
     std::atomic<int> m_waitingListSize;
 
     std::vector<std::thread> m_samplePriceThreads;
