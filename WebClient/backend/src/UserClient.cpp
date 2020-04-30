@@ -6,8 +6,8 @@
 
 #include <shift/miscutils/terminal/Common.h>
 
-UserClient::UserClient(const std::string& username)
-    : CoreClient { username }
+UserClient::UserClient(std::string username)
+    : CoreClient { std::move(username) }
 {
 }
 
@@ -21,7 +21,7 @@ void UserClient::sendPortfolioToFront()
     auto portfolioSummary = getPortfolioSummary();
     double portfolioUnrealizedPL = 0.0;
     double totalPL = 0.0;
-    std::string res = "";
+    std::string res;
 
     if (portfolioSummary.isOpenBPReady()) {
         for (const auto& [symbol, portfolioItem] : getPortfolioItems()) {
@@ -50,7 +50,7 @@ void UserClient::sendPortfolioToFront()
                 << "\"pl\": "
                 << "\"" << pl << "\""
                 << "}";
-            if (res == "") {
+            if (res.empty()) {
                 res += out.str();
             } else {
                 res += "," + out.str();
@@ -58,7 +58,7 @@ void UserClient::sendPortfolioToFront()
         }
         std::ostringstream out;
         out << "{ \"category\": \"portfolio_" << username << "\", \"data\":[" << res << "]}";
-        MyZMQ::getInstance()->send(out.str());
+        MyZMQ::getInstance().send(out.str());
     }
 
     totalPL = portfolioSummary.getTotalRealizedPL() + portfolioUnrealizedPL;
@@ -76,17 +76,17 @@ void UserClient::sendPortfolioToFront()
         << "\"earnings\": "
         << "\"" << totalPL / portfolioSummary.getOpenBP() << "\""
         << "} }";
-    MyZMQ::getInstance()->send(out.str());
+    MyZMQ::getInstance().send(out.str());
 }
 
 void UserClient::sendSubmittedOrders()
 {
     auto submittedOrders = getSubmittedOrders();
-    std::string res = "";
+    std::string res;
 
     double price = 0.0;
     std::time_t timestamp = 0;
-    std::string timestampStr = "";
+    std::string timestampStr;
 
     for (const auto& order : submittedOrders) {
         std::ostringstream out;
@@ -119,7 +119,7 @@ void UserClient::sendSubmittedOrders()
             << "\"timestamp\": "
             << "\"" << timestampStr << "\""
             << "}";
-        if (res == "") {
+        if (res.empty()) {
             res += out.str();
         } else {
             res += "," + out.str();
@@ -130,13 +130,13 @@ void UserClient::sendSubmittedOrders()
     out << "{ \"category\": \"submittedOrders_" << getUsername() << "\", \"data\":[" << res << "]}";
     std::string s = out.str();
     debugDump(s);
-    MyZMQ::getInstance()->send(s);
+    MyZMQ::getInstance().send(s);
 }
 
 void UserClient::receiveWaitingList() // override
 {
     auto waitingList = getWaitingList();
-    std::string res = "";
+    std::string res;
 
     for (const auto& order : waitingList) {
         std::ostringstream out;
@@ -154,7 +154,7 @@ void UserClient::receiveWaitingList() // override
             << "\"status\":"
             << "\"" << order.getStatusString() << "\""
             << "}";
-        if (res == "") {
+        if (res.empty()) {
             res += out.str();
         } else {
             res += "," + out.str();
@@ -165,10 +165,10 @@ void UserClient::receiveWaitingList() // override
     out << "{ \"category\": \"waitingList_" << getUsername() << "\", \"data\":[" << res << "]}";
     std::string s = out.str();
     debugDump(s);
-    MyZMQ::getInstance()->send(s);
+    MyZMQ::getInstance().send(s);
 }
 
-inline void UserClient::debugDump(const std::string& message)
+inline void UserClient::debugDump(const std::string& message) const
 {
     cout << "***From UserClient***" << endl;
     cout << message << endl;

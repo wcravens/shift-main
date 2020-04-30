@@ -13,8 +13,8 @@ using namespace std::chrono_literals;
 
 /* static */ std::atomic<bool> MainClient::s_isTimeout { false };
 
-MainClient::MainClient(const std::string& username)
-    : CoreClient { username }
+MainClient::MainClient(std::string username)
+    : CoreClient { std::move(username) }
 {
 }
 
@@ -45,7 +45,7 @@ void MainClient::sendAllWaitingList()
 
 void MainClient::sendLastPriceToFront()
 {
-    for (auto symbol : getStockList()) {
+    for (const std::string& symbol : getStockList()) {
         double lastPrice = getLastPrice(symbol);
         double diff = lastPrice - getOpenPrice(symbol);
         std::time_t simulationTime = std::chrono::system_clock::to_time_t(getLastTradeTime());
@@ -53,14 +53,14 @@ void MainClient::sendLastPriceToFront()
         out << "{\"category\": \"lastPriceView_" << symbol << "\", \"data\":{ "
             << "\"lastPrice\": "
             << "\"" << lastPrice << "\","
-            << "\"rate\": "
-            << "\"" << ((getOpenPrice(symbol) == 0) ? 0.0 : diff / getOpenPrice(symbol)) << "\","
             << "\"diff\": "
             << "\"" << diff << "\","
+            << "\"rate\": "
+            << "\"" << ((getOpenPrice(symbol) == 0) ? 0.0 : diff / getOpenPrice(symbol)) << "\","
             << "\"simulationTime\": "
             << "\"" << std::put_time(std::localtime(&simulationTime), "%F %T") << "\""
             << "} }";
-        MyZMQ::getInstance()->send(out.str());
+        MyZMQ::getInstance().send(out.str());
     }
 }
 
@@ -84,7 +84,7 @@ void MainClient::sendOverviewInfoToFront()
             << "\"best_ask_size\": "
             << "\"" << bestPrice.getAskSize() << "\""
             << "} }";
-        MyZMQ::getInstance()->send(out.str());
+        MyZMQ::getInstance().send(out.str());
     }
 }
 
@@ -92,13 +92,10 @@ void MainClient::sendOrderBookToFront()
 {
     for (const std::string& symbol : getStockList()) {
         for (const char& type : { 'a', 'A', 'b', 'B' }) {
-            auto orderBook = getOrderBook(symbol, (shift::OrderBook::Type)type, 5);
-            std::string res = "";
+            auto orderBook = getOrderBook(symbol, static_cast<shift::OrderBook::Type>(type), 5);
+            std::string res;
             for (const auto& entry : orderBook) {
                 std::time_t timeTmp = std::chrono::system_clock::to_time_t(entry.getTime());
-                // std::string timestampStr = std::ctime(&timeTmp);
-                // timestampStr.pop_back();
-
                 std::ostringstream out;
                 out << "{ "
                     << "\"symbol\": "
@@ -114,13 +111,13 @@ void MainClient::sendOrderBookToFront()
                     << "\"time\": "
                     << "\"" << timeTmp << "\""
                     << "}";
-                if (res == "") {
+                if (res.empty()) {
                     res += out.str();
                 } else {
                     res += "," + out.str();
                 }
             }
-            if (res == "") {
+            if (res.empty()) {
                 res = "{ \"bookType\": \"" + std::string(1, type) + "\",\"size\": \"0\"}";
             }
             std::ostringstream out;
@@ -131,7 +128,7 @@ void MainClient::sendOrderBookToFront()
                 << res
                 << "]"
                 << "}";
-            MyZMQ::getInstance()->send(out.str());
+            MyZMQ::getInstance().send(out.str());
         }
     }
 }
@@ -142,20 +139,20 @@ void MainClient::sendOrderBookToFront()
 void MainClient::sendStockListToFront()
 {
     std::ostringstream out;
-    std::string res = "";
-    for (auto stock : getStockList()) {
-        std::ostringstream tem;
-        tem << "\"" << stock << "\"";
-        if (res == "") {
-            res += tem.str();
+    std::string res;
+    for (const std::string& symbol : getStockList()) {
+        std::ostringstream temp;
+        temp << "\"" << symbol << "\"";
+        if (res.empty()) {
+            res += temp.str();
         } else {
-            res += "," + tem.str();
+            res += "," + temp.str();
         }
     }
     out << "{\"category\": \"stockList\", \"data\":["
         << res
         << "] }";
-    MyZMQ::getInstance()->send(out.str());
+    MyZMQ::getInstance().send(out.str());
 }
 
 /**
@@ -164,17 +161,15 @@ void MainClient::sendStockListToFront()
 void MainClient::sendCompanyNamesToFront()
 {
     std::ostringstream out;
-    std::string res = "";
+    std::string res;
     auto size = getStockList().size();
-
     while (getCompanyNames().size() != size) {
-        sleep(1);
+        std::this_thread::sleep_for(1s);
     }
-
     for (const auto& [ticker, companyName] : getCompanyNames()) {
         std::ostringstream oss;
         oss << "{\"" << ticker << "\": \"" << companyName << "\"}";
-        if (res == "") {
+        if (res.empty()) {
             res += oss.str();
         } else {
             res += "," + oss.str();
@@ -183,7 +178,7 @@ void MainClient::sendCompanyNamesToFront()
     out << "{\"category\": \"companyNames\", \"data\":["
         << res
         << "] }";
-    MyZMQ::getInstance()->send(out.str());
+    MyZMQ::getInstance().send(out.str());
 }
 
 void MainClient::receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) // override
@@ -203,7 +198,7 @@ void MainClient::receiveCandlestickData(const std::string& symbol, double open, 
         << "\"time\": "
         << "\"" << timestamp << "\""
         << "} }";
-    MyZMQ::getInstance()->send(out.str());
+    MyZMQ::getInstance().send(out.str());
 }
 
 void MainClient::sendOnce(const std::string& category)
@@ -228,7 +223,7 @@ void MainClient::sendOnce(const std::string& category)
 void MainClient::receiveRequestFromPHP()
 {
     while (!s_isTimeout) {
-        MyZMQ::getInstance()->receiveReq();
+        MyZMQ::getInstance().receiveReq();
     }
 }
 
@@ -245,7 +240,7 @@ void MainClient::checkEverySecond()
     }
 }
 
-inline void MainClient::debugDump(const std::string& message)
+inline void MainClient::debugDump(const std::string& message) const
 {
     cout << "***From MainClient***" << endl;
     cout << message << endl;

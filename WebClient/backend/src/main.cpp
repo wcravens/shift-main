@@ -40,7 +40,7 @@ namespace po = boost::program_options;
 /* 'using' is the same as 'typedef' */
 using voh_t = shift::terminal::VerboseOptHelper;
 
-int main(int ac, char* av[])
+auto main(int argc, char** argv) -> int
 {
     /**
      * @brief Centralizes and classifies all necessary parameters and
@@ -76,7 +76,7 @@ int main(int ac, char* av[])
 
     po::variables_map vm;
     try {
-        po::store(po::parse_command_line(ac, av, desc), vm);
+        po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
     } catch (const boost::program_options::error& e) {
         cerr << COLOR_ERROR "ERROR: " << e.what() << NO_COLOR << endl;
@@ -86,19 +86,19 @@ int main(int ac, char* av[])
         return 2;
     }
 
-    if (vm.count(CSTR_HELP)) {
+    if (vm.count(CSTR_HELP) > 0) {
         cout << '\n'
              << desc << '\n'
              << endl;
         return 0;
     }
 
-    if (vm.count(CSTR_VERBOSE)) {
+    if (vm.count(CSTR_VERBOSE) > 0) {
         params.isVerbose = true;
     }
     voh_t voh(cout, params.isVerbose);
 
-    if (vm.count(CSTR_CONFIG)) {
+    if (vm.count(CSTR_CONFIG) > 0) {
         params.configDir = vm[CSTR_CONFIG].as<std::string>();
         cout << COLOR "'config' directory was set to "
              << params.configDir << ".\n" NO_COLOR << endl;
@@ -107,7 +107,7 @@ int main(int ac, char* av[])
              << endl;
     }
 
-    if (vm.count(CSTR_KEY)) {
+    if (vm.count(CSTR_KEY) > 0) {
         params.cryptoKey = vm[CSTR_KEY].as<std::string>();
         cout << COLOR "'crypto key' was set to "
              << params.cryptoKey << ".\n" NO_COLOR << endl;
@@ -116,20 +116,20 @@ int main(int ac, char* av[])
              << endl;
     }
 
-    if (vm.count(CSTR_TIMEOUT)) {
+    if (vm.count(CSTR_TIMEOUT) > 0) {
         params.timer.minutes = vm[CSTR_TIMEOUT].as<decltype(params.timer)::min_t>();
-        if (params.timer.minutes > 0)
+        if (params.timer.minutes > 0) {
             params.timer.isSet = true;
-        else {
+        } else {
             cout << COLOR "Note: The timeout option is ignored because of the given value." NO_COLOR << '\n'
                  << endl;
         }
     }
 
-    DBConnector::getInstance()->init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
+    DBConnector::getInstance().init(params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     while (true) {
-        if (!DBConnector::getInstance()->connectDB()) {
+        if (!DBConnector::getInstance().connectDB()) {
             cout.clear();
             cout << COLOR_ERROR "DB ERROR: Failed to connect database." NO_COLOR << endl;
             cout << "\tRetry ('Y') connection to database ? : ";
@@ -137,8 +137,9 @@ int main(int ac, char* av[])
 
             char cmd = cin.get();
             cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
-            if ('Y' != cmd && 'y' != cmd)
+            if ('Y' != cmd && 'y' != cmd) {
                 return 5;
+            }
         } else {
             cout << "DB connection OK.\n"
                  << endl;
@@ -146,11 +147,11 @@ int main(int ac, char* av[])
         }
     }
 
-    MainClient* pMClient = new MainClient("webclient");
+    MainClient mainClient { "webclient" };
 
-    pMClient->setVerbose(params.isVerbose);
+    mainClient.setVerbose(params.isVerbose);
     try {
-        shift::FIXInitiator::getInstance().connectBrokerageCenter(params.configDir + "initiator.cfg", pMClient, "password", params.isVerbose);
+        shift::FIXInitiator::getInstance().connectBrokerageCenter(params.configDir + "initiator.cfg", &mainClient, "password", params.isVerbose);
     } catch (const std::exception& e) {
         std::cout << std::endl;
         std::cout << "Something went wrong: " << e.what() << std::endl;
@@ -159,19 +160,19 @@ int main(int ac, char* av[])
     }
 
     // get all company names and send it to front - start
-    pMClient->requestCompanyNames();
-    std::thread tCompanyNames(&MainClient::sendCompanyNamesToFront, pMClient);
+    mainClient.requestCompanyNames();
+    std::thread tCompanyNames(&MainClient::sendCompanyNamesToFront, &mainClient);
     tCompanyNames.detach();
     // get all company names and send it to front - end
 
-    std::thread tRecReq(&MainClient::receiveRequestFromPHP, pMClient);
+    std::thread tRecReq(&MainClient::receiveRequestFromPHP, &mainClient);
 
-    pMClient->subAllOrderBook();
-    pMClient->subAllCandlestickData();
-    pMClient->sendStockListToFront();
+    mainClient.subAllOrderBook();
+    mainClient.subAllCandlestickData();
+    mainClient.sendStockListToFront();
 
     // start thread of WebClient::checkEverySecond function
-    std::thread tCheck(&MainClient::checkEverySecond, pMClient);
+    std::thread tCheck(&MainClient::checkEverySecond, &mainClient);
 
     // thrift service start
     int port = 9090;
@@ -186,7 +187,7 @@ int main(int ac, char* av[])
 
     // create 'done' file in ~/.shift/WebClient to signalize shell that service is done loading
     // (directory is also created if it does not exist)
-    const char* homeDir;
+    const char* homeDir = nullptr;
     if ((homeDir = getenv("HOME")) == nullptr) {
         homeDir = getpwuid(getuid())->pw_dir;
     }
@@ -222,8 +223,9 @@ int main(int ac, char* av[])
 
                     char cmd = cin.get(); // wait
                     cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip remaining inputs
-                    if ('T' == cmd || 't' == cmd)
+                    if ('T' == cmd || 't' == cmd) {
                         return;
+                    }
                 }
             })
             .get(); // this_thread will wait for user terminating acceptor.

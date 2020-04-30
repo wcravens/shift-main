@@ -27,31 +27,31 @@ DBConnector::~DBConnector()
 /**
  * @brief To provide a simpler syntax to lock.
  */
-std::unique_lock<std::mutex> DBConnector::lockPSQL() const
+auto DBConnector::lockPSQL() const -> std::unique_lock<std::mutex>
 {
     std::unique_lock<std::mutex> lock(m_mtxPSQL);
     return lock; // move()-ed out here
 }
 
-/* static */ DBConnector* DBConnector::getInstance()
+/* static */ auto DBConnector::getInstance() -> DBConnector&
 {
     static DBConnector s_DBInst;
-    return &s_DBInst;
+    return s_DBInst;
 }
 
-bool DBConnector::init(const std::string& cryptoKey, const std::string& fileName)
+auto DBConnector::init(const std::string& cryptoKey, const std::string& fileName) -> bool
 {
     m_loginInfo = shift::crypto::readEncryptedConfigFile(cryptoKey, fileName);
     cout << "READING:" << fileName << endl;
 
-    return m_loginInfo.size();
+    return !m_loginInfo.empty();
 }
 
 /**
  * @brief Establish connection to database.
  * @return Whether the connection had been built.
  */
-bool DBConnector::connectDB()
+auto DBConnector::connectDB() -> bool
 {
     disconnectDB();
 
@@ -90,12 +90,7 @@ void DBConnector::disconnectDB()
  *        @NOTE: If you want to execute a result that returns tuples, use the flag PGRES_TUPLES_OK
  * @param ppRes: double pointer to the target PGresult object. call like (&pRes)
  */
-bool DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /*= PGRES_COMMAND_OK*/, PGresult** ppRes /*= nullptr*/)
+auto DBConnector::doQuery(std::string query, std::string msgIfStatMismatch, ExecStatusType statToMatch /* = PGRES_COMMAND_OK */, PGresult** ppRes /* = nullptr */) -> bool
 {
     return shift::database::doQuery(m_pConn, std::move(query), std::move(msgIfStatMismatch), statToMatch, ppRes);
-}
-
-std::vector<std::string> DBConnector::readRowsOfField(std::string query, int fieldIndex /*= 0*/)
-{
-    return shift::database::readRowsOfField(m_pConn, std::move(query), fieldIndex);
 }

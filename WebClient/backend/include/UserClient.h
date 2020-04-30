@@ -6,7 +6,7 @@
 
 class UserClient : public shift::CoreClient {
 public:
-    UserClient(const std::string& username);
+    UserClient(std::string username);
 
     void sendPortfolioToFront();
     void sendSubmittedOrders();
@@ -14,5 +14,5 @@ public:
     void receiveWaitingList() override;
 
 private:
-    void debugDump(const std::string& message);
+    void debugDump(const std::string& message) const;
 };

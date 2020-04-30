@@ -9,7 +9,7 @@ class MainClient : public shift::CoreClient {
 public:
     static std::atomic<bool> s_isTimeout;
 
-    MainClient(const std::string& username);
+    MainClient(std::string username);
 
     void sendAllPortfoliosToFront();
     void sendAllSubmittedOrders();
@@ -29,8 +29,7 @@ protected:
     void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) override;
 
 private:
-    void debugDump(const std::string& message);
+    void debugDump(const std::string& message) const;
 
     bool m_openBuyingPowerReady = false;
-    size_t m_setBuyingPowerNumber = 0;
 };

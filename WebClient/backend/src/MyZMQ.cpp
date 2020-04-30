@@ -40,10 +40,10 @@ MyZMQ::~MyZMQ()
  * @brief Method to get the singleton instance of MyZMQ.
  * @return Pointer to current MyZMQ instance.
  */
-/* static */ MyZMQ* MyZMQ::getInstance()
+/* static */ auto MyZMQ::getInstance() -> MyZMQ&
 {
-    static MyZMQ instance;
-    return &instance;
+    static MyZMQ s_MyZMQInst;
+    return s_MyZMQInst;
 }
 
 /**
@@ -73,7 +73,8 @@ void MyZMQ::send(const std::string& message)
  */
 void MyZMQ::receiveReq()
 {
-    // using dynamic cast to cast pointer to CoreClient to MainClient so that we can call it's member functions
+    // using dynamic cast to cast from CoreClient* to
+    // MainClient* so that we can call it's member functions
     MainClient* mainClient = dynamic_cast<MainClient*>(shift::FIXInitiator::getInstance().getSuperUser());
 
     std::lock_guard<std::mutex> lock(m_mutex_reqrep);
