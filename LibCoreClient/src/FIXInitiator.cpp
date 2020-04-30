@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cassert>
 #include <cmath>
+#include <future>
 #include <list>
 #include <regex>
 #include <thread>
@@ -1440,17 +1441,13 @@ auto FIXInitiator::getLastTradeTime() -> std::chrono::system_clock::time_point
  */
 auto FIXInitiator::getBestPrice(const std::string& symbol) -> BestPrice
 {
-    auto globalBidBestValues = m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID]->getBestValues();
-    auto globalAskBestValues = m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK]->getBestValues();
-    auto localBidBestValues = m_orderBooks[symbol][OrderBook::Type::LOCAL_BID]->getBestValues();
-    auto localAskBestValues = m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK]->getBestValues();
+    auto globalBidBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID].get());
+    auto globalAskBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK].get());
+    auto localBidBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::LOCAL_BID].get());
+    auto localAskBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::LOCAL_ASK].get());
 
-    return {
-        globalBidBestValues.first, globalBidBestValues.second,
-        globalAskBestValues.first, globalAskBestValues.second,
-        localBidBestValues.first, localBidBestValues.second,
-        localAskBestValues.first, localAskBestValues.second
-    };
+    return { globalBidBestValues.get(), globalAskBestValues.get(),
+        localBidBestValues.get(), localAskBestValues.get() };
 }
 
 /**

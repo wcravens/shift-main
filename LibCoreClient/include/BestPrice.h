@@ -2,6 +2,8 @@
 
 #include "CoreClient_EXPORTS.h"
 
+#include <utility>
+
 namespace shift {
 
 /**
@@ -10,6 +12,8 @@ namespace shift {
 class CORECLIENT_EXPORTS BestPrice {
 public:
     BestPrice();
+    BestPrice(const std::pair<double, int>& globalBidValues, const std::pair<double, int>& globalAskValues,
+        const std::pair<double, int>& localBidValues, const std::pair<double, int>& localAskValues);
     BestPrice(double globalBidPrice, int globalBidSize, double globalAskPrice, int globalAskSize,
         double localBidPrice, int localBidSize, double localAskPrice, int localAskSize);
 

@@ -67,21 +67,22 @@ void MainClient::sendLastPriceToFront()
 void MainClient::sendOverviewInfoToFront()
 {
     for (const std::string& symbol : getStockList()) {
-        shift::BestPrice price = getBestPrice(symbol);
+        double lastPrice = getLastPrice(symbol);
+        shift::BestPrice bestPrice = getBestPrice(symbol);
         std::ostringstream out;
         out << "{\"category\": \"bestPrice\", \"data\":{ "
             << "\"symbol\": "
             << "\"" << symbol << "\","
             << "\"lastPrice\": "
-            << "\"" << getLastPrice(symbol) << "\","
+            << "\"" << lastPrice << "\","
             << "\"best_bid_price\": "
-            << "\"" << price.getBidPrice() << "\","
+            << "\"" << bestPrice.getBidPrice() << "\","
             << "\"best_bid_size\": "
-            << "\"" << price.getBidSize() << "\","
+            << "\"" << bestPrice.getBidSize() << "\","
             << "\"best_ask_price\": "
-            << "\"" << price.getAskPrice() << "\","
+            << "\"" << bestPrice.getAskPrice() << "\","
             << "\"best_ask_size\": "
-            << "\"" << price.getAskSize() << "\""
+            << "\"" << bestPrice.getAskSize() << "\""
             << "} }";
         MyZMQ::getInstance()->send(out.str());
     }

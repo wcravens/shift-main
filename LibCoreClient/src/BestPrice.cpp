@@ -8,6 +8,14 @@ BestPrice::BestPrice()
 {
 }
 
+BestPrice::BestPrice(const std::pair<double, int>& globalBidValues, const std::pair<double, int>& globalAskValues,
+    const std::pair<double, int>& localBidValues, const std::pair<double, int>& localAskValues)
+    : BestPrice { globalBidValues.first, globalBidValues.second, globalAskValues.first, globalAskValues.second,
+        localBidValues.first, localBidValues.second, localAskValues.first, localAskValues.second }
+
+{
+}
+
 BestPrice::BestPrice(double globalBidPrice, int globalBidSize, double globalAskPrice, int globalAskSize,
     double localBidPrice, int localBidSize, double localAskPrice, int localAskSize)
     : m_globalBidPrice { globalBidPrice }
