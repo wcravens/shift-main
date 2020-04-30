@@ -17,7 +17,6 @@ namespace shift {
  * @brief A class contains all information for an order.
  */
 class CORECLIENT_EXPORTS Order {
-
 public:
     enum Type : char {
         LIMIT_BUY = '1',

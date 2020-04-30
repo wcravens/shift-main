@@ -7,7 +7,7 @@
 template <typename Uuid>
 class TokenPool {
 public:
-    TokenPool(const int& size);
+    TokenPool(int size);
 
     auto take() -> Uuid;
     void use(const Uuid& t);
@@ -22,7 +22,7 @@ private:
 };
 
 template <typename Uuid>
-TokenPool<Uuid>::TokenPool(const int& size)
+TokenPool<Uuid>::TokenPool(int size)
 {
     for (int i = 0; i < size; ++i) {
         m_unusedTokens.insert(shift::crossguid::newGuid());

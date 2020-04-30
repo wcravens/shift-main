@@ -50,7 +50,7 @@ public:
     Guid(const unsigned char* bytes);
     Guid(const std::string& fromString);
     Guid();
-    Guid(const Guid& other) = default;
+    Guid(const Guid& other);
     auto operator=(const Guid& other) -> Guid&;
     auto operator==(const Guid& other) const -> bool;
     auto operator!=(const Guid& other) const -> bool;

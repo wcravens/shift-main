@@ -14,9 +14,8 @@ namespace shift {
  * @brief A class to save order book entries information and package them into an shift::OrderBookEntry object.
  */
 class CORECLIENT_EXPORTS OrderBookEntry {
-
 public:
-    OrderBookEntry() = default;
+    OrderBookEntry();
     OrderBookEntry(double price, int size, std::string destination, std::chrono::system_clock::time_point time);
 
     // Getters

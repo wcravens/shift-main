@@ -8,14 +8,10 @@ namespace shift {
  * @brief A class to save all price/size info for both global and local, ask and bid.
  */
 class CORECLIENT_EXPORTS BestPrice {
-
 public:
-    BestPrice() = default;
-
+    BestPrice();
     BestPrice(double globalBidPrice, int globalBidSize, double globalAskPrice, int globalAskSize,
         double localBidPrice, int localBidSize, double localAskPrice, int localAskSize);
-
-    ~BestPrice() = default;
 
     auto getBidPrice() const -> double;
     auto getBidSize() const -> int;

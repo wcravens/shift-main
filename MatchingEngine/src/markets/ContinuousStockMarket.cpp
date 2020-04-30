@@ -21,8 +21,8 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
  */
 /* virtual */ void ContinuousStockMarket::operator()() // override
 {
-    Order nextOrder;
-    Order prevGlobalOrder;
+    Order nextOrder {};
+    Order prevGlobalOrder {};
 
     while (!StockMarketList::s_isTimeout) { // process orders
 

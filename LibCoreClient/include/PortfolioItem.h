@@ -7,10 +7,8 @@
 namespace shift {
 
 class PortfolioItem {
-
 public:
-    PortfolioItem() = default; // required for map
-
+    PortfolioItem();
     PortfolioItem(std::string symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL);
 
     auto getSymbol() const -> const std::string&;

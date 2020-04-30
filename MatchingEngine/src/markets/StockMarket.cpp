@@ -17,11 +17,6 @@ StockMarket::StockMarket(std::string symbol)
 {
 }
 
-StockMarket::StockMarket(const StockMarket& other)
-    : m_symbol { other.m_symbol }
-{
-}
-
 auto StockMarket::getSymbol() const -> const std::string&
 {
     return m_symbol;

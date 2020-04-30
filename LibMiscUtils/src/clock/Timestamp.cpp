@@ -6,8 +6,7 @@
 namespace shift::clock {
 
 Timestamp::Timestamp()
-    : m_sec { time(nullptr) }
-    , m_usec { 0 }
+    : Timestamp { time(nullptr), 0 }
 {
 }
 

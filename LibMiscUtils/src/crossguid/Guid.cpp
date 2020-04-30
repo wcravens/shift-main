@@ -212,6 +212,12 @@ Guid::Guid()
 {
 }
 
+// copy constructor
+Guid::Guid(const Guid& other)
+    : _bytes { other._bytes }
+{
+}
+
 // set all bytes to zero
 void Guid::zeroify()
 {

@@ -29,6 +29,11 @@
 #define DEBUG_PERFORMANCE_COUNTER_S(_NAME, _LABEL, _STRIDE)
 #endif
 
+CandlestickData::CandlestickData()
+    : CandlestickData { "", 0.0, 0.0, 0.0, 0.0, 0.0, std::time_t {} }
+{
+}
+
 CandlestickData::CandlestickData(std::string symbol, double currPrice, double currOpenPrice, double currClosePrice, double currHighPrice, double currLowPrice, std::time_t currOpenTime)
     : m_symbol { std::move(symbol) }
     , m_lastOpenPrice { currOpenPrice }

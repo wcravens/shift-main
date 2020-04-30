@@ -50,9 +50,7 @@ namespace shift {
  */
 class CORECLIENT_EXPORTS CoreClient;
 
-class CORECLIENT_EXPORTS FIXInitiator
-    : public FIX::Application,
-      public FIX::MessageCracker {
+class CORECLIENT_EXPORTS FIXInitiator : public FIX::Application, public FIX::MessageCracker {
 
     //! The source of all evils
     friend class CoreClient;
@@ -102,7 +100,7 @@ protected:
     void onLogon(const FIX::SessionID&) override;
     void onLogout(const FIX::SessionID&) override;
     void toAdmin(FIX::Message&, const FIX::SessionID&) override;
-    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override { }
+    void toApp(FIX::Message&, const FIX::SessionID&) noexcept(false) override {}
     void fromAdmin(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void fromApp(const FIX::Message&, const FIX::SessionID&) noexcept(false) override;
     void onMessage(const FIX50SP2::SecurityList&, const FIX::SessionID&) override;
@@ -146,7 +144,7 @@ protected:
     auto getSubscribedCandlestickDataList() -> std::vector<std::string>;
 
 private:
-    FIXInitiator() = default; // singleton pattern
+    FIXInitiator(); // singleton pattern
     FIXInitiator(const FIXInitiator& other) = delete; // forbid copying
     auto operator=(const FIXInitiator& other) -> FIXInitiator& = delete; // forbid assigning
 

@@ -8,8 +8,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 class TimeSetting {
-
 public:
+    ~TimeSetting() = default;
+
     static auto getInstance() -> TimeSetting&;
     static auto getUTCPTime(const boost::posix_time::ptime& localPtime) -> boost::posix_time::ptime;
 
@@ -20,6 +21,10 @@ public:
     auto simulationTimestamp() -> FIX::UtcTimeStamp;
 
 private:
+    TimeSetting() = default; // singleton pattern
+    TimeSetting(const TimeSetting&) = delete; // forbid copying
+    auto operator=(const TimeSetting&) -> TimeSetting& = delete; // forbid assigning
+
     boost::posix_time::ptime m_utcDateTime;
     std::time_t m_hhmmss;
     int m_speed;

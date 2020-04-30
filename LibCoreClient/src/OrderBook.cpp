@@ -83,7 +83,7 @@ auto OrderBook::getOrderBook(int maxLevel) -> std::vector<OrderBookEntry>
 {
     std::list<OrderBookEntry> original;
     std::vector<OrderBookEntry> output;
-    OrderBookEntry newEntry;
+    OrderBookEntry newEntry {};
 
     if (maxLevel <= 0) {
         return output;

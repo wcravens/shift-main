@@ -17,7 +17,6 @@
 */
 class OrderBook : public ITargetsInfo {
 public:
-    OrderBook() = default;
     OrderBook(std::string symbol);
     ~OrderBook() override;
 

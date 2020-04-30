@@ -1,5 +1,10 @@
 #include "PortfolioItem.h"
 
+PortfolioItem::PortfolioItem()
+    : PortfolioItem { "", 0.0, 0.0, 0.0, 0.0, 0, 0 }
+{
+}
+
 PortfolioItem::PortfolioItem(std::string symbol)
     : PortfolioItem { std::move(symbol), 0.0, 0.0, 0.0, 0.0, 0, 0 }
 {

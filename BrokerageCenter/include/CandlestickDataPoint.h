@@ -5,7 +5,7 @@
 
 class CandlestickDataPoint {
 public:
-    CandlestickDataPoint() = default;
+    CandlestickDataPoint();
     CandlestickDataPoint(std::string symbol, double openPrice, double closePrice, double highPrice, double lowPrice, std::time_t timeFrom);
 
     auto getSymbol() const -> const std::string&;

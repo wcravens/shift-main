@@ -5,9 +5,8 @@
 namespace shift {
 
 class PortfolioSummary {
-
 public:
-    PortfolioSummary() = default;
+    PortfolioSummary();
     PortfolioSummary(double totalBP, int totalShares, double totalRealizedPL);
 
     auto isOpenBPReady() const -> bool;

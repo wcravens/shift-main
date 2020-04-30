@@ -35,8 +35,7 @@
 #include <quickfix/fix50sp2/NewOrderSingle.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 
-class FIXInitiator : public FIX::Application,
-                     public FIX::MessageCracker {
+class FIXInitiator : public FIX::Application, public FIX::MessageCracker {
 public:
     static std::string s_senderID;
     static std::string s_targetID;

@@ -26,6 +26,8 @@ class BCDocuments : public ITargetsInfo {
 public:
     static std::atomic<bool> s_isSecurityListReady;
 
+    ~BCDocuments() = default;
+
     static auto getInstance() -> BCDocuments&;
 
     void addSymbol(const std::string& symbol);

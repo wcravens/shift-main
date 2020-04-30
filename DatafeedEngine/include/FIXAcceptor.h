@@ -38,8 +38,7 @@ struct RawData;
  *        Handles incoming messages from ME, and/or sends messages back.
  *        Encapsulates all data conversion between FIX types and C++ standard types.
  */
-class FIXAcceptor : public FIX::Application,
-                    public FIX::MessageCracker {
+class FIXAcceptor : public FIX::Application, public FIX::MessageCracker {
 public:
     static std::string s_senderID;
 

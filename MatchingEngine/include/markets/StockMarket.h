@@ -20,9 +20,7 @@ namespace markets {
 
 class StockMarket {
 public:
-    StockMarket() = default;
     StockMarket(std::string symbol);
-    StockMarket(const StockMarket& other);
     virtual ~StockMarket() = default;
 
     auto getSymbol() const -> const std::string&;

@@ -9,8 +9,6 @@ namespace markets {
 class PriceLevel {
 public:
     PriceLevel() = default;
-    PriceLevel(const PriceLevel& other) = default;
-    virtual ~PriceLevel() = default;
 
     // getters
     auto getPrice() const -> double;

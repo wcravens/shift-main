@@ -35,7 +35,7 @@ class CORECLIENT_EXPORTS CoreClient {
     friend class FIXInitiator;
 
 public:
-    CoreClient() = default;
+    CoreClient();
     CoreClient(std::string username);
     virtual ~CoreClient() = default;
 

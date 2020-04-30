@@ -10,7 +10,6 @@ namespace shift {
  * @brief A child class from Orderbook, which specifically used for Local Bid Order Book.
  */
 class CORECLIENT_EXPORTS OrderBookLocalBid : public OrderBook {
-
 public:
     OrderBookLocalBid(std::string symbol);
 

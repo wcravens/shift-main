@@ -23,7 +23,6 @@ public:
 
     RiskManagement(const std::string& userID, double buyingPower);
     RiskManagement(const std::string& userID, double buyingPower, double holdingBalance, double borrowedBalance, double totalPL, int totalShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio summary.
-
     ~RiskManagement();
 
     void spawn();

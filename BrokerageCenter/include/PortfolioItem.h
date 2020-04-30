@@ -7,7 +7,7 @@
  */
 class PortfolioItem {
 public:
-    PortfolioItem() = default;
+    PortfolioItem();
     PortfolioItem(std::string symbol);
     PortfolioItem(std::string symbol, int shares, double price);
     PortfolioItem(std::string symbol, double borrowedBalace, double pl, double longPrice, double shortPrice, int longShares, int shortShares); //> For parametric use, i.e. to explicitly configurate the initial portfolio item.

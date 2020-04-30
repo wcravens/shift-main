@@ -61,6 +61,18 @@ namespace shift {
 }
 
 /**
+ * @brief Default constructor for FIXInitiator object.
+ */
+FIXInitiator::FIXInitiator()
+    : m_connected { false }
+    , m_verbose { false }
+    , m_logonSuccess { false }
+    , m_openPricesReady { false }
+    , m_lastTradeTime { std::chrono::system_clock::time_point() }
+{
+}
+
+/**
  * @brief Default destructor for FIXInitiator object.
  */
 FIXInitiator::~FIXInitiator() // override

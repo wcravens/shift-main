@@ -2,6 +2,11 @@
 
 namespace shift {
 
+OrderBookEntry::OrderBookEntry()
+    : OrderBookEntry { 0.0, 0, "", std::chrono::system_clock::time_point() }
+{
+}
+
 OrderBookEntry::OrderBookEntry(double price, int size, std::string destination, std::chrono::system_clock::time_point time)
     : m_price { price }
     , m_size { size }

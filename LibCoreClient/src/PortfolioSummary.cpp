@@ -2,6 +2,16 @@
 
 namespace shift {
 
+PortfolioSummary::PortfolioSummary()
+    : m_isOpenBPReady { false }
+    , m_openBP { 0.0 }
+    , m_totalBP { 0.0 }
+    , m_totalShares { 0 }
+    , m_totalRealizedPL { 0.0 }
+    , m_timestamp { std::chrono::system_clock::time_point() }
+{
+}
+
 PortfolioSummary::PortfolioSummary(double totalBP, int totalShares, double totalRealizedPL)
     : m_isOpenBPReady { true }
     , m_openBP { totalBP }

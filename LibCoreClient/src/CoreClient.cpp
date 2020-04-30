@@ -19,6 +19,14 @@ using namespace std::chrono_literals;
 
 namespace shift {
 
+CoreClient::CoreClient()
+    : m_fixInitiator { nullptr }
+    , m_verbose { false }
+    , m_submittedOrdersSize { 0 }
+    , m_waitingListSize { 0 }
+{
+}
+
 CoreClient::CoreClient(std::string username)
     : m_fixInitiator { nullptr }
     , m_username { std::move(username) }

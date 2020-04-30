@@ -2,6 +2,11 @@
 
 namespace shift {
 
+PortfolioItem::PortfolioItem()
+    : PortfolioItem { "", 0, 0, 0.0, 0.0, 0.0 }
+{
+}
+
 PortfolioItem::PortfolioItem(std::string symbol, int longShares, int shortShares, double longPrice, double shortPrice, double realizedPL)
     : m_symbol { std::move(symbol) }
     , m_longShares { longShares }

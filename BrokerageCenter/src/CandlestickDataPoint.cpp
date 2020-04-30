@@ -1,5 +1,10 @@
 #include "CandlestickDataPoint.h"
 
+CandlestickDataPoint::CandlestickDataPoint()
+    : CandlestickDataPoint { "", 0.0, 0.0, 0.0, 0.0, std::time_t {} }
+{
+}
+
 CandlestickDataPoint::CandlestickDataPoint(std::string symbol, double openPrice, double closePrice, double highPrice, double lowPrice, std::time_t timeFrom)
     : m_symbol { std::move(symbol) }
     , m_openPrice { openPrice }

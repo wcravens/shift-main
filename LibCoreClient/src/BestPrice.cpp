@@ -2,6 +2,12 @@
 
 namespace shift {
 
+BestPrice::BestPrice()
+    : BestPrice { 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0 }
+
+{
+}
+
 BestPrice::BestPrice(double globalBidPrice, int globalBidSize, double globalAskPrice, int globalAskSize,
     double localBidPrice, int localBidSize, double localAskPrice, int localAskSize)
     : m_globalBidPrice { globalBidPrice }

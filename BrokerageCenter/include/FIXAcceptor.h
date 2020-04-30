@@ -44,8 +44,7 @@
 #include <quickfix/fix50sp2/PositionReport.h>
 #include <quickfix/fix50sp2/SecurityList.h>
 
-class FIXAcceptor : public FIX::Application,
-                    public FIX::MessageCracker {
+class FIXAcceptor : public FIX::Application, public FIX::MessageCracker {
 public:
     static std::string s_senderID;
 

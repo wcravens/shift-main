@@ -10,7 +10,6 @@ namespace shift {
  * @brief A child class from Orderbook, which specifically used for Local Ask Order Book.
  */
 class CORECLIENT_EXPORTS OrderBookLocalAsk : public OrderBook {
-
 public:
     OrderBookLocalAsk(std::string symbol);
 
