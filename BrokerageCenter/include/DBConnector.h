@@ -21,7 +21,7 @@ public:
     static auto getInstance() -> DBConnector&;
     auto init(const std::string& cryptoKey, const std::string& fileName) -> bool;
 
-    PGconn* getConn() { return m_pConn; } // establish connection to database
+    auto getConn() -> PGconn* { return m_pConn; } // establish connection to database
     auto connectDB() -> bool;
     void disconnectDB();
 
