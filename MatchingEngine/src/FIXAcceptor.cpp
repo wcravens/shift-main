@@ -262,9 +262,9 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
 
     message.setField(FIX::SecurityResponseID(shift::crossguid::newGuid().str()));
 
-    for (const auto& [symbol, market] : markets::StockMarketList::getInstance()) {
+    for (const auto& kv : markets::StockMarketList::getInstance()) {
         shift::fix::addFIXGroup<FIX50SP2::SecurityList::NoRelatedSym>(message,
-            FIX::Symbol(symbol));
+            FIX::Symbol(kv.first));
     }
 
     FIX::Session::sendToTarget(message);
@@ -320,8 +320,8 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     s_sendSecurityList(targetID);
 
     // send current order book data of all securities to connecting target
-    for (auto& [symbol, marketPtr] : markets::StockMarketList::getInstance()) {
-        marketPtr->sendOrderBookDataToTarget(targetID);
+    for (auto& kv : markets::StockMarketList::getInstance()) {
+        kv.second->sendOrderBookDataToTarget(targetID);
     }
 
     {

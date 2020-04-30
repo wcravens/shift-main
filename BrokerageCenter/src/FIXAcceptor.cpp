@@ -429,7 +429,8 @@ static inline void s_addGroupToOrderBookMsg(FIX::Message& message, const OrderBo
     message.setField(FIX::TotNoOrders(orders.size())); // FIX Required
 
     int i = 0;
-    for (const auto& [id, order] : orders) {
+    for (const auto& kv : orders) {
+        const auto& order = kv.second;
         shift::fix::addFIXGroup<FIX50SP2::NewOrderList::NoOrders>(message,
             FIX::ClOrdID(order.getID()),
             FIX::ListSeqNo(++i),

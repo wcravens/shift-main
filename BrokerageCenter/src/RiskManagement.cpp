@@ -84,8 +84,8 @@ void RiskManagement::sendPortfolioHistory()
 
     s_sendPortfolioSummaryToUser(m_userID, m_porfolioSummary);
 
-    for (const auto& [symbol, item] : m_portfolioItems) {
-        s_sendPortfolioItemToUser(m_userID, item);
+    for (const auto& kv : m_portfolioItems) {
+        s_sendPortfolioItemToUser(m_userID, kv.second);
     }
 }
 

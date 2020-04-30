@@ -255,8 +255,8 @@ auto main(int argc, char** argv) -> int
     {
         int i = 0;
 
-        for (auto& [symbol, marketPtr] : markets::StockMarketList::getInstance()) {
-            stockMarketThreadList[i] = std::thread(std::ref(*marketPtr));
+        for (auto& kv : markets::StockMarketList::getInstance()) {
+            stockMarketThreadList[i] = std::thread(std::ref(*kv.second));
             ++i;
         }
     }
