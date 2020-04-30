@@ -210,14 +210,13 @@ void FIXInitiator::disconnectBrokerageCenter()
 
     // house cleaning:
 
-    // cancel all pending client requests
-    try {
+    // cancel all pending client requests:
+    // (we force a disconnect before every connection - even the first one)
+    if (m_connected) {
         getSuperUser()->cancelAllSamplePricesRequests();
-    } catch (...) { // it is OK if there is no super user yet
-    } // (we force a disconnect before every connection - even the first one)
-
-    for (auto& client : getAttachedClients()) {
-        client->cancelAllSamplePricesRequests();
+        for (auto& client : getAttachedClients()) {
+            client->cancelAllSamplePricesRequests();
+        }
     }
 
     // reset state variables:
@@ -768,11 +767,7 @@ void FIXInitiator::onMessage(const FIX50SP2::MarketDataSnapshotFullRefresh& mess
             s_convertToTimePoint(pSimulationDate->getValue(), pSimulationTime->getValue()));
     }
 
-    try {
-        m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->setOrderBook(std::move(orderBook));
-    } catch (const std::exception&) {
-        debugDump(symbol + " doesn't work");
-    }
+    m_orderBooks[symbol][static_cast<OrderBook::Type>(pBookType->getValue())]->setOrderBook(std::move(orderBook));
 
     if (0 != prevCnt) { // > 1 threads
         delete pOriginalName;
@@ -1441,6 +1436,10 @@ auto FIXInitiator::getLastTradeTime() -> std::chrono::system_clock::time_point
  */
 auto FIXInitiator::getBestPrice(const std::string& symbol) -> BestPrice
 {
+    if (m_orderBooks.find(symbol) == m_orderBooks.end()) {
+        throw "There is no Best Price for symbol " + symbol;
+    }
+
     auto globalBidBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::GLOBAL_BID].get());
     auto globalAskBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::GLOBAL_ASK].get());
     auto localBidBestValues = std::async(std::launch::async, &OrderBook::getBestValues, m_orderBooks[symbol][OrderBook::Type::LOCAL_BID].get());
