@@ -1,18 +1,9 @@
 #pragma once
 
-#include "ExecutionReport.h"
 #include "Order.h"
-#include "OrderBookEntry.h"
-#include "PriceLevel.h"
 #include "StockMarket.h"
 
-#include <atomic>
-#include <list>
-#include <map>
-#include <mutex>
-#include <queue>
 #include <string>
-#include <vector>
 
 namespace markets {
 

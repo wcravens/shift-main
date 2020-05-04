@@ -1,14 +1,8 @@
 #include "markets/StockMarket.h"
 
-#include "FIXAcceptor.h"
 #include "TimeSetting.h"
 
-#include <chrono>
-#include <thread>
-
 #include <shift/miscutils/terminal/Common.h>
-
-using namespace std::chrono_literals;
 
 namespace markets {
 
