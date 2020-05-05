@@ -43,8 +43,7 @@ public:
     auto connectBrokerageCenter(const std::string& configFile, bool verbose = false, const std::string& cryptoKey = "", const std::string& dbConfigFile = "") -> bool;
     void disconnectBrokerageCenter();
 
-    static void s_sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook);
-
+    void sendOrderBook(const std::vector<OrderBookEntry>& orderBook, const std::string& targetID = "");
     void sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderBookUpdates);
     void sendExecutionReports(const std::vector<ExecutionReport>& executionReports);
 
@@ -54,7 +53,7 @@ private:
     auto operator=(const FIXAcceptor&) -> FIXAcceptor& = delete; // forbid assigning
 
     static void s_sendSecurityList(const std::string& targetID);
-    static void s_sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation);
+    static void s_sendOrderConfirmation(const OrderConfirmation& confirmation, const std::string& targetID);
 
     // QuickFIX methods
     void onCreate(const FIX::SessionID&) override;

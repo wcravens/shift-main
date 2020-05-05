@@ -71,7 +71,7 @@ void StockMarket::displayLocalOrderBooks()
     cout << endl;
 }
 
-void StockMarket::sendOrderBookDataToTarget(const std::string& targetID)
+void StockMarket::sendOrderBookData(bool includeGlobal /* = false */, const std::string& targetID /* = "" */)
 {
     // temporary vectors to hold order book entries
     std::vector<OrderBookEntry> globalBids;
@@ -93,14 +93,16 @@ void StockMarket::sendOrderBookDataToTarget(const std::string& targetID)
 
     auto now = TimeSetting::getInstance().simulationTimestamp();
 
-    globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, 0.0, 0, now);
-    for (auto rit = m_globalBids.rbegin(); rit != m_globalBids.rend(); ++rit) {
-        globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
-    }
+    if (includeGlobal) {
+        globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, 0.0, 0, now);
+        for (auto rit = m_globalBids.rbegin(); rit != m_globalBids.rend(); ++rit) {
+            globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
+        }
 
-    globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, 0.0, 0, now);
-    for (auto rit = m_globalAsks.rbegin(); rit != m_globalAsks.rend(); ++rit) {
-        globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
+        globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, 0.0, 0, now);
+        for (auto rit = m_globalAsks.rbegin(); rit != m_globalAsks.rend(); ++rit) {
+            globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
+        }
     }
 
     localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, 0.0, 0, now);
@@ -113,10 +115,13 @@ void StockMarket::sendOrderBookDataToTarget(const std::string& targetID)
         localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, rit->getPrice(), rit->getSize(), now);
     }
 
-    FIXAcceptor::s_sendOrderBook(targetID, globalBids);
-    FIXAcceptor::s_sendOrderBook(targetID, globalAsks);
-    FIXAcceptor::s_sendOrderBook(targetID, localBids);
-    FIXAcceptor::s_sendOrderBook(targetID, localAsks);
+    if (includeGlobal) {
+        FIXAcceptor::getInstance().sendOrderBook(globalBids, targetID);
+        FIXAcceptor::getInstance().sendOrderBook(globalAsks, targetID);
+    }
+
+    FIXAcceptor::getInstance().sendOrderBook(localBids, targetID);
+    FIXAcceptor::getInstance().sendOrderBook(localAsks, targetID);
 
     m_spinlock.clear();
 }

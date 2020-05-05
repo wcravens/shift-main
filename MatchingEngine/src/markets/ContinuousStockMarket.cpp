@@ -27,7 +27,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
     while (!StockMarketList::s_isTimeout) { // process orders
 
         if (!getNextOrder(nextOrder)) {
-            std::this_thread::sleep_for(10ms);
+            std::this_thread::sleep_for(1ms);
             continue;
         }
 

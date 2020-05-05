@@ -131,14 +131,13 @@ void FIXAcceptor::disconnectBrokerageCenter()
 /*
  * @brief Send complete order book to brokers.
  */
-/* static */ void FIXAcceptor::s_sendOrderBook(const std::string& targetID, const std::vector<OrderBookEntry>& orderBook)
+void FIXAcceptor::sendOrderBook(const std::vector<OrderBookEntry>& orderBook, const std::string& targetID /* = "" */)
 {
     FIX::Message message;
 
     FIX::Header& header = message.getHeader();
     header.setField(::FIXFIELD_BEGINSTRING_FIXT11);
     header.setField(FIX::SenderCompID(s_senderID));
-    header.setField(FIX::TargetCompID(targetID));
     header.setField(FIX::MsgType(FIX::MsgType_MarketDataSnapshotFullRefresh));
 
     message.setField(FIX::Symbol(orderBook.begin()->getSymbol()));
@@ -155,7 +154,17 @@ void FIXAcceptor::disconnectBrokerageCenter()
             FIX::MDMkt(entry.getDestination()));
     }
 
-    FIX::Session::sendToTarget(message);
+    if (targetID.empty()) {
+        std::lock_guard<std::mutex> lock(m_mtxTargetSet);
+
+        for (const auto& tID : m_targetSet) {
+            header.setField(FIX::TargetCompID(tID));
+            FIX::Session::sendToTarget(message);
+        }
+    } else {
+        header.setField(FIX::TargetCompID(targetID));
+        FIX::Session::sendToTarget(message);
+    }
 }
 
 /*
@@ -186,8 +195,8 @@ void FIXAcceptor::sendOrderBookUpdates(const std::vector<OrderBookEntry>& orderB
         {
             std::lock_guard<std::mutex> lock(m_mtxTargetSet);
 
-            for (const auto& targetID : m_targetSet) {
-                header.setField(FIX::TargetCompID(targetID));
+            for (const auto& tID : m_targetSet) {
+                header.setField(FIX::TargetCompID(tID));
                 FIX::Session::sendToTarget(message);
             }
         }
@@ -239,8 +248,8 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
         {
             std::lock_guard<std::mutex> lock(m_mtxTargetSet);
 
-            for (const auto& targetID : m_targetSet) {
-                header.setField(FIX::TargetCompID(targetID));
+            for (const auto& tID : m_targetSet) {
+                header.setField(FIX::TargetCompID(tID));
                 FIX::Session::sendToTarget(message);
             }
         }
@@ -273,7 +282,7 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
 /**
  * @brief Send order confirmation to broker.
  */
-/* static */ void FIXAcceptor::s_sendOrderConfirmation(const std::string& targetID, const OrderConfirmation& confirmation)
+/* static */ void FIXAcceptor::s_sendOrderConfirmation(const OrderConfirmation& confirmation, const std::string& targetID)
 {
     FIX::Message message;
 
@@ -321,7 +330,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 
     // send current order book data of all securities to connecting target
     for (auto& kv : markets::StockMarketList::getInstance()) {
-        kv.second->sendOrderBookDataToTarget(targetID);
+        kv.second->sendOrderBookData(true, targetID);
     }
 
     {
@@ -432,7 +441,7 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
 
     // send confirmation to client
     cout << "Sending confirmation: " << pOrderID->getValue() << endl;
-    s_sendOrderConfirmation(sessionID.getTargetCompID().getValue(), { pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue() });
+    s_sendOrderConfirmation({ pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), pOrderType->getValue() }, sessionID.getTargetCompID().getValue());
 
     if (0 != prevCnt) { // > 1 threads
         delete pOrderID;

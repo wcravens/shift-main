@@ -29,7 +29,7 @@ public:
     void displayGlobalOrderBooks();
     void displayLocalOrderBooks();
 
-    void sendOrderBookDataToTarget(const std::string& targetID);
+    void sendOrderBookData(bool includeGlobal = false, const std::string& targetID = "");
 
     void bufNewGlobalOrder(Order&& newOrder);
     void bufNewLocalOrder(Order&& newOrder);
