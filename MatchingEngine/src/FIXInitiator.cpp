@@ -378,10 +378,10 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         return;
     }
 
-    long mili = TimeSetting::getInstance().pastMilli(pTransactTime->getValue());
+    auto milli = TimeSetting::getInstance().pastMilli(pTransactTime->getValue());
 
     Order order { pSymbol->getValue(), pBidPrice->getValue(), static_cast<int>(pBidSize->getValue()), Order::Type::TRTH_TRADE, pBuyerID->getValue(), pTransactTime->getValue() };
-    order.setMilli(mili);
+    order.setMilli(milli);
 
     if (ordType == 0) { // quote
         order.setType(Order::Type::TRTH_BID); // update as "bid" from Global
@@ -393,7 +393,7 @@ void FIXInitiator::onMessage(const FIX50SP2::Quote& message, const FIX::SessionI
         pIDGroup->getField(*pSellerID);
 
         Order order2 { pSymbol->getValue(), pAskPrice->getValue(), static_cast<int>(pAskSize->getValue()), Order::Type::TRTH_ASK, pSellerID->getValue(), pTransactTime->getValue() };
-        order2.setMilli(mili);
+        order2.setMilli(milli);
 
         stockMarketIt->second->bufNewGlobalOrder(std::move(order2));
     }

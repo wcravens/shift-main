@@ -23,10 +23,10 @@ void StockMarket::setSymbol(const std::string& symbol)
 
 void StockMarket::displayGlobalOrderBooks()
 {
-    long simulationMilli = TimeSetting::getInstance().pastMilli(true);
+    auto simulationMS = TimeSetting::getInstance().pastMilli(true);
 
     cout << endl
-         << "(" << simulationMilli << ") "
+         << "(" << simulationMS << ") "
          << "Global Ask:"
          << endl;
 
@@ -35,7 +35,7 @@ void StockMarket::displayGlobalOrderBooks()
     }
 
     cout << endl
-         << "(" << simulationMilli << ") "
+         << "(" << simulationMS << ") "
          << "Global Bid:"
          << endl;
 
@@ -48,10 +48,10 @@ void StockMarket::displayGlobalOrderBooks()
 
 void StockMarket::displayLocalOrderBooks()
 {
-    long simulationMilli = TimeSetting::getInstance().pastMilli(true);
+    auto simulationMS = TimeSetting::getInstance().pastMilli(true);
 
     cout << endl
-         << "(" << simulationMilli << ") "
+         << "(" << simulationMS << ") "
          << "Local Ask:"
          << endl;
 
@@ -60,7 +60,7 @@ void StockMarket::displayLocalOrderBooks()
     }
 
     cout << endl
-         << "(" << simulationMilli << ") "
+         << "(" << simulationMS << ") "
          << "Local Bid:"
          << endl;
 
@@ -107,12 +107,16 @@ void StockMarket::sendOrderBookData(bool includeGlobal /* = false */, const std:
 
     localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, 0.0, 0, now);
     for (auto rit = m_localBids.rbegin(); rit != m_localBids.rend(); ++rit) {
-        localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, rit->getPrice(), rit->getSize(), now);
+        if (rit->begin()->getType() != Order::Type::MARKET_BUY) { // market orders are hidden
+            localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, rit->getPrice(), rit->getSize(), now);
+        }
     }
 
     localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, 0.0, 0, now);
     for (auto rit = m_localAsks.rbegin(); rit != m_localAsks.rend(); ++rit) {
-        localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, rit->getPrice(), rit->getSize(), now);
+        if (rit->begin()->getType() != Order::Type::MARKET_SELL) { // market orders are hidden
+            localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, rit->getPrice(), rit->getSize(), now);
+        }
     }
 
     if (includeGlobal) {
@@ -149,12 +153,12 @@ void StockMarket::bufNewLocalOrder(Order&& newOrder)
 auto StockMarket::getNextOrder(Order& orderRef) -> bool
 {
     bool good = false;
-    long now = TimeSetting::getInstance().pastMilli(true);
+    auto simulationMS = TimeSetting::getInstance().pastMilli(true);
 
     std::lock_guard<std::mutex> ngGuard(m_mtxNewGlobalOrders);
     if (!m_newGlobalOrders.empty()) {
         orderRef = m_newGlobalOrders.front();
-        if (orderRef.getMilli() < now) {
+        if (orderRef.getMilli() < simulationMS) {
             good = true;
         }
     }
@@ -168,7 +172,7 @@ auto StockMarket::getNextOrder(Order& orderRef) -> bool
             } else {
                 m_newGlobalOrders.pop();
             }
-        } else if (nextLocalOrder->getMilli() < now) {
+        } else if (nextLocalOrder->getMilli() < simulationMS) {
             good = true;
             orderRef = *nextLocalOrder;
             m_newLocalOrders.pop();

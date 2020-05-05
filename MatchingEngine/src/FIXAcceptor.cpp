@@ -425,8 +425,8 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     message.getGroup(1, *pIDGroup);
     pIDGroup->getField(*pTraderID);
 
-    long milli = TimeSetting::getInstance().pastMilli();
-    FIX::UtcTimeStamp now = TimeSetting::getInstance().simulationTimestamp();
+    auto milli = TimeSetting::getInstance().pastMilli();
+    auto now = TimeSetting::getInstance().simulationTimestamp();
 
     Order order { pSymbol->getValue(), pTraderID->getValue(), pOrderID->getValue(), pPrice->getValue(), static_cast<int>(pSize->getValue()), static_cast<Order::Type>(pOrderType->getValue()), now };
     order.setMilli(milli);
