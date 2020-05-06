@@ -41,7 +41,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
 
         case Order::Type::LIMIT_BUY: {
             doLocalLimitBuy(nextOrder);
-            if (nextOrder.getSize() != 0) {
+            if (nextOrder.getSize() > 0) {
                 insertLocalBid(nextOrder);
                 cout << "Insert Bid" << endl;
             }
@@ -50,7 +50,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
 
         case Order::Type::LIMIT_SELL: {
             doLocalLimitSell(nextOrder);
-            if (nextOrder.getSize() != 0) {
+            if (nextOrder.getSize() > 0) {
                 insertLocalAsk(nextOrder);
                 cout << "Insert Ask" << endl;
             }
@@ -59,7 +59,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
 
         case Order::Type::MARKET_BUY: {
             doLocalMarketBuy(nextOrder);
-            if (nextOrder.getSize() != 0) {
+            if (nextOrder.getSize() > 0) {
                 insertLocalBid(nextOrder);
                 cout << "Insert Bid" << endl;
             }
@@ -68,7 +68,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
 
         case Order::Type::MARKET_SELL: {
             doLocalMarketSell(nextOrder);
-            if (nextOrder.getSize() != 0) {
+            if (nextOrder.getSize() > 0) {
                 insertLocalAsk(nextOrder);
                 cout << "Insert Ask" << endl;
             }
@@ -90,7 +90,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
         case Order::Type::TRTH_TRADE: {
             doGlobalLimitBuy(nextOrder);
             doGlobalLimitSell(nextOrder);
-            if (nextOrder.getSize() != 0) {
+            if (nextOrder.getSize() > 0) {
                 auto now = TimeSetting::getInstance().simulationTimestamp();
                 addExecutionReport({ nextOrder.getSymbol(),
                     nextOrder.getPrice(),
@@ -116,7 +116,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
             }
             prevGlobalOrder = nextOrder;
             doGlobalLimitBuy(nextOrder);
-            if (nextOrder.getSize() != 0) {
+            if (nextOrder.getSize() > 0) {
                 updateGlobalBids(nextOrder);
             }
             break;
@@ -129,7 +129,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
             }
             prevGlobalOrder = nextOrder;
             doGlobalLimitSell(nextOrder);
-            if (nextOrder.getSize() != 0) {
+            if (nextOrder.getSize() > 0) {
                 updateGlobalAsks(nextOrder);
             }
             break;
@@ -156,7 +156,7 @@ void ContinuousStockMarket::doGlobalLimitBuy(Order& orderRef)
     double price = 0.0;
     bool update = false;
 
-    while ((m_thisPriceLevel != m_localAsks.end()) && (orderRef.getSize() != 0)) {
+    while ((m_thisPriceLevel != m_localAsks.end()) && (orderRef.getSize() > 0)) {
 
         if (orderRef.getPrice() < m_thisPriceLevel->getPrice()) {
             break;
@@ -182,7 +182,7 @@ void ContinuousStockMarket::doGlobalLimitBuy(Order& orderRef)
             update = true;
         }
 
-        while ((m_thisLocalOrder != m_thisPriceLevel->end()) && (orderRef.getSize() != 0)) {
+        while ((m_thisLocalOrder != m_thisPriceLevel->end()) && (orderRef.getSize() > 0)) {
 
             // execute in local order book
             int size = m_thisLocalOrder->getSize() - orderRef.getSize();
@@ -215,7 +215,7 @@ void ContinuousStockMarket::doGlobalLimitSell(Order& orderRef)
     double price = 0.0;
     bool update = false;
 
-    while ((m_thisPriceLevel != m_localBids.end()) && (orderRef.getSize() != 0)) {
+    while ((m_thisPriceLevel != m_localBids.end()) && (orderRef.getSize() > 0)) {
 
         if (orderRef.getPrice() > m_thisPriceLevel->getPrice()) {
             break;
@@ -241,7 +241,7 @@ void ContinuousStockMarket::doGlobalLimitSell(Order& orderRef)
             update = true;
         }
 
-        while ((m_thisLocalOrder != m_thisPriceLevel->end()) && (orderRef.getSize() != 0)) {
+        while ((m_thisLocalOrder != m_thisPriceLevel->end()) && (orderRef.getSize() > 0)) {
 
             // execute in local order book
             int size = m_thisLocalOrder->getSize() - orderRef.getSize();
@@ -339,7 +339,7 @@ void ContinuousStockMarket::doLocalLimitBuy(Order& orderRef)
         m_thisLocalOrder = m_thisPriceLevel->begin();
     }
 
-    while (orderRef.getSize() != 0) {
+    while (orderRef.getSize() > 0) {
 
         // init variables
         localBestAsk = maxAskPrice;
@@ -455,7 +455,7 @@ void ContinuousStockMarket::doLocalLimitSell(Order& orderRef)
         m_thisLocalOrder = m_thisPriceLevel->begin();
     }
 
-    while (orderRef.getSize() != 0) {
+    while (orderRef.getSize() > 0) {
 
         // init variables
         localBestBid = minBidPrice;
@@ -568,7 +568,7 @@ void ContinuousStockMarket::doLocalMarketBuy(Order& orderRef)
         m_thisLocalOrder = m_thisPriceLevel->begin();
     }
 
-    while (orderRef.getSize() != 0) {
+    while (orderRef.getSize() > 0) {
 
         // init variables
         localBestAsk = maxAskPrice;
@@ -673,7 +673,7 @@ void ContinuousStockMarket::doLocalMarketSell(Order& orderRef)
         m_thisLocalOrder = m_thisPriceLevel->begin();
     }
 
-    while (orderRef.getSize() != 0) {
+    while (orderRef.getSize() > 0) {
 
         // init variables
         localBestBid = minBidPrice;
