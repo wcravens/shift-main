@@ -197,7 +197,7 @@ void StockMarket::executeGlobalOrder(Order& orderRef, int size, double price, ch
         orderRef.setSize(-size);
     }
 
-    addExecutionReport({ orderRef.getSymbol(),
+    addExecutionReport({ m_symbol,
         price,
         executionSize,
         m_thisGlobalOrder->getTraderID(),
@@ -226,7 +226,7 @@ void StockMarket::executeLocalOrder(Order& orderRef, int size, double price, cha
         orderRef.setSize(-size);
     }
 
-    addExecutionReport({ orderRef.getSymbol(),
+    addExecutionReport({ m_symbol,
         price,
         executionSize,
         m_thisLocalOrder->getTraderID(),
