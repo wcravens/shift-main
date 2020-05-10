@@ -206,14 +206,15 @@ auto CoreClient::getWaitingList() -> std::vector<Order>
     return m_waitingList;
 }
 
-void CoreClient::cancelAllPendingOrders()
+void CoreClient::cancelAllPendingOrders(int timeout /* = 10 */)
 {
     for (auto order : getWaitingList()) {
         submitCancellation(order);
     }
 
-    // wait to make sure cancellation went through
-    while (getWaitingListSize() != 0) {
+    // wait to make sure cancellations went through
+    // (for at most 'timeout' seconds)
+    for (int i = 0; (getWaitingListSize() != 0) && (i < timeout); ++i) {
         std::this_thread::sleep_for(1s);
     }
 }
@@ -360,7 +361,7 @@ auto CoreClient::getBestPrice(const std::string& symbol) -> BestPrice
     return m_fixInitiator->getBestPrice(symbol);
 }
 
-auto CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel) -> std::vector<OrderBookEntry>
+auto CoreClient::getOrderBook(const std::string& symbol, const OrderBook::Type& type, int maxLevel /* = 99 */) -> std::vector<OrderBookEntry>
 {
     if (!isConnected()) {
         return std::vector<OrderBookEntry>();

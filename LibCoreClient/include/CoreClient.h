@@ -63,7 +63,7 @@ public:
     auto getExecutedOrders(const std::string& orderID) -> std::vector<Order>;
     auto getWaitingListSize() -> int;
     auto getWaitingList() -> std::vector<Order>;
-    void cancelAllPendingOrders();
+    void cancelAllPendingOrders(int timeout = 10);
 
     // price methods
     auto getOpenPrice(const std::string& symbol) -> double;
