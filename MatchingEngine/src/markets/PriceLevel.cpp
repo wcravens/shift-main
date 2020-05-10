@@ -12,6 +12,11 @@ auto PriceLevel::getSize() const -> int
     return m_size;
 }
 
+auto PriceLevel::getNumOrders() const -> int
+{
+    return m_orders.size();
+}
+
 void PriceLevel::setPrice(double price)
 {
     m_price = price;
@@ -42,7 +47,17 @@ auto PriceLevel::begin() -> std::list<Order>::iterator
     return m_orders.begin();
 }
 
+auto PriceLevel::begin() const -> std::list<Order>::const_iterator
+{
+    return m_orders.begin();
+}
+
 auto PriceLevel::end() -> std::list<Order>::iterator
+{
+    return m_orders.end();
+}
+
+auto PriceLevel::end() const -> std::list<Order>::const_iterator
 {
     return m_orders.end();
 }

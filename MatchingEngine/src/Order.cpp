@@ -72,6 +72,40 @@ auto Order::getType() const -> Order::Type
     return m_type;
 }
 
+auto Order::getTypeString() const -> std::string
+{
+    switch (m_type) {
+    case LIMIT_BUY: {
+        return "Limit Buy";
+    }
+    case LIMIT_SELL: {
+        return "Limit Sell";
+    }
+    case MARKET_BUY: {
+        return "Market Buy";
+    }
+    case MARKET_SELL: {
+        return "Market Sell";
+    }
+    case CANCEL_BID: {
+        return "Cancel Bid";
+    }
+    case CANCEL_ASK: {
+        return "Cancel Ask";
+    }
+    case TRTH_TRADE: {
+        return "TRTH Trade";
+    }
+    case TRTH_BID: {
+        return "TRTH Bid";
+    }
+    case TRTH_ASK: {
+        return "TRTH Ask";
+    }
+    }
+    return "N/A";
+}
+
 auto Order::getDestination() const -> const std::string&
 {
     return m_destination;

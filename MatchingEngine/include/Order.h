@@ -32,6 +32,7 @@ public:
     auto getPrice() const -> double;
     auto getSize() const -> int;
     auto getType() const -> Type;
+    auto getTypeString() const -> std::string;
     auto getDestination() const -> const std::string&;
     auto getTime() const -> const FIX::UtcTimeStamp&;
 
