@@ -415,9 +415,13 @@ auto CoreClient::getCompanyName(const std::string& symbol) -> std::string
     return m_fixInitiator->getCompanyName(symbol);
 }
 
-auto CoreClient::requestSamplePrices(std::vector<std::string> symbols, double samplingFrequency /* = 1 */, unsigned int samplingWindow /* = 31 */) -> bool
+auto CoreClient::requestSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS /* = 1.0 */, int samplingWindow /* = 31 */) -> bool
 {
     if (!isConnected()) {
+        return false;
+    }
+
+    if ((samplingFrequencyS <= 0.000001) || (samplingWindow < 2)) {
         return false;
     }
 
@@ -439,7 +443,7 @@ auto CoreClient::requestSamplePrices(std::vector<std::string> symbols, double sa
         return false;
     }
 
-    m_samplePriceThreads.emplace_back(&CoreClient::calculateSamplePrices, this, symbols, samplingFrequency, samplingWindow);
+    m_samplePriceThreads.emplace_back(&CoreClient::calculateSamplePrices, this, symbols, samplingFrequencyS, samplingWindow);
     return true;
 }
 
@@ -737,8 +741,11 @@ void CoreClient::storeWaitingList(std::vector<Order>&& waitingList)
     m_waitingListSize = m_waitingList.size();
 }
 
-void CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequency, unsigned int samplingWindow)
+void CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS, int samplingWindow)
 {
+    // seconds to microseconds
+    int64_t samplingFrequencyUS = samplingFrequencyS * 1'000'000.0;
+
     size_t ready = 0;
     BestPrice bp {};
     std::unordered_map<std::string, double> lastPrice;
@@ -754,7 +761,7 @@ void CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double 
                 ++ready;
             }
         }
-        std::this_thread::sleep_for(samplingFrequency * 1s);
+        std::this_thread::sleep_for(samplingFrequencyUS * 1us);
     }
 
     while (symbols.begin() != symbols.end()) {
@@ -781,7 +788,7 @@ void CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double 
             }
         }
 
-        std::this_thread::sleep_for(samplingFrequency * 1s);
+        std::this_thread::sleep_for(samplingFrequencyUS * 1us);
         {
             std::lock_guard<std::mutex> samplePricesFlagsGuard(m_mutex_samplePricesFlags);
             std::lock_guard<std::mutex> samplePricesGuard(m_mutex_samplePrices);
