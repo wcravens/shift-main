@@ -415,7 +415,7 @@ auto CoreClient::getCompanyName(const std::string& symbol) -> std::string
     return m_fixInitiator->getCompanyName(symbol);
 }
 
-auto CoreClient::requestSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS /* = 1.0 */, int samplingWindow /* = 31 */) -> bool
+auto CoreClient::requestSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS /* = 1.0 */, unsigned int samplingWindow /* = 31 */) -> bool
 {
     if (!isConnected()) {
         return false;
@@ -741,7 +741,7 @@ void CoreClient::storeWaitingList(std::vector<Order>&& waitingList)
     m_waitingListSize = m_waitingList.size();
 }
 
-void CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS, int samplingWindow)
+void CoreClient::calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS, unsigned int samplingWindow)
 {
     // seconds to microseconds
     int64_t samplingFrequencyUS = samplingFrequencyS * 1'000'000.0;

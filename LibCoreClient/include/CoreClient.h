@@ -85,7 +85,7 @@ public:
     auto getCompanyName(const std::string& symbol) -> std::string;
 
     // sample prices
-    auto requestSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS = 1.0, int samplingWindow = 31) -> bool;
+    auto requestSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS = 1.0, unsigned int samplingWindow = 31) -> bool;
     auto cancelSamplePricesRequest(const std::vector<std::string>& symbols) -> bool;
     auto cancelAllSamplePricesRequests() -> bool;
     auto getSamplePricesSize(const std::string& symbol) -> int;
@@ -125,7 +125,7 @@ protected:
     virtual void receiveWaitingList() {}
 
     // sample prices
-    void calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS, int samplingWindow);
+    void calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS, unsigned int samplingWindow);
 
 private:
     FIXInitiator* m_fixInitiator;
