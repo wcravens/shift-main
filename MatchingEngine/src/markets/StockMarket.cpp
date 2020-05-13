@@ -91,7 +91,7 @@ void StockMarket::sendOrderBookData(const std::string& targetID /* = "" */, bool
     // - order book entries are sent from worst to best price (in reverse order) so
     // that the BC can use the same update procedure as normal order book updates
 
-    std::list<PriceLevel>::size_type size = 0;
+    int size = 0;
     auto now = TimeSetting::getInstance().simulationTimestamp();
 
     if (includeGlobal) {
