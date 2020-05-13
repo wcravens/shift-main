@@ -126,6 +126,11 @@ void FIXAcceptor::disconnectBrokerageCenter()
     m_acceptorPtr = nullptr;
     m_messageStoreFactoryPtr = nullptr;
     m_logFactoryPtr = nullptr;
+
+    {
+        std::lock_guard<std::mutex> lock(m_mtxTargetSet);
+        m_targetSet.clear();
+    }
 }
 
 /*
@@ -330,7 +335,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
 
     // send current order book data of all securities to connecting target
     for (auto& kv : markets::StockMarketList::getInstance()) {
-        kv.second->sendOrderBookData(true, targetID);
+        kv.second->sendOrderBookData(targetID);
     }
 
     {
@@ -349,7 +354,7 @@ void FIXAcceptor::onLogout(const FIX::SessionID& sessionID) // override
 
     // {
     //     std::lock_guard<std::mutex> lock(m_mtxTargetSet);
-    //     m_targetList.erase(m_targetSet);
+    //     m_targetSet.erase(targetID);
     // }
 }
 

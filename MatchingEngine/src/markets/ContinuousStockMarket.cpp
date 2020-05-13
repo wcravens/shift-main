@@ -92,7 +92,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
             doGlobalLimitSell(nextOrder);
             if (nextOrder.getSize() > 0) {
                 auto now = TimeSetting::getInstance().simulationTimestamp();
-                addExecutionReport({ nextOrder.getSymbol(),
+                addExecutionReport({ m_symbol,
                     nextOrder.getPrice(),
                     nextOrder.getSize(),
                     "T1",
@@ -101,7 +101,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
                     Order::Type::LIMIT_SELL,
                     "O1",
                     "O2",
-                    '5', // decision '5' means this is a trade update from TRTH
+                    '5', // decision '5' here means this is a trade update from TRTH
                     "TRTH",
                     now,
                     now });

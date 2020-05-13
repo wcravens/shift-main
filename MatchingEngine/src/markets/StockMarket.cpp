@@ -71,7 +71,7 @@ void StockMarket::displayLocalOrderBooks()
     cout << endl;
 }
 
-void StockMarket::sendOrderBookData(bool includeGlobal /* = false */, const std::string& targetID /* = "" */)
+void StockMarket::sendOrderBookData(const std::string& targetID /* = "" */, bool includeGlobal /* = true */, int maxLevel /* = std::numeric_limits<int>::max() */)
 {
     // temporary vectors to hold order book entries
     std::vector<OrderBookEntry> globalBids;
@@ -91,31 +91,44 @@ void StockMarket::sendOrderBookData(bool includeGlobal /* = false */, const std:
     // - order book entries are sent from worst to best price (in reverse order) so
     // that the BC can use the same update procedure as normal order book updates
 
+    std::list<PriceLevel>::size_type size = 0;
     auto now = TimeSetting::getInstance().simulationTimestamp();
 
     if (includeGlobal) {
+        size = m_globalBids.size();
         globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, 0.0, 0, now);
         for (auto rit = m_globalBids.rbegin(); rit != m_globalBids.rend(); ++rit) {
-            globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
+            if (--size < maxLevel) {
+                globalBids.emplace_back(OrderBookEntry::Type::GLB_BID, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
+            }
         }
 
+        size = m_globalAsks.size();
         globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, 0.0, 0, now);
         for (auto rit = m_globalAsks.rbegin(); rit != m_globalAsks.rend(); ++rit) {
-            globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
+            if (--size < maxLevel) {
+                globalAsks.emplace_back(OrderBookEntry::Type::GLB_ASK, m_symbol, rit->getPrice(), rit->getSize(), rit->getDestination(), now);
+            }
         }
     }
 
+    size = m_localBids.size();
     localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, 0.0, 0, now);
     for (auto rit = m_localBids.rbegin(); rit != m_localBids.rend(); ++rit) {
-        if (rit->begin()->getType() != Order::Type::MARKET_BUY) { // market orders are hidden
-            localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, rit->getPrice(), rit->getSize(), now);
+        if (--size < maxLevel) {
+            if (rit->begin()->getType() != Order::Type::MARKET_BUY) { // market orders are hidden
+                localBids.emplace_back(OrderBookEntry::Type::LOC_BID, m_symbol, rit->getPrice(), rit->getSize(), now);
+            }
         }
     }
 
+    size = m_localAsks.size();
     localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, 0.0, 0, now);
     for (auto rit = m_localAsks.rbegin(); rit != m_localAsks.rend(); ++rit) {
-        if (rit->begin()->getType() != Order::Type::MARKET_SELL) { // market orders are hidden
-            localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, rit->getPrice(), rit->getSize(), now);
+        if (--size < maxLevel) {
+            if (rit->begin()->getType() != Order::Type::MARKET_SELL) { // market orders are hidden
+                localAsks.emplace_back(OrderBookEntry::Type::LOC_ASK, m_symbol, rit->getPrice(), rit->getSize(), now);
+            }
         }
     }
 

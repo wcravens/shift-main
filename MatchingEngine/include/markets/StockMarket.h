@@ -29,7 +29,7 @@ public:
     void displayGlobalOrderBooks();
     void displayLocalOrderBooks();
 
-    void sendOrderBookData(bool includeGlobal = false, const std::string& targetID = "");
+    void sendOrderBookData(const std::string& targetID = "", bool includeGlobal = true, int maxLevel = std::numeric_limits<int>::max());
 
     void bufNewGlobalOrder(Order&& newOrder);
     void bufNewLocalOrder(Order&& newOrder);
