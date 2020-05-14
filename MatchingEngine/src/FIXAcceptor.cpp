@@ -3,7 +3,7 @@
 #include "Order.h"
 #include "Parameters.h"
 #include "TimeSetting.h"
-#include "markets/StockMarket.h"
+#include "markets/Market.h"
 
 #include <atomic>
 #include <cassert>
@@ -276,7 +276,7 @@ void FIXAcceptor::sendExecutionReports(const std::vector<ExecutionReport>& execu
 
     message.setField(FIX::SecurityResponseID(shift::crossguid::newGuid().str()));
 
-    for (const auto& kv : markets::StockMarketList::getInstance()) {
+    for (const auto& kv : markets::MarketList::getInstance()) {
         shift::fix::addFIXGroup<FIX50SP2::SecurityList::NoRelatedSym>(message,
             FIX::Symbol(kv.first));
     }
@@ -334,7 +334,7 @@ void FIXAcceptor::onLogon(const FIX::SessionID& sessionID) // override
     s_sendSecurityList(targetID);
 
     // send current order book data of all securities to connecting target
-    for (auto& kv : markets::StockMarketList::getInstance()) {
+    for (auto& kv : markets::MarketList::getInstance()) {
         kv.second->sendOrderBookData(targetID);
     }
 
@@ -437,9 +437,9 @@ void FIXAcceptor::onMessage(const FIX50SP2::NewOrderSingle& message, const FIX::
     order.setMilli(milli);
 
     // add new quote to buffer
-    auto stockMarketIt = markets::StockMarketList::getInstance().find(pSymbol->getValue());
-    if (stockMarketIt != markets::StockMarketList::getInstance().end()) {
-        stockMarketIt->second->bufNewLocalOrder(std::move(order));
+    auto marketIt = markets::MarketList::getInstance().find(pSymbol->getValue());
+    if (marketIt != markets::MarketList::getInstance().end()) {
+        marketIt->second->bufNewLocalOrder(std::move(order));
     } else {
         return;
     }

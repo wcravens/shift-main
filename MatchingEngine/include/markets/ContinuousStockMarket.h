@@ -1,18 +1,20 @@
 #pragma once
 
+#include "IMarketCreator.h"
+#include "Market.h"
 #include "Order.h"
-#include "StockMarket.h"
 
 #include <string>
 
 namespace markets {
 
-class ContinuousStockMarket : public StockMarket {
+class ContinuousStockMarket : public Market {
 public:
     ContinuousStockMarket(std::string symbol);
+    ContinuousStockMarket(const market_creator_parameters_t& parameters);
     virtual ~ContinuousStockMarket() = default;
 
-    // function to start one stock matching engine, for stock market thread
+    // function to start one matching engine, for market thread
     virtual void operator()() override;
 
     void doGlobalLimitBuy(Order& orderRef);

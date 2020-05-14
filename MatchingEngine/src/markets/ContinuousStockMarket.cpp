@@ -1,5 +1,7 @@
 #include "markets/ContinuousStockMarket.h"
 
+#include "markets/MarketCreator.h"
+
 #include "TimeSetting.h"
 
 #include <chrono>
@@ -11,8 +13,15 @@ using namespace std::chrono_literals;
 
 namespace markets {
 
+static MarketCreator<ContinuousStockMarket> creator("ContinuousStockMarket");
+
 ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
-    : StockMarket { std::move(symbol) }
+    : Market { std::move(symbol) }
+{
+}
+
+ContinuousStockMarket::ContinuousStockMarket(const market_creator_parameters_t& parameters)
+    : ContinuousStockMarket { std::get<std::string>(parameters[0]) }
 {
 }
 
@@ -24,7 +33,7 @@ ContinuousStockMarket::ContinuousStockMarket(std::string symbol)
     Order nextOrder {};
     Order prevGlobalOrder {};
 
-    while (!StockMarketList::s_isTimeout) { // process orders
+    while (!MarketList::s_isTimeout) { // process orders
 
         if (!getNextOrder(nextOrder)) {
             std::this_thread::sleep_for(1ms);

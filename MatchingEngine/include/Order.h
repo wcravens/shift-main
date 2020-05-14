@@ -35,6 +35,7 @@ public:
     auto getTypeString() const -> std::string;
     auto getDestination() const -> const std::string&;
     auto getTime() const -> const FIX::UtcTimeStamp&;
+    auto getAuctionCounter() const -> int;
 
     // setters
     void setSymbol(const std::string& symbol);
@@ -43,6 +44,8 @@ public:
     void setSize(int size);
     void setType(Type type);
     void setDestination(const std::string& destination);
+
+    void incrementAuctionCounter();
 
 private:
     std::string m_symbol;
@@ -54,4 +57,5 @@ private:
     Type m_type;
     std::string m_destination;
     FIX::UtcTimeStamp m_simulationTime;
+    int m_auctionCounter;
 };

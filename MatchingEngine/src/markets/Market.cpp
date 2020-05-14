@@ -1,4 +1,4 @@
-#include "markets/StockMarket.h"
+#include "markets/Market.h"
 
 #include "TimeSetting.h"
 
@@ -6,22 +6,22 @@
 
 namespace markets {
 
-StockMarket::StockMarket(std::string symbol)
+Market::Market(std::string symbol)
     : m_symbol { std::move(symbol) }
 {
 }
 
-auto StockMarket::getSymbol() const -> const std::string&
+auto Market::getSymbol() const -> const std::string&
 {
     return m_symbol;
 }
 
-void StockMarket::setSymbol(const std::string& symbol)
+void Market::setSymbol(const std::string& symbol)
 {
     m_symbol = symbol;
 }
 
-void StockMarket::displayGlobalOrderBooks()
+void Market::displayGlobalOrderBooks()
 {
     auto simulationMS = TimeSetting::getInstance().pastMilli(true);
 
@@ -46,7 +46,7 @@ void StockMarket::displayGlobalOrderBooks()
     cout << endl;
 }
 
-void StockMarket::displayLocalOrderBooks()
+void Market::displayLocalOrderBooks()
 {
     auto simulationMS = TimeSetting::getInstance().pastMilli(true);
 
@@ -71,7 +71,7 @@ void StockMarket::displayLocalOrderBooks()
     cout << endl;
 }
 
-void StockMarket::sendOrderBookData(const std::string& targetID /* = "" */, bool includeGlobal /* = true */, int maxLevel /* = std::numeric_limits<int>::max() */)
+void Market::sendOrderBookData(const std::string& targetID /* = "" */, bool includeGlobal /* = true */, int maxLevel /* = std::numeric_limits<int>::max() */)
 {
     // temporary vectors to hold order book entries
     std::vector<OrderBookEntry> globalBids;
@@ -143,7 +143,7 @@ void StockMarket::sendOrderBookData(const std::string& targetID /* = "" */, bool
     m_spinlock.clear();
 }
 
-void StockMarket::bufNewGlobalOrder(Order&& newOrder)
+void Market::bufNewGlobalOrder(Order&& newOrder)
 {
     try {
         std::lock_guard<std::mutex> ngGuard(m_mtxNewGlobalOrders);
@@ -153,7 +153,7 @@ void StockMarket::bufNewGlobalOrder(Order&& newOrder)
     }
 }
 
-void StockMarket::bufNewLocalOrder(Order&& newOrder)
+void Market::bufNewLocalOrder(Order&& newOrder)
 {
     try {
         std::lock_guard<std::mutex> nlGuard(m_mtxNewLocalOrders);
@@ -163,7 +163,7 @@ void StockMarket::bufNewLocalOrder(Order&& newOrder)
     }
 }
 
-auto StockMarket::getNextOrder(Order& orderRef) -> bool
+auto Market::getNextOrder(Order& orderRef) -> bool
 {
     bool good = false;
     auto simulationMS = TimeSetting::getInstance().pastMilli(true);
@@ -198,7 +198,7 @@ auto StockMarket::getNextOrder(Order& orderRef) -> bool
 }
 
 // decision '2' means this is a trade record, '4' means cancel record; record trade or cancel with object actions
-void StockMarket::executeGlobalOrder(Order& orderRef, int size, double price, char decision)
+void Market::executeGlobalOrder(Order& orderRef, int size, double price, char decision)
 {
     int executionSize = std::min(m_thisGlobalOrder->getSize(), orderRef.getSize());
 
@@ -226,7 +226,7 @@ void StockMarket::executeGlobalOrder(Order& orderRef, int size, double price, ch
 }
 
 // decision '2' means this is a trade record, '4' means cancel record; record trade or cancel with object actions
-void StockMarket::executeLocalOrder(Order& orderRef, int size, double price, char decision)
+void Market::executeLocalOrder(Order& orderRef, int size, double price, char decision)
 {
     int executionSize = std::min(m_thisLocalOrder->getSize(), orderRef.getSize());
     m_thisPriceLevel->setSize(m_thisPriceLevel->getSize() - executionSize);
@@ -254,11 +254,11 @@ void StockMarket::executeLocalOrder(Order& orderRef, int size, double price, cha
         orderRef.getTime() });
 }
 
-/* static */ std::atomic<bool> StockMarketList::s_isTimeout { false };
+/* static */ std::atomic<bool> MarketList::s_isTimeout { false };
 
-/* static */ auto StockMarketList::getInstance() -> StockMarketList::stock_market_list_t&
+/* static */ auto MarketList::getInstance() -> MarketList::market_list_t&
 {
-    static stock_market_list_t data;
+    static market_list_t data;
     return data;
 }
 

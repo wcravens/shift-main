@@ -19,6 +19,7 @@ using namespace std::chrono_literals;
 
 /* static */ std::string FIXInitiator::s_senderID;
 /* static */ std::string FIXInitiator::s_targetID;
+/* static */ bool FIXInitiator::s_isFBA = false;
 
 // predefined constant FIX message fields (to avoid recalculations):
 static const auto& FIXFIELD_BEGINSTRING_FIXT11 = FIX::BeginString(FIX::BeginString_FIXT11);
@@ -736,8 +737,6 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                 pExecTime->getValue()
             };
 
-            FIXAcceptor::s_sendLastPrice2All(transac);
-
             if (FIX::OrdStatus_FILLED == pStatus->getValue()) { // trade
                 printRpts(true, pUserID1, pOrderID1, pOrderType1, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
                 printRpts(false, pUserID2, pOrderID2, pOrderType2, pSymbol, pExecutedSize, pPrice, pStatus, pDestination, pExecTime, pServerTime);
@@ -770,11 +769,16 @@ void FIXInitiator::onMessage(const FIX50SP2::ExecutionReport& message, const FIX
                     pServerTime->getValue()
                 };
 
+                if (!s_isFBA) {
+                    FIXAcceptor::s_sendLastPrice2All(transac);
+                }
+
                 auto& docs = BCDocuments::getInstance();
                 docs.onNewTransacForCandlestickData(pSymbol->getValue(), transac);
                 docs.onNewExecutionReportForUserRiskManagement(pUserID1->getValue(), std::move(report1));
                 docs.onNewExecutionReportForUserRiskManagement(pUserID2->getValue(), std::move(report2));
             } else { // FIX::OrdStatus_REPLACED: TRTH trade
+                FIXAcceptor::s_sendLastPrice2All(transac);
                 BCDocuments::getInstance().onNewTransacForCandlestickData(pSymbol->getValue(), transac);
             }
         } break;

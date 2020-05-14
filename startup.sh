@@ -32,6 +32,7 @@ function usage
     echo "OPTIONS:";
     echo "  -h [ --help ]                      Display available options"
     echo "  -m [ --modules ] DE|ME|BC|WC|PS    List of modules to start up or terminate"
+    echo "  -f [ --frequency ]                 Use FBA with provided frequency (in seconds)"
     echo "  -d [ --date ]                      Simulation date (format: YYYY-MM-DD)"
     echo "  -b [ --starttime ]                 Simulation start time (format: HH:MM:SS)"
     echo "  -e [ --endtime ]                   Simulation end time (format: HH:MM:SS)"
@@ -203,6 +204,7 @@ function killPushServer
 
 declare -a MODULES
 
+FREQUENCY=0.0
 SIMULATION_DATE=""
 SIMULATION_START_TIME=""
 SIMULATION_END_TIME=""
@@ -253,6 +255,11 @@ while [ "${1}" != "" ]; do
                         ;;
                 esac
             done
+            ;;
+        -f | --frequency )
+            shift
+            FREQUENCY=${1}
+            shift
             ;;
         -d | --date )
             shift
@@ -416,6 +423,7 @@ then
                 ;;
             2_ME )
                 OPTIONS="-t ${TIMEOUT}"
+                [ $(echo "${FREQUENCY} > 0.0" | bc -l) -eq 1 ] && OPTIONS="${OPTIONS} -f ${FREQUENCY}"
                 [ ${SIMULATION_DATE} ] && OPTIONS="${OPTIONS} -d ${SIMULATION_DATE}"
                 [ ${SIMULATION_START_TIME} ] && OPTIONS="${OPTIONS} -b ${SIMULATION_START_TIME}"
                 [ ${SIMULATION_END_TIME} ] && OPTIONS="${OPTIONS} -e ${SIMULATION_END_TIME}"
@@ -423,6 +431,7 @@ then
                 ;;
             3_BC )
                 OPTIONS="-t ${TIMEOUT}"
+                [ $(echo "${FREQUENCY} > 0.0" | bc -l) -eq 1 ] && OPTIONS="${OPTIONS} -f"
                 [ ${RESET_FLAG} -ne 0 ] && OPTIONS="${OPTIONS} -r"
                 [ ${PFDBREADONLY_FLAG} -ne 0 ] && OPTIONS="${OPTIONS} -o"
                 startService "BrokerageCenter" "${OPTIONS}"

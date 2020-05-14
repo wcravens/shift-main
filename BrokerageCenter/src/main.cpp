@@ -31,6 +31,8 @@
     "key"
 #define CSTR_DBLOGIN_TXT \
     "dbLogin.txt"
+#define CSTR_FBA \
+    "fba"
 #define CSTR_RESET \
     "reset"
 #define CSTR_PFDBREADONLY \
@@ -99,6 +101,7 @@ auto main(int argc, char** argv) -> int
     struct {
         std::string configDir;
         std::string cryptoKey;
+        bool isFBA;
         struct { // timeout settings
             using min_t = std::chrono::minutes::rep;
             bool isSet;
@@ -113,6 +116,7 @@ auto main(int argc, char** argv) -> int
     } params = {
         "/usr/local/share/shift/BrokerageCenter/", // default installation folder for configuration
         "SHIFT123", // built-in initial crypto key used for encrypting dbLogin.txt
+        false,
         {
             false,
             0,
@@ -125,6 +129,7 @@ auto main(int argc, char** argv) -> int
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
         (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
+        (CSTR_FBA ",f", "Matching Engine is using frequent batch auctions") //
         (CSTR_RESET ",r", "reset client portfolios and trading records") //
         (CSTR_PFDBREADONLY ",o", "is portfolio data in DB read-only") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
@@ -174,6 +179,10 @@ auto main(int argc, char** argv) -> int
     } else {
         cout << COLOR "The built-in initial key 'SHIFT123' is used for reading encrypted login files." NO_COLOR << '\n'
              << endl;
+    }
+
+    if (vm.count(CSTR_FBA) > 0) {
+        params.isFBA = true;
     }
 
     if (vm.count(CSTR_TIMEOUT) > 0) {
@@ -296,6 +305,7 @@ auto main(int argc, char** argv) -> int
     }
 
     // try to connect to Matching Engine
+    FIXInitiator::getInstance().s_isFBA = params.isFBA;
     FIXInitiator::getInstance().connectMatchingEngine(params.configDir + "initiator.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // wait for complete security list
@@ -307,7 +317,10 @@ auto main(int argc, char** argv) -> int
     FIXAcceptor::getInstance().connectClients(params.configDir + "acceptor.cfg", params.isVerbose, params.cryptoKey, params.configDir + CSTR_DBLOGIN_TXT);
 
     // create a broadcaster to broadcast all order books
-    std::thread broadcaster(&::s_broadcastOrderBooks);
+    std::thread broadcaster;
+    if (!params.isFBA) {
+        broadcaster = std::thread(&::s_broadcastOrderBooks);
+    }
 
     // create 'done' file in ~/.shift/BrokerageCenter to signalize shell that service is done loading
     // (directory is also created if it does not exist)
@@ -356,9 +369,11 @@ auto main(int argc, char** argv) -> int
     }
 
     // close program
-    ::s_isBroadcasting = false; // to terminate broadcaster
-    if (broadcaster.joinable()) {
-        broadcaster.join(); // wait for termination
+    if (!params.isFBA) {
+        ::s_isBroadcasting = false; // to terminate broadcaster
+        if (broadcaster.joinable()) {
+            broadcaster.join(); // wait for termination
+        }
     }
 
     FIXAcceptor::getInstance().disconnectClients();

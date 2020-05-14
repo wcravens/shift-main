@@ -31,8 +31,12 @@ set(CONFIGDEFAULT
 
 set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/markets/ContinuousStockMarket.h
+    ${PROJECT_SOURCE_DIR}/include/markets/FBAStockMarket.h
+    ${PROJECT_SOURCE_DIR}/include/markets/IMarketCreator.h
+    ${PROJECT_SOURCE_DIR}/include/markets/Market.h
+    ${PROJECT_SOURCE_DIR}/include/markets/MarketCreator.h
+    ${PROJECT_SOURCE_DIR}/include/markets/MarketFactory.h
     ${PROJECT_SOURCE_DIR}/include/markets/PriceLevel.h
-    ${PROJECT_SOURCE_DIR}/include/markets/StockMarket.h
     ${PROJECT_SOURCE_DIR}/include/configFunctions.h
     ${PROJECT_SOURCE_DIR}/include/ExecutionReport.h
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
@@ -46,8 +50,10 @@ set(INCLUDE
 
 set(SRC
     ${PROJECT_SOURCE_DIR}/src/markets/ContinuousStockMarket.cpp
+    ${PROJECT_SOURCE_DIR}/src/markets/FBAStockMarket.cpp
+    ${PROJECT_SOURCE_DIR}/src/markets/Market.cpp
+    ${PROJECT_SOURCE_DIR}/src/markets/MarketFactory.cpp
     ${PROJECT_SOURCE_DIR}/src/markets/PriceLevel.cpp
-    ${PROJECT_SOURCE_DIR}/src/markets/StockMarket.cpp
     ${PROJECT_SOURCE_DIR}/src/configFunctions.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXAcceptor.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp

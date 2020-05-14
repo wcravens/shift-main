@@ -18,10 +18,10 @@
 
 namespace markets {
 
-class StockMarket {
+class Market {
 public:
-    StockMarket(std::string symbol);
-    virtual ~StockMarket() = default;
+    Market(std::string symbol);
+    virtual ~Market() = default;
 
     auto getSymbol() const -> const std::string&;
     void setSymbol(const std::string& symbol);
@@ -34,7 +34,7 @@ public:
     void bufNewGlobalOrder(Order&& newOrder);
     void bufNewLocalOrder(Order&& newOrder);
 
-    // function to start one stock matching engine, for stock market thread
+    // function to start one matching engine, for market thread
     virtual void operator()() = 0;
 
 protected:
@@ -93,16 +93,16 @@ private:
     std::vector<OrderBookEntry> m_orderBookUpdates;
 };
 
-class StockMarketList {
+class MarketList {
 public:
-    using stock_market_list_t = std::map<std::string, std::unique_ptr<StockMarket>>;
+    using market_list_t = std::map<std::string, std::unique_ptr<Market>>;
 
     static std::atomic<bool> s_isTimeout;
 
-    static auto getInstance() -> stock_market_list_t&;
+    static auto getInstance() -> market_list_t&;
 
 private:
-    StockMarketList() = default;
+    MarketList() = default;
 };
 
 } // markets

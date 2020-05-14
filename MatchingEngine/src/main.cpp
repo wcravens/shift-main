@@ -3,8 +3,8 @@
 #include "Parameters.h"
 #include "TimeSetting.h"
 #include "configFunctions.h"
-#include "markets/ContinuousStockMarket.h"
-#include "markets/StockMarket.h"
+#include "markets/Market.h"
+#include "markets/MarketFactory.h"
 
 #include <atomic>
 #if __has_include(<filesystem>)
@@ -32,6 +32,8 @@ using namespace std::chrono_literals;
     "key"
 #define CSTR_DBLOGIN_TXT \
     "dbLogin.txt"
+#define CSTR_FREQUENCY \
+    "frequency"
 #define CSTR_DATE \
     "date"
 #define CSTR_STARTTIME \
@@ -105,6 +107,7 @@ auto main(int argc, char** argv) -> int
     struct {
         std::string configDir;
         std::string cryptoKey;
+        double batchAuctionsFrequencyS;
         std::string simulationDate;
         std::string simulationStartTime;
         std::string simulationEndTime;
@@ -118,6 +121,7 @@ auto main(int argc, char** argv) -> int
     } params = {
         "/usr/local/share/shift/MatchingEngine/", // default installation folder for configuration
         "SHIFT123", // built-in initial crypto key used for encrypting dbLogin.txt
+        0.0,
         "",
         "",
         "",
@@ -134,7 +138,8 @@ auto main(int argc, char** argv) -> int
         (CSTR_HELP ",h", "produce help message") //
         (CSTR_CONFIG ",c", po::value<std::string>(), "set config directory") //
         (CSTR_KEY ",k", po::value<std::string>(), "key of " CSTR_DBLOGIN_TXT " file") //
-        (CSTR_DATE ",d", po::value<std::string>(), "simulation date") //
+        (CSTR_FREQUENCY ",f", po::value<double>(), "use frequent batch auctions with provided frequency (in seconds)") //
+        (CSTR_DATE ",d", po::value<std::string>(), "simulation date (default: 2018-12-17)") //
         (CSTR_STARTTIME ",b", po::value<std::string>(), "simulation start time (default: 09:30:00)") //
         (CSTR_ENDTIME ",e", po::value<std::string>(), "simulation end time (default 16:00:00)") //
         (CSTR_TIMEOUT ",t", po::value<decltype(params.timer)::min_t>(), "timeout duration counted in minutes. If not provided, user should terminate server with the terminal.") //
@@ -180,6 +185,10 @@ auto main(int argc, char** argv) -> int
     } else {
         cout << COLOR "The built-in initial key 'SHIFT123' is used for reading encrypted login files." NO_COLOR << '\n'
              << endl;
+    }
+
+    if (vm.count(CSTR_FREQUENCY) > 0) {
+        params.batchAuctionsFrequencyS = vm[CSTR_FREQUENCY].as<double>();
     }
 
     if (vm.count(CSTR_DATE) > 0) {
@@ -239,29 +248,35 @@ auto main(int argc, char** argv) -> int
     boost::posix_time::ptime startTime(boost::posix_time::time_from_string(dateString + " " + startTimeString));
     boost::posix_time::ptime endTime(boost::posix_time::time_from_string(dateString + " " + endTimeString));
 
-    // create Stock Market List and Stock Market objects
-    for (auto& symbol : symbols) {
-        markets::StockMarketList::getInstance().insert(std::pair<std::string, std::unique_ptr<markets::StockMarket>>(symbol, std::make_unique<markets::ContinuousStockMarket>(symbol)));
+    // create Market List and Market objects
+    if (params.batchAuctionsFrequencyS > 0.0) {
+        for (auto& symbol : symbols) {
+            markets::MarketList::getInstance().insert(std::pair<std::string, std::unique_ptr<markets::Market>>(symbol, markets::MarketFactory::Instance().Create("FBAStockMarket", { symbol, params.batchAuctionsFrequencyS })));
+        }
+    } else {
+        for (auto& symbol : symbols) {
+            markets::MarketList::getInstance().insert(std::pair<std::string, std::unique_ptr<markets::Market>>(symbol, markets::MarketFactory::Instance().Create("ContinuousStockMarket", { symbol })));
+        }
     }
 
-    if (markets::StockMarketList::getInstance().size() != symbols.size()) {
+    if (markets::MarketList::getInstance().size() != symbols.size()) {
         cout << "Error during stock list creation!" << endl;
         return 4;
     }
 
-    // begin Stock Market threads
-    int numOfStockMarkets = markets::StockMarketList::getInstance().size();
-    std::vector<std::thread> stockMarketThreadList(numOfStockMarkets);
+    // begin Market threads
+    int numOfMarkets = markets::MarketList::getInstance().size();
+    std::vector<std::thread> marketThreadList(numOfMarkets);
     {
         int i = 0;
 
-        for (auto& kv : markets::StockMarketList::getInstance()) {
-            stockMarketThreadList[i] = std::thread(std::ref(*kv.second));
+        for (auto& kv : markets::MarketList::getInstance()) {
+            marketThreadList[i] = std::thread(std::ref(*kv.second));
             ++i;
         }
     }
     cout << endl
-         << "A total of " << numOfStockMarkets << " Stock Markets are ready in the Matching Engine." << endl
+         << "A total of " << numOfMarkets << " Stock Markets are ready in the Matching Engine." << endl
          << "Waiting for orders..." << endl
          << endl;
 
@@ -329,9 +344,9 @@ auto main(int argc, char** argv) -> int
         dataRequester.join(); // wait for termination
     }
 
-    markets::StockMarketList::s_isTimeout = true;
-    for (int i = 0; i < numOfStockMarkets; ++i) {
-        stockMarketThreadList[i].join();
+    markets::MarketList::s_isTimeout = true;
+    for (int i = 0; i < numOfMarkets; ++i) {
+        marketThreadList[i].join();
     }
 
     if (params.isVerbose) {

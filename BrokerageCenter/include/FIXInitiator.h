@@ -32,6 +32,7 @@ class FIXInitiator : public FIX::Application, public FIX::MessageCracker {
 public:
     static std::string s_senderID;
     static std::string s_targetID;
+    static bool s_isFBA;
 
     ~FIXInitiator() override;
 

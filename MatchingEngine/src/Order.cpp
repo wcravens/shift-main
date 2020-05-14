@@ -10,6 +10,7 @@ Order::Order(std::string symbol, double price, int size, Order::Type type, std::
     , m_type { type }
     , m_destination { std::move(destination) }
     , m_simulationTime { std::move(simulationTime) }
+    , m_auctionCounter { 0 }
 {
 }
 
@@ -23,6 +24,7 @@ Order::Order(std::string symbol, std::string traderID, std::string orderID, doub
     , m_type(type)
     , m_destination("SHIFT")
     , m_simulationTime { std::move(simulationTime) }
+    , m_auctionCounter { 0 }
 {
 }
 
@@ -116,6 +118,11 @@ auto Order::getTime() const -> const FIX::UtcTimeStamp&
     return m_simulationTime;
 }
 
+auto Order::getAuctionCounter() const -> int
+{
+    return m_auctionCounter;
+}
+
 void Order::setSymbol(const std::string& symbol)
 {
     m_symbol = symbol;
@@ -144,4 +151,9 @@ void Order::setType(Order::Type type)
 void Order::setDestination(const std::string& destination)
 {
     m_destination = destination;
+}
+
+void Order::incrementAuctionCounter()
+{
+    ++m_auctionCounter;
 }
