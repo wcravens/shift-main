@@ -13,25 +13,25 @@ namespace shift::strategies {
     return factory;
 }
 
-void StrategyFactory::RegisterMaker(const std::string& name, IStrategyMaker* maker)
+void StrategyFactory::RegisterCreator(const std::string& name, IStrategyCreator* creator)
 {
     // validate uniqueness and add to the map
-    if (_makers.find(name) != _makers.end()) {
-        throw new std::runtime_error("Multiple makers for given name!");
+    if (m_creators.find(name) != m_creators.end()) {
+        throw new std::runtime_error("Multiple creators for given name!");
     }
-    _makers[name] = maker;
+    m_creators[name] = creator;
 }
 
-auto StrategyFactory::Create(const std::string& name, shift::CoreClient& client, bool verbose, const std::initializer_list<StrategyParameter>& parameters) const -> IStrategy*
+auto StrategyFactory::Create(const std::string& name, shift::CoreClient& client, bool verbose, const std::initializer_list<StrategyParameter>& parameters) const -> std::unique_ptr<IStrategy>
 {
-    // look up the maker by strategy name
-    auto i = _makers.find(name);
-    if (i == _makers.end()) {
+    // look up the creator by strategy name
+    auto i = m_creators.find(name);
+    if (i == m_creators.end()) {
         throw new std::runtime_error("Unrecognized object type!");
     }
-    IStrategyMaker* maker = i->second;
+    IStrategyCreator* creator = i->second;
     // invoke create polymorphicaly
-    return maker->Create(client, verbose, parameters);
+    return creator->Create(client, verbose, parameters);
 }
 
 } // shift::strategies

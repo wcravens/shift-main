@@ -1,6 +1,6 @@
 #include "strategies/ZeroIntelligence.h"
 
-#include "strategies/StrategyMaker.h"
+#include "strategies/StrategyCreator.h"
 
 #ifdef _WIN32
 #include <terminal/Common.h>
@@ -10,7 +10,7 @@
 
 namespace shift::strategies {
 
-static StrategyMaker<ZeroIntelligence> maker("ZeroIntelligence");
+static StrategyCreator<ZeroIntelligence> creator("ZeroIntelligence");
 
 ZeroIntelligence::ZeroIntelligence(shift::CoreClient& client, bool verbose, std::string stockTicker, double simulationDuration, double tradingRate, double initialPrice, double initialVolatility)
     : IStrategy { client, verbose }

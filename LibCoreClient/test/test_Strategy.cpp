@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(STRATEGYTEST) //strategy is no long used right?
     // std::cout << "std::string? " << (sp.isString() ? "true" : "false") << "\n";
     // std::cout << "value: " << sp << "\n";
 
-    auto* strategy = shift::strategies::StrategyFactory::Instance().Create("ZeroIntelligence", testClient, false, { "CS1", 23100.0, 385.0, 100.00, 0.10 });
+    auto strategy = shift::strategies::StrategyFactory::Instance().Create("ZeroIntelligence", testClient, false, { "CS1", 23100.0, 385.0, 100.00, 0.10 });
     strategy->run();
 
     initiator.disconnectBrokerageCenter();

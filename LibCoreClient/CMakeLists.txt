@@ -18,9 +18,9 @@ string(TOLOWER ${LIB_NAME} LIB_NAME)
 
 set(INCLUDE
     # ${PROJECT_SOURCE_DIR}/include/strategies/IStrategy.h
-    # ${PROJECT_SOURCE_DIR}/include/strategies/IStrategyMaker.h
+    # ${PROJECT_SOURCE_DIR}/include/strategies/IStrategyCreator.h
+    # ${PROJECT_SOURCE_DIR}/include/strategies/StrategyCreator.h
     # ${PROJECT_SOURCE_DIR}/include/strategies/StrategyFactory.h
-    # ${PROJECT_SOURCE_DIR}/include/strategies/StrategyMaker.h
     # ${PROJECT_SOURCE_DIR}/include/strategies/StrategyParameter.h
     # ${PROJECT_SOURCE_DIR}/include/strategies/ZeroIntelligence.h
     ${PROJECT_SOURCE_DIR}/include/BestPrice.h
