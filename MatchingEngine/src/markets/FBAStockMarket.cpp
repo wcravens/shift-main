@@ -185,10 +185,15 @@ auto FBAStockMarket::getNextBatchAuction() const -> double
         while (j > 0) {
             int i = 0;
             for (const auto& order : currentLevel) {
-                if ((order.getAuctionCounter() == auctionCounter) && (order.getSize() > sizes[i])) {
-                    sizes[i] += 1;
-                    changeCounter = false;
-                    if (--j == 0) {
+                if (order.getAuctionCounter() == auctionCounter) {
+                    if (order.getSize() > sizes[i]) {
+                        sizes[i] += 1;
+                        changeCounter = false;
+                        if (--j == 0) {
+                            break;
+                        }
+                    } else {
+                        // orders with the same auction counter are ordered by size
                         break;
                     }
                 } else if (order.getAuctionCounter() < auctionCounter) {
