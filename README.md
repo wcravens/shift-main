@@ -18,7 +18,7 @@ These are required in order to install all tools and libraries contained in this
 
 ### Ubuntu:
 
-- In the Terminal: `sudo apt-get install autoconf automake build-essential libtool`
+- In the Terminal: `sudo apt-get install autoconf automake bc build-essential libtool`
 
 ### macOS:
 
@@ -86,6 +86,7 @@ Once downloaded, open Visual Studio Code, and install the following extensions:
 | ------------------------------ |
 | `C/C++`                        |
 | `C/C++ Themes` **\***          |
+| `calc` **\***                  |
 | `CMake`                        |
 | `CMake Tools`                  |
 | `CodeLLDB`                     |
