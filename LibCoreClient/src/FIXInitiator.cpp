@@ -78,12 +78,12 @@ FIXInitiator::FIXInitiator()
  */
 FIXInitiator::~FIXInitiator() // override
 {
+    disconnectBrokerageCenter();
+
     {
         std::lock_guard<std::mutex> guard(m_mtxClientByUserID);
         m_clientByUserID.clear();
     }
-
-    disconnectBrokerageCenter();
 }
 
 /**
