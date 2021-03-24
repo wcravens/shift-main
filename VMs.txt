@@ -2,7 +2,7 @@
 Web Demo        155.246.104.55      16 / 16         100GB       Ubuntu 18.04    FSCSHIFT05          1
 Offline         155.246.104.93      16 / 16         100GB       Ubuntu 18.04    FSCSHIFT02          1
 Offline         155.246.104.31      16 / 16         100GB       Ubuntu 18.04    FSCSHIFT03          1
-Competition     155.246.104.25      16 / 16         300GB       Ubuntu 18.04    FSCRESEARCHVM29     1
+Competition     155.246.104.26      16 / 16         300GB       Ubuntu 18.04    FSCRESEARCHVM29     1
 Lecture         155.246.104.29      16 / 16         100GB       Ubuntu 18.04    FSCSHIFT06          1
                 155.246.104.26      16 / 16         100GB       Ubuntu 18.04                        1
 Research        155.246.104.32      16 / 32         100GB       Ubuntu 18.04    FSCSHIFT04          1
