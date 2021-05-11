@@ -1,10 +1,11 @@
 #pragma once
 
-#include <QObject>
-#include <QStringList>
 #include <map>
 #include <string>
 #include <thread>
+
+#include <QObject>
+#include <QStringList>
 
 // LibCoreClient
 #include <CoreClient.h>

@@ -1,8 +1,12 @@
 #pragma once
 
 #include "global.h"
+
 #include "include/CandlestickChart/candledataset.h"
 #include "include/CandlestickChart/candleplotpicker.h"
+
+#include <QMap>
+#include <QStringListModel>
 
 // QWT
 #include <qwt_date_scale_draw.h>
@@ -12,9 +16,6 @@
 #include <qwt_plot_marker.h>
 #include <qwt_plot_tradingcurve.h>
 #include <qwt_series_data.h>
-
-#include <QMap>
-#include <QStringListModel>
 
 class DateScaleDraw;
 class CandlePlot;

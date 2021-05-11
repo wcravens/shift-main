@@ -3,13 +3,14 @@
 
 #include "include/qtcoreclient.h"
 
-#include "qwt_scale_widget.h"
-
 #include <QDateTime>
 #include <QDebug>
 #include <QMessageBox>
 #include <QRegExp>
 #include <QTimeZone>
+
+// QWT
+#include "qwt_scale_widget.h"
 
 ChartDialog::ChartDialog(QWidget* parent)
     : QDialog(parent)

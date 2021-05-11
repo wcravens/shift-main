@@ -1,9 +1,9 @@
 #include "include/CandlestickChart/candleplotpicker.h"
 
+#include <QDateTime>
+
 // QWT
 #include <qwt_series_data.h>
-
-#include <QDateTime>
 
 /*
  * @brief This function is used to update/set the data_set for current

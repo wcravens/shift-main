@@ -1,6 +1,7 @@
 #pragma once
 
 #include "global.h"
+
 #include "include/orderbookmodel.h"
 #include "include/qtcoreclient.h"
 #include "include/stocklistfiltermodel.h"

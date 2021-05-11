@@ -1,5 +1,6 @@
 #pragma once
 
+// QWT
 #include <qwt_plot_picker.h>
 
 class NavPicker : public QwtPlotPicker {

@@ -2,9 +2,10 @@
 
 #include "include/CandlestickChart/candleplot.h"
 
-#include <qwt_picker_machine.h>
-
 #include <QDateTime>
+
+// QWT
+#include <qwt_picker_machine.h>
 
 /**
  * @brief A brief class to customize the QwtDateScaleDraw to show dates/time on the x-axis

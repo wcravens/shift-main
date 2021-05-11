@@ -1,9 +1,10 @@
 #pragma once
 
-// QWT
 #include <QMutex>
 #include <QMutexLocker>
 #include <QString>
+
+// QWT
 #include <qwt_series_data.h>
 
 /**

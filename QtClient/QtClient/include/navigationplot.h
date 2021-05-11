@@ -2,6 +2,11 @@
 
 #include "include/navpicker.h"
 
+#include <QMouseEvent>
+#include <QPointF>
+#include <QRubberBand>
+
+// QWT
 #include <qwt_date_scale_draw.h>
 #include <qwt_date_scale_engine.h>
 #include <qwt_plot.h>
@@ -9,10 +14,6 @@
 #include <qwt_plot_grid.h>
 #include <qwt_plot_marker.h>
 #include <qwt_plot_picker.h>
-
-#include <QMouseEvent>
-#include <QPointF>
-#include <QRubberBand>
 
 class NavigationPlot : public QwtPlot {
     Q_OBJECT

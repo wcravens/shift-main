@@ -1,12 +1,14 @@
 #pragma once
 
+#include "global.h"
+
 #include <QAbstractTableModel>
 #include <QMutex>
 #include <QTimer>
 #include <QVariant>
 #include <QVector>
 
-#include "global.h"
+// LibCoreClient
 #include <PortfolioSummary.h>
 
 /**
