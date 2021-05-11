@@ -9,7 +9,7 @@
 #include <thread>
 #include <unordered_map>
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <terminal/Common.h>
 #else
 #include <shift/miscutils/terminal/Common.h>

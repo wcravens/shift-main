@@ -29,7 +29,7 @@ Encryptor::Encryptor()
 
 Encryptor::~Encryptor() = default;
 
-Encryptor::operator std::istream &()
+Encryptor::operator std::istream&()
 {
     return m_impl->get();
 }

@@ -265,8 +265,8 @@ auto PSQL::insertTradeAndQuoteRecords(std::string csvName, std::string tableName
                 const auto timeTailPos = bGMTUTC
                     ? cell.rfind('Z')
                     : (cell.substr(cell.rfind(':') + 1).rfind('-') != std::string::npos) // ensure there is '-' in the non-date parts for rfind('-')
-                        ? cell.rfind('-') // expect "-XX"
-                        : cell.rfind('+'); // expect "+XX"
+                    ? cell.rfind('-') // expect "-XX"
+                    : cell.rfind('+'); // expect "+XX"
 
                 // reuters date
                 pqQuery += '\'';

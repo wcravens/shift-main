@@ -2,7 +2,7 @@
 
 #include "strategies/StrategyCreator.h"
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <terminal/Common.h>
 #else
 #include <shift/miscutils/terminal/Common.h>

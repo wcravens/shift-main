@@ -18,7 +18,7 @@ public:
 
     ~Decryptor();
 
-    operator std::istream &(); ///> Enable the object transfers decrypted results as an input stream later on. E.g. dec_obj >> str;.
+    operator std::istream&(); ///> Enable the object transfers decrypted results as an input stream later on. E.g. dec_obj >> str;.
 
     friend auto operator>>(std::istream& is, Decryptor& dec) -> std::istream&; ///> Input stream operator >> overloading for Decryptor.
     friend auto operator<<(std::ostream& os, Decryptor& dec) -> std::ostream&; ///> Output stream operator << overloading for Decryptor.

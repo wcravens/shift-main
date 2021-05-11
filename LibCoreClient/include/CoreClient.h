@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #pragma comment(lib, "ws2_32.lib")
 #endif
 
@@ -117,12 +117,12 @@ protected:
     void storeWaitingList(std::vector<Order>&& waitingList);
 
     // FIXInitiator callback methods
-    virtual void receiveLastPrice(const std::string& symbol) {}
-    virtual void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) {}
-    virtual void receiveExecution(const std::string& orderID) {}
-    virtual void receivePortfolioSummary() {}
-    virtual void receivePortfolioItem(const std::string& symbol) {}
-    virtual void receiveWaitingList() {}
+    virtual void receiveLastPrice(const std::string& symbol) { }
+    virtual void receiveCandlestickData(const std::string& symbol, double open, double high, double low, double close, const std::string& timestamp) { }
+    virtual void receiveExecution(const std::string& orderID) { }
+    virtual void receivePortfolioSummary() { }
+    virtual void receivePortfolioItem(const std::string& symbol) { }
+    virtual void receiveWaitingList() { }
 
     // sample prices
     void calculateSamplePrices(std::vector<std::string> symbols, double samplingFrequencyS, unsigned int samplingWindow);

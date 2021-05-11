@@ -7,12 +7,6 @@
 #include <shift/miscutils/concurrency/Consumer.h>
 #include <shift/miscutils/terminal/Common.h>
 
-#ifdef DEBUG
-#define __PRE_CONDITION__(ASSERT_EXPR) assert(ASSERT_EXPR)
-#else
-#define __PRE_CONDITION__(ASSERT_EXPR)
-#endif
-
 /**
  * @brief Constructs a Requests Processor for one unique target.
  * @param targetID: The ID that uniquely identifies the target sending the requests.
@@ -271,5 +265,3 @@ void RequestsProcessorPerTarget::processRequests()
 
     lastMarketRequestPtr->updateStartTime(sendTo);
 }
-
-#undef __PRE_CONDITION__

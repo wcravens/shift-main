@@ -5,7 +5,7 @@
 #include <chrono>
 #include <string>
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <crossguid/Guid.h>
 #else
 #include <shift/miscutils/crossguid/Guid.h>

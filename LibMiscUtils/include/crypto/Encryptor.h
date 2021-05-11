@@ -18,7 +18,7 @@ public:
 
     ~Encryptor();
 
-    operator std::istream &(); ///> Enable the object transfers encrypted results as an input stream later on. E.g. enc_obj >> str;.
+    operator std::istream&(); ///> Enable the object transfers encrypted results as an input stream later on. E.g. enc_obj >> str;.
 
     friend auto operator>>(std::istream& is, Encryptor& enc) -> std::istream&; ///> Input stream operator >> overloading for Encryptor.
     friend auto operator<<(std::ostream& os, Encryptor& enc) -> std::ostream&; ///> Output stream operator << overloading for Encryptor.

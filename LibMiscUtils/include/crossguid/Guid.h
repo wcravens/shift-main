@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #pragma once
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #pragma comment(lib, "ole32.lib")
 #endif
 

@@ -21,7 +21,7 @@
 #include <quickfix/FieldConvertors.h>
 #include <quickfix/FieldTypes.h>
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <Common.h>
 #include <crypto/Encryptor.h>
 #include <fix/HelperFunctions.h>

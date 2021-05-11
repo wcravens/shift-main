@@ -4,14 +4,11 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
+
 #include "shift_service_constants.h"
-
-
 
 const shift_serviceConstants g_shift_service_constants;
 
-shift_serviceConstants::shift_serviceConstants() {
+shift_serviceConstants::shift_serviceConstants()
+{
 }
-
-
-

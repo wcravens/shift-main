@@ -25,16 +25,16 @@ THE SOFTWARE.
 #include "crossguid/Guid.h"
 #include <cstring>
 
-#ifdef __linux__
+#if defined(__linux__)
 #include <uuid/uuid.h>
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__)
 #include <CoreFoundation/CFUUID.h>
 #endif
 
-// #ifdef GUID_WINDOWS
-#ifdef _WIN32
+// #if defined(GUID_WINDOWS)
+#if defined(_WIN32)
 #include <objbase.h>
 #endif
 
@@ -251,7 +251,7 @@ void Guid::swap(Guid& other)
 
 // this is the linux friendly implementation, but it could work on other
 // systems that have libuuid available
-#ifdef __linux__
+#if defined(__linux__)
 Guid newGuid()
 {
     uuid_t id;
@@ -261,7 +261,7 @@ Guid newGuid()
 #endif
 
 // this is the mac and ios version
-#ifdef __APPLE__
+#if defined(__APPLE__)
 auto newGuid() -> Guid
 {
     const auto* newId = CFUUIDCreate(nullptr);
@@ -291,8 +291,8 @@ auto newGuid() -> Guid
 #endif
 
 // obviously this is the windows version
-// #ifdef GUID_WINDOWS
-#ifdef _WIN32
+// #if defined(GUID_WINDOWS)
+#if defined(_WIN32)
 auto newGuid() -> Guid
 {
     GUID newId;

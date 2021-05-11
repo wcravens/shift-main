@@ -22,7 +22,7 @@ Decryptor::Decryptor(std::string cryptoKey)
 
 Decryptor::~Decryptor() = default;
 
-Decryptor::operator std::istream &()
+Decryptor::operator std::istream&()
 {
     return m_impl->get();
 }
