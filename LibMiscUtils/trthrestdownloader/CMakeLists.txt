@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 
 ### Compiler Flags #############################################################
 
-# Clang (macOS Catalina 10.15)
+# Clang (macOS 11 Big Sur)
 if(APPLE)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
     include_directories(/usr/local/opt/openssl/include)

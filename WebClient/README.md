@@ -34,7 +34,7 @@ cd build
 
 # Ubuntu:
 cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-# Raspbian:
+# Raspberry Pi OS:
 cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -lboost_atomic" -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 
 make
@@ -71,7 +71,7 @@ sudo make install
 sudo apt-get install php7.2-cli php7.2-fpm php-zmq
 # Ubuntu 20.04:
 sudo apt-get install php7.4-cli php7.4-fpm php-zmq
-# Raspbian:
+# Raspberry Pi OS:
 sudo apt-get install php7.3-cli php7.3-fpm php-zmq
 ```
 
@@ -110,7 +110,7 @@ location ~ \.php {
 
 **\*** In Ubuntu 20.04: `fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;`.
 
-**\*** In Raspbian: `fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;`.
+**\*** In Raspberry Pi OS: `fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;`.
 
 Remove the default Nginx site information and create one for SHIFT:
 

@@ -82,8 +82,7 @@ void Market::sendOrderBookData(const std::string& targetID /* = "" */, bool incl
     // spinlock implementation:
     // it is better than a standard lock in this scenario, since
     // this function will only be executed a couple of times during a simulation
-    while (m_spinlock.test_and_set()) {
-    }
+    std::lock_guard<shift::concurrency::Spinlock> guard(m_spinlock);
 
     // requirements:
     // - the first order book entry must have a price <= 0.0. This will signal the BC it
@@ -139,8 +138,6 @@ void Market::sendOrderBookData(const std::string& targetID /* = "" */, bool incl
 
     FIXAcceptor::getInstance().sendOrderBook(localBids, targetID);
     FIXAcceptor::getInstance().sendOrderBook(localAsks, targetID);
-
-    m_spinlock.clear();
 }
 
 void Market::bufNewGlobalOrder(Order&& newOrder)

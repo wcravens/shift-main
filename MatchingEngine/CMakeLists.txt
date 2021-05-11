@@ -37,7 +37,7 @@ set(INCLUDE
     ${PROJECT_SOURCE_DIR}/include/markets/MarketCreator.h
     ${PROJECT_SOURCE_DIR}/include/markets/MarketFactory.h
     ${PROJECT_SOURCE_DIR}/include/markets/PriceLevel.h
-    ${PROJECT_SOURCE_DIR}/include/configFunctions.h
+    ${PROJECT_SOURCE_DIR}/include/ConfigFunctions.h
     ${PROJECT_SOURCE_DIR}/include/ExecutionReport.h
     ${PROJECT_SOURCE_DIR}/include/FIXAcceptor.h
     ${PROJECT_SOURCE_DIR}/include/FIXInitiator.h
@@ -54,7 +54,7 @@ set(SRC
     ${PROJECT_SOURCE_DIR}/src/markets/Market.cpp
     ${PROJECT_SOURCE_DIR}/src/markets/MarketFactory.cpp
     ${PROJECT_SOURCE_DIR}/src/markets/PriceLevel.cpp
-    ${PROJECT_SOURCE_DIR}/src/configFunctions.cpp
+    ${PROJECT_SOURCE_DIR}/src/ConfigFunctions.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXAcceptor.cpp
     ${PROJECT_SOURCE_DIR}/src/FIXInitiator.cpp
     ${PROJECT_SOURCE_DIR}/src/main.cpp
@@ -72,7 +72,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_definitions("-DHAVE_STD_UNIQUE_PTR=1") # QuickFIX C++17 compatibility req.
 
 # Common Flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fexceptions -pedantic-errors")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -fexceptions")
 
 # Debug Flags
 set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
@@ -88,13 +88,13 @@ if(UNIX AND NOT APPLE)
     include_directories(/usr/include/postgresql)
 endif(UNIX AND NOT APPLE)
 
-# GCC (Raspbian Buster for Raspberry Pi 4)
+# GCC (Raspberry Pi OS)
 # Ubuntu rules apply here as well
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_BOOST_ATOMIC_COUNT")
 endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7l")
 
-# Clang (macOS Catalina 10.15)
+# Clang (macOS 11 Big Sur)
 # -Wno-overloaded-virtual is required when linking QuickFIX on macOS
 if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")

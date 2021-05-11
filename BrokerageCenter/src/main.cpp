@@ -122,6 +122,11 @@ auto main(int argc, char** argv) -> int
             0,
         },
         false,
+        {
+            "",
+            "",
+            std::vector<std::string> {},
+        },
     };
 
     po::options_description desc("\nUSAGE: ./BrokerageCenter [options] <args>\n\n\tThis is the BrokerageCenter.\n\tThe server connects with MatchingEngine and client instances and runs in background.\n\nOPTIONS");

@@ -43,8 +43,7 @@ ContinuousStockMarket::ContinuousStockMarket(const market_creator_parameters_t& 
         // spinlock implementation:
         // it is better than a standard lock in this scenario, since,
         // most of the time, only this thread needs access to order book data
-        while (m_spinlock.test_and_set()) {
-        }
+        std::lock_guard<shift::concurrency::Spinlock> guard(m_spinlock);
 
         switch (nextOrder.getType()) {
 
@@ -152,8 +151,6 @@ ContinuousStockMarket::ContinuousStockMarket(const market_creator_parameters_t& 
         sendExecutionReports();
 
         sendOrderBookUpdates();
-
-        m_spinlock.clear();
     }
 }
 

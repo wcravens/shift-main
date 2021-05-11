@@ -1,8 +1,8 @@
+#include "ConfigFunctions.h"
 #include "FIXAcceptor.h"
 #include "FIXInitiator.h"
 #include "Parameters.h"
 #include "TimeSetting.h"
-#include "configFunctions.h"
 #include "markets/Market.h"
 #include "markets/MarketFactory.h"
 

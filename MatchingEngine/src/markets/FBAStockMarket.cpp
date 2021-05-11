@@ -58,26 +58,25 @@ auto FBAStockMarket::getNextBatchAuction() const -> double
             m_nextBatchAuctionMS += m_batchFrequencyMS;
             cout << "FBA: " << simulationMS << "ms" << endl;
 
-            // spinlock implementation:
-            // it is better than a standard lock in this scenario, since,
-            // most of the time, only this thread needs access to order book data
-            while (m_spinlock.test_and_set()) {
+            {
+                // spinlock implementation:
+                // it is better than a standard lock in this scenario, since,
+                // most of the time, only this thread needs access to order book data
+                std::lock_guard<shift::concurrency::Spinlock> guard(m_spinlock);
+
+                // for debugging:
+                // displayGlobalOrderBooks();
+                // displayLocalOrderBooks();
+
+                doBatchAuction();
+                doIncrementAuctionCounters();
+
+                // for debugging:
+                // displayGlobalOrderBooks();
+                // displayLocalOrderBooks();
+
+                sendExecutionReports();
             }
-
-            // for debugging:
-            // displayGlobalOrderBooks();
-            // displayLocalOrderBooks();
-
-            doBatchAuction();
-            doIncrementAuctionCounters();
-
-            // for debugging:
-            // displayGlobalOrderBooks();
-            // displayLocalOrderBooks();
-
-            sendExecutionReports();
-
-            m_spinlock.clear();
 
             sendOrderBookData("", false, ::FBA_ORDER_BOOK_MAX_LEVEL); // uses m_spinlock
 
@@ -93,8 +92,7 @@ auto FBAStockMarket::getNextBatchAuction() const -> double
         // spinlock implementation:
         // it is better than a standard lock in this scenario, since,
         // most of the time, only this thread needs access to order book data
-        while (m_spinlock.test_and_set()) {
-        }
+        std::lock_guard<shift::concurrency::Spinlock> guard(m_spinlock);
 
         switch (nextOrder.getType()) {
 
@@ -156,8 +154,6 @@ auto FBAStockMarket::getNextBatchAuction() const -> double
 
         // FBA: changes to the order book during the order submission stage should not be broadcasted
         // sendOrderBookUpdates();
-
-        m_spinlock.clear();
     }
 }
 

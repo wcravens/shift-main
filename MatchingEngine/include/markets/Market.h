@@ -16,6 +16,8 @@
 
 #include <quickfix/FieldTypes.h>
 
+#include <shift/miscutils/concurrency/Spinlock.h>
+
 namespace markets {
 
 class Market {
@@ -39,7 +41,7 @@ public:
 
 protected:
     std::string m_symbol;
-    std::atomic_flag m_spinlock = ATOMIC_FLAG_INIT;
+    shift::concurrency::Spinlock m_spinlock;
 
     // buffer new quotes & trades received from DE
     mutable std::mutex m_mtxNewGlobalOrders;
